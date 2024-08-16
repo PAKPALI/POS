@@ -14,7 +14,7 @@ use App\Http\Controllers\Component\CategoryController;
 |
 */
 
-Route::get('/', function () {
+Route::get('/a', function () {
     return view('dashboard');
 });
 
