@@ -39,13 +39,19 @@
                                             </div>
                                             
                                             <!-- loader -->
-                                            <div id="add_loader" class="text-center">
-                                                <img class="animation__shake" src="{{asset('img/trimax.gif')}}" alt="TRIMAX_Logo"
-                                                    height="70" width="70">
-                                            </div>
+                                            <!-- <div id="loader" class="text-center mt-2">
+                                                <div class="spinner-border text-light text-right" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div> -->
                                         </div>
-                                        <div class="card-footer">
-                                            <button type="submit" class="btn btn-primary">Valider</button>
+                                        <div class="card-footer mt-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                <div id="loader" class="spinner-border text-light" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <div id="submitText">Valider</div>
+                                            </button>
                                         </div>
                                     </form>
                                     </div>
@@ -119,7 +125,7 @@
     <script>
     $(function() {
         //Bootstrap Duallistbox
-        $('#add_loader').fadeOut();
+        $('#loader').fadeOut();
 
         var class_list = $('#class_list').DataTable({
             processing: true,
@@ -132,7 +138,6 @@
                 // {data: 'created_at',name: 'created_at'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ],
-
             drawCallback: function() {
                 $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
                 $('#class_list').css('width','100%');
