@@ -10,8 +10,10 @@
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet">
-		
-		@stack('css-scripts')
+		<!-- DataTables CSS -->
+		<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+		 <!--link j-query-->
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 		<!-- <style>
 			.chj{
 				color: white;
@@ -243,6 +245,8 @@
 		</script>
 		<script src="{{asset('cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js')}}" data-cf-settings="9763b948d984f4be9ade72e9-|49" defer></script>
 		<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"8a3d40de7d4c8877","version":"2024.6.1","r":1,"serverTiming":{"name":{"cfL4":true}},"token":"4db8c6ef997743fda032d4f73cfeff63","b":1}' crossorigin="anonymous"></script>
-		@stack('css-scripts')
+		<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+		<!-- DataTables JS -->
+		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 	</body>
 </html>

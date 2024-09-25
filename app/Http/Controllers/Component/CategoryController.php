@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Component;
 
-use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -14,20 +18,20 @@ class CategoryController extends Controller
     {
         return view('component.category.index');
         // composer require yajra/laravel-datatables-oracle
-        // $Student = Student::where('classrooms_id', $classroom_id)->get();
-        // if(request()->ajax()){
-        //     // $Student = Student::all();
-        //     return DataTables::of($Student)
-        //         ->addIndexColumn()
-        //         ->addColumn('action', function($row){
-        //             $btn = '<a href="javascript:void(0)" data-toggle="modal" data-target="#modal-update"  data-id="'.$row->id.'" data-original-title="Edit" class="btn btn-warning btn-sm editStudent">M</a>'.
-        //             $btn = ' <a data-id="'.$row->id.'" data-name="'.$row->fullName().'" data-original-title="Edit" class="btn btn-dark btn-sm absent">AB?</a>'.
-        //             $btn = ' <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive">AC?</a>';
-        //             return $btn;
-        //         })
-        //         ->rawColumns(['action'])
-        //         ->make(true);
-        // }
+        $Category = Category::all();
+        if(request()->ajax()){
+            // $Student = Student::all();
+            return DataTables::of($Category)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    // $btn = '<a href="javascript:void(0)" data-toggle="modal" data-target="#modal-update"  data-id="'.$row->id.'" data-original-title="Edit" class="btn btn-warning btn-sm editStudent">M</a>'.
+                    // $btn = ' <a data-id="'.$row->id.'" data-name="'.$row->fullName().'" data-original-title="Edit" class="btn btn-dark btn-sm absent">AB?</a>'.
+                    // $btn = ' <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive">AC?</a>';
+                    // return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
     }
 
     /**
@@ -43,7 +47,35 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $error_messages = [
+            "name.required" => "Remplir le champ Nom!",
+        ];
+
+        $validator = Validator::make($request->all(),[
+            'name' => ['required'],
+        ], $error_messages);
+
+        if($validator->fails())
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "AJOUT ECHOUE",
+                "msg" => $validator->errors()->first()
+            ]);
+
+            Category::create([
+                'name' => $request-> name,
+                // 'created_by' => Auth::user()->id,
+                'created_by' => 1,
+            ]);
+
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "AJOUT REUSSI",
+                "msg" => "La catégorie au nom de ".$request-> name." a bien été ajoutée"
+            ]);
     }
 
     /**
