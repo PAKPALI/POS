@@ -1,8 +1,15 @@
 @extends('layouts.layout')
 @push('css-scripts')
-<link href="{{asset('hub/assets/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css')}}" rel="stylesheet">
-<link href="{{asset('hub/assets/plugins/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css')}}" rel="stylesheet">
-<link href="{{asset('hub/assets/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css')}}" rel="stylesheet">
+
+<style>
+    #datatable tbody tr {
+        background-color: #f0f0f0;
+    }
+    #datatable tbody tr:hover {
+        background-color: #e0e0e0;
+    }
+</style>
+
 @endpush
 
 @section('content')
@@ -20,8 +27,8 @@
                         </h1>
                         <hr class="mb-4">
                         <div class="modal modal-cover fade" id="addmodal">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
+                            <div class="modal-dialog ">
+                                <div class="modal-content bg-dark">
                                     <div class="modal-header">
                                         <h3 class="modal-title">Ajouter catégorie</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -49,13 +56,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="datatable" class="mb-5">
+                        <div id="" class="mb-5">
                             <h4>Listes des catégories</h4>
                             <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addmodal">Ajouter</button>
                             <!-- <p>DataTables is a plug-in for the jQuery Javascript library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table. Please read the <a href="https://datatables.net/" target="_blank">official documentation</a> for the full list of options.</p> -->
                             <div class="card">
                                 <div class="card-body">
-                                    <table id="d" class="table text-nowrap w-100">
+                                    <table id="datatable" class="table text-nowrap w-100">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -82,14 +89,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-2">
+                    {{-- <div class="col-xl-2">
                         <nav id="sidebar-bootstrap" class="navbar navbar-sticky d-none d-xl-block">
                             <nav class="nav">
                                 <a class="nav-link text-danger" href="#datatable" data-toggle="scroll-to"><strong> Lux Grill</strong></a>
                                 <!-- <a class="nav-link text-danger" href="#bootstrapTable" data-toggle="scroll-to">GRILL</a> -->
                             </nav>
                         </nav>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
@@ -114,7 +121,7 @@
             // hide loader
             $('#loader').hide();
 
-            var Category = $('#d').DataTable({
+            var Datatable = $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('category.index')}}",
@@ -125,9 +132,50 @@
                     {data: 'created_at',name: 'created_at'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
+                responsive: true, 
+                language: {
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucune donnée disponible",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
+                    "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
+                },
+                
                 drawCallback: function() {
                     $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                    $('#class_list').css('width','100%');
+                    $('#datatable').css('width','100%');
+                    $('#datatable tbody tr').each(function() {
+                        $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
+                        $(this).css('color', 'white');
+                    });
+                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
+                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
+                    $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
+                    $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+
+                    // Appliquer la couleur blanche au texte des labels
+                    $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
+                    $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
+                    
+                    // Appliquer les styles pour le dropdown et le champ de recherche
+                    $('.dataTables_length select').css({
+                        'background-color': 'black', // Fond noir
+                        'color': 'white' // Texte en blanc
+                    });
+
+                    $('.dataTables_filter input').css({
+                        'background-color': 'black', // Fond noir
+                        'color': 'white' // Texte en blanc
+                    });
+                    $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
+                    $('#datatable').css('width', '100%');
                 },
             });
 
@@ -146,20 +194,24 @@
                         if (data.status) {
                             $('#loader').hide();
                             Swal.fire({
+                                toast: true,
+                                position: 'top',
                                 icon: "success",
                                 title: data.title,
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
                                 text: data.msg,
-                            }).then(() => {
-                                $('#addModal').hide();
-                                category.draw();
-                            })
+                            });
                             // $.toast({
                             //     heading: 'Succès',
-                            //     text: data.message,
+                            //     text: data.msg,
                             //     showHideTransition: 'slide',
                             //     icon: 'success',
                             //     position: 'top-center',
                             // })
+                            $('#addModal').hide();
+                            Datatable.draw();
                         } else {
                             $('#loader').fadeOut();
                             Swal.fire({

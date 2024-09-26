@@ -16,22 +16,26 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return view('component.category.index');
+        
         // composer require yajra/laravel-datatables-oracle
-        $Category = Category::all();
+        $Category = Category::latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Category)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    // $btn = '<a href="javascript:void(0)" data-toggle="modal" data-target="#modal-update"  data-id="'.$row->id.'" data-original-title="Edit" class="btn btn-warning btn-sm editStudent">M</a>'.
-                    // $btn = ' <a data-id="'.$row->id.'" data-name="'.$row->fullName().'" data-original-title="Edit" class="btn btn-dark btn-sm absent">AB?</a>'.
-                    // $btn = ' <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive">AC?</a>';
-                    // return $btn;
+                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Edit" class="btn btn-dark btn-sm absent"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                   <a href="javascript:void(0)" data-toggle="modal" data-target="#modal-update"  data-id="'.$row->id.'" data-original-title="Edit" class="btn btn-warning btn-sm editStudent"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                    <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    return $btn;
+                })
+                ->editColumn('created_at', function ($Category) {
+                    return $Category->created_at->format('d-m-Y H:i:s');
                 })
                 ->rawColumns(['action'])
                 ->make(true);
         }
+        return view('component.category.index');
     }
 
     /**
@@ -63,11 +67,11 @@ class CategoryController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            Category::create([
-                'name' => $request-> name,
-                // 'created_by' => Auth::user()->id,
-                'created_by' => 1,
-            ]);
+            // Category::create([
+            //     'name' => $request-> name,
+            //     // 'created_by' => Auth::user()->id,
+            //     'created_by' => 1,
+            // ]);
 
             return response()->json([
                 "status" => true,
