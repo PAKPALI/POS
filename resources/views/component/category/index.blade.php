@@ -1,6 +1,5 @@
 @extends('layouts.layout')
 @push('css-scripts')
-
 <style>
     #datatable tbody tr {
         background-color: #f0f0f0;
@@ -9,7 +8,6 @@
         background-color: #e0e0e0;
     }
 </style>
-
 @endpush
 
 @section('content')
@@ -26,9 +24,10 @@
                             CATEGORIES
                         </h1>
                         <hr class="mb-4">
+                        <!-- add modal -->
                         <div class="modal modal-cover fade" id="addmodal">
                             <div class="modal-dialog ">
-                                <div class="modal-content bg-dark">
+                                <div class="modal-content">
                                     <div class="modal-header">
                                         <h3 class="modal-title">Ajouter catégorie</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -45,13 +44,28 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="card-footer mt-3">
+                                        <div class="card-footer mt-4">
                                             <button type="submit" class="btn btn-primary">
-                                                <div id="loader" class="spinner-border text-light" role="status"></div>
+                                                <div class="loader" class="spinner-border text-light" role="status"></div>
                                                 <div id="submitText">Valider</div>
                                             </button>
                                         </div>
                                     </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- update modal -->
+                        <div class="modal modal-cover fade" id="editModal">
+                            <div class="modal-dialog ">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title text-warning ">Modifier catégorie</h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="edit_response"></div>
                                     </div>
                                 </div>
                             </div>
@@ -119,7 +133,8 @@
     <script>
         $(function() {
             // hide loader
-            $('#loader').hide();
+            $('.loader').hide();
+            $('.pre_loader').hide();
 
             var Datatable = $('#datatable').DataTable({
                 processing: true,
@@ -203,13 +218,6 @@
                                 timerProgressBar: true,
                                 text: data.msg,
                             });
-                            // $.toast({
-                            //     heading: 'Succès',
-                            //     text: data.msg,
-                            //     showHideTransition: 'slide',
-                            //     icon: 'success',
-                            //     position: 'top-center',
-                            // })
                             $('#addModal').hide();
                             Datatable.draw();
                         } else {
@@ -237,20 +245,17 @@
                 return false;
             });
 
-            $('body').on('click', '.editUser', function (e) {
-                $('#update_loader').fadeOut();
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data('id');
-                $('#edit_response').empty();
+            $('body').on('click', '.editModal', function () {
+                var id = $(this).data("id");
                 $.ajax({
-                    url:'classroom/edit/'+id,
+                    url:'{{url('component/category')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {
                         $('#edit_response').html(result);
                     }
                 });
-                $('#modal-update').modal('show');
+                $('#editModal').modal('show');
             });
 
             $('body').on('click', '.viewUser', function (e) {
