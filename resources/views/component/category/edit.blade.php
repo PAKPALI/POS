@@ -39,8 +39,8 @@
                 success: function(data) {
                     if (data.status) {
                         console.log(data)
-                        $('#datatable').DataTable().ajax.reload(null, true);
-                        $('#submit').html('Modifier');
+                        // $('#datatable').DataTable().ajax.reload(null, true);
+                        // $('#submit').html('Modifier');
                         $('#editModal').modal('hide');
                         Swal.fire({
                             toast: true,
@@ -54,7 +54,6 @@
                         });
                         
                     } else {
-                        
                         Swal.fire({
                             toast: true,
                             position: 'top',

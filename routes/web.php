@@ -14,9 +14,9 @@ use App\Http\Controllers\Component\CategoryController;
 |
 */
 
-Route::get('/a', function () {
-    return view('dashboard');
-});
+Route::get('admin_register', function () {
+    return view('admin/register');
+})->name('admin.register');
 
 // manage stock
 Route::prefix('component')->group(function () {
