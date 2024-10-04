@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Component\CategoryController;
 
 /*
@@ -14,11 +17,28 @@ use App\Http\Controllers\Component\CategoryController;
 |
 */
 
-Route::get('admin_register', function () {
-    return view('admin/register');
-})->name('admin.register');
+/*manage user*/
 
-// manage stock
+Route::prefix('')->group(function () {
+    // register
+    Route::get('', function () {
+        $user = User::where('user_type',2)->count();
+        if($user==0){
+            return view('admin/register');
+        }else{
+            return view('admin/login');
+        }
+    })->name('admin.register');
+
+    // login
+    Route::get('user_login', function () {return view('admin/login');})->name('user_login');
+
+    Route::controller(UserController::class)->group(function () {
+        Route::resource('user', UserController::class);
+    });
+});
+
+/*manage component*/
 Route::prefix('component')->group(function () {
     //category
     Route::controller(CategoryController::class)->group(function () {
@@ -37,3 +57,7 @@ Route::prefix('component')->group(function () {
     //     Route::resource('operation', OperationController::class);
     // });
 });
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
