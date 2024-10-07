@@ -58,7 +58,7 @@
                 $('#loader').fadeIn();
                 $.ajax({
                     type: 'POST',
-                    url: "{{ route('user.store') }}",
+                    url: "{{ route('admin_register') }}",
                     data: $('#form').serialize(),
                     datatype: 'json',
                     success: function (data){

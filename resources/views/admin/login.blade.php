@@ -3,14 +3,15 @@
 @section('content')
     <div class="login">
         <div class="login-content">
-            <form action="https://seantheme.com/hud/index.html" method="POST" name="login_form">
+            <form id="form_login">
+                @csrf
                 <h1 class="text-center">SE CONNECTER</h1>
                 <div class="text-inverse text-opacity-50 text-center mb-4">
                     APP-NAME
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" value
+                    <input type="text" name="email" class="form-control form-control-lg bg-inverse bg-opacity-5" value
                         placeholder>
                 </div>
                 <div class="mb-3">
@@ -18,7 +19,7 @@
                         <label class="form-label">Mot de passe <span class="text-danger">*</span></label>
                         <a href="#" class="ms-auto text-inverse text-decoration-none text-opacity-50">Mot de passe oublié?</a>
                     </div>
-                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" value placeholder>
+                    <input type="password" name="password" class="form-control form-control-lg bg-inverse bg-opacity-5" value placeholder>
                 </div>
                 <!-- <div class="mb-3">
                     <div class="form-check">
@@ -38,14 +39,14 @@
         $(function() {
             $('#loader').hide();
             //ajax pour se connecter
-            $('#form-login').submit(function(){
+            $('#form_login').submit(function(){
                 event.preventDefault();
                 $('#submit').hide();
                 $('#loader').fadeIn();
                 $.ajax({
                     type: 'POST',
                     url: 'login',
-                    data: $('#form-login').serialize(),
+                    data: $('#form_login').serialize(),
                     datatype: 'json',
                     success: function (data){
                         console.log(data)
