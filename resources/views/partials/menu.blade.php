@@ -96,6 +96,12 @@
 			<div class="menu-divider"> </div>
 			<div class="menu-header">UTILISATEURS</div>
 			<div class="menu-item">
+				<a href="{{ route('user.index') }}" class="menu-link">
+					<span class="menu-icon"><i class="bi bi-people"></i></span>
+					<span class="menu-text">Utilisateurs</span>
+				</a>
+			</div>
+			<div class="menu-item">
 				<a href="profile.html" class="menu-link">
 					<span class="menu-icon"><i class="bi bi-people"></i></span>
 					<span class="menu-text">Profil</span>

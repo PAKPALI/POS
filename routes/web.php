@@ -30,7 +30,13 @@ Route::get('', function () {
 })->name('user_verify_auth');
 
 // manage user before auth-login
-Route::get('user_login', function () {return view('admin/login');})->name('user_login');
+Route::get('user_login', function () {
+    if(Auth::user()){
+        return view('dashboard');
+    }else{
+        return view('admin/login');
+    }
+})->name('user_login');
 Route::post('admin_register', [UserController::class, "register"])->name('admin_register');
 
 // manage user after auth-login
