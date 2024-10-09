@@ -40,13 +40,20 @@ Route::get('user_login', function () {
 Route::post('admin_register', [UserController::class, "register"])->name('admin_register');
 
 // manage user after auth-login
-Route::prefix('')->middleware(['auth'])->group(function () {
+Route::prefix('')->middleware(['auth'])->controller(UserController::class)->group(function () {
     //dashboard
     Route::get('dashboard', function () {return view('dashboard');})->name('dashboard');
+    //profil
+    Route::get('profil', function () {return view('user/profile');})->name('profil');
 
     Route::controller(UserController::class)->group(function () {
         Route::resource('user', UserController::class);
     });
+
+    // update email
+    Route::post('updateEmail', 'updateEmail');
+    // update password
+    Route::post('updatePassword', 'updatePassword');
 });
 
 /*manage component*/
@@ -60,3 +67,5 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::post('outUser', [UserController::class, 'outUser'])->name('outUser');

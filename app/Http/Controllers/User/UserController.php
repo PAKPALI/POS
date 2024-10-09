@@ -102,7 +102,6 @@ class UserController extends Controller
                 "title" => "INSCRIPTION DE L'UTILISATEUR REUSSIE!",
                 "msg" => "L'utilisateur '".$request-> name."' , est validé"
             ]);
-            
         }
     }
 
@@ -171,6 +170,133 @@ class UserController extends Controller
         }
     }
 
+    public function updatePassword(Request $request)
+    {
+        $error_messages = [
+            "AM.required" => "Remplir le champ ancien mot de passe!",
+            "NM.required" => "Remplir le champ nouveau mot de passe!",
+            "CM.required" => "Remplir le champ confirmer mot de passe!",
+            "NM.min" => "Le nouveau mot de passe doit comporter au moins 8 caractères!",
+            'NM.regex' => 'Le nouveau mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre.',
+        ];
+
+        $validator = Validator::make($request->all(),[
+            'AM' => ['required'],
+            'NM' => ['required', 'min:8'],
+            'NM' => ['required','min:8','regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',],
+            'CM' => ['required'],
+        ], $error_messages);
+
+        if($validator->fails())
+            return response()->json([
+            "status" => false,
+            "reload" => false,
+            "title" => "TENTATIVE ECHOUEE",
+            "msg" => $validator->errors()->first()]);
+
+        $id = $request-> user_id;
+        $User = User::find($id);
+
+        if(Hash::check($request-> AM, $User-> password)){
+            if($request-> NM == $request-> CM){
+                $search = User::find($id);
+                if($search){
+                    $search -> update([
+                        'password' =>  Hash::make($request-> CM)
+                    ]);
+                    return response()->json([
+                        "status" => true,
+                        "reload" => true,
+                        "redirect_to" => "0",
+                        "title" => "MIS A JOUR REUSSIE",
+                        "msg" => "Mise à jour réussie"
+                    ]);
+                }
+            }else{
+                return response()->json([
+                    "status" => false,
+                    "reload" => false,
+                    "title" => "TENTATIVE ECHOUEE",
+                    "msg" => "Le nouveau mot de passe et la confirmation du mot de passe sont différents"
+                ]);
+            }
+        }else{
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "TENTATIVE ECHOUEE",
+                "msg" => "L'ancien mot de passe saisie ne correspond pas au mot de passe enregistré dans la base de donnée"
+            ]);
+        }
+    }
+
+    public function updateEmail(Request $request)
+    {
+        $error_messages = [
+            "AE.required" => "Remplir le champ ancien email!",
+            "NE.required" => "Remplir le champ nouveau email!",
+            "CE.required" => "Remplir le champ confirmer email!",
+        ];
+
+        $validator = Validator::make($request->all(),[
+            'AE' => ['required'],
+            'NE' => ['required'],
+            'CE' => ['required'],
+        ], $error_messages);
+
+        if($validator->fails())
+            return response()->json([
+            "status" => false,
+            "reload" => false,
+            "title" => "TENTATIVE ECHOUEE",
+            "msg" => $validator->errors()->first()]);
+
+        $id = $request-> user_id;
+        $User = User::find($id);
+        $emailExist = User::where('email',$request-> CE)->get();
+
+        if($request-> AE == $User-> email){
+            if($request-> NE == $request-> CE){
+                if($emailExist!=NULL){
+                    $search = User::find($id);
+                    if($search){
+                        $search -> update([
+                            'email' =>  $request-> CE
+                        ]);
+                        return response()->json([
+                            "status" => true,
+                            "reload" => true,
+                            "redirect_to" => "0",
+                            "title" => "MIS A JOUR DU EMAIL REUSSIE",
+                            "msg" => "Mise à jour réussie"
+                        ]);
+                    }
+                }else{
+                    return response()->json([
+                        "status" => false,
+                        "reload" => false,
+                        "title" => "TENTATIVE ECHOUEE",
+                        "msg" => "Le nouveau email saisi existe déja"
+                    ]);
+                }
+            }else{
+                return response()->json([
+                    "status" => false,
+                    "reload" => false,
+                    "title" => "TENTATIVE ECHOUEE",
+                    "msg" => "Le nouveau email et la confirmation du email sont différents"
+                ]);
+            }
+        }else{
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "TENTATIVE ECHOUEE",
+                "msg" => "L'ancien email saisie ne correspond pas au email enregistré actuelement dans la base de donnée"
+            ]);
+        }
+    }
+
     /**
      * Display the specified resource.
      */
@@ -201,5 +327,20 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function outUser(Request $request)
+    {
+        // Auth::logout($user);
+        $request->session()->invalidate();
+
+        return response()->json([
+            "status" => true,
+            "reload" => true,
+            "redirect_to" => route('user_login'),
+            "title" => "DECONNEXION REUSSIE",
+            'check' => Auth::check(),
+            "msg" => "Au revoir, a bientot"
+        ]);
     }
 }

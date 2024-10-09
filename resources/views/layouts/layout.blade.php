@@ -235,12 +235,10 @@
 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y3Q0VGQKY3" type="9763b948d984f4be9ade72e9-text/javascript"></script>
 		<script type="9763b948d984f4be9ade72e9-text/javascript">
 			window.dataLayer = window.dataLayer || [];
-
 			function gtag() {
 				dataLayer.push(arguments);
 			}
 			gtag('js', new Date());
-
 			gtag('config', 'G-Y3Q0VGQKY3');
 		</script>
 		<script src="{{asset('cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js')}}" data-cf-settings="9763b948d984f4be9ade72e9-|49" defer></script>
@@ -248,5 +246,55 @@
 		<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 		<!-- DataTables JS -->
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+		<script>
+        $(function () {
+            //ajax pour se deconnecter
+            $('#form-logout').submit(function(){ 
+                let chemin = "connexion"
+                event.preventDefault();
+                Swal.fire({
+                    icon: "question",
+                    title: "DECONNEXION",
+                    text: "Etes vous sur de vous deconnecter?",
+                    showCancelButton: true,
+                    cancelButtonText: 'NON',
+                    confirmButtonText:  'OUI',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor:  '#3085d6',
+                }).then((result) => {
+                    if (result.isConfirmed){
+                        $.ajax({
+                            type: 'POST',
+                            url: "{{ route('outUser') }}",
+                            //enctype: 'multipart/form-data',
+                            data: $('#form-logout').serialize(),
+                            datatype: 'json',
+                            success: function (data){
+                                if (data.status)
+                                {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: data.title,
+                                        text: data.msg,
+                                    }).then(() => {
+                                        window.location.replace("{{ route('user_login') }}");
+                                    })
+                                }
+                            },
+                            error: function (data){
+                                console.log(data)
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "erreur",
+                                    timer: 3600,
+                                })
+                            }
+                        });
+                    }
+                })
+            });
+            return false;
+        });
+    </script>
 	</body>
 </html>

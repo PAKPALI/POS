@@ -78,6 +78,17 @@ class LoginController extends Controller
                         'check' => Auth::check(),
                         "msg" => "connexion réussie."
                     ]);
+                }else{
+                    Auth::login($user);
+                    // $request->session()->regenerate();           
+                    return response()->json([
+                        "status" => true,
+                        "reload" => true,
+                        "redirect_to" => route('dashboard'),
+                        "title" => "CONNEXION REUSSIE",
+                        'check' => Auth::check(),
+                        "msg" => "connexion réussie."
+                    ]);
                 }
             }else{
                 return response()->json([

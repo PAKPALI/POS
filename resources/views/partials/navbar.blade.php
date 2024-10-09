@@ -96,14 +96,23 @@
                 </div>
                 <div class="menu-text d-sm-block d-none w-170px">
                     <!-- <span class="__cf_email__"data-cfemail="32474157405c535f57725351515d475c461c515d5f">[email&#160;protected]</span> -->
-                     RABI
+                    {{auth()->user()->name}}
                 </div>
             </a>
             <div class="dropdown-menu dropdown-menu-end me-lg-3 fs-11px mt-1">
-                <a class="dropdown-item d-flex align-items-center" href="profile.html">PROFIL <i class="bi bi-person-circle ms-auto text-theme fs-16px my-n1"></i></a>
+                <a class="dropdown-item d-flex align-items-center" href="{{ route('profil') }}">PROFIL <i class="bi bi-person-circle ms-auto text-theme fs-16px my-n1"></i></a>
                 <a class="dropdown-item d-flex align-items-center" href="settings.html">PARAMETRE<i class="bi bi-gear ms-auto text-theme fs-16px my-n1"></i></a>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item d-flex align-items-center" href="page_login.html">DDECONNEXION<i class="bi bi-toggle-off ms-auto text-theme fs-16px my-n1"></i></a>
+                <form id="form-logout">
+                    @csrf
+                    <!-- <button id="clignotant" class="btn btn-outline-danger btn-pill" title="Cliquez pour se deconnecter" type="submit">
+                        <i class="fas fa-power-off"></i><span></span></a>
+                    </button> -->
+                    <button type="submit" class="dropdown-item d-flex align-items-center">
+                        DECONNEXION<i class="fas fa-power-off ms-auto text-theme fs-16px my-n1"></i>
+                    </button>
+                </form>
+                <!-- <a class="dropdown-item d-flex align-items-center" href="page_login.html">DDECONNEXION<i class="bi bi-toggle-off ms-auto text-theme fs-16px my-n1"></i></a> -->
             </div>
         </div>
     </div>
