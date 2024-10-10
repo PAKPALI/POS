@@ -4,7 +4,7 @@
 		<div class="menu">
 			<div class="menu-header">Accueil</div>
 			<div class="menu-item active">
-				<a href="index.html" class="menu-link">
+				<a href="{{ route('dashboard') }}"class="menu-link">
 					<span class="menu-icon"><i class="bi bi-cpu"></i></span>
 					<span class="menu-text">Tableau de bord</span>
 				</a>

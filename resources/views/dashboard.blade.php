@@ -37,19 +37,14 @@
 
 
     <div class="col-xl-3 col-lg-6">
-
         <div class="card mb-3">
-
             <div class="card-body">
-
                 <div class="d-flex fw-bold small mb-3">
                     <span class="flex-grow-1">STORE SALES</span>
                     <a href="#" data-toggle="card-expand"
                         class="text-inverse text-opacity-50 text-decoration-none"><i
                             class="bi bi-fullscreen"></i></a>
                 </div>
-
-
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
                         <h3 class="mb-0">$35.2K</h3>
@@ -59,16 +54,12 @@
                             data-height="30"></div>
                     </div>
                 </div>
-
-
                 <div class="small text-inverse text-opacity-50 text-truncate">
                     <i class="fa fa-chevron-up fa-fw me-1"></i> 20.4% more than last week<br>
                     <i class="fa fa-shopping-bag fa-fw me-1"></i> 33.5% new orders<br>
                     <i class="fa fa-dollar-sign fa-fw me-1"></i> 6.21% conversion rate
                 </div>
-
             </div>
-
 
             <div class="card-arrow">
                 <div class="card-arrow-top-left"></div>
@@ -76,11 +67,8 @@
                 <div class="card-arrow-bottom-left"></div>
                 <div class="card-arrow-bottom-right"></div>
             </div>
-
         </div>
-
     </div>
-
 
     <div class="col-xl-3 col-lg-6">
 
@@ -502,194 +490,45 @@
 
 
     <div class="col-xl-6">
-
         <div class="card mb-3">
-
             <div class="card-body">
-
                 <div class="d-flex fw-bold small mb-3">
-                    <span class="flex-grow-1">ACTIVITY LOG</span>
+                    <span class="flex-grow-1">ACTIVITES</span>
                     <a href="#" data-toggle="card-expand"
                         class="text-inverse text-opacity-50 text-decoration-none"><i
                             class="bi bi-fullscreen"></i></a>
                 </div>
-
-
                 <div class="table-responsive">
                     <table class="table table-striped table-borderless mb-2px small text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Fonction</th>
+                                <th>Acteur</th>
+                                <th>Action</th>
+                                <th>Creer le</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i class="bi bi-circle-fill fs-6px text-theme me-2"></i>
-                                        You have sold an item - $1,299
-                                    </span>
-                                </td>
-                                <td><small>just now</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block bg-theme text-theme-900 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">PRODUCT</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i
-                                            class="bi bi-circle-fill fs-6px text-inverse-transparent-3 me-2"></i>
-                                        Firewall upgrade
-                                    </span>
-                                </td>
-                                <td><small>1 min ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block text-inverse bg-secondary bg-opacity-25 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">SERVER</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i
-                                            class="bi bi-circle-fill fs-6px text-inverse-transparent-3 me-2"></i>
-                                        Push notification v2.0 installation
-                                    </span>
-                                </td>
-                                <td><small>1 mins ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block text-inverse bg-secondary bg-opacity-25 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">ANDROID</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i class="bi bi-circle-fill fs-6px text-theme me-2"></i>
-                                        New Subscription - 1yr Plan
-                                    </span>
-                                </td>
-                                <td><small>1 min ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block bg-theme text-theme-900 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">SALES</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i
-                                            class="bi bi-circle-fill fs-6px text-inverse text-opacity-25 me-2"></i>
-                                        2 Unread enquiry
-                                    </span>
-                                </td>
-                                <td><small>2 mins ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block text-inverse bg-secondary bg-opacity-25 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">ENQUIRY</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i class="bi bi-circle-fill fs-6px text-theme me-2"></i>
-                                        $30,402 received from Paypal
-                                    </span>
-                                </td>
-                                <td><small>2 mins ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block bg-theme text-theme-900 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">PAYMENT</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i class="bi bi-circle-fill fs-6px text-theme me-2"></i>
-                                        3 payment received
-                                    </span>
-                                </td>
-                                <td><small>5 mins ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block bg-theme text-theme-900 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">PAYMENT</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i
-                                            class="bi bi-circle-fill fs-6px text-inverse text-opacity-25 me-2"></i>
-                                        1 pull request from github
-                                    </span>
-                                </td>
-                                <td><small>5 mins ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block text-inverse bg-secondary bg-opacity-25 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">GITHUB</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i
-                                            class="bi bi-circle-fill fs-6px text-inverse-transparent-3 me-2"></i>
-                                        3 pending invoice to generate
-                                    </span>
-                                </td>
-                                <td><small>5 mins ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block text-inverse bg-secondary bg-opacity-25 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">INVOICE</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-flex align-items-center">
-                                        <i
-                                            class="bi bi-circle-fill fs-6px text-inverse text-opacity-25 me-2"></i>
-                                        2 new message from fb messenger
-                                    </span>
-                                </td>
-                                <td><small>7 mins ago</small></td>
-                                <td>
-                                    <span
-                                        class="badge d-block text-inverse bg-secondary bg-opacity-25 rounded-0 pt-5px w-70px"
-                                        style="min-height: 18px">INBOX</span>
-                                </td>
-                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                            class="bi bi-search"></i></a></td>
-                            </tr>
+                            @foreach ($Action as $action)
+                                <tr>
+                                    <td>
+                                        <span class="d-flex align-items-center">
+                                            <i class="bi bi-circle-fill fs-6px text-theme me-2"></i>
+                                        </span>
+                                    </td>
+                                    <td>{{$action->function}}</td>
+                                    <td><span class="badge d-block bg-theme text-theme-900 rounded-0 pt-5px w-70px"style="min-height: 18px;">
+                                        {{$action->user->name}}</span>
+                                    </td>
+                                    <td>{{$action->text}}</td>
+                                    <td>{{$action->created_at}}</td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
-
             </div>
-
 
             <div class="card-arrow">
                 <div class="card-arrow-top-left"></div>

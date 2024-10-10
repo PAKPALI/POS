@@ -42,7 +42,7 @@ Route::post('admin_register', [UserController::class, "register"])->name('admin_
 // manage user after auth-login
 Route::prefix('')->middleware(['auth'])->controller(UserController::class)->group(function () {
     //dashboard
-    Route::get('dashboard', function () {return view('dashboard');})->name('dashboard');
+    Route::get('dashboard', 'dashboard')->name('dashboard');
     //profil
     Route::get('profil', function () {return view('user/profile');})->name('profil');
 

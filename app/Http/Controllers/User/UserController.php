@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Models\User;
+use App\Models\Action;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
@@ -17,6 +18,12 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function dashboard()
+    {
+        $Action = Action::all();
+        return view('dashboard', compact('Action'));
+    }
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
+use App\Models\Action;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -69,7 +70,12 @@ class LoginController extends Controller
             if(Hash::check($request-> password, $user-> password)){
                 if($user->user_type == 2){
                     Auth::login($user);
-                    // $request->session()->regenerate();           
+                    // $request->session()->regenerate();
+                    Action::create([
+                        'user_id' => auth()->user()->id,
+                        'function' => 'CONNEXION',
+                        'text' => " s'est connecté",
+                    ]);           
                     return response()->json([
                         "status" => true,
                         "reload" => true,
@@ -80,7 +86,12 @@ class LoginController extends Controller
                     ]);
                 }else{
                     Auth::login($user);
-                    // $request->session()->regenerate();           
+                    // $request->session()->regenerate();
+                    Action::create([
+                        'user_id' => auth()->user()->id,
+                        'function' => 'CONNEXION',
+                        'text' => " s'est connecté",
+                    ]);              
                     return response()->json([
                         "status" => true,
                         "reload" => true,
