@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Component;
 
+use App\Models\Action;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -24,10 +25,13 @@ class CategoryController extends Controller
             return DataTables::of($Category)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Edit" class="btn btn-dark btn-sm absent"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
                     <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
                     <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
                     return $btn;
+                })
+                ->editColumn('created_by', function ($Category) {
+                    return $Category->user->name;
                 })
                 ->editColumn('created_at', function ($Category) {
                     return $Category->created_at->format('d-m-Y H:i:s');
@@ -66,11 +70,14 @@ class CategoryController extends Controller
                 "title" => "AJOUT ECHOUE",
                 "msg" => $validator->errors()->first()
             ]);
-
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'MISE A JOUR DU EMAIL',
+                'text' => auth()->user()->name." a créer une nouvelle catégorie '".$request->name."'",
+            ]);
             Category::create([
                 'name' => $request-> name,
-                // 'created_by' => Auth::user()->id,
-                'created_by' => 1,
+                'created_by' => Auth::user()->id,
             ]);
 
             return response()->json([
@@ -87,7 +94,8 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $Category = Category::findOrFail($id);
+        return view('component.category.show', compact('Category'));
     }
 
     /**

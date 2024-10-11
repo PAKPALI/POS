@@ -13,4 +13,9 @@ class Action extends Model
     public function user(){
         return  $this ->belongsTo(User::class);
     }
+
+    public function region()
+    {
+        return $this->belongsTo(Regions::class, 'region_id', 'id');
+    }
 }

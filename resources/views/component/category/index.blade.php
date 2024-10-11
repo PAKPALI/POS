@@ -60,8 +60,8 @@
                         <div class="modal modal-cover fade" id="editModal">
                             <div class="modal-dialog ">
                                 <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title text-warning ">Modifier catégorie</h3>
+                                    <div class="modal-header bg-warning">
+                                        <h3 class="modal-title text-dark ">Modifier catégorie</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -70,6 +70,22 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- view modal -->
+                        <div class="modal modal-cover fade" id="showModal">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-light">
+                                        <h3 class="modal-title text-dark ">Détail</h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="show_response"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="" class="mb-5">
                             <h4>Listes des catégories</h4>
                             <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addmodal">Ajouter</button>
@@ -256,6 +272,19 @@
                     }
                 });
                 $('#editModal').modal('show');
+            });
+
+            $('body').on('click', '.view', function () {
+                var id = $(this).data("id");
+                $.ajax({
+                    url:'{{url('component/category')}}/'+id,
+                    dataType: 'html',
+                    success:function(result)
+                    {
+                        $('#show_response').html(result);
+                    }
+                });
+                $('#showModal').modal('show');
             });
 
             $('body').on('click', '.viewUser', function (e) {

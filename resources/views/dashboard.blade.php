@@ -253,7 +253,7 @@
         </div>
     </div>
 
-    <div class="col-xl-6">
+    <div class="col-xl-4">
 
         <div class="card mb-3">
 
@@ -489,7 +489,7 @@
     </div>
 
 
-    <div class="col-xl-6">
+    <div class="col-xl-8">
         <div class="card mb-3">
             <div class="card-body">
                 <div class="d-flex fw-bold small mb-3">
@@ -522,12 +522,15 @@
                                         {{$action->user->name}}</span>
                                     </td>
                                     <td>{{$action->text}}</td>
-                                    <td>{{$action->created_at}}</td>
+                                    <td>{{$action->created_at->format('d-m-Y H:i:s')}}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="d-flex justify-content-center mt-3">
+                {{ $Action->links('pagination::bootstrap-4')}}
             </div>
 
             <div class="card-arrow">
