@@ -72,7 +72,7 @@ class CategoryController extends Controller
             ]);
             Action::create([
                 'user_id' => auth()->user()->id,
-                'function' => 'MISE A JOUR DU EMAIL',
+                'function' => 'AJOUT CATEGORIE',
                 'text' => auth()->user()->name." a créer une nouvelle catégorie '".$request->name."'",
             ]);
             Category::create([

@@ -57,7 +57,7 @@ class UserController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     */
+    */
 
     public function code(){
         $code = Str::random(4);
@@ -325,9 +325,10 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $User = User::findOrFail($id);
+        return view('user.edit', compact('User'));
     }
 
     /**
@@ -335,7 +336,34 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $error_messages = [
+            "name.required" => "Remplir le champ Nom!",
+        ];
+
+        $validator = Validator::make($request->all(),[
+            'name' => ['required'],
+        ], $error_messages);
+
+        if($validator->fails())
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "AJOUT ECHOUE",
+                "msg" => $validator->errors()->first()
+            ]);
+
+            $User = User::findOrFail($id);
+            $User->update([
+                'name' => $request->name,
+            ]);
+
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "MISE A JOUR REUSSIE",
+                "msg" => "Le nom de '".$request-> name."' a bien été mis à jour"
+            ]);
     }
 
     /**

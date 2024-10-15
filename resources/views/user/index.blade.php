@@ -25,10 +25,10 @@
                         </h1>
                         <hr class="mb-4">
                         <!-- add modal -->
-                        <div class="modal modal-cover fade" id="addmodal">
-                            <div class="modal-dialog ">
+                        <div class="modal fade" id="addmodal">
+                            <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
-                                    <div class="modal-header">
+                                    <div class="modal-header bg-primary">
                                         <h3 class="modal-title">Ajouter utilisateur</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
@@ -60,11 +60,11 @@
                         </div>
 
                         <!-- update modal -->
-                        <div class="modal modal-cover fade" id="editModal">
-                            <div class="modal-dialog ">
+                        <div class="modal fade" id="editModal">
+                            <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title text-warning ">Modifier utilisateur</h3>
+                                    <div class="modal-header bg-warning">
+                                        <h3 class="modal-title text-dark ">Modifier utilisateur</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -196,6 +196,9 @@
                     $('#datatable').css('width', '100%');
                 },
             });
+            window.addEventListener('datatableUpdated', function() {
+                Datatable.ajax.reload(null, false);
+            });
 
             //Add user
             $('#add').submit(function() {
@@ -251,7 +254,7 @@
             $('body').on('click', '.editModal', function () {
                 var id = $(this).data("id");
                 $.ajax({
-                    url:'{{url('component/category')}}/'+id+'/edit',
+                    url:'{{url('user')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {

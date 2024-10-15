@@ -39,7 +39,8 @@ Route::get('user_login', function () {
 })->name('user_login');
 Route::post('admin_register', [UserController::class, "register"])->name('admin_register');
 
-// manage user after auth-login
+
+/*manage user after auth-login*/
 Route::prefix('')->middleware(['auth'])->controller(UserController::class)->group(function () {
     //dashboard
     Route::get('dashboard', 'dashboard')->name('dashboard');
@@ -55,6 +56,7 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     // update password
     Route::post('updatePassword', 'updatePassword');
 });
+
 
 /*manage component*/
 Route::prefix('component')->middleware(['auth'])->group(function () {

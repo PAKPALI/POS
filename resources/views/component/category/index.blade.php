@@ -25,10 +25,10 @@
                         </h1>
                         <hr class="mb-4">
                         <!-- add modal -->
-                        <div class="modal modal-cover fade" id="addmodal">
-                            <div class="modal-dialog ">
+                        <div class="modal modal fade" id="addModal">
+                            <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
-                                    <div class="modal-header">
+                                    <div class="modal-header bg-primary">
                                         <h3 class="modal-title">Ajouter catégorie</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
@@ -57,8 +57,8 @@
                         </div>
 
                         <!-- update modal -->
-                        <div class="modal modal-cover fade" id="editModal">
-                            <div class="modal-dialog ">
+                        <div class="modal" id="editModal">
+                            <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-warning">
                                         <h3 class="modal-title text-dark ">Modifier catégorie</h3>
@@ -72,8 +72,8 @@
                         </div>
 
                         <!-- view modal -->
-                        <div class="modal modal-cover fade" id="showModal">
-                            <div class="modal-dialog modal-lg">
+                        <div class="modal fade" id="showModal">
+                            <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-light">
                                         <h3 class="modal-title text-dark ">Détail</h3>
@@ -88,7 +88,7 @@
 
                         <div id="" class="mb-5">
                             <h4>Listes des catégories</h4>
-                            <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addmodal">Ajouter</button>
+                            <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                             <!-- <p>DataTables is a plug-in for the jQuery Javascript library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table. Please read the <a href="https://datatables.net/" target="_blank">official documentation</a> for the full list of options.</p> -->
                             <div class="card">
                                 <div class="card-body">
@@ -234,7 +234,7 @@
                                 timerProgressBar: true,
                                 text: data.msg,
                             });
-                            $('#addModal').hide();
+                            $('#addModal').modal('hide');
                             Datatable.draw();
                         } else {
                             $('#loader').fadeOut();
