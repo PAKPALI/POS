@@ -9,9 +9,9 @@
         </div>
     </div>
     <div class="card-footer mt-4">
-        <button type="submit" class="btn btn-warning">
+        <button id="submit" class="btn btn-warning">
             <div class="loader" class="spinner-border text-light" role="status"></div>
-            <div id="submit">Modifier</div>
+            Modifier
         </button>
     </div>
 </form>
@@ -31,6 +31,7 @@
             e.preventDefault();
             $(this).html('Mise à jour en cours...');
             var id = $(this).data("id");
+            $('.loader').show();
             $.ajax({
                 data: $('#update_form').serialize(),
                 url: '{{ url('user/ '. $User->id) }}',
@@ -39,7 +40,6 @@
                 success: function(data) {
                     if (data.status) {
                         console.log(data)
-                        
                         // $('#submit').html('Modifier');
                         $('#editModal').modal('hide');
                         Swal.fire({
@@ -54,7 +54,6 @@
                         });
                         window.dispatchEvent(new Event('datatableUpdated'));
                         // $('#datatable').DataTable().ajax.reload(null, true);
-                        
                     } else {
                         Swal.fire({
                             toast: true,

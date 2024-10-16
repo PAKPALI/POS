@@ -13,9 +13,9 @@
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-xl-10">
+            <div class="col-xl-12">
                 <div class="row">
-                    <div class="col-xl-10">
+                    <div class="col-xl-12">
                         <ul class="breadcrumb">
                             <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
                             <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
@@ -25,7 +25,7 @@
                         </h1>
                         <hr class="mb-4">
                         <!-- add modal -->
-                        <div class="modal fade" id="addmodal">
+                        <div class="modal fade" id="addModal">
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-primary">
@@ -75,7 +75,7 @@
                         </div>
                         <div id="" class="mb-5">
                             <h4>Listes des utilisateurs</h4>
-                            <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addmodal">Ajouter</button>
+                            <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                             <!-- <p>DataTables is a plug-in for the jQuery Javascript library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table. Please read the <a href="https://datatables.net/" target="_blank">official documentation</a> for the full list of options.</p> -->
                             <div class="card">
                                 <div class="card-body">
@@ -85,6 +85,7 @@
                                                 <th>#</th>
                                                 <th>Nom</th>
                                                 <th>Email</th>
+                                                <th>Statut</th>
                                                 <th>Créer le</th>
                                                 <th>Action</th>
                                             </tr>
@@ -147,6 +148,7 @@
                     {data: 'id',name: 'id'},
                     {data: 'name',name: 'name'},
                     {data: 'email',name: 'email'},
+                    {data: 'status',name: 'status'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
@@ -331,13 +333,13 @@
                 return false;
             });
 
-            $('body').on('click', '.deleteUser', function () {
+            $('body').on('click', '.archive', function () {
                 var csrfToken = $('meta[name="csrf-token"]').attr('content');
                 var id = $(this).data("id");
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir supprimer cet utilisateur?",
+                    title: "Etes vous sur de vouloir archiver cet utilisateur?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'red',
@@ -351,18 +353,74 @@
                                 'X-CSRF-TOKEN': csrfToken
                             },
                             type: "post",
-                            url: "utilisateurs/delete_user",
-                            data: {id: id},
+                            url: 'user/'+id,
+                            type: "DELETE",
                             datatype: 'json',
                             success: function (data) {
                                 if(data.status){
                                     Swal.fire({
+                                        toast: true,
+                                        position: 'top',
                                         icon: "success",
                                         title: data.title,
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true,
                                         text: data.msg,
-                                    }).then(() => {
-                                        user_list.draw();
+                                    });
+                                    Datatable.draw();
+                                }else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: data.title,
+                                        text: data.msg,
                                     })
+                                }
+                            },
+                            error: function (data) {
+                                console.log('Error:', data);
+                            }
+                        });
+                    }
+                })
+            });
+
+            $('body').on('click', '.restore', function () {
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                var id = $(this).data("id");
+                
+                Swal.fire({
+                    icon: "question",
+                    title: "Etes vous sur de vouloir restaurer cet utilisateur?",
+                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                    confirmButtonText: "Oui",
+                    confirmButtonColor: 'green',
+                    showCancelButton: true,
+                    cancelButtonText: "Non",
+                    cancelButtonColor: 'blue',
+                }).then((result) => {
+                    if (result.isConfirmed){
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            type: "post",
+                            url: 'user/'+id,
+                            type: "DELETE",
+                            datatype: 'json',
+                            success: function (data) {
+                                if(data.status){
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top',
+                                        icon: "success",
+                                        title: data.title,
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true,
+                                        text: data.msg,
+                                    });
+                                    Datatable.draw();
                                 }else{
                                     Swal.fire({
                                         icon: "error",

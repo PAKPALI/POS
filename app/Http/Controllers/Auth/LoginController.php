@@ -44,6 +44,25 @@ class LoginController extends Controller
     //     $this->middleware('auth')->only('logout');
     // }
 
+    public function loginUser($user)
+    {
+        Auth::login($user);
+        // $request->session()->regenerate();
+        Action::create([
+            'user_id' => auth()->user()->id,
+            'function' => 'CONNEXION',
+            'text' => " s'est connecté",
+        ]);           
+        return response()->json([
+            "status" => true,
+            "reload" => true,
+            "redirect_to" => route('dashboard'),
+            "title" => "CONNEXION REUSSIE",
+            'check' => Auth::check(),
+            "msg" => "connexion réussie."
+        ]);
+    }
+
     public function login(Request $request)
     {
         $error_messages = [
@@ -69,8 +88,8 @@ class LoginController extends Controller
         if($user){
             if(Hash::check($request-> password, $user-> password)){
                 if($user->user_type == 2){
+                    // $this->loginUser($user);
                     Auth::login($user);
-                    // $request->session()->regenerate();
                     Action::create([
                         'user_id' => auth()->user()->id,
                         'function' => 'CONNEXION',
@@ -82,24 +101,20 @@ class LoginController extends Controller
                         "redirect_to" => route('dashboard'),
                         "title" => "CONNEXION REUSSIE",
                         'check' => Auth::check(),
-                        "msg" => "connexion réussie."
+                        "msg" => "connexion réussie.vc"
                     ]);
                 }else{
-                    Auth::login($user);
-                    // $request->session()->regenerate();
-                    Action::create([
-                        'user_id' => auth()->user()->id,
-                        'function' => 'CONNEXION',
-                        'text' => " s'est connecté",
-                    ]);              
-                    return response()->json([
-                        "status" => true,
-                        "reload" => true,
-                        "redirect_to" => route('dashboard'),
-                        "title" => "CONNEXION REUSSIE",
-                        'check' => Auth::check(),
-                        "msg" => "connexion réussie."
-                    ]);
+                    if($user->status == 1){
+                        $this->loginUser($user);
+                    }else{
+                        return response()->json([
+                            "status" => false,
+                            "reload" => true,
+                            'check' => Auth::check(),
+                            "title" => "CONNECTION ECHOUEE",
+                            "msg" => "Vous n'etes pas autorisé à vous connecté"
+                        ]);  
+                    }
                 }
             }else{
                 return response()->json([

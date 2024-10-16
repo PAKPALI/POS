@@ -21,7 +21,7 @@ class UserController extends Controller
 
     public function dashboard()
     {
-        $Action = Action::latest()->paginate(3);
+        $Action = Action::latest()->paginate(7);
         return view('dashboard', compact('Action'));
     }
     public function index()
@@ -33,15 +33,29 @@ class UserController extends Controller
             return DataTables::of($Object)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Edit" class="btn btn-dark btn-sm absent"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
-                    <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
-                    <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    if($row->status==1){
+                        $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Edit" class="btn btn-dark btn-sm absent"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                                <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    }else{
+                        $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Edit" class="btn btn-dark btn-sm absent"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                                <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="restaurer" class="btn btn-success btn-sm restore"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    }
                     return $btn;
                 })
-                ->editColumn('created_at', function ($Object) {
-                    return $Object->created_at->format('d-m-Y H:i:s');
+                ->editColumn('status', function ($Object) {
+                    if($Object->status==1){
+                        $btn = ' <a  class="btn btn-success btn-sm">Actif</a>';
+                    }else{
+                        $btn = ' <a  class="btn btn-danger btn-sm">Inactif</a>';
+                    }
+                    return $btn;
                 })
-                ->rawColumns(['action'])
+                ->editColumn('created_at', function ($Category) {
+                    return $Category->created_at->format('d-m-Y H:i:s');
+                })
+                ->rawColumns(['action','status'])
                 ->make(true);
         }
         return view('user.index');
@@ -371,7 +385,42 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $User = User::findOrFail($id);
+        if($User->status ==1){
+            $updating = $User->update([
+                'status' => 0,
+            ]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'ARCHIVAGE D\'UN UTILISATEUR',
+                'text' => auth()->user()->name." a désactivé l'utilisateur : ".$User->name,
+            ]);
+
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "ARCHIVAGE REUSSIE",
+                "msg" => "L'utilisateur a bien été désactivé"
+            ]);
+        }else{
+            $updating2 = $User->update([
+                'status' => 1,
+            ]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'RESTAURER UN UTILISATEUR',
+                'text' => auth()->user()->name." a restaurer l'utilisateur : ".$User->name,
+            ]); 
+
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "RESTAURATION REUSSIE",
+                "msg" => "L'utilisateur a bien été restauré"
+            ]);
+        }
     }
 
     public function outUser(Request $request)

@@ -210,6 +210,10 @@
                 },
             });
 
+            window.addEventListener('datatableUpdated', function() {
+                Datatable.ajax.reload(null, false);
+            });
+
             //Add category
             $('#add').submit(function() {
                 event.preventDefault();
@@ -360,7 +364,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir supprimer cet utilisateur?",
+                    title: "Etes vous sur de vouloir désactiver cet utilisateur?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'red',

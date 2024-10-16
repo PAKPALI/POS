@@ -9,9 +9,9 @@
         </div>
     </div>
     <div class="card-footer mt-4">
-        <button type="submit" class="btn btn-warning">
+        <button id="submit" class="btn btn-warning">
             <div class="loader" class="spinner-border text-light" role="status"></div>
-            <div id="submit">Modifier</div>
+            Modifier
         </button>
     </div>
 </form>
@@ -39,7 +39,6 @@
                 success: function(data) {
                     if (data.status) {
                         console.log(data)
-                        // $('#datatable').DataTable().ajax.reload(null, true);
                         // $('#submit').html('Modifier');
                         $('#editModal').modal('hide');
                         Swal.fire({
@@ -52,7 +51,8 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        
+                        //$('#datatable').DataTable().ajax.reload(null, true);
+                        window.dispatchEvent(new Event('datatableUpdated'));
                     } else {
                         Swal.fire({
                             toast: true,

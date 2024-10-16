@@ -519,10 +519,10 @@
                                     </td>
                                     <td>{{$action->function}}</td>
                                     <td><span class="badge d-block bg-theme text-theme-900 rounded-0 pt-5px w-70px"style="min-height: 18px;">
-                                        {{$action->user->name}}</span>
+                                        {{$action->user?$action->user->name:'-'}}</span>
                                     </td>
-                                    <td>{{$action->text}}</td>
-                                    <td>{{$action->created_at->format('d-m-Y H:i:s')}}</td>
+                                    <td>{{$action->user?$action->text:'-'}}</td>
+                                    <td>{{$action->user?$action->created_at->format('d-m-Y H:i:s'):'-'}}</td>
                                 </tr>
                             @endforeach
                         </tbody>
