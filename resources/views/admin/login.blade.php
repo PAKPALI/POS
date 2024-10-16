@@ -54,7 +54,7 @@
                             Swal.fire({
                                 icon: "success",
                                 title: data.title,
-                                text: "Connexion réussie!",
+                                text: data.msg,
                             }).then(() => {
                                 if (data.redirect_to != null){
                                     window.location.assign(data.redirect_to);

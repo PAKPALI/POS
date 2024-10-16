@@ -49,8 +49,8 @@
                                         </div>
                                         <div class="card-footer mt-4">
                                             <button type="submit" class="btn btn-primary">
-                                                <div class="loader" class="spinner-border text-light" role="status"></div>
-                                                <div id="add">Valider</div>
+                                                <div id="loader" class="spinner-grow"></div>
+                                                <div id="submitText">Valider</div>
                                             </button>
                                         </div>
                                     </form>
@@ -137,7 +137,7 @@
     <script>
         $(function() {
             // hide loader
-            $('.loader').hide();
+            $('#loader').hide();
             $('.pre_loader').hide();
 
             var Datatable = $('#datatable').DataTable({
@@ -206,6 +206,7 @@
             $('#add').submit(function() {
                 event.preventDefault();
                 $('#loader').fadeIn();
+                $('#submitText').hide();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('user.store') }}",
@@ -216,6 +217,7 @@
                         console.log(data)
                         if (data.status) {
                             $('#loader').hide();
+                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -226,10 +228,12 @@
                                 timerProgressBar: true,
                                 text: data.msg,
                             });
-                            $('#addModal').hide();
+                            $('#addModal').modal('hide');
                             Datatable.draw();
+                            $('#add')[0].reset();
                         } else {
                             $('#loader').fadeOut();
+                            $('#submitText').fadeIn();
                             Swal.fire({
                                 title: data.title,
                                 text: data.msg,
@@ -242,6 +246,7 @@
                     error: function(data) {
                         console.log(data)
                         $('#loader').fadeOut();
+                        $('#submitText').fadeIn();
                         Swal.fire({
                             icon: "error",
                             title: "erreur",
@@ -285,52 +290,6 @@
                 var modalHeader = $("#modal-header-edit");
                 modalHeader.attr("class", "modal-header bg-success text-light");
                 e.preventDefault();
-            });
-
-            $('#updateUser').submit(function(){
-                event.preventDefault();
-                $('#update_loader').fadeIn();
-                $.ajax({
-                    type: 'POST',
-                    url: 'professor/update',
-                    //enctype: 'multipart/form-data',
-                    data: $('#updateUser').serialize(),
-                    datatype: 'json',
-                    success: function (data){
-                        console.log(data)
-                        if (data.status)
-                        {
-                            Swal.fire({
-                                icon: "success",
-                                title: data.title,
-                                text: data.msg,
-                            }).then(() => {
-                                $('#modal-update').modal('hide');
-                                user_list.draw();
-                            })
-                        }else{
-                            $('#update_loader').fadeOut();
-                            Swal.fire({
-                                title: data.title,
-                                text:data.msg,
-                                icon: 'error',
-                                confirmButtonText: "Ok",
-                                confirmButtonColor: 'blue',
-                            })
-                        }
-                    },
-                    error: function (data){
-                        console.log(data)
-                        $('#update_loader').fadeOut();
-                        Swal.fire({
-                            icon: "error",
-                            title: "error",
-                            text: "server error",
-                            timer: 3000,
-                        })
-                    }
-                });
-                return false;
             });
 
             $('body').on('click', '.archive', function () {
