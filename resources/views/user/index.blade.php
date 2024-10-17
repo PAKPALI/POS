@@ -232,7 +232,7 @@
                             Datatable.draw();
                             $('#add')[0].reset();
                         } else {
-                            $('#loader').fadeOut();
+                            $('#loader').hide();
                             $('#submitText').fadeIn();
                             Swal.fire({
                                 title: data.title,
@@ -245,7 +245,7 @@
                     },
                     error: function(data) {
                         console.log(data)
-                        $('#loader').fadeOut();
+                        $('#loader').hide();
                         $('#submitText').fadeIn();
                         Swal.fire({
                             icon: "error",

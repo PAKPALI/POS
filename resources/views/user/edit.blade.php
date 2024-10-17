@@ -10,8 +10,8 @@
     </div>
     <div class="card-footer mt-4">
         <button id="submit" class="btn btn-warning">
-            <div class="loader" class="spinner-border text-light" role="status"></div>
-            Modifier
+            <div id="edit_loader" class="spinner-grow"></div>
+            <div id="edit_submitText">Valider</div>
         </button>
     </div>
 </form>
@@ -19,7 +19,7 @@
 <script>
     $(function() {
         // hide loader
-        $('.loader').hide();
+        $('#edit_loader').hide();
 
         $.ajaxSetup({
             headers: {
@@ -31,7 +31,8 @@
             e.preventDefault();
             $(this).html('Mise à jour en cours...');
             var id = $(this).data("id");
-            $('.loader').show();
+            $('#edit_loader').fadeIn();
+            $('#edit_submitText').hide();
             $.ajax({
                 data: $('#update_form').serialize(),
                 url: '{{ url('user/ '. $User->id) }}',
@@ -40,8 +41,8 @@
                 success: function(data) {
                     if (data.status) {
                         console.log(data)
-                        // $('#submit').html('Modifier');
-                        $('#editModal').modal('hide');
+                        $('#edit_loader').hide();
+                        $('#edit_submitText').fadeIn();
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -52,9 +53,12 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
+                        $('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
                         // $('#datatable').DataTable().ajax.reload(null, true);
                     } else {
+                        $('#edit_loader').hide();
+                        $('#edit_submitText').fadeIn();
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -71,6 +75,8 @@
                 },
                 error: function(data) {
                     console.log('Error:', data)
+                    $('#edit_loader').hide();
+                    $('#edit_submitText').fadeIn();
                     Swal.fire({
                         toast: true,
                         position: 'top',
