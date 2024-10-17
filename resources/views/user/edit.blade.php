@@ -9,16 +9,16 @@
         </div>
     </div>
     <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning">
-            <div id="edit_loader" class="spinner-grow"></div>
-            <div id="edit_submitText">Valider</div>
+        <button id="submit" class="btn btn-warning" type="submit">
+            <div id="edit_loader" class="spinner-grow" style="display: none;"></div>
+            <div id="edit_submitText">Modifier</div>
         </button>
     </div>
 </form>
 
 <script>
     $(function() {
-        // hide loader
+        // Cache le loader au chargement de la page
         $('#edit_loader').hide();
 
         $.ajaxSetup({
@@ -29,20 +29,23 @@
 
         $('#submit').click(function(e) {
             e.preventDefault();
-            $(this).html('Mise à jour en cours...');
-            var id = $(this).data("id");
+
+            // Affiche le loader et cache le texte du bouton
             $('#edit_loader').fadeIn();
             $('#edit_submitText').hide();
+
             $.ajax({
                 data: $('#update_form').serialize(),
-                url: '{{ url('user/ '. $User->id) }}',
+                url: '{{ url('user/' . $User->id) }}',
                 type: "PUT",
                 dataType: 'json',
                 success: function(data) {
                     if (data.status) {
-                        console.log(data)
-                        $('#edit_loader').hide();
+                        console.log(data);
+                        // Cache le loader et affiche le texte du bouton
+                        $('#edit_loader').fadeOut();
                         $('#edit_submitText').fadeIn();
+
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -53,12 +56,13 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
+
                         $('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
-                        // $('#datatable').DataTable().ajax.reload(null, true);
                     } else {
-                        $('#edit_loader').hide();
+                        $('#edit_loader').fadeOut();
                         $('#edit_submitText').fadeIn();
+
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -69,28 +73,25 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        // $('#add_user').trigger("reset");
-                        $('#submit').html('Modifier');
                     }
                 },
                 error: function(data) {
-                    console.log('Error:', data)
-                    $('#edit_loader').hide();
+                    console.log('Error:', data);
+                    $('#edit_loader').fadeOut();
                     $('#edit_submitText').fadeIn();
+
                     Swal.fire({
                         toast: true,
                         position: 'top',
-                        icon: "success",
-                        title: data.title,
+                        icon: "error",
+                        title: 'Erreur',
                         showConfirmButton: false,
                         timer: 3000,
                         timerProgressBar: true,
-                        text: data.msg,
+                        text: 'Une erreur est survenue, veuillez réessayer.',
                     });
-                    $('#submit').html('Modifier');
                 }
             });
-            $(this).html('Modifier');
         });
     });
 </script>

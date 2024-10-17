@@ -6,7 +6,7 @@
             <form  id="form">
                 @csrf
                 <h1 class="text-center">INSCRIPTION</h1>
-                <p class="text-inverse text-opacity-50 text-center">APP-NAME</p>
+                <p class="text-inverse text-opacity-50 text-center">{{ config('app.name') }}</p>
                 <div class="mb-3">
                     <label class="form-label">Nom <span class="text-danger">*</span></label>
                     <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" placeholder="nom" name="name" value>

@@ -24,7 +24,7 @@
             <span class="brand-img">
                 <span class="brand-img-text text-theme">LG</span>
             </span>
-            <span class="brand-text">LUX GRILL</span>
+            <span class="brand-text">{{ config('app.name') }}</span>
         </a>
     </div>
 

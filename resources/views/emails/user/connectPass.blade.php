@@ -80,8 +80,8 @@
             <!-- <a href="#" class="btn">Contacter le support</a> -->
         </div>
         <div class="footer">
-            <p>Cet e-mail a été envoyé par <strong class="text-primary">[APP-NAME]</strong> <strong></strong>.</p>
-            Copyright © 2024 <strong class="text-primary">[APP-NAME]</strong>. Tous droits réservés. Créé par: <strong class="text-primary">PAKPALI Essolissam Didier</strong>
+            <p>Cet e-mail a été envoyé par <strong class="text-primary">{{ config('app.name') }}</strong> <strong></strong>.</p>
+            Copyright © 2024 <strong class="text-primary">{{ config('app.name') }}</strong>. Tous droits réservés. Créé par: <strong class="text-primary">PAKPALI Essolissam Didier</strong>
         </div>
     </div>
 </body>

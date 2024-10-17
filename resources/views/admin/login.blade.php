@@ -27,7 +27,10 @@
                         <label class="form-check-label" for="customCheck1">Remember me</label>
                     </div>
                 </div> -->
-                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mb-3 mt-5">Se connecter</button>
+                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mb-3 mt-5">
+                    <div id="loader" class="spinner-grow"></div>
+                    <div id="submitText">Se connecter</div>
+                </button>
                 <div class="text-center text-inverse text-opacity-50">
                     <!-- Don't have an account yet? <a href="page_register.html">Sign up</a>. -->
                 </div>
@@ -41,7 +44,7 @@
             //ajax pour se connecter
             $('#form_login').submit(function(){
                 event.preventDefault();
-                $('#submit').hide();
+                $('#submitText').hide();
                 $('#loader').fadeIn();
                 $.ajax({
                     type: 'POST',
@@ -51,18 +54,33 @@
                     success: function (data){
                         console.log(data)
                         if (data.status) {
+                            $('#form_login').slideUp(3000);
+                            // Swal.fire({
+                            //     icon: "success",
+                            //     title: data.title,
+                            //     text: data.msg,
+                            // }).then(() => {
+                            //     if (data.redirect_to != null){
+                            //         window.location.assign(data.redirect_to);
+                            //     }
+                            // });
                             Swal.fire({
+                                toast: true,
+                                position: 'top',
                                 icon: "success",
                                 title: data.title,
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
                                 text: data.msg,
-                            }).then(() => {
-                                if (data.redirect_to != null){
+                                didClose: () => {
+                                    // Redirection vers une route après la fermeture de l'alerte
                                     window.location.assign(data.redirect_to);
                                 }
                             });
                         } else {
                             $('#loader').hide();
-                            $('#submit').show();
+                            $('#submitText').show();
                             Swal.fire({
                                 title: data.title,
                                 text:data.msg,
@@ -74,7 +92,7 @@
                     },
                     error: function (data){
                         $('#loader').hide();
-                        $('#submit').show();
+                        $('#submitText').show();
                         Swal.fire({
                             icon: "error",
                             title: "Erreur",

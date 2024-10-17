@@ -46,9 +46,9 @@
                                         </div>
                                         <div class="card-footer mt-4">
                                             <button type="submit" class="btn btn-primary">
-                                                <div class="loader" class="spinner-border text-light" role="status"></div>
+                                                <div id="loader" class="spinner-grow"></div>
                                                 <div id="submitText">Valider</div>
-                                            </button>
+                                            </button> 
                                         </div>
                                     </form>
                                     </div>
@@ -149,8 +149,7 @@
     <script>
         $(function() {
             // hide loader
-            $('.loader').hide();
-            $('.pre_loader').hide();
+            $('#loader').hide();
 
             var Datatable = $('#datatable').DataTable({
                 processing: true,
@@ -218,6 +217,7 @@
             $('#add').submit(function() {
                 event.preventDefault();
                 $('#loader').fadeIn();
+                $('#submitText').hide();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('category.store') }}",
@@ -228,6 +228,7 @@
                         console.log(data)
                         if (data.status) {
                             $('#loader').hide();
+                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -238,22 +239,28 @@
                                 timerProgressBar: true,
                                 text: data.msg,
                             });
+                            
                             $('#addModal').modal('hide');
                             Datatable.draw();
                         } else {
-                            $('#loader').fadeOut();
+                            $('#loader').hide();
+                            $('#submitText').fadeIn();
                             Swal.fire({
+                                toast: true,
+                                position: 'top',
+                                icon: "error",
                                 title: data.title,
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
                                 text: data.msg,
-                                icon: 'error',
-                                confirmButtonText: "D'accord",
-                                confirmButtonColor: '#A40000',
-                            })
+                            });
                         }
                     },
                     error: function(data) {
                         console.log(data)
-                        $('#loader').fadeOut();
+                        $('#loader').hide();
+                        $('#submitText').fadeIn();
                         Swal.fire({
                             icon: "error",
                             title: "erreur",
