@@ -7,7 +7,7 @@
                 @csrf
                 <h1 class="text-center">SE CONNECTER</h1>
                 <div class="text-inverse text-opacity-50 text-center mb-4">
-                    APP-NAME
+                {{ config('app.name') }}
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email <span class="text-danger">*</span></label>
