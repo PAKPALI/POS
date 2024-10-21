@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\Component\ProductController;
 use App\Http\Controllers\Component\CategoryController;
 
 /*
@@ -46,9 +47,7 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     //profil
     Route::get('profil', function () {return view('user/profile');})->name('profil');
 
-    Route::controller(UserController::class)->group(function () {
-        Route::resource('user', UserController::class);
-    });
+    Route::resource('user', UserController::class);
 
     // update email
     Route::post('updateEmail', 'updateEmail');
@@ -63,10 +62,12 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     Route::controller(CategoryController::class)->group(function () {
         Route::resource('category', CategoryController::class);
     });
+    //product
+    Route::controller(ProductController::class)->group(function () {
+        Route::resource('product', ProductController::class);
+    });
 });
 
 Auth::routes();
-
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
 Route::post('outUser', [UserController::class, 'outUser'])->name('outUser');

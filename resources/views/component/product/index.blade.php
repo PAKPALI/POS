@@ -21,7 +21,8 @@
                             <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
                         </ul>
                         <h1 class="page-header">
-                            CATEGORIES
+                            PRODUITS
+                            <!-- <img src="{{ asset('images/1729538166.jpg') }}" alt="Image du produit"> -->
                         </h1>
                         <hr class="mb-4">
                         <!-- add modal -->
@@ -29,7 +30,7 @@
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-primary">
-                                        <h3 class="modal-title">Ajouter catégorie</h3>
+                                        <h3 class="modal-title">Ajouter produit</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -37,10 +38,21 @@
                                         @csrf
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="form-group col-12">
+                                                <div class="form-group col-12 mb-3">
                                                     <label for="exampleInputText0">Nom</label>
-                                                    <input type="text" name="name" class="form-control" id="exampleInputText0"
-                                                        placeholder="Nom">
+                                                    <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
+                                                </div>
+                                                <div class="form-group col-6">
+                                                    <label for="exampleInputText0">Quantité</label>
+                                                    <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
+                                                </div>
+                                                <div class="form-group col-6 mb-3">
+                                                    <label for="exampleInputText0">Marge de sécurité</label>
+                                                    <input type="number" name="margin" value="0" class="form-control" id="exampleInputText0" placeholder="0">
+                                                </div>
+                                                <div class="form-group col-12">
+                                                    <label class="form-label" for="smFile">Choisir une image</label>
+                                                    <input type="file" class="form-control form-control-sm" name="image" id="smFile">
                                                 </div>
                                             </div>
                                         </div>
@@ -61,7 +73,7 @@
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-warning">
-                                        <h3 class="modal-title text-dark ">Modifier catégorie</h3>
+                                        <h3 class="modal-title text-dark ">Modifier produit</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -87,7 +99,7 @@
                         </div>
 
                         <div id="" class="mb-5">
-                            <h4>Listes des catégories</h4>
+                            <h4>Listes des produits</h4>
                             <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                             <!-- <p>DataTables is a plug-in for the jQuery Javascript library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table. Please read the <a href="https://datatables.net/" target="_blank">official documentation</a> for the full list of options.</p> -->
                             <div class="card">
@@ -97,6 +109,8 @@
                                             <tr>
                                                 <th>#</th>
                                                 <th>Nom</th>
+                                                <th>Quantité</th>
+                                                <th>Marge</th>
                                                 <th>Créer par</th>
                                                 <th>Créer le</th>
                                                 <th>Action</th>
@@ -154,10 +168,12 @@
             var Datatable = $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('category.index')}}",
+                ajax: "{{ route('product.index')}}",
                 columns: [
                     {data: 'id',name: 'id'},
                     {data: 'name',name: 'name'},
+                    {data: 'qte',name: 'qte'},
+                    {data: 'margin',name: 'margin'},
                     {data: 'created_by',name: 'created_by'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
@@ -215,14 +231,16 @@
 
             //Add category
             $('#add').submit(function() {
-                event.preventDefault();
                 $('#loader').fadeIn();
                 $('#submitText').hide();
+                var formData = new FormData($('#add')[0]);
                 $.ajax({
                     type: 'POST',
-                    url: "{{ route('category.store') }}",
-                    //enctype: 'multipart/form-data',
-                    data: $('#add').serialize(),
+                    url: "{{ route('product.store') }}",
+                    enctype: 'multipart/form-data',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     datatype: 'json',
                     success: function(data) {
                         console.log(data)
@@ -275,7 +293,7 @@
             $('body').on('click', '.editModal', function () {
                 var id = $(this).data("id");
                 $.ajax({
-                    url:'{{url('component/category')}}/'+id+'/edit',
+                    url:'{{url('component/product')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {
@@ -288,7 +306,7 @@
             $('body').on('click', '.view', function () {
                 var id = $(this).data("id");
                 $.ajax({
-                    url:'{{url('component/category')}}/'+id,
+                    url:'{{url('component/product')}}/'+id,
                     dataType: 'html',
                     success:function(result)
                     {
@@ -297,6 +315,7 @@
                 });
                 $('#showModal').modal('show');
             });
+
 
             $('body').on('click', '.deleteUser', function () {
                 var csrfToken = $('meta[name="csrf-token"]').attr('content');

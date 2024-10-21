@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Component;
 
 use App\Models\Action;
-use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
-class CategoryController extends Controller
+class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,7 +18,7 @@ class CategoryController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Category = Category::latest()->get();
+        $Category = Product::latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Category)
@@ -38,7 +38,7 @@ class CategoryController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        return view('component.category.index');
+        return view('component.product.index');
     }
 
     /**
@@ -56,11 +56,21 @@ class CategoryController extends Controller
     {
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "qte.required" => "Remplir le champ Quantité!",
+            "qte.numeric" => "Le champ Quantité doit être un nombre!",
+            "margin.required" => "Remplir le champ Marge de sécurité!",
+            "image.image" => "Le fichier doit être une image!",
+            "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
+            "image.max" => "L'image ne doit pas dépasser 2 Mo!",
         ];
-
-        $validator = Validator::make($request->all(),[
+        
+        $validator = Validator::make($request->all(), [
             'name' => ['required'],
+            'qte' => ['required', 'numeric'],
+            'margin' => ['required', 'numeric'],
+            'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ], $error_messages);
+        
 
         if($validator->fails())
             return response()->json([
@@ -69,22 +79,35 @@ class CategoryController extends Controller
                 "title" => "AJOUT ECHOUE",
                 "msg" => $validator->errors()->first()
             ]);
+
             Action::create([
                 'user_id' => auth()->user()->id,
-                'function' => 'AJOUT CATEGORIE',
-                'text' => auth()->user()->name." a créer une nouvelle catégorie '".$request->name."'",
+                'function' => 'AJOUT PRODUIT',
+                'text' => auth()->user()->name." a créer un nouveau produit '".$request->name."'",
             ]);
-            Category::create([
+
+            $data = [
                 'name' => $request-> name,
+                'qte' => $request-> qte,
+                'margin' => $request-> margin,
                 'created_by' => Auth::user()->id,
-            ]);
+            ];
+
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time().'.'.$image->getClientOriginalExtension();
+                $image->move(public_path('images'), $imageName);
+
+                $data['image'] = $imageName;
+            }
+            Product::create($data);
 
             return response()->json([
                 "status" => true,
                 "reload" => true,
                 // "redirect_to" => route('user'),
                 "title" => "AJOUT REUSSI",
-                "msg" => "La catégorie au nom de ".$request-> name." a bien été ajoutée"
+                "msg" => "Le produit au nom de ".$request-> name." a bien été ajouté"
             ]);
     }
 
@@ -93,17 +116,16 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        $Category = Category::findOrFail($id);
-        return view('component.category.show', compact('Category'));
+        $Product = Product::findOrFail($id);
+        return view('component.product.show', compact('Product'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(string $id)
     {
-        $Category = Category::findOrFail($id);
-        return view('component.category.edit', compact('Category'));
+        //
     }
 
     /**
@@ -111,34 +133,7 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $error_messages = [
-            "name.required" => "Remplir le champ Nom!",
-        ];
-
-        $validator = Validator::make($request->all(),[
-            'name' => ['required'],
-        ], $error_messages);
-
-        if($validator->fails())
-            return response()->json([
-                "status" => false,
-                "reload" => false,
-                "title" => "AJOUT ECHOUE",
-                "msg" => $validator->errors()->first()
-            ]);
-
-            $Category = Category::findOrFail($id);
-            $Category->update([
-                'name' => $request->name,
-            ]);
-
-            return response()->json([
-                "status" => true,
-                "reload" => true,
-                // "redirect_to" => route('user'),
-                "title" => "MISE A JOUR REUSSIE",
-                "msg" => "La catégorie au nom de '".$request-> name."' a bien été mis à jour"
-            ]);
+        //
     }
 
     /**

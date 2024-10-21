@@ -36,13 +36,13 @@
 							<i class="bi bi-bag-check"></i>
 							<!-- <span class="w-5px h-5px rounded-3 bg-theme position-absolute top-0 end-0 mt-3px me-3px"></span> -->
 						</div>
-						<div class="menu-text d-flex align-items-center">Articles</div>
+						<div class="menu-text d-flex align-items-center">Produits</div>
 						<span class="menu-caret"><b class="caret"></b></span>
 					</a>
 					<div class="menu-submenu">
 						<div class="menu-item">
-							<a href="pos_customer_order.html" target="_blank" class="menu-link">
-								<div class="menu-text">Ajouter article</div>
+							<a href="{{ route('product.index') }}" class="menu-link">
+								<div class="menu-text">Ajouter produit</div>
 							</a>
 						</div>
 					</div>
