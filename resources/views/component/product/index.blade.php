@@ -38,7 +38,17 @@
                                         @csrf
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="form-group col-12 mb-3">
+                                                <div class="form-group col-6 mb-3">
+                                                    <label for="exampleInputText0">Catégorie</label>
+                                                    
+                                                    <select class="form-select mb-3" name="category">
+                                                        <option value="">selectionnez une catégorie</option>
+                                                        @foreach ($Category as $cat)
+                                                            <option value="{{$cat->id}}">{{$cat->name}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Nom</label>
                                                     <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
                                                 </div>
@@ -108,6 +118,7 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
+                                                <th>Catégorie</th>
                                                 <th>Nom</th>
                                                 <th>Quantité</th>
                                                 <th>Marge</th>
@@ -171,6 +182,7 @@
                 ajax: "{{ route('product.index')}}",
                 columns: [
                     {data: 'id',name: 'id'},
+                    {data: 'category_id',name: 'category_id'},
                     {data: 'name',name: 'name'},
                     {data: 'qte',name: 'qte'},
                     {data: 'margin',name: 'margin'},

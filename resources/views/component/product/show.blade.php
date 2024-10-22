@@ -4,7 +4,7 @@
             @if ($Product->image)
                 <img class="mb-5" src="{{ asset('images/' . $Product->image) }}" alt="Image du produit" style="width: 400px; height: auto;">
             @else
-            Pas d'image
+                Pas d'image
             @endif
         
             <table class="table table-striped border mb-0 text-center">
@@ -19,21 +19,26 @@
                 <tbody>
                     <tr>
                         <th scope="row">1</th>
+                        <td>Catégorie : </td>
+                        <td>{{$Product->category->name}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">2</th>
                         <td>Nom : </td>
                         <td>{{$Product->name}}</td>
                     </tr>
                     <tr>
-                        <th scope="row">2</th>
+                        <th scope="row">3</th>
                         <td>Quantité : </td>
                         <td>{{$Product->qte}}</td>
                     </tr>
                     <tr>
-                        <th scope="row">3</th>
+                        <th scope="row">4</th>
                         <td>Marge : </td>
                         <td>{{$Product->margin}}</td>
                     </tr>
                     <tr>
-                        <th scope="row">4</th>
+                        <th scope="row">5</th>
                         <td>Creer par :</td>
                         <td>{{$Product->user->name}}</td>
                     </tr>
