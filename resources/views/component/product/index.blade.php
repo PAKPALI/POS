@@ -38,6 +38,7 @@
                                         @csrf
                                         <div class="card-body">
                                             <div class="row">
+                                                <input type="hidden" name="type" value="1" class="form-control" id="exampleInputText0" placeholder="0">
                                                 <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Catégorie</label>
                                                     
@@ -52,14 +53,28 @@
                                                     <label for="exampleInputText0">Nom</label>
                                                     <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
                                                 </div>
-                                                <div class="form-group col-6">
+                                                <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Quantité</label>
                                                     <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
                                                 </div>
-                                                <div class="form-group col-6 mb-3">
+                                                <div class="form-group col-6">
                                                     <label for="exampleInputText0">Marge de sécurité</label>
                                                     <input type="number" name="margin" value="0" class="form-control" id="exampleInputText0" placeholder="0">
                                                 </div>
+                                                <div class="form-group col-6 mb-3">
+                                                    <label for="exampleInputText0">Prix unitaire</label>
+                                                    <input type="number" name="price" class="form-control" id="exampleInputText0" placeholder="0">
+                                                </div>
+                                                <div class="form-group col-6">
+                                                    <label for="exampleInputText0">Prix d'achat</label>
+                                                    <input type="number" name="purchase_price" class="form-control" id="exampleInputText0" placeholder="0">
+                                                </div>
+
+                                                <div class="form-group col-12 mb-3">
+                                                    <label for="exampleInputText0">Bénefice</label>
+                                                    <input type="number" name="profit" class="form-control" id="exampleInputText0" readonly placeholder="0">
+                                                </div>
+                                                
                                                 <div class="form-group col-12">
                                                     <label class="form-label" for="smFile">Choisir une image</label>
                                                     <input type="file" class="form-control form-control-sm" name="image" id="smFile">
@@ -118,11 +133,12 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Catégorie</th>
                                                 <th>Nom</th>
+                                                <th>Catégorie</th>
                                                 <th>Quantité</th>
-                                                <th>Marge</th>
-                                                <th>Créer par</th>
+                                                <th>Prix</th>
+                                                <th>Status</th>
+                                                <!-- <th>Créer par</th> -->
                                                 <th>Créer le</th>
                                                 <th>Action</th>
                                             </tr>
@@ -182,11 +198,12 @@
                 ajax: "{{ route('product.index')}}",
                 columns: [
                     {data: 'id',name: 'id'},
-                    {data: 'category_id',name: 'category_id'},
                     {data: 'name',name: 'name'},
+                    {data: 'category_id',name: 'category_id'},
                     {data: 'qte',name: 'qte'},
-                    {data: 'margin',name: 'margin'},
-                    {data: 'created_by',name: 'created_by'},
+                    {data: 'price',name: 'price'},
+                    {data: 'status',name: 'status'},
+                    // {data: 'created_by',name: 'created_by'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],

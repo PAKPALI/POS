@@ -31,6 +31,18 @@
                 <label for="exampleInputText0">Marge de sécurité</label>
                 <input type="number" name="margin" value="{{$Product->margin}}" value="0" class="form-control" id="exampleInputText0" placeholder="0">
             </div>
+            <div class="form-group col-6 mb-3">
+                <label for="exampleInputText0">Prix unitaire</label>
+                <input type="number" name="price" value="{{$Product->price}}" class="form-control" id="exampleInputText0" placeholder="0">
+            </div>
+            <div class="form-group col-6">
+                <label for="exampleInputText0">Prix d'achat</label>
+                <input type="number" name="purchase_price" value="{{$Product->purchase_price}}" class="form-control" id="exampleInputText0" placeholder="0">
+            </div>
+            <div class="form-group col-12 mb-3">
+                <label for="exampleInputText0">Bénefice</label>
+                <input type="number" name="profit" value="{{$Product->profit}} FCFA" class="form-control" id="exampleInputText0" readonly placeholder="0">
+            </div>
             <div class="form-group col-12">
                 <label class="form-label" for="smFile">Choisir une image</label>
                 <input type="file" class="form-control form-control-sm" name="image" id="smFile">

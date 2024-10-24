@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Sale\SaleController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Component\ProductController;
 use App\Http\Controllers\Component\CategoryController;
@@ -65,6 +66,14 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     //product
     Route::controller(ProductController::class)->group(function () {
         Route::resource('product', ProductController::class);
+    });
+});
+
+/*manage POS*/
+Route::prefix('pos')->middleware(['auth'])->group(function () {
+    //sale
+    Route::controller(SaleController::class)->group(function () {
+        Route::resource('sale', SaleController::class);
     });
 });
 

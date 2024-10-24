@@ -18,10 +18,10 @@ class CategoryController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Category = Category::latest()->get();
+        $Object = Category::latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
-            return DataTables::of($Category)
+            return DataTables::of($Object)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
                     $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
@@ -29,11 +29,11 @@ class CategoryController extends Controller
                     <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
                     return $btn;
                 })
-                ->editColumn('created_by', function ($Category) {
-                    return $Category->user->name;
+                ->editColumn('created_by', function ($Object) {
+                    return $Object->user->name;
                 })
-                ->editColumn('created_at', function ($Category) {
-                    return $Category->created_at->format('d-m-Y H:i:s');
+                ->editColumn('created_at', function ($Object) {
+                    return $Object->created_at->format('d-m-Y H:i:s');
                 })
                 ->rawColumns(['action'])
                 ->make(true);

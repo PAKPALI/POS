@@ -64,35 +64,20 @@
 						<i class="bi bi-bag-check"></i>
 						<!-- <span class="w-5px h-5px rounded-3 bg-theme position-absolute top-0 end-0 mt-3px me-3px"></span> -->
 					</div>
-					<div class="menu-text d-flex align-items-center">Vente</div>
+					<div class="menu-text d-flex align-items-center">Point de ventes</div>
 					<span class="menu-caret"><b class="caret"></b></span>
 				</a>
 				<div class="menu-submenu">
 					<div class="menu-item">
-						<a href="pos_customer_order.html" target="_blank" class="menu-link">
-							<div class="menu-text">Customer Order</div>
+						<a href="{{ route('sale.index') }}" target="_blank" class="menu-link">
+							<div class="menu-text">Poste de vente</div>
 						</a>
 					</div>
-					<div class="menu-item">
+					<!-- <div class="menu-item">
 						<a href="pos_kitchen_order.html" target="_blank" class="menu-link">
 							<div class="menu-text">Kitchen Order</div>
 						</a>
-					</div>
-					<div class="menu-item">
-						<a href="pos_counter_checkout.html" target="_blank" class="menu-link">
-							<div class="menu-text">Counter Checkout</div>
-						</a>
-					</div>
-					<div class="menu-item">
-						<a href="pos_table_booking.html" target="_blank" class="menu-link">
-							<div class="menu-text">Table Booking</div>
-						</a>
-					</div>
-					<div class="menu-item">
-						<a href="pos_menu_stock.html" target="_blank" class="menu-link">
-							<div class="menu-text">Menu Stock</div>
-						</a>
-					</div>
+					</div> -->
 				</div>
 			</div>
 

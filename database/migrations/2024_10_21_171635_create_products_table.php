@@ -17,8 +17,12 @@ return new class extends Migration
             $table->string('name');
             $table->integer('qte');
             $table->integer('margin')->nullable();
+            $table->integer('price');
+            $table->integer('purchase_price')->nullable();
+            $table->integer('profit')->nullable();
             $table->string('image')->nullable();
             $table->string('status')->default(1);
+            $table->integer('type');
             $table->integer('created_by');
             $table->timestamps();
         });

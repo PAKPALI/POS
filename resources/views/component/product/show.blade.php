@@ -39,7 +39,17 @@
                     </tr>
                     <tr>
                         <th scope="row">5</th>
-                        <td>Creer par :</td>
+                        <td>Prix unitaire : </td>
+                        <td>{{$Product->price}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">6</th>
+                        <td>Prix d'achat : </td>
+                        <td>{{$Product->purchase_price}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">7</th>
+                        <td>Créer par :</td>
                         <td>{{$Product->user->name}}</td>
                     </tr>
                 </tbody>

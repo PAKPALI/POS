@@ -19,10 +19,10 @@ class ProductController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Product = Product::latest()->get();
+        $Object = Product::latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
-            return DataTables::of($Product)
+            return DataTables::of($Object)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
                     $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
@@ -30,16 +30,24 @@ class ProductController extends Controller
                     <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
                     return $btn;
                 })
-                ->editColumn('category_id', function ($Product) {
-                    return $Product->category->name;
+                ->editColumn('category_id', function ($Object) {
+                    return $Object->category->name;
                 })
-                ->editColumn('created_by', function ($Product) {
-                    return $Product->user->name;
+                ->editColumn('status', function ($Object) {
+                    if($Object->status==1){
+                        $btn = ' <a  class="btn btn-success btn-sm">Actif</a>';
+                    }else{
+                        $btn = ' <a  class="btn btn-danger btn-sm">Inactif</a>';
+                    }
+                    return $btn;
                 })
-                ->editColumn('created_at', function ($Product) {
-                    return $Product->created_at->format('d-m-Y H:i:s');
+                // ->editColumn('created_by', function ($Object) {
+                //     return $Object->user->name;
+                // })
+                ->editColumn('created_at', function ($Object) {
+                    return $Object->created_at->format('d-m-Y H:i:s');
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['action','status'])
                 ->make(true);
         }
         $Category = Category::where('status','1')->latest()->get();
@@ -60,21 +68,27 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $error_messages = [
+            "type.required" => "Sélectionnez un type!",
+            "type.numeric" => "Sélectionnez un type qui doit être un nombre!",
             "category.required" => "Sélectionnez une Catégorie!",
             "name.required" => "Remplir le champ Nom!",
             "qte.required" => "Remplir le champ Quantité!",
             "qte.numeric" => "Le champ Quantité doit être un nombre!",
-            "margin.required" => "Remplir le champ Marge de sécurité!",
+            "price.required" => "Remplir le champ Prix unitaire!",
+            "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
+            // "margin.required" => "Remplir le champ Marge de sécurité!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
         ];
         
         $validator = Validator::make($request->all(), [
+            'type' => ['required', 'numeric'],
             'category' => ['required'],
             'name' => ['required'],
             'qte' => ['required', 'numeric'],
-            'margin' => ['required', 'numeric'],
+            'price' => ['required', 'numeric'],
+            'margin' => ['numeric'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ], $error_messages);
         
@@ -96,7 +110,11 @@ class ProductController extends Controller
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
+                'price' => $request-> price,
+                'purchase_price' => $request-> purchase_price,
+                'type' => $request-> type,
                 'margin' => $request-> margin,
+                'profit' => $request-> profit,
                 'created_by' => Auth::user()->id,
             ];
 
@@ -148,7 +166,9 @@ class ProductController extends Controller
             "name.required" => "Remplir le champ Nom!",
             "qte.required" => "Remplir le champ Quantité!",
             "qte.numeric" => "Le champ Quantité doit être un nombre!",
-            "margin.required" => "Remplir le champ Marge de sécurité!",
+            "price.required" => "Remplir le champ Prix unitaire!",
+            "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
+            // "margin.required" => "Remplir le champ Marge de sécurité!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
@@ -158,7 +178,7 @@ class ProductController extends Controller
             'category' => ['required'],
             'name' => ['required'],
             'qte' => ['required', 'numeric'],
-            'margin' => ['required', 'numeric'],
+            'margin' => ['numeric'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ], $error_messages);
 
@@ -175,7 +195,10 @@ class ProductController extends Controller
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
+                'price' => $request-> price,
+                'purchase_price' => $request-> purchase_price,
                 'margin' => $request-> margin,
+                'profit' => $request-> profit,
                 'created_by' => Auth::user()->id,
             ];
 
