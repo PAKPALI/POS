@@ -76,7 +76,14 @@
                                 <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4" data-type="{{ $category->name }}">
                                     <div class="card h-100">
                                         <div class="card-body h-100 p-1">
-                                            <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem">
+                                            <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
+                                                data-id="{{ $product->id }}"
+                                                data-name="{{ $product->name }}"
+                                                data-price="{{ $product->price }}"
+                                                data-image="{{ asset('images/' . $product->image) }}"
+                                                data-qte="{{ $product->qte }}"
+                                            >
+
                                                 <div class="img" style="background-image: url({{ asset('images/' . $product->image) }})"></div>
                                                 <div class="info">
                                                     <div class="title">Nom : {{ $product->name }}&reg;</div>
@@ -111,8 +118,8 @@
                             </button>
                         </div>
                         <div class="icon"><img src="assets/img/pos/icon-table-black.svg" class="invert-dark" alt></div>
-                        <div class="title">Table 01</div>
-                        <div class="order">Order: <b>#0056</b></div>
+                        <div class="title">Table de vente</div>
+                        <!-- <div class="order">Order: <b>#0056</b></div> -->
                     </div>
 
                     <div class="pos-sidebar-nav">
@@ -132,25 +139,10 @@
                         <div class="tab-pane fade h-100 show active" id="newOrderTab">
 
                             <div class="pos-order">
-                                <div class="pos-order-product">
-                                    <div class="img" style="background-image: url(assets/img/pos/product-2.jpg)"></div>
-                                    <div class="flex-1">
-                                        <div class="h6 mb-1">Grill Pork Chop</div>
-                                        <div class="small">$12.99</div>
-                                        <div class="small mb-2">- size: large</div>
-                                        <div class="d-flex">
-                                            <a href="#" class="btn btn-outline-theme btn-sm"><i class="fa fa-minus"></i></a>
-                                            <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center" value="01">
-                                            <a href="#" class="btn btn-outline-theme btn-sm"><i class="fa fa-plus"></i></a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="pos-order-price">
-                                    $12.99
-                                </div>
+                                
                             </div>
 
-                            <div class="pos-order">
+                            <!-- <div class="pos-order">
                                 <div class="pos-order-product">
                                     <div class="img" style="background-image: url(assets/img/pos/product-2.jpg)"></div>
                                     <div class="flex-1">
@@ -167,7 +159,7 @@
                                 <div class="pos-order-price">
                                     $12.99
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
 
 
@@ -189,18 +181,18 @@
 
 
                     <div class="pos-sidebar-footer">
-                        <div class="d-flex align-items-center mb-2">
+                        <!-- <div class="d-flex align-items-center mb-2">
                             <div>Subtotal</div>
                             <div class="flex-1 text-end h6 mb-0">$30.98</div>
-                        </div>
-                        <div class="d-flex align-items-center">
+                        </div> -->
+                        <!-- <div class="d-flex align-items-center">
                             <div>Taxes (6%)</div>
                             <div class="flex-1 text-end h6 mb-0">$2.12</div>
-                        </div>
+                        </div> -->
                         <hr>
                         <div class="d-flex align-items-center mb-2">
                             <div>Total</div>
-                            <div class="flex-1 text-end h4 mb-0">$33.10</div>
+                            <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
                         <div class="mt-3">
                             <div class="btn-group d-flex">
@@ -277,6 +269,83 @@
                 $('.pos-content .col-xxl-3[data-type="' + filter + '"]').show();
             }
         });
+
+        $(document).ready(function() {
+        $('.pos-product').on('click', function(e) {
+            e.preventDefault();
+
+            let productId = $(this).data('id');
+            let productName = $(this).data('name');
+            let productPrice = $(this).data('price');
+            let productImage = $(this).data('image');
+            let productQte = 1;
+
+            // Vérifie si le produit est déjà dans la commande
+            let existingProduct = $(`.pos-order-product[data-product-id="${productId}"]`);
+            if (existingProduct.length > 0) {
+                let quantityInput = existingProduct.find('.quantity-input');
+                quantityInput.val(parseInt(quantityInput.val()) + 1);
+                updateProductTotal(existingProduct, productPrice);
+            } else {
+                let productHtml = `
+                    <div class="pos-order">
+                        <div class="pos-order-product" data-product-id="${productId}">
+                            <div class="img" style="background-image: url(${productImage})"></div>
+                            <div class="flex-1">
+                                <div class="h6 mb-1">${productName}</div>
+                                <div class="small">${productPrice} FCFA</div>
+                                <div class="d-flex">
+                                    <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
+                                    <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}">
+                                    <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
+                                </div>
+                            </div>
+                            <div class="pos-order-price">${productPrice * productQte} FCFA</div>
+                        </div>
+                    </div>
+                `;
+
+                $('#newOrderTab').append(productHtml);
+            }
+
+            updateTotal();
+        });
+
+    function updateProductTotal(productRow, unitPrice) {
+        let quantity = productRow.find('.quantity-input').val();
+        let total = unitPrice * quantity;
+        productRow.find('.pos-order-price').text(total + ' FCFA');
+        updateTotal();
+    }
+
+    function updateTotal() {
+        let total = 0;
+        $('.pos-order-product').each(function() {
+            let productTotal = parseFloat($(this).find('.pos-order-price').text());
+            total += productTotal;
+        });
+        $('.total-amount').text(total + ' FCFA');
+    }
+
+    $(document).on('click', '.btn-plus', function(e) {
+        e.preventDefault();
+        let productRow = $(this).closest('.pos-order-product');
+        let quantityInput = productRow.find('.quantity-input');
+        quantityInput.val(parseInt(quantityInput.val()) + 1);
+        updateProductTotal(productRow, parseFloat(productRow.find('.small').text()));
+    });
+
+    $(document).on('click', '.btn-minus', function(e) {
+        e.preventDefault();
+        let productRow = $(this).closest('.pos-order-product');
+        let quantityInput = productRow.find('.quantity-input');
+        if (quantityInput.val() > 1) {
+            quantityInput.val(parseInt(quantityInput.val()) - 1);
+            updateProductTotal(productRow, parseFloat(productRow.find('.small').text()));
+        }
+    });
+});
+
     });
 </script>
 

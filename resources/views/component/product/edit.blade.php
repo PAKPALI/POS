@@ -33,15 +33,16 @@
             </div>
             <div class="form-group col-6 mb-3">
                 <label for="exampleInputText0">Prix unitaire</label>
-                <input type="number" name="price" value="{{$Product->price}}" class="form-control" id="exampleInputText0" placeholder="0">
+                <input type="number" name="price" value="{{$Product->price}}" class="form-control price1" id="exampleInputText0" placeholder="0">
             </div>
             <div class="form-group col-6">
                 <label for="exampleInputText0">Prix d'achat</label>
-                <input type="number" name="purchase_price" value="{{$Product->purchase_price}}" class="form-control" id="exampleInputText0" placeholder="0">
+                <input type="number" name="purchase_price" value="{{$Product->purchase_price}}" class="form-control purchase_price1" id="exampleInputText0" placeholder="0">
             </div>
+
             <div class="form-group col-12 mb-3">
                 <label for="exampleInputText0">Bénefice</label>
-                <input type="number" name="profit" value="{{$Product->profit}} FCFA" class="form-control" id="exampleInputText0" readonly placeholder="0">
+                <input type="number" name="profit" value="{{$Product->profit}}" class="form-control profit1" id="exampleInputText0" readonly placeholder="0">
             </div>
             <div class="form-group col-12">
                 <label class="form-label" for="smFile">Choisir une image</label>
@@ -70,7 +71,6 @@
 
         $('#submit').click(function(e) {
             e.preventDefault();
-
             // Affiche le loader et remplace le texte du bouton
             $('.loader').fadeIn();
             $('#submit_text').hide();
@@ -135,6 +135,19 @@
                     $('#submit').html('Modifier');
                 }
             });
+        });
+
+        // when unit price and purchase price are updated
+        $('.price1, .purchase_price1').on('input', function() {
+            // Récupérer les valeurs des champs
+            var unitPrice = parseFloat($('.price1').val()) || 0;
+            var purchasePrice = parseFloat($('.purchase_price1').val()) || 0;
+            
+            // Calculate profit
+            var profit = unitPrice - purchasePrice;
+
+            // Display result in profit field
+            $('.profit1').val(profit);
         });
     });
 </script>

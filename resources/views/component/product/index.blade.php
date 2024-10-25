@@ -53,6 +53,7 @@
                                                     <label for="exampleInputText0">Nom</label>
                                                     <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
                                                 </div>
+
                                                 <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Quantité</label>
                                                     <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
@@ -61,18 +62,19 @@
                                                     <label for="exampleInputText0">Marge de sécurité</label>
                                                     <input type="number" name="margin" value="0" class="form-control" id="exampleInputText0" placeholder="0">
                                                 </div>
+
                                                 <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Prix unitaire</label>
-                                                    <input type="number" name="price" class="form-control" id="exampleInputText0" placeholder="0">
+                                                    <input type="number" name="price" class="form-control price" id="exampleInputText0" placeholder="0">
                                                 </div>
                                                 <div class="form-group col-6">
                                                     <label for="exampleInputText0">Prix d'achat</label>
-                                                    <input type="number" name="purchase_price" class="form-control" id="exampleInputText0" placeholder="0">
+                                                    <input type="number" name="purchase_price" class="form-control purchase_price" id="exampleInputText0" placeholder="0">
                                                 </div>
 
                                                 <div class="form-group col-12 mb-3">
                                                     <label for="exampleInputText0">Bénefice</label>
-                                                    <input type="number" name="profit" class="form-control" id="exampleInputText0" readonly placeholder="0">
+                                                    <input type="number" name="profit" class="form-control profit" id="exampleInputText0" readonly placeholder="0">
                                                 </div>
                                                 
                                                 <div class="form-group col-12">
@@ -345,7 +347,6 @@
                 $('#showModal').modal('show');
             });
 
-
             $('body').on('click', '.deleteUser', function () {
                 var csrfToken = $('meta[name="csrf-token"]').attr('content');
                 var id = $(this).data("id");
@@ -393,6 +394,20 @@
                     }
                 })
             });
+
+            // when unit price and purchase price are updated
+            $('.price, .purchase_price').on('input', function() {
+                // Récupérer les valeurs des champs
+                var unitPrice = parseFloat($('.price').val()) || 0;
+                var purchasePrice = parseFloat($('.purchase_price').val()) || 0;
+                
+                // Calculate profit
+                var profit = unitPrice - purchasePrice;
+
+                // Display result in profit field
+                $('.profit').val(profit);
+            });
+
         });
     </script>
 

@@ -49,6 +49,11 @@
                     </tr>
                     <tr>
                         <th scope="row">7</th>
+                        <td>Bénefice: </td>
+                        <td>{{$Product->profit}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">8</th>
                         <td>Créer par :</td>
                         <td>{{$Product->user->name}}</td>
                     </tr>

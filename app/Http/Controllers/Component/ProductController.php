@@ -128,6 +128,12 @@ class ProductController extends Controller
 
             Product::create($data);
 
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'AJOUT PRODUIT',
+                'text' => auth()->user()->name." a modifié le produit '".$request->name."'",
+            ]);
+
             return response()->json([
                 "status" => true,
                 "reload" => true,
@@ -209,14 +215,21 @@ class ProductController extends Controller
 
                 $data['image'] = $imageName;
             }
-            $Product->update([$data]);
+            
+            $Product->update($data);
+
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'MODIFIER PRODUIT',
+                'text' => auth()->user()->name." a modifié le produit '".$request->name."'",
+            ]);
 
             return response()->json([
                 "status" => true,
                 "reload" => true,
                 // "redirect_to" => route('user'),
                 "title" => "MISE A JOUR REUSSIE",
-                "msg" => "La catégorie au nom de '".$request-> name."' a bien été mis à jour"
+                "msg" => "La catégorie au nom de '".$request-> name."' a bien été mis à jour".$request-> profit
             ]);
     }
 
