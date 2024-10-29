@@ -29,7 +29,7 @@
             </div>
             <div class="form-group col-6 mb-3">
                 <label for="exampleInputText0">Marge de sécurité</label>
-                <input type="number" name="margin" value="{{$Product->margin}}" value="0" class="form-control" id="exampleInputText0" placeholder="0">
+                <input type="number" name="margin" value="{{$Product->margin}}" class="form-control" id="exampleInputText0" placeholder="0">
             </div>
             <div class="form-group col-6 mb-3">
                 <label for="exampleInputText0">Prix unitaire</label>
@@ -74,11 +74,18 @@
             // Affiche le loader et remplace le texte du bouton
             $('.loader').fadeIn();
             $('#submit_text').hide();
-            
+            var formData = new FormData($('#update_form')[0]);
+
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('_method', 'PUT');
+
             $.ajax({
-                data: $('#update_form').serialize(),
+                data: formData,
                 url: '{{ url('component/product/' . $Product->id) }}',
-                type: "PUT",
+                type: "POST",
+                enctype: 'multipart/form-data',
+                processData: false,
+                contentType: false,
                 dataType: 'json',
                 success: function(data) {
                     if (data.status) {

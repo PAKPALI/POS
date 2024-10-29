@@ -125,7 +125,7 @@
                     <div class="pos-sidebar-nav">
                         <ul class="nav nav-tabs nav-fill">
                             <li class="nav-item">
-                                <a class="nav-link active" href="#" data-bs-toggle="tab" data-bs-target="#newOrderTab">New Order (5)</a>
+                                <a class="nav-link active" href="#" data-bs-toggle="tab" data-bs-target="#newOrderTab">Commande (<span id="orderCount">0</span>)</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-bs-toggle="tab" data-bs-target="#orderHistoryTab">Order History (0)</a>
@@ -270,7 +270,24 @@
             }
         });
 
-        $(document).ready(function() {
+        let selectedProducts = new Set(); // init count for count order
+        // Update order count
+        function updateOrderCount() {
+            document.getElementById("orderCount").textContent = selectedProducts.size;
+        }
+
+        function addProduct(productId) {
+            // Ajoute l'ID du produit uniquement s'il n'est pas déjà présent dans l'ensemble
+            selectedProducts.add(productId);
+            updateOrderCount();
+        }
+
+        function removeProduct(productId) {
+            // Supprime l'ID du produit de l'ensemble s'il est présent
+            selectedProducts.delete(productId);
+            updateOrderCount();
+        }
+
         $('.pos-product').on('click', function(e) {
             e.preventDefault();
 
@@ -280,7 +297,7 @@
             let productImage = $(this).data('image');
             let productQte = 1;
 
-            // Vérifie si le produit est déjà dans la commande
+            // Verify if product already exist
             let existingProduct = $(`.pos-order-product[data-product-id="${productId}"]`);
             if (existingProduct.length > 0) {
                 let quantityInput = existingProduct.find('.quantity-input');
@@ -301,50 +318,67 @@
                                 </div>
                             </div>
                             <div class="pos-order-price">${productPrice * productQte} FCFA</div>
+                            <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
                         </div>
                     </div>
                 `;
 
                 $('#newOrderTab').append(productHtml);
+                addProduct(productId)
             }
-
             updateTotal();
         });
 
-    function updateProductTotal(productRow, unitPrice) {
-        let quantity = productRow.find('.quantity-input').val();
-        let total = unitPrice * quantity;
-        productRow.find('.pos-order-price').text(total + ' FCFA');
-        updateTotal();
-    }
-
-    function updateTotal() {
-        let total = 0;
-        $('.pos-order-product').each(function() {
-            let productTotal = parseFloat($(this).find('.pos-order-price').text());
-            total += productTotal;
-        });
-        $('.total-amount').text(total + ' FCFA');
-    }
-
-    $(document).on('click', '.btn-plus', function(e) {
-        e.preventDefault();
-        let productRow = $(this).closest('.pos-order-product');
-        let quantityInput = productRow.find('.quantity-input');
-        quantityInput.val(parseInt(quantityInput.val()) + 1);
-        updateProductTotal(productRow, parseFloat(productRow.find('.small').text()));
-    });
-
-    $(document).on('click', '.btn-minus', function(e) {
-        e.preventDefault();
-        let productRow = $(this).closest('.pos-order-product');
-        let quantityInput = productRow.find('.quantity-input');
-        if (quantityInput.val() > 1) {
-            quantityInput.val(parseInt(quantityInput.val()) - 1);
-            updateProductTotal(productRow, parseFloat(productRow.find('.small').text()));
+        function updateProductTotal(productRow, unitPrice) {
+            let quantity = productRow.find('.quantity-input').val();
+            let total = unitPrice * quantity;
+            productRow.find('.pos-order-price').text(total + ' FCFA');
+            updateTotal();
         }
-    });
-});
+
+        function updateTotal() {
+            let total = 0;
+            $('.pos-order-product').each(function() {
+                let productTotal = parseFloat($(this).find('.pos-order-price').text());
+                total += productTotal;
+            });
+            $('.total-amount').text(total + ' FCFA');
+        }
+
+        $(document).on('click', '.btn-plus', function(e) {
+            e.preventDefault();
+            let productRow = $(this).closest('.pos-order-product');
+            let quantityInput = productRow.find('.quantity-input');
+            quantityInput.val(parseInt(quantityInput.val()) + 1);
+            updateProductTotal(productRow, parseFloat(productRow.find('.small').text()));
+        });
+
+        $(document).on('click', '.btn-minus', function(e) {
+            e.preventDefault();
+            let productRow = $(this).closest('.pos-order-product');
+            let quantityInput = productRow.find('.quantity-input');
+            if (quantityInput.val() > 1) {
+                quantityInput.val(parseInt(quantityInput.val()) - 1);
+                updateProductTotal(productRow, parseFloat(productRow.find('.small').text()));
+            }
+        });
+
+        // update price when quantity input is change
+        $(document).on('keyup', '.quantity-input', function(e) {
+            e.preventDefault();
+            let productRow = $(this).closest('.pos-order-product');
+            let quantityInput = productRow.find('.quantity-input');
+            updateProductTotal(productRow, parseFloat(productRow.find('.small').text()));
+        });
+
+        // Delete item and update total
+        $(document).on('click', '.remove-item', function(e) {
+            const productElement = $(this).closest(".pos-order").find(".pos-order-product");
+            const productId = productElement.data('product-id');
+            removeProduct(productId)
+            $(this).productElement.remove();
+            updateTotal();
+        });
 
     });
 </script>
