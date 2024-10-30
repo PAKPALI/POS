@@ -33,7 +33,8 @@
                                 <a class="nav-link active" href="#" data-filter="all">
                                     <div class="card">
                                         <div class="card-body">
-                                            <i class="fa fa-fw fa-utensils"></i> All Dishes
+                                            <i class="fa fa-fw fa-utensils"></i> Tous
+                                            ( <span>{{$Product->count()}}</span> )
                                         </div>
                                         <div class="card-arrow">
                                             <div class="card-arrow-top-left"></div>
@@ -51,6 +52,7 @@
                                     <div class="card">
                                         <div class="card-body">
                                             <i class="fa fa-fw fa-drumstick-bite"></i> {{$category->name}}
+                                            ( <span>{{$category->products->count()}}</span> )
                                         </div>
                                         <div class="card-arrow">
                                             <div class="card-arrow-top-left"></div>
@@ -248,6 +250,52 @@
 
 <script>
     $(function() {
+        $('#confirmSale').on('click', function(e) {
+            e.preventDefault();
+
+            let products = [];
+            let totalAmount = 0;
+
+            $('.pos-order-product').each(function() {
+                let productId = $(this).data('product-id');
+                let quantity = $(this).find('.quantity-input').val();
+                let price = parseFloat($(this).find('.small').text().replace(' FCFA', ''));
+                let totalPrice = quantity * price;
+
+                products.push({
+                    product_id: productId,
+                    quantity: quantity,
+                    unit_price: price,
+                    total_price: totalPrice
+                });
+
+                totalAmount += totalPrice;
+            });
+
+            // AJAX pour envoyer les données au backend
+            $.ajax({
+                url: '{{ route("sale.store") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    products: products,
+                    total_amount: totalAmount
+                },
+                success: function(response) {
+                    alert('Vente enregistrée avec succès !');
+                    // Réinitialiser la commande
+                    $('.pos-order').empty();
+                    $('#orderCount').text(0);
+                    $('.total-amount').text('0 FCFA');
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    alert('Erreur lors de l\'enregistrement de la vente.');
+                }
+            });
+        });
+
+
         // Au clic sur un élément de navigation
         $('.nav-link').on('click', function(e) {
             e.preventDefault();
@@ -376,7 +424,7 @@
             const productElement = $(this).closest(".pos-order").find(".pos-order-product");
             const productId = productElement.data('product-id');
             removeProduct(productId)
-            $(this).productElement.remove();
+            $(this).closest(".pos-order").remove();
             updateTotal();
         });
 
