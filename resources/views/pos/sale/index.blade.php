@@ -206,7 +206,7 @@
                                     <i class="bi bi-receipt fa-fw fa-lg"></i><br>
                                     <span class="small">Bill</span>
                                 </a> -->
-                                <a href="#" class="btn btn-outline-theme rounded-0 w-150px">
+                                <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 w-150px">
                                     <i class="bi bi-send-check fa-lg"></i><br>
                                     <span class="small">Vendre</span>
                                 </a>
@@ -229,7 +229,7 @@
 
     <a href="#" class="pos-mobile-sidebar-toggler" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos">
         <i class="bi bi-bag"></i>
-        <span class="badge">5</span>
+        <span id="mobileBadge" class="badge">0</span>
     </a>
 
 </div>
@@ -271,30 +271,72 @@
 
                 totalAmount += totalPrice;
             });
+            console.log(products);
 
-            // AJAX pour envoyer les données au backend
-            $.ajax({
-                url: '{{ route("sale.store") }}',
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    products: products,
-                    total_amount: totalAmount
-                },
-                success: function(response) {
-                    alert('Vente enregistrée avec succès !');
-                    // Réinitialiser la commande
-                    $('.pos-order').empty();
-                    $('#orderCount').text(0);
-                    $('.total-amount').text('0 FCFA');
-                },
-                error: function(xhr) {
-                    console.error(xhr);
-                    alert('Erreur lors de l\'enregistrement de la vente.');
+            Swal.fire({
+                    icon: "question",
+                    title: "Confirmez?",
+                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                    confirmButtonText: "Oui",
+                    confirmButtonColor: 'green',
+                    showCancelButton: true,
+                    cancelButtonText: "Non",
+                    cancelButtonColor: 'blue',
+            }).then((result) => {
+                if (result.isConfirmed){
+                    // AJAX forsend data
+                    $.ajax({
+                        url: '{{ route("sale.store") }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            products: products,
+                            total_amount: totalAmount
+                        },
+                        
+                        success: function(data) {
+                            console.log(data)
+                            if (data.status) {
+                                $('#loader').hide();
+                                $('#submitText').fadeIn();
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top',
+                                    icon: "success",
+                                    title: data.title,
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true,
+                                    text: data.msg,
+                                });
+                                window.location.reload();
+                            } else {
+                                $('#loader').hide();
+                                $('#submitText').fadeIn();
+                                Swal.fire({
+                                    title: data.title,
+                                    text: data.msg,
+                                    icon: 'error',
+                                    confirmButtonText: "D'accord",
+                                    confirmButtonColor: '#A40000',
+                                })
+                            }
+                        },
+                        error: function(data) {
+                            console.log(data)
+                            $('#loader').hide();
+                            $('#submitText').fadeIn();
+                            Swal.fire({
+                                icon: "error",
+                                title: "erreur",
+                                text: "Impossible de communiquer avec le serveur.",
+                                timer: 3600,
+                            })
+                        }
+                    });
                 }
-            });
+            })
         });
-
 
         // Au clic sur un élément de navigation
         $('.nav-link').on('click', function(e) {
@@ -322,6 +364,7 @@
         // Update order count
         function updateOrderCount() {
             document.getElementById("orderCount").textContent = selectedProducts.size;
+            document.getElementById("mobileBadge").textContent = selectedProducts.size;
         }
 
         function addProduct(productId) {

@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Sale;
 
+use App\Models\Sale;
+use App\Models\Action;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class SaleController extends Controller
 {
@@ -31,53 +34,71 @@ class SaleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
-        $request->validate([
+        $error_messages = [
+            'products.required' => "Choisir un produit",
+            'products.*.quantity.min' => "La quantité doit être supérieure à 0 pour chaque produit",
+            'total_amount.required' => "Remplir le total",
+        ];
+        
+        $validator = Validator::make($request->all(), [
             'products' => 'required|array',
+            'products.*.quantity' => 'required|integer|min:1',
             'total_amount' => 'required|numeric'
+        ], $error_messages);
+        
+        
+        if($validator->fails())
+        return response()->json([
+            "status" => false,
+            "reload" => false,
+            "title" => "VENTE ECHOUEE",
+            "msg" => $validator->errors()->first()
         ]);
 
-        // Enregistrement de la vente
+        // store sale
         $sale = Sale::create([
             'total_amount' => $request->total_amount
         ]);
 
-        // Enregistrement des détails de chaque produit
+        // store sale detail
         foreach ($request->products as $product) {
+            // search product
+            $Product = Product::findOrFail($product['product_id']);
+            // calculate profit and store it in sale detail
+            $profit = $Product->profit*$product['quantity'];
+            // store sale detail
             $sale->saleDetails()->create([
                 'product_id' => $product['product_id'],
                 'quantity' => $product['quantity'],
                 'unit_price' => $product['unit_price'],
-                'total_price' => $product['total_price']
+                'total_price' => $product['total_price'],
+                'profit' => $profit
+            ]);
+            // update product quantity
+            $newQte = $Product->qte - $product['quantity'];
+            $Product->update([
+                'qte' =>$newQte,
             ]);
         }
 
-        return response()->json(['message' => 'Vente enregistrée avec succès']);
+        // log action
+        Action::create([
+            'user_id' => auth()->user()->id,
+            'function' => 'VENTE',
+            'text' => auth()->user()->name." a effectué une vente",
+        ]);
+
+        return response()->json([
+            "status" => true,
+            "reload" => true,
+            // "redirect_to" => route('user'),
+            "title" => "VENTE EFFECTUEE",
+            "msg" => ""
+        ]);
     }
-
-    // class Sale extends Model
-    // {
-    //     protected $fillable = ['total_amount'];
-
-    //     public function saleDetails()
-    //     {
-    //         return $this->hasMany(SaleDetail::class);
-    //     }
-    // }
-
-    // class SaleDetail extends Model
-    // {
-    //     protected $fillable = ['sale_id', 'product_id', 'quantity', 'unit_price', 'total_price'];
-
-    //     public function sale()
-    //     {
-    //         return $this->belongsTo(Sale::class);
-    //     }
-    // }
-
-
-
 
     /**
      * Display the specified resource.
