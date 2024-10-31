@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Sale extends Model
 {
     use HasFactory;
-    protected $fillable = ['total_amount'];
+    protected $fillable = ['code','total_amount','cashier'];
 
     public function saleDetails()
     {

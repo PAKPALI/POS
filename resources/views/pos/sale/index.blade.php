@@ -309,6 +309,12 @@
                                     timerProgressBar: true,
                                     text: data.msg,
                                 });
+                                // create new window for print pdf
+                                var pdfWindow = window.open("");
+                                pdfWindow.document.write(
+                                    "<iframe width='100%' height='100%' src='data:application/pdf;base64, " +
+                                    encodeURI(data.pdfBase64) + "'></iframe>"
+                                );
                                 window.location.reload();
                             } else {
                                 $('#loader').hide();

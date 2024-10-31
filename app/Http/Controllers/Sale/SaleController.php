@@ -6,7 +6,11 @@ use App\Models\Sale;
 use App\Models\Action;
 use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
@@ -35,6 +39,15 @@ class SaleController extends Controller
      * Store a newly created resource in storage.
      */
 
+    public function code()
+    {
+        $code = '';
+        for ($i = 0; $i < 8; $i++) {
+            $code .= rand(0, 9);
+        }
+        return $code;
+    }
+
     public function store(Request $request)
     {
         $error_messages = [
@@ -57,47 +70,73 @@ class SaleController extends Controller
             "title" => "VENTE ECHOUEE",
             "msg" => $validator->errors()->first()
         ]);
+        try {
+            DB::beginTransaction();
+            // store sale
+            $sale = Sale::create([
+                'code' => $this->code(),
+                'total_amount' => $request->total_amount,
+                'cashier' => auth()->user()->name
+            ]);
 
-        // store sale
-        $sale = Sale::create([
-            'total_amount' => $request->total_amount
-        ]);
-
-        // store sale detail
-        foreach ($request->products as $product) {
-            // search product
-            $Product = Product::findOrFail($product['product_id']);
-            // calculate profit and store it in sale detail
-            $profit = $Product->profit*$product['quantity'];
             // store sale detail
-            $sale->saleDetails()->create([
-                'product_id' => $product['product_id'],
-                'quantity' => $product['quantity'],
-                'unit_price' => $product['unit_price'],
-                'total_price' => $product['total_price'],
-                'profit' => $profit
+            foreach ($request->products as $product) {
+                // search product
+                $Product = Product::findOrFail($product['product_id']);
+                // calculate profit and store it in sale detail
+                $profit = $Product->profit*$product['quantity'];
+                // store sale detail
+                $saleDetails = $sale->saleDetails()->create([
+                    'product_id' => $product['product_id'],
+                    'quantity' => $product['quantity'],
+                    'unit_price' => $product['unit_price'],
+                    'total_price' => $product['total_price'],
+                    'profit' => $profit
+                ]);
+                // update product quantity if product qte is greater than user quantity
+                if($Product->qte>$product['quantity']){
+                    $newQte = $Product->qte - $product['quantity'];
+                    $Product->update([
+                        'qte' =>$newQte,
+                    ]);
+                }else{
+                    DB::rollBack();
+                    return response()->json([
+                        "status" => false,
+                        "reload" => false,
+                        "title" => "VENTE ECHOUEE",
+                        "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
+                    ]);
+                } 
+            }
+
+            // Generate  PDF invoice
+            // composer require barryvdh/laravel-dompdf
+            $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale,'saleDetails' => $saleDetails]);
+
+            // save or return PDF in base64
+            $pdfBase64 = base64_encode($pdf->output());
+
+            // log action
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'VENTE',
+                'text' => auth()->user()->name." a effectué une vente",
             ]);
-            // update product quantity
-            $newQte = $Product->qte - $product['quantity'];
-            $Product->update([
-                'qte' =>$newQte,
+            DB::commit();
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "VENTE EFFECTUEE",
+                "msg" => "",
+                'pdfBase64' => $pdfBase64
             ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            Log::error('Une erreur est survenue lors de la vente' . $th->getMessage());
+            return response()->json(["status" => false, "msg" => "Erreur survenue lors de la vente , contacter le développeur". $th->getMessage()]);
         }
-
-        // log action
-        Action::create([
-            'user_id' => auth()->user()->id,
-            'function' => 'VENTE',
-            'text' => auth()->user()->name." a effectué une vente",
-        ]);
-
-        return response()->json([
-            "status" => true,
-            "reload" => true,
-            // "redirect_to" => route('user'),
-            "title" => "VENTE EFFECTUEE",
-            "msg" => ""
-        ]);
     }
 
     /**
