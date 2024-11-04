@@ -135,7 +135,6 @@
                         </ul>
                     </div>
 
-
                     <div class="pos-sidebar-body tab-content" data-scrollbar="true" data-height="100%">
 
                         <div class="tab-pane fade h-100 show active" id="newOrderTab">
@@ -226,6 +225,28 @@
         </div>
     </div>
 
+    <!-- Modal pour afficher le PDF -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl"> <!-- Utilisez modal-xl pour un modal plus large -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Aperçu du reçu</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <iframe id="pdfIframe" width="100%" height="600px"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="print" class="btn btn-dark">Imprimer</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="pdfModalLabel">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <a href="#" class="pos-mobile-sidebar-toggler" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos">
         <i class="bi bi-bag"></i>
@@ -250,6 +271,69 @@
 
 <script>
     $(function() {
+        function openPdfInModal(pdfBase64) {
+            const pdfData = atob(pdfBase64); // Décode le base64
+            const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+
+            loadingTask.promise.then(function(pdf) {
+                // On récupère la première page
+                pdf.getPage(1).then(function(page) {
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale: scale });
+                    
+                    // Préparez l'élément canvas
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    // Rendu de la page sur le canvas
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+
+                    // Ajoutez le canvas à votre modal
+                    const modalBody = document.querySelector('#pdfModal .modal-body');
+                    modalBody.innerHTML = ''; // Réinitialise le contenu
+                    modalBody.appendChild(canvas);
+
+                    // Affiche le modal
+                    $('#pdfModal').modal('show');
+                });
+            }, function (reason) {
+                console.error(reason);
+            });
+        }
+
+        // Ajoutez une fonction d'impression pour imprimer le contenu du canvas
+        function printPdf() {
+            const canvas = document.querySelector('#pdfModal .modal-body canvas');
+
+            if (!canvas) {
+                console.error("Le canvas n'est pas trouvé.");
+                return;
+            }
+
+            // Convertir le canvas en image
+            const imageData = canvas.toDataURL("image/png");
+
+            // Ouvrir une nouvelle fenêtre pour l'impression
+            const printWindow = window.open('');
+            printWindow.document.write('<html><head><title>Impression PDF</title></head><body>');
+            printWindow.document.write('<img src="' + imageData + '" style="width: 100%;" />');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+
+            // Attendre que le contenu soit complètement chargé avant d'imprimer
+            printWindow.onload = function() {
+                printWindow.print();
+                printWindow.close(); // Fermer la fenêtre après l'impression
+                window.location.reload()
+            };
+        }
+
         $('#confirmSale').on('click', function(e) {
             e.preventDefault();
 
@@ -293,7 +377,6 @@
                             products: products,
                             total_amount: totalAmount
                         },
-                        
                         success: function(data) {
                             console.log(data)
                             if (data.status) {
@@ -310,12 +393,14 @@
                                     text: data.msg,
                                 });
                                 // create new window for print pdf
-                                var pdfWindow = window.open("");
-                                pdfWindow.document.write(
-                                    "<iframe width='100%' height='100%' src='data:application/pdf;base64, " +
-                                    encodeURI(data.pdfBase64) + "'></iframe>"
-                                );
-                                window.location.reload();
+                                // var pdfWindow = window.open("");
+                                // pdfWindow.document.write(
+                                //     "<iframe width='100%' height='100%' src='data:application/pdf;base64, " +
+                                //     encodeURI(data.pdfBase64) + "'></iframe>"
+                                // );
+
+                                // Appellez cette fonction avec la donnée pdfBase64 reçue du serveur
+                                openPdfInModal(data.pdfBase64);
                             } else {
                                 $('#loader').hide();
                                 $('#submitText').fadeIn();
@@ -342,6 +427,10 @@
                     });
                 }
             })
+        });
+
+        $('#print').on('click', function(e) {
+            printPdf()
         });
 
         // Au clic sur un élément de navigation

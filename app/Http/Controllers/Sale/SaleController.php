@@ -83,6 +83,15 @@ class SaleController extends Controller
             foreach ($request->products as $product) {
                 // search product
                 $Product = Product::findOrFail($product['product_id']);
+                if (!$Product) {
+                    DB::rollBack();
+                    return response()->json([
+                        "status" => false,
+                        "reload" => false,
+                        "title" => "VENTE ECHOUEE",
+                        "msg" => "Le produit avec l'ID ". $product['product_id'] . " est introuvable."
+                    ]);
+                }
                 // calculate profit and store it in sale detail
                 $profit = $Product->profit*$product['quantity'];
                 // store sale detail
@@ -112,7 +121,9 @@ class SaleController extends Controller
 
             // Generate  PDF invoice
             // composer require barryvdh/laravel-dompdf
-            $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale,'saleDetails' => $saleDetails]);
+            $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale,'saleDetails' => $sale->saleDetails])
+                ->setPaper('A6', 'portrait')
+                ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
 
             // save or return PDF in base64
             $pdfBase64 = base64_encode($pdf->output());
@@ -135,7 +146,7 @@ class SaleController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
             Log::error('Une erreur est survenue lors de la vente' . $th->getMessage());
-            return response()->json(["status" => false, "msg" => "Erreur survenue lors de la vente , contacter le développeur". $th->getMessage()]);
+            return response()->json(["status" => false, "msg" => $saleDetails."Erreur survenue lors de la vente , contacter le développeur". $th->getMessage()]);
         }
     }
 

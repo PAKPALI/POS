@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            width: 80mm;
+            width: 100%;
             margin: 0 auto;
             color: #333;
         }
@@ -15,11 +15,13 @@
         .receipt {
             border: 1px solid #ddd;
             padding: 10px;
-            max-width: 80mm;
+            max-width: 100%;
         }
 
         .header {
             text-align: center;
+            background-color: black;
+            color: #fff;
         }
 
         .header h1 {
@@ -71,7 +73,8 @@
             text-align: center;
             font-size: 10px;
             margin-top: 20px;
-            color: #888;
+            background-color: black;
+            color: #fff;
         }
     </style>
 </head>
@@ -94,15 +97,17 @@
         <thead>
             <tr>
                 <th class="item-details">Produit</th>
-                <th>Qte</th>
-                <th>PU</th>
-                <th>PT</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Prix total</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($saleDetails as $detail)
                 <tr>
-                    <td class="item-details">{{ $detail->product->name }}</td>
+                    <td class="item-details"> 
+                        {{ $detail->product ? $detail->product->name : 'Produit non disponible' }}
+                    </td>
                     <td>{{ $detail->quantity }}</td>
                     <td>{{ number_format($detail->unit_price, 2) }} FCFA</td>
                     <td>{{ number_format($detail->total_price, 2) }} FCFA</td>
@@ -135,7 +140,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            width: 80mm;
+            width: 100%;
             margin: 0 auto;
             color: #333;
         }
@@ -143,11 +148,13 @@
         .receipt {
             border: 1px solid #ddd;
             padding: 10px;
-            max-width: 80mm;
+            max-width: 100%;
         }
 
         .header {
             text-align: center;
+            background-color: black;
+            color: #fff;
         }
 
         .header h1 {
@@ -199,7 +206,8 @@
             text-align: center;
             font-size: 10px;
             margin-top: 20px;
-            color: #888;
+            background-color: black;
+            color: #fff;
         }
     </style>
 </head>
