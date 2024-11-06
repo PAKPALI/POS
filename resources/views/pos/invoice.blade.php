@@ -10,18 +10,20 @@
             width: 100%;
             margin: 0 auto;
             color: #333;
+            page-break-inside: avoid;
         }
+        .container { page-break-inside: avoid; }
 
         .receipt {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px;
             max-width: 100%;
         }
 
         .header {
             text-align: center;
-            background-color: black;
-            color: #fff;
+            background-color: white;
+            color: #000;
         }
 
         .header h1 {
@@ -35,48 +37,72 @@
         }
 
         .receipt-info {
-            margin: 10px 0;
+            margin: 8px 0;
             font-size: 12px;
         }
 
         .items-table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 3px;
             font-size: 12px;
         }
 
         .items-table th, .items-table td {
-            border: 1px solid #333;
-            padding: 5px;
+            /* border: 1px solid #333; */
+            padding: 8px;
             text-align: right;
         }
 
         .items-table th {
             text-align: left;
             font-weight: bold;
-            background-color: #f0f0f0;
         }
 
         .items-table .item-details {
-            text-align: left;
+            text-align: center;
         }
 
         .total {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             text-align: right;
-            margin-top: 10px;
+            margin-top: 2px;
         }
 
         .footer {
             text-align: center;
-            font-size: 10px;
-            margin-top: 20px;
-            background-color: black;
-            color: #fff;
+            font-size: 8px;
+            margin-top: 5px;
+            background-color: white;
+            color: #000;
         }
     </style>
+    <!-- <style>
+        body, .receipt {
+            margin: 0;
+            padding: 0;
+            font-size: 10px; /* Réduction de la taille de police */
+            width: 80mm; /* largeur typique pour une imprimante thermique */
+        }
+        .header, .footer {
+            font-size: 10px;
+            margin: 0;
+            padding: 5px 0;
+        }
+        .items-table th, .items-table td {
+            padding: 2px 5px;
+        }
+        .total p {
+            margin: 2px 0;
+            font-size: 10px;
+        }
+        .container, .receipt, .items-table, .total, .footer {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+    </style> -->
+
 </head>
 <body>
 
@@ -87,19 +113,32 @@
         <p>Tél : 0123456789</p>
     </div>
 
+    <hr />
+
     <div class="receipt-info">
-        <p>Date : {{ $sale->created_at->format('d/m/Y') }}</p>
-        <p>Réf : #{{ $sale->code }}</p>
-        <p>Caissier : {{ $sale->cashier ?? 'Nom du Caissier' }}</p>
+        <!-- <p>Date : {{ $sale->created_at->format('d/m/Y') }}</p>
+        <p></p>
+        <p>Caissier : {{ $sale->cashier ?? 'Nom du Caissier' }}</p> -->
+        <table class="items-table">
+            <tbody>
+                    <tr>
+                        <td class="item-details"> Date : {{ $sale->created_at->format('d/m/Y') }}</td>
+                        <td class="item-details">Réf : #{{ $sale->code }}</td>
+                        <td class="item-details">Caissier : {{ $sale->cashier ?? 'Nom du Caissier' }}</td>
+                    </tr>
+            </tbody>
+        </table>
     </div>
+
+    <hr />
 
     <table class="items-table">
         <thead>
             <tr>
                 <th class="item-details">Produit</th>
-                <th>Quantité</th>
-                <th>Prix unitaire</th>
-                <th>Prix total</th>
+                <th class="item-details">Quantité</th>
+                <th class="item-details">P.U (FCFA)</th>
+                <th class="item-details">P.T (FCFA)</th>
             </tr>
         </thead>
         <tbody>
@@ -108,19 +147,23 @@
                     <td class="item-details"> 
                         {{ $detail->product ? $detail->product->name : 'Produit non disponible' }}
                     </td>
-                    <td>{{ $detail->quantity }}</td>
-                    <td>{{ number_format($detail->unit_price, 2) }} FCFA</td>
-                    <td>{{ number_format($detail->total_price, 2) }} FCFA</td>
+                    <td class="item-details">{{ $detail->quantity }}</td>
+                    <td class="item-details">{{ number_format($detail->unit_price, 2) }} </td>
+                    <td class="item-details">{{ number_format($detail->total_price, 2) }} </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
+    <hr />
+
     <div class="total">
-        <p>Total : {{ number_format($sale->total_amount, 2) }} FCFA</p>
-        <p>Taxe : {{ 0 }} FCFA</p>
+        <!-- <p>Total : {{ number_format($sale->total_amount, 2) }} FCFA</p>
+        <p>Taxe : {{ 0 }} FCFA</p> -->
         <p>Net à Payer : {{ number_format($sale->total_amount + 0) }} FCFA</p>
     </div>
+
+    <hr />
 
     <div class="footer">
         <p>Merci pour votre achat !</p>
@@ -143,7 +186,9 @@
             width: 100%;
             margin: 0 auto;
             color: #333;
+            page-break-inside: avoid;
         }
+        .container { page-break-inside: avoid; }
 
         .receipt {
             border: 1px solid #ddd;
@@ -153,8 +198,8 @@
 
         .header {
             text-align: center;
-            background-color: black;
-            color: #fff;
+            background-color: white;
+            color: #000;
         }
 
         .header h1 {
@@ -174,13 +219,12 @@
 
         .items-table {
             width: 100%;
-            border-collapse: collapse;
             margin-top: 10px;
             font-size: 12px;
         }
 
         .items-table th, .items-table td {
-            border: 1px solid #333;
+            /* border: 1px solid #333; */
             padding: 5px;
             text-align: right;
         }
@@ -188,11 +232,10 @@
         .items-table th {
             text-align: left;
             font-weight: bold;
-            background-color: #f0f0f0;
         }
 
         .items-table .item-details {
-            text-align: left;
+            text-align: center;
         }
 
         .total {
@@ -206,8 +249,8 @@
             text-align: center;
             font-size: 10px;
             margin-top: 20px;
-            background-color: black;
-            color: #fff;
+            background-color: white;
+            color: #000;
         }
     </style>
 </head>
@@ -224,8 +267,17 @@
         <p>Date : 01/10/2024</p>
         <p>Réf : #123456</p>
         <p>Caissier : Nom du Caissier</p>
+        <table class="items-table">
+            <tbody>
+                    <tr>
+                        <td class="item-details"> Date : 01/10/2024</td>
+                        <td class="item-details">Réf : #123456</td>
+                        <td class="item-details">Caissier : Nom du Caissier</td>
+                    </tr>
+            </tbody>
+        </table>
     </div>
-
+    <hr />
     <table class="items-table">
         <thead>
             <tr>
@@ -256,10 +308,8 @@
             </tr>
         </tbody>
     </table>
-
+    <hr />
     <div class="total">
-        <p>Total : 49.00 €</p>
-        <p>Taxe : 2.50 €</p>
         <p>Net à Payer : 51.50 €</p>
     </div>
 

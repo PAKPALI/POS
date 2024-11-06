@@ -122,8 +122,19 @@ class SaleController extends Controller
             // Generate  PDF invoice
             // composer require barryvdh/laravel-dompdf
             $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale,'saleDetails' => $sale->saleDetails])
-                ->setPaper('A6', 'portrait')
-                ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+                // ->setPaper('A6', 'portrait')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'dpi' => 150 // Augmente le DPI pour une meilleure résolution
+                ]);
+
+            $pdf->setPaper([0, 0, 300, 400],'portrait'); // Dimensions personnalisées en points pour un reçu plus petit
+
+            // $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale, 'saleDetails' => $saleDetails])
+            //     ->setPaper([0, 0, 226.77, 650], 'portrait'); // Largeur 80mm, hauteur ajustable
+
+
 
             // save or return PDF in base64
             $pdfBase64 = base64_encode($pdf->output());

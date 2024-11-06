@@ -278,7 +278,7 @@
             loadingTask.promise.then(function(pdf) {
                 // On récupère la première page
                 pdf.getPage(1).then(function(page) {
-                    const scale = 1.5;
+                    const scale = 3;// Augmente l'échelle pour une meilleure qualité
                     const viewport = page.getViewport({ scale: scale });
                     
                     // Préparez l'élément canvas
@@ -290,7 +290,7 @@
                     // Rendu de la page sur le canvas
                     const renderContext = {
                         canvasContext: context,
-                        viewport: viewport
+                        viewport: viewport 
                     };
                     page.render(renderContext);
 
