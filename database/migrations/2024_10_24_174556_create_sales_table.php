@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('code');
             $table->decimal('total_amount', 10, 2);
+            $table->decimal('total_profit', 10, 2)->nullable();
             $table->string('cashier');
             $table->timestamps();
         });

@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
 class SaleController extends Controller
@@ -24,6 +25,26 @@ class SaleController extends Controller
         // get all categories with their associated products
         $Category = Category::with('products')->get();
         $Product = Product::all();
+
+        // composer require yajra/laravel-datatables-oracle
+        $Object = Sale::latest()->get();
+        if(request()->ajax()){
+            // $Student = Student::all();
+            return DataTables::of($Object)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
+                    return $btn;
+                })
+                // ->editColumn('cashier', function ($Object) {
+                //     return $Object->user->name;
+                // })
+                ->editColumn('created_at', function ($Object) {
+                    return $Object->created_at->format('d-m-Y H:i:s');
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
         return view('pos.sale.index',compact('Category','Product'));
     }
 
@@ -79,6 +100,8 @@ class SaleController extends Controller
                 'cashier' => auth()->user()->name
             ]);
 
+            $totalProfit = 0; // Initialize the variable before the loop
+
             // store sale detail
             foreach ($request->products as $product) {
                 // search product
@@ -92,8 +115,10 @@ class SaleController extends Controller
                         "msg" => "Le produit avec l'ID ". $product['product_id'] . " est introuvable."
                     ]);
                 }
+
                 // calculate profit and store it in sale detail
                 $profit = $Product->profit*$product['quantity'];
+
                 // store sale detail
                 $saleDetails = $sale->saleDetails()->create([
                     'product_id' => $product['product_id'],
@@ -102,6 +127,7 @@ class SaleController extends Controller
                     'total_price' => $product['total_price'],
                     'profit' => $profit
                 ]);
+
                 // update product quantity if product qte is greater than user quantity
                 if($Product->qte>$product['quantity']){
                     $newQte = $Product->qte - $product['quantity'];
@@ -116,7 +142,13 @@ class SaleController extends Controller
                         "title" => "VENTE ECHOUEE",
                         "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
                     ]);
-                } 
+                }
+
+                // update total profit to sale table column
+                $totalProfit += $profit;// add totalProfit
+                $sale->update([
+                    'total_profit' =>$totalProfit,
+                ]);
             }
 
             // Generate  PDF invoice
@@ -133,8 +165,6 @@ class SaleController extends Controller
 
             // $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale, 'saleDetails' => $saleDetails])
             //     ->setPaper([0, 0, 226.77, 650], 'portrait'); // Largeur 80mm, hauteur ajustable
-
-
 
             // save or return PDF in base64
             $pdfBase64 = base64_encode($pdf->output());

@@ -73,6 +73,37 @@
             <div class="pos-content">
                 <div class="pos-content-container h-100 p-4" data-scrollbar="true" data-height="100%">
                     <div class="row gx-4">
+                        <strong class="sale_list">Liste des ventes effectuées cette journée</strong>
+                        <div class="card sale_list">
+                            <div class="card-body">
+                                <table id="datatable" class="table text-nowrap w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Code</th>
+                                            <th>Somme totale</th>
+                                            <th>Profit total</th>
+                                            <th>Caissier</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="card-arrow">
+                                <div class="card-arrow-top-left"></div>
+                                <div class="card-arrow-top-right"></div>
+                                <div class="card-arrow-bottom-left"></div>
+                                <div class="card-arrow-bottom-right"></div>
+                            </div>
+                            <div class="hljs-container">
+                                <pre><code class="xml" data-url="assets/data/table-plugins/code-1.json"></code></pre>
+                            </div>
+                        </div>
+
+                        <!-- product list -->
                         @foreach($Category as $category)
                             @foreach($category->products as $product)
                                 <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4" data-type="{{ $category->name }}">
@@ -129,16 +160,14 @@
                             <li class="nav-item">
                                 <a class="nav-link active" href="#" data-bs-toggle="tab" data-bs-target="#newOrderTab">Commande (<span id="orderCount">0</span>)</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" data-bs-toggle="tab" data-bs-target="#orderHistoryTab">Order History (0)</a>
+                            <li class="nav-item nav-sale">
+                                <a class="nav-link" href="#" data-bs-toggle="tab" data-bs-target="#orderHistoryTab">Ventes (0)</a>
                             </li>
                         </ul>
                     </div>
 
                     <div class="pos-sidebar-body tab-content" data-scrollbar="true" data-height="100%">
-
                         <div class="tab-pane fade h-100 show active" id="newOrderTab">
-
                             <div class="pos-order">
                                 
                             </div>
@@ -162,8 +191,6 @@
                                 </div>
                             </div> -->
                         </div>
-
-
                         <div class="tab-pane fade h-100" id="orderHistoryTab">
                             <div class="h-100 d-flex align-items-center justify-content-center text-center p-20">
                                 <div>
@@ -271,6 +298,8 @@
 
 <script>
     $(function() {
+        $('.sale_list').hide();
+
         function openPdfInModal(pdfBase64) {
             const pdfData = atob(pdfBase64); // Décode le base64
             const loadingTask = pdfjsLib.getDocument({ data: pdfData });
@@ -436,6 +465,8 @@
         // Au clic sur un élément de navigation
         $('.nav-link').on('click', function(e) {
             e.preventDefault();
+            // hide sale list
+            $('.sale_list').fadeOut();
             
             // Get the selected category
             var filter = $(this).attr('data-filter');
@@ -453,6 +484,13 @@
                 $('.pos-content .col-xxl-3').hide();
                 $('.pos-content .col-xxl-3[data-type="' + filter + '"]').show();
             }
+        });
+
+        // Au clic sur élément de navigation de la liste des ventes
+        $('.nav-sale').on('click', function(e) {
+            e.preventDefault();
+            // hide sale list
+            $('.sale_list').fadeIn();
         });
 
         let selectedProducts = new Set(); // init count for count order
@@ -565,6 +603,65 @@
             $(this).closest(".pos-order").remove();
             updateTotal();
         });
+
+        var Datatable = $('#datatable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('sale.index')}}",
+                columns: [
+                    {data: 'id',name: 'id'},
+                    {data: 'code',name: 'code'},
+                    {data: 'total_amount',name: 'total_amount'},
+                    {data: 'total_profit',name: 'total_profit'},
+                    {data: 'cashier',name: 'cashier'},
+                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                ],
+                responsive: true, 
+                language: {
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucune donnée disponible",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
+                    "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
+                },
+                
+                drawCallback: function() {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
+                    $('#datatable').css('width','100%');
+                    $('#datatable tbody tr').each(function() {
+                        $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
+                        $(this).css('color', 'white');
+                    });
+                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
+                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
+                    $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
+                    $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+
+                    // Appliquer la couleur blanche au texte des labels
+                    $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
+                    $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
+                    
+                    // Appliquer les styles pour le dropdown et le champ de recherche
+                    $('.dataTables_length select').css({
+                        'background-color': 'black', // Fond noir
+                        'color': 'white' // Texte en blanc
+                    });
+
+                    $('.dataTables_filter input').css({
+                        'background-color': 'black', // Fond noir
+                        'color': 'white' // Texte en blanc
+                    });
+                    $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
+                    $('#datatable').css('width', '100%');
+                },
+            });
 
     });
 </script>
