@@ -196,7 +196,8 @@ class SaleController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $Sale = Sale::findOrFail($id);
+        return view('pos.sale.show_detail', compact('Sale'));
     }
 
     /**
@@ -204,7 +205,6 @@ class SaleController extends Controller
      */
     public function edit(string $id)
     {
-        //
     }
 
     /**

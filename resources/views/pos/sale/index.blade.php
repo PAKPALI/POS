@@ -201,6 +201,238 @@
                                         </svg>
                                     </div>
                                     <h5>No order history found</h5>
+                                    <div class="col-xl-3">
+                                        <div class="card mb-3">
+
+                                            <div class="card-body">
+
+                                                <div class="d-flex fw-bold small mb-3">
+                                                    <span class="flex-grow-1">TOP PRODUCTS</span>
+                                                    <a href="#" data-toggle="card-expand"
+                                                        class="text-inverse text-opacity-50 text-decoration-none"><i
+                                                            class="bi bi-fullscreen"></i></a>
+                                                </div>
+
+
+                                                <div class="table-responsive">
+                                                    <table class="w-100 mb-0 small align-middle text-nowrap">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex">
+                                                                        <div class="position-relative mb-2">
+                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
+                                                                                style="background-image: url(assets/img/dashboard/product-1.jpg);">
+                                                                            </div>
+                                                                            <div class="position-absolute top-0 start-0">
+                                                                                <span
+                                                                                    class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">1</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex-1 ps-3">
+                                                                            <div class="mb-1"><small
+                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU90400</small>
+                                                                            </div>
+                                                                            <div class="fw-500 text-inverse">Huawei Smart Watch</div>
+                                                                            $399.00
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <table class="mb-2">
+                                                                        <tr>
+                                                                            <td class="pe-3">QTY:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">129</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3">REVENUE:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$51,471</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$15,441</td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
+                                                                            class="bi bi-search"></i></a></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex mb-2 align-items-center">
+                                                                        <div class="position-relative">
+                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
+                                                                                style="background-image: url(assets/img/dashboard/product-2.jpg);">
+                                                                            </div>
+                                                                            <div class="position-absolute top-0 start-0">
+                                                                                <span
+                                                                                    class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">2</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex-1 ps-3">
+                                                                            <div class="mb-1"><small
+                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU85999</small>
+                                                                            </div>
+                                                                            <div class="text-inverse fw-500">Nike Shoes Black Version</div>
+                                                                            $99.00
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <table class="mb-2">
+                                                                        <tr>
+                                                                            <td class="pe-3">QTY:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">108</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3">REVENUE:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$10,692</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$5,346</td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
+                                                                            class="bi bi-search"></i></a></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex mb-2 align-items-center">
+                                                                        <div class="position-relative">
+                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
+                                                                                style="background-image: url(assets/img/dashboard/product-3.jpg);">
+                                                                            </div>
+                                                                            <div class="position-absolute top-0 start-0">
+                                                                                <span
+                                                                                    class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">3</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex-1 ps-3">
+                                                                            <div class="mb-1"><small
+                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU20400</small>
+                                                                            </div>
+                                                                            <div class="text-inverse fw-500">White Sony PS4</div>
+                                                                            $599
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <table class="mb-2">
+                                                                        <tr>
+                                                                            <td class="pe-3">QTY:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">72</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3">REVENUE:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$43,128</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$4,312</td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
+                                                                            class="bi bi-search"></i></a></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex mb-2 align-items-center">
+                                                                        <div class="position-relative">
+                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
+                                                                                style="background-image: url(assets/img/dashboard/product-4.jpg);">
+                                                                            </div>
+                                                                            <div class="position-absolute top-0 start-0">
+                                                                                <span
+                                                                                    class="badge bg-black bg-opacity-50 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">4</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex-1 ps-3">
+                                                                            <div class="mb-1"><small
+                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU19299</small>
+                                                                            </div>
+                                                                            <div class="text-inverse fw-500">Apple Watch Series 5</div>
+                                                                            $1,099
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <table class="mb-2">
+                                                                        <tr>
+                                                                            <td class="pe-3">QTY:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">53</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3">REVENUE:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$58,247</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$2,912</td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
+                                                                            class="bi bi-search"></i></a></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex align-items-center">
+                                                                        <div class="position-relative">
+                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
+                                                                                style="background-image: url(assets/img/dashboard/product-5.jpg);">
+                                                                            </div>
+                                                                            <div class="position-absolute top-0 start-0">
+                                                                                <span
+                                                                                    class="badge bg-black bg-opacity-50 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">5</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex-1 ps-3">
+                                                                            <div class="mb-1"><small
+                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU19299</small>
+                                                                            </div>
+                                                                            <div class="text-inverse fw-500">Black Nikon DSLR</div>
+                                                                            1,899
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <table>
+                                                                        <tr>
+                                                                            <td class="pe-3">QTY:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">50</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3">REVENUE:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$90,950</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
+                                                                            <td class="text-inverse text-opacity-75 fw-500">$2,848</td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
+                                                                            class="bi bi-search"></i></a></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+
+
+                                            <div class="card-arrow">
+                                                <div class="card-arrow-top-left"></div>
+                                                <div class="card-arrow-top-right"></div>
+                                                <div class="card-arrow-bottom-left"></div>
+                                                <div class="card-arrow-bottom-right"></div>
+                                            </div>
+
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -268,6 +500,21 @@
                 <div class="modal-footer">
                     <button type="button" id="print" class="btn btn-dark">Imprimer</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="pdfModalLabel">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- view modal -->
+    <div class="modal fade" id="showModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h3 class="modal-title text-dark ">Détail de la vente</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="show_response"></div>
                 </div>
             </div>
         </div>
@@ -605,63 +852,76 @@
         });
 
         var Datatable = $('#datatable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ route('sale.index')}}",
-                columns: [
-                    {data: 'id',name: 'id'},
-                    {data: 'code',name: 'code'},
-                    {data: 'total_amount',name: 'total_amount'},
-                    {data: 'total_profit',name: 'total_profit'},
-                    {data: 'cashier',name: 'cashier'},
-                    {data: 'action', name: 'action', orderable: false, searchable: false},
-                ],
-                responsive: true, 
-                language: {
-                    "lengthMenu": "Afficher _MENU_ entrées",
-                    "zeroRecords": "Aucune donnée disponible",
-                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                    "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
-                    "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
-                    "search": "Rechercher:",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "next": "Suivant",
-                        "previous": "Précédent"
-                    }
-                },
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('sale.index')}}",
+            columns: [
+                {data: 'id',name: 'id'},
+                {data: 'code',name: 'code'},
+                {data: 'total_amount',name: 'total_amount'},
+                {data: 'total_profit',name: 'total_profit'},
+                {data: 'cashier',name: 'cashier'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ],
+            responsive: true, 
+            language: {
+                "lengthMenu": "Afficher _MENU_ entrées",
+                "zeroRecords": "Aucune donnée disponible",
+                "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
+                "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
+                "search": "Rechercher:",
+                "paginate": {
+                    "first": "Premier",
+                    "last": "Dernier",
+                    "next": "Suivant",
+                    "previous": "Précédent"
+                }
+            },
+            
+            drawCallback: function() {
+                $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
+                $('#datatable').css('width','100%');
+                $('#datatable tbody tr').each(function() {
+                    $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
+                    $(this).css('color', 'white');
+                });
+                $('.dataTables_info, .dataTables_paginate').css('color', 'white');
+                $('.dataTables_paginate .paginate_button a').css('color', 'white');
+                $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
+                $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+
+                // Appliquer la couleur blanche au texte des labels
+                $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
+                $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
                 
-                drawCallback: function() {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                    $('#datatable').css('width','100%');
-                    $('#datatable tbody tr').each(function() {
-                        $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
-                        $(this).css('color', 'white');
-                    });
-                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
-                    $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
-                    $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+                // Appliquer les styles pour le dropdown et le champ de recherche
+                $('.dataTables_length select').css({
+                    'background-color': 'black', // Fond noir
+                    'color': 'white' // Texte en blanc
+                });
 
-                    // Appliquer la couleur blanche au texte des labels
-                    $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
-                    $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
-                    
-                    // Appliquer les styles pour le dropdown et le champ de recherche
-                    $('.dataTables_length select').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
+                $('.dataTables_filter input').css({
+                    'background-color': 'black', // Fond noir
+                    'color': 'white' // Texte en blanc
+                });
+                $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
+                $('#datatable').css('width', '100%');
+            },
+        });
 
-                    $('.dataTables_filter input').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
-                    $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
-                    $('#datatable').css('width', '100%');
-                },
+        $('body').on('click', '.view', function () {
+            var id = $(this).data("id");
+            $.ajax({
+                url:'{{url('pos/sale')}}/'+id,
+                dataType: 'html',
+                success:function(result)
+                {
+                    $('#show_response').html(result);
+                }
             });
+            $('#showModal').modal('show');
+        });
 
     });
 </script>
