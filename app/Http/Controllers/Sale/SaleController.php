@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Sale;
 
+use Carbon\Carbon;
 use App\Models\Sale;
 use App\Models\Action;
 use App\Models\Product;
@@ -22,12 +23,15 @@ class SaleController extends Controller
      */
     public function index()
     {
+        // today date
+        $today = Carbon::today();
+
         // get all categories with their associated products
         $Category = Category::with('products')->get();
         $Product = Product::all();
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Sale::latest()->get();
+        $Object = Sale::with('saleDetails.product')->latest()->whereDate('created_at', $today)->get();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -45,7 +49,32 @@ class SaleController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        return view('pos.sale.index',compact('Category','Product'));
+
+        // calculate total profit on sale
+        $sale_total_profit = 0;
+        $product_count = 0 ;
+        foreach ($Object as $sale) {
+            $sale_total_profit += $sale->total_profit;
+            $product_count += $sale->saleDetails->count();
+        }
+
+        // calculate top-selling product 
+        $mostSoldProducts = DB::table('sale_details')
+            ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->whereDate('created_at', $today) // Filtrer pour les ventes d'aujourd'hui
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->take(10) // Limit to 10 top-selling product 
+            ->get();
+
+        // Add information about each product
+        $mostSoldProducts = $mostSoldProducts->map(function ($saleDetail) {
+            $saleDetail->product = Product::find($saleDetail->product_id);
+            return $saleDetail;
+        });
+
+        // Send data to view
+        return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count'));
     }
 
     /**

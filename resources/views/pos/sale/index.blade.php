@@ -8,6 +8,7 @@
     #datatable tbody tr:hover {
         background-color: #e0e0e0;
     }
+    
 </style>
 @endpush
 
@@ -72,8 +73,113 @@
             <!-- product -->
             <div class="pos-content">
                 <div class="pos-content-container h-100 p-4" data-scrollbar="true" data-height="100%">
-                    <div class="row gx-4">
-                        <strong class="sale_list">Liste des ventes effectuées cette journée</strong>
+                    <div class="row gx-4 text-center">
+                        <!-- statistics of sale -->
+
+                        <!-- sale total daily-->
+                        <h3><strong class="sale_list">Statistiques des ventes cette journée</strong></h3>
+                        <div class="row sale_list mb-5">
+                            <div class="col-xl-4 col-lg-6 ">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex fw-bold small mb-3">
+                                            <span class="flex-grow-0">Total des Ventes</span>
+                                            <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                <i class="bi bi-fullscreen"></i></a>
+                                        </div>
+                                        <div class="row align-items-center mb-2">
+                                            <div class="col-7">
+                                                <h3 class="mb-0">{{$Object->count()}}</h3>
+                                            </div>
+                                            <div class="col-5">
+                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
+                                                    data-height="30"></div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="small text-inverse text-opacity-50 text-truncate">
+                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
+                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
+                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                        </div> -->
+                                    </div>
+                                    <div class="card-arrow">
+                                        <div class="card-arrow-top-left"></div>
+                                        <div class="card-arrow-top-right"></div>
+                                        <div class="card-arrow-bottom-left"></div>
+                                        <div class="card-arrow-bottom-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- total  product sold daily-->
+                            <div class="col-xl-4 col-lg-6 ">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex fw-bold small mb-3">
+                                            <span class="flex-grow-0">Total des produits vendus</span>
+                                            <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                <i class="bi bi-fullscreen"></i></a>
+                                        </div>
+                                        <div class="row align-items-center mb-2">
+                                            <div class="col-7">
+                                                <h3 class="mb-0">{{$product_count}}</h3>
+                                            </div>
+                                            <div class="col-5">
+                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
+                                                    data-height="30"></div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="small text-inverse text-opacity-50 text-truncate">
+                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
+                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
+                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                        </div> -->
+                                    </div>
+                                    <div class="card-arrow">
+                                        <div class="card-arrow-top-left"></div>
+                                        <div class="card-arrow-top-right"></div>
+                                        <div class="card-arrow-bottom-left"></div>
+                                        <div class="card-arrow-bottom-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- total day profit daily-->
+                            <div class="col-xl-4 col-lg-6 ">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex fw-bold small mb-3">
+                                            <span class="flex-grow-0">Bénefice journalière</span>
+                                            <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                <i class="bi bi-fullscreen"></i></a>
+                                        </div>
+                                        <div class="row align-items-center mb-2">
+                                            <div class="col-7">
+                                                <h3 class="mb-0">{{$sale_total_profit}}</h3>
+                                            </div>
+                                            <div class="col-5">
+                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
+                                                    data-height="30"></div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="small text-inverse text-opacity-50 text-truncate">
+                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
+                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
+                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                        </div> -->
+                                    </div>
+                                    <div class="card-arrow">
+                                        <div class="card-arrow-top-left"></div>
+                                        <div class="card-arrow-top-right"></div>
+                                        <div class="card-arrow-bottom-left"></div>
+                                        <div class="card-arrow-bottom-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- sale list daily-->
+                        <h3><strong class="sale_list">Liste des ventes effectuées cette journée avec les détails</strong></h3>
                         <div class="card sale_list">
                             <div class="card-body">
                                 <table id="datatable" class="table text-nowrap w-100">
@@ -106,7 +212,7 @@
                         <!-- product list -->
                         @foreach($Category as $category)
                             @foreach($category->products as $product)
-                                <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4" data-type="{{ $category->name }}">
+                                <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="{{ $category->name }}">
                                     <div class="card h-100">
                                         <div class="card-body h-100 p-1">
                                             <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
@@ -151,17 +257,17 @@
                             </button>
                         </div>
                         <div class="icon"><img src="assets/img/pos/icon-table-black.svg" class="invert-dark" alt></div>
-                        <div class="title">Table de vente</div>
+                        <div class="title">Table de vente <marquee class="bg-dark">{{Auth::user()->name}}</marquee ></div>
                         <!-- <div class="order">Order: <b>#0056</b></div> -->
                     </div>
 
                     <div class="pos-sidebar-nav">
                         <ul class="nav nav-tabs nav-fill">
-                            <li class="nav-item">
+                            <li class="nav-item nav-sale-command">
                                 <a class="nav-link active" href="#" data-bs-toggle="tab" data-bs-target="#newOrderTab">Commande (<span id="orderCount">0</span>)</a>
                             </li>
                             <li class="nav-item nav-sale">
-                                <a class="nav-link" href="#" data-bs-toggle="tab" data-bs-target="#orderHistoryTab">Ventes (0)</a>
+                                <a class="nav-link" href="#" data-bs-toggle="tab" data-bs-target="#orderHistoryTab">Produits vendus ({{$mostSoldProducts->count()}})</a>
                             </li>
                         </ul>
                     </div>
@@ -169,7 +275,7 @@
                     <div class="pos-sidebar-body tab-content" data-scrollbar="true" data-height="100%">
                         <div class="tab-pane fade h-100 show active" id="newOrderTab">
                             <div class="pos-order">
-                                
+                                <marquee class="bg-dark"><h2>{{Auth::user()->name}}</h2></marquee >
                             </div>
 
                             <!-- <div class="pos-order">
@@ -192,247 +298,88 @@
                             </div> -->
                         </div>
                         <div class="tab-pane fade h-100" id="orderHistoryTab">
-                            <div class="h-100 d-flex align-items-center justify-content-center text-center p-20">
+                            <div class="h-100 d-flex align-items-top justify-content-center text-center p-20">
                                 <div>
-                                    <div class="mb-3 mt-n5">
-                                        <svg width="6em" height="6em" viewBox="0 0 16 16" class="text-gray-300" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                            <path fill-rule="evenodd" d="M14 5H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5zM1 4v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4H1z" />
-                                            <path d="M8 1.5A2.5 2.5 0 0 0 5.5 4h-1a3.5 3.5 0 1 1 7 0h-1A2.5 2.5 0 0 0 8 1.5z" />
-                                        </svg>
-                                    </div>
-                                    <h5>No order history found</h5>
-                                    <div class="col-xl-3">
-                                        <div class="card mb-3">
+                                    <!-- if product sold is verify -->
+                                    @if ($mostSoldProducts->count()>0)
+                                        <div class="col-12">
+                                            <div class="card mb-2 mt-3">
+                                                <div class="card-body">
+                                                    <div class="d-flex fw-bold small mb-3">
+                                                        <span class="flex-grow-1">TOP PRODUITS VENDUS AUJOURD'HUI</span>
+                                                        <a href="#" data-toggle="card-expand"
+                                                            class="text-inverse text-opacity-50 text-decoration-none"><i
+                                                                class="bi bi-fullscreen"></i></a>
+                                                    </div>
+                                                    <div class="table-responsive">
+                                                        <table class="w-100 mb-0 small align-middle text-nowrap">
+                                                            <tbody>
+                                                            @php
+                                                                $n = 1;
+                                                            @endphp
+                                                                @foreach($mostSoldProducts as $productDetail)
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="d-flex">
+                                                                                <div class="position-relative mb-2">
+                                                                                    <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
+                                                                                        style="background-image: url({{ asset('images/' . $productDetail->product->image) }});">
+                                                                                    </div>
+                                                                                    <div class="position-absolute top-0 start-0">
+                                                                                        <span
+                                                                                            class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">{{$n++}}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="flex-1 ps-3">
+                                                                                    <!-- <div class="mb-1"><small
+                                                                                            class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU90400</small>
+                                                                                    </div> -->
+                                                                                    <div class="fw-500 text-inverse">{{ $productDetail->product->name ?? 'Produit supprimé' }}</div>
+                                                                                    {{ $productDetail->product->price }} FCFA
+                                                                                </div>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <table class="mb-2">
+                                                                                <tr>
+                                                                                    <td class="pe-3">QTY:</td>
+                                                                                    <td class="text-inverse text-opacity-75 fw-500">{{ $productDetail->total_quantity }}</td>
+                                                                                </tr>
+                                                                                <!-- <tr>
+                                                                                    <td class="pe-3">REVENUE:</td>
+                                                                                    <td class="text-inverse text-opacity-75 fw-500">$51,471</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <td class="pe-3 text-nowrap">PROFIT:</td>
+                                                                                    <td class="text-inverse text-opacity-75 fw-500">$15,441</td>
+                                                                                </tr> -->
+                                                                            </table>
+                                                                        </td>
+                                                                        <!-- <td><a href="#" class="text-decoration-none text-inverse"><iclass="bi bi-search"></i></a></td> -->
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
 
-                                            <div class="card-body">
-
-                                                <div class="d-flex fw-bold small mb-3">
-                                                    <span class="flex-grow-1">TOP PRODUCTS</span>
-                                                    <a href="#" data-toggle="card-expand"
-                                                        class="text-inverse text-opacity-50 text-decoration-none"><i
-                                                            class="bi bi-fullscreen"></i></a>
                                                 </div>
-
-
-                                                <div class="table-responsive">
-                                                    <table class="w-100 mb-0 small align-middle text-nowrap">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="d-flex">
-                                                                        <div class="position-relative mb-2">
-                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                                                style="background-image: url(assets/img/dashboard/product-1.jpg);">
-                                                                            </div>
-                                                                            <div class="position-absolute top-0 start-0">
-                                                                                <span
-                                                                                    class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">1</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="flex-1 ps-3">
-                                                                            <div class="mb-1"><small
-                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU90400</small>
-                                                                            </div>
-                                                                            <div class="fw-500 text-inverse">Huawei Smart Watch</div>
-                                                                            $399.00
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <table class="mb-2">
-                                                                        <tr>
-                                                                            <td class="pe-3">QTY:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">129</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3">REVENUE:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$51,471</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$15,441</td>
-                                                                        </tr>
-                                                                    </table>
-                                                                </td>
-                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                                                            class="bi bi-search"></i></a></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="d-flex mb-2 align-items-center">
-                                                                        <div class="position-relative">
-                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                                                style="background-image: url(assets/img/dashboard/product-2.jpg);">
-                                                                            </div>
-                                                                            <div class="position-absolute top-0 start-0">
-                                                                                <span
-                                                                                    class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">2</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="flex-1 ps-3">
-                                                                            <div class="mb-1"><small
-                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU85999</small>
-                                                                            </div>
-                                                                            <div class="text-inverse fw-500">Nike Shoes Black Version</div>
-                                                                            $99.00
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <table class="mb-2">
-                                                                        <tr>
-                                                                            <td class="pe-3">QTY:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">108</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3">REVENUE:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$10,692</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$5,346</td>
-                                                                        </tr>
-                                                                    </table>
-                                                                </td>
-                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                                                            class="bi bi-search"></i></a></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="d-flex mb-2 align-items-center">
-                                                                        <div class="position-relative">
-                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                                                style="background-image: url(assets/img/dashboard/product-3.jpg);">
-                                                                            </div>
-                                                                            <div class="position-absolute top-0 start-0">
-                                                                                <span
-                                                                                    class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">3</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="flex-1 ps-3">
-                                                                            <div class="mb-1"><small
-                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU20400</small>
-                                                                            </div>
-                                                                            <div class="text-inverse fw-500">White Sony PS4</div>
-                                                                            $599
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <table class="mb-2">
-                                                                        <tr>
-                                                                            <td class="pe-3">QTY:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">72</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3">REVENUE:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$43,128</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$4,312</td>
-                                                                        </tr>
-                                                                    </table>
-                                                                </td>
-                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                                                            class="bi bi-search"></i></a></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="d-flex mb-2 align-items-center">
-                                                                        <div class="position-relative">
-                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                                                style="background-image: url(assets/img/dashboard/product-4.jpg);">
-                                                                            </div>
-                                                                            <div class="position-absolute top-0 start-0">
-                                                                                <span
-                                                                                    class="badge bg-black bg-opacity-50 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">4</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="flex-1 ps-3">
-                                                                            <div class="mb-1"><small
-                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU19299</small>
-                                                                            </div>
-                                                                            <div class="text-inverse fw-500">Apple Watch Series 5</div>
-                                                                            $1,099
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <table class="mb-2">
-                                                                        <tr>
-                                                                            <td class="pe-3">QTY:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">53</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3">REVENUE:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$58,247</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$2,912</td>
-                                                                        </tr>
-                                                                    </table>
-                                                                </td>
-                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                                                            class="bi bi-search"></i></a></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="d-flex align-items-center">
-                                                                        <div class="position-relative">
-                                                                            <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                                                style="background-image: url(assets/img/dashboard/product-5.jpg);">
-                                                                            </div>
-                                                                            <div class="position-absolute top-0 start-0">
-                                                                                <span
-                                                                                    class="badge bg-black bg-opacity-50 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">5</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="flex-1 ps-3">
-                                                                            <div class="mb-1"><small
-                                                                                    class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU19299</small>
-                                                                            </div>
-                                                                            <div class="text-inverse fw-500">Black Nikon DSLR</div>
-                                                                            1,899
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <table>
-                                                                        <tr>
-                                                                            <td class="pe-3">QTY:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">50</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3">REVENUE:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$90,950</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="pe-3 text-nowrap">PROFIT:</td>
-                                                                            <td class="text-inverse text-opacity-75 fw-500">$2,848</td>
-                                                                        </tr>
-                                                                    </table>
-                                                                </td>
-                                                                <td><a href="#" class="text-decoration-none text-inverse"><i
-                                                                            class="bi bi-search"></i></a></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+                                                <div class="card-arrow">
+                                                    <div class="card-arrow-top-left"></div>
+                                                    <div class="card-arrow-top-right"></div>
+                                                    <div class="card-arrow-bottom-left"></div>
+                                                    <div class="card-arrow-bottom-right"></div>
                                                 </div>
-
                                             </div>
-
-
-                                            <div class="card-arrow">
-                                                <div class="card-arrow-top-left"></div>
-                                                <div class="card-arrow-top-right"></div>
-                                                <div class="card-arrow-bottom-left"></div>
-                                                <div class="card-arrow-bottom-right"></div>
-                                            </div>
-
                                         </div>
-                                    </div>
+                                    @else
+                                        <div class="mb-3 mt-n5">
+                                            <svg width="6em" height="6em" viewBox="0 0 16 16" class="text-gray-300" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <path fill-rule="evenodd" d="M14 5H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5zM1 4v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4H1z" />
+                                                <path d="M8 1.5A2.5 2.5 0 0 0 5.5 4h-1a3.5 3.5 0 1 1 7 0h-1A2.5 2.5 0 0 0 8 1.5z" />
+                                            </svg>
+                                        </div>
+                                        <h5>Aucune vente effectuée</h5>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -736,8 +683,15 @@
         // Au clic sur élément de navigation de la liste des ventes
         $('.nav-sale').on('click', function(e) {
             e.preventDefault();
-            // hide sale list
+            $('.product_list').hide();
             $('.sale_list').fadeIn();
+        });
+
+        // Au clic sur élément de commande dans la navigation laterale
+        $('.nav-sale-command').on('click', function(e) {
+            e.preventDefault();
+            $('.sale_list').hide();
+            $('.product_list').fadeIn();
         });
 
         let selectedProducts = new Set(); // init count for count order
