@@ -51,9 +51,11 @@ class SaleController extends Controller
         }
 
         // calculate total profit on sale
+        $total_amount = 0;
         $sale_total_profit = 0;
         $product_count = 0 ;
         foreach ($Object as $sale) {
+            $total_amount += $sale->total_amount;
             $sale_total_profit += $sale->total_profit;
             $product_count += $sale->saleDetails->count();
         }
@@ -74,7 +76,7 @@ class SaleController extends Controller
         });
 
         // Send data to view
-        return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count'));
+        return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count','total_amount'));
     }
 
     /**

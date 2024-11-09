@@ -72,20 +72,21 @@
 
             <!-- product -->
             <div class="pos-content">
-                <div class="pos-content-container h-100 p-4" data-scrollbar="true" data-height="100%">
+                <div class="pos-content-container h-100 p-4 text-center" data-scrollbar="true" data-height="100%">
                     <div class="row gx-4 text-center">
                         <!-- statistics of sale -->
 
                         <!-- sale total daily-->
                         <h3><strong class="sale_list">Statistiques des ventes cette journée</strong></h3>
                         <div class="row sale_list mb-5">
-                            <div class="col-xl-4 col-lg-6 ">
+                            <!-- total sale -->
+                            <div class="col-xl-3 col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
-                                            <span class="flex-grow-0">Total des Ventes</span>
-                                            <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
-                                                <i class="bi bi-fullscreen"></i></a>
+                                            <span class="flex-grow-0"><h5><strong>Total des Ventes</strong><h5></span>
+                                            <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                <i class="bi bi-fullscreen"></i></a> -->
                                         </div>
                                         <div class="row align-items-center mb-2">
                                             <div class="col-7">
@@ -110,15 +111,14 @@
                                     </div>
                                 </div>
                             </div>
-
                             <!-- total  product sold daily-->
-                            <div class="col-xl-4 col-lg-6 ">
+                            <div class="col-xl-3 col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
-                                            <span class="flex-grow-0">Total des produits vendus</span>
-                                            <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
-                                                <i class="bi bi-fullscreen"></i></a>
+                                            <span class="flex-grow-0"><h5><strong>Total des produits</strong><h5></span>
+                                            <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                <i class="bi bi-fullscreen"></i></a> -->
                                         </div>
                                         <div class="row align-items-center mb-2">
                                             <div class="col-7">
@@ -143,15 +143,46 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- total day profit daily-->
-                            <div class="col-xl-4 col-lg-6 ">
+                            <!-- total  amount daily-->
+                            <div class="col-xl-3 col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
-                                            <span class="flex-grow-0">Bénefice journalière</span>
-                                            <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
-                                                <i class="bi bi-fullscreen"></i></a>
+                                            <span class="flex-grow-0"><h5><strong>Somme totale</strong><h5></span>
+                                            <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                <i class="bi bi-fullscreen"></i></a> -->
+                                        </div>
+                                        <div class="row align-items-center mb-2">
+                                            <div class="col-7">
+                                                <h3 class="mb-0">{{$total_amount}}</h3>
+                                            </div>
+                                            <div class="col-5">
+                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
+                                                    data-height="30"></div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="small text-inverse text-opacity-50 text-truncate">
+                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
+                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
+                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                        </div> -->
+                                    </div>
+                                    <div class="card-arrow">
+                                        <div class="card-arrow-top-left"></div>
+                                        <div class="card-arrow-top-right"></div>
+                                        <div class="card-arrow-bottom-left"></div>
+                                        <div class="card-arrow-bottom-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- total day profit daily-->
+                            <div class="col-xl-3 col-lg-6 ">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex fw-bold small mb-3">
+                                            <span class="flex-grow-0"><h5><strong>Bénefice journalier</strong><h5></span>
+                                            <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                <i class="bi bi-fullscreen"></i></a> -->
                                         </div>
                                         <div class="row align-items-center mb-2">
                                             <div class="col-7">
@@ -244,6 +275,7 @@
                             @endforeach
                         @endforeach
                     </div>
+                    <div id="loader" class="spinner-grow"></div>
                 </div>
             </div>
 
@@ -415,6 +447,9 @@
                                     <i class="bi bi-send-check fa-lg"></i><br>
                                     <span class="small">Vendre</span>
                                 </a>
+                                <a href="#" id="saleLoader" class="btn btn-outline-theme rounded-0 w-150px">
+                                    <div id="loader" class="spinner-grow"></div>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -446,7 +481,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" id="print" class="btn btn-dark">Imprimer</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="pdfModalLabel">Fermer</button>
+                    <button type="button" class="btn btn-secondary close" data-dismiss="pdfModalLabel">Fermer</button>
                 </div>
             </div>
         </div>
@@ -466,8 +501,6 @@
             </div>
         </div>
     </div>
-
-
 
     <a href="#" class="pos-mobile-sidebar-toggler" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos">
         <i class="bi bi-bag"></i>
@@ -493,6 +526,8 @@
 <script>
     $(function() {
         $('.sale_list').hide();
+        $('#loader').hide();
+        $('#saleLoader').hide();
 
         function openPdfInModal(pdfBase64) {
             const pdfData = atob(pdfBase64); // Décode le base64
@@ -581,16 +616,20 @@
             console.log(products);
 
             Swal.fire({
-                    icon: "question",
-                    title: "Confirmez?",
-                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
-                    confirmButtonText: "Oui",
-                    confirmButtonColor: 'green',
-                    showCancelButton: true,
-                    cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
+                icon: "question",
+                title: "Confirmez?",
+                // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                confirmButtonText: "Oui",
+                confirmButtonColor: 'green',
+                showCancelButton: true,
+                cancelButtonText: "Non",
+                cancelButtonColor: 'blue',
             }).then((result) => {
                 if (result.isConfirmed){
+                    $('#loader').show();
+                    $('#saleLoader').show();
+                    $('#confirmSale').hide();
+                    $('.product_list').fadeOut();
                     // AJAX forsend data
                     $.ajax({
                         url: '{{ route("sale.store") }}',
@@ -603,8 +642,6 @@
                         success: function(data) {
                             console.log(data)
                             if (data.status) {
-                                $('#loader').hide();
-                                $('#submitText').fadeIn();
                                 Swal.fire({
                                     toast: true,
                                     position: 'top',
@@ -626,7 +663,9 @@
                                 openPdfInModal(data.pdfBase64);
                             } else {
                                 $('#loader').hide();
-                                $('#submitText').fadeIn();
+                                $('#saleLoader').hide();
+                                $('#confirmSale').show();
+                                $('.product_list').fadeIn();
                                 Swal.fire({
                                     title: data.title,
                                     text: data.msg,
@@ -639,7 +678,9 @@
                         error: function(data) {
                             console.log(data)
                             $('#loader').hide();
-                            $('#submitText').fadeIn();
+                            $('#saleLoader').hide();
+                            $('#confirmSale').show();
+                            $('.product_list').fadeIn();
                             Swal.fire({
                                 icon: "error",
                                 title: "erreur",
@@ -661,6 +702,7 @@
             e.preventDefault();
             // hide sale list
             $('.sale_list').fadeOut();
+            $('#confirmSale').fadeIn();
             
             // Get the selected category
             var filter = $(this).attr('data-filter');
@@ -685,6 +727,7 @@
             e.preventDefault();
             $('.product_list').hide();
             $('.sale_list').fadeIn();
+            $('#confirmSale').hide();
         });
 
         // Au clic sur élément de commande dans la navigation laterale
@@ -692,6 +735,13 @@
             e.preventDefault();
             $('.sale_list').hide();
             $('.product_list').fadeIn();
+            $('#confirmSale').fadeIn();
+        });
+
+        // Au clic sur élément fermez modal print
+        $('.close').on('click', function(e) {
+            e.preventDefault();
+            window.location.reload();
         });
 
         let selectedProducts = new Set(); // init count for count order
@@ -877,6 +927,26 @@
             $('#showModal').modal('show');
         });
 
+        // Hover effect
+        $('.product_list .pos-product').hover(
+            function() {
+                $(this).addClass('product-hover');
+            },
+            function() {
+                $(this).removeClass('product-hover');
+            }
+        );
+
+        // Click effect
+        $('.product_list .pos-product').on('click', function(e) {
+            e.preventDefault();
+            
+            // Removes the click effect of other products
+            $('.product_list .pos-product').removeClass('product-clicked');
+            
+            // Add the click effect of other products
+            $(this).addClass('product-clicked');
+        });
     });
 </script>
 
