@@ -15,11 +15,22 @@
 		<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 		 <!--link j-query-->
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-		<!-- <style>
-			.chj{
-				color: white;
+		<style>
+			
+			@keyframes shadowWhiteToRed {
+				0% {
+					box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Ombre blanche */
+				}
+				100% {
+					box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Ombre blanche */
+				}
 			}
-		</style> -->
+			.border-color-change {
+				animation: shadowWhiteToRed 0.4s forwards; /* Animation de l'ombre en 0.4s */
+				transition: transform 0.2s ease;
+				border: 2px solid; /* Bord rouge léger */
+			}
+		</style>
 </head>
 
 	<body>

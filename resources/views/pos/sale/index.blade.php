@@ -254,13 +254,14 @@
                                                 data-qte="{{ $product->qte }}"
                                             >
 
-                                                <div class="img" style="background-image: url({{ asset('images/' . $product->image) }})"></div>
-                                                <div class="info">
-                                                    <div class="title">Nom : {{ $product->name }}&reg;</div>
-                                                    <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
-                                                    <div class="title price">Prix : {{ $product->price }} FCFA</div>
-                                                    <div class="title qte">Quantité : {{ $product->qte }}</div>
-                                                </div>
+                                            <!-- 1440 * 1024 -->
+                                            <div class="img" style="background-image: url({{ asset('images/' . $product->image) }}); background-size: cover; background-position: center; width: 100%; height: 150px;"></div>
+                                            <div class="info">
+                                                <div class="title">Nom : {{ $product->name }}&reg;</div>
+                                                <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
+                                                <div class="title price">Prix : {{ $product->price }} FCFA</div>
+                                                <div class="title qte">Quantité : {{ $product->qte }}</div>
+                                            </div>
                                             </a>
                                         </div>
                                         <div class="card-arrow">
@@ -346,9 +347,9 @@
                                                     <div class="table-responsive">
                                                         <table class="w-100 mb-0 small align-middle text-nowrap">
                                                             <tbody>
-                                                            @php
-                                                                $n = 1;
-                                                            @endphp
+                                                                @php
+                                                                    $n = 1;
+                                                                @endphp
                                                                 @foreach($mostSoldProducts as $productDetail)
                                                                     <tr>
                                                                         <td>
@@ -415,7 +416,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
 

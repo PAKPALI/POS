@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Models\Sale;
 use App\Models\User;
 use App\Models\Action;
+use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,8 +26,36 @@ class UserController extends Controller
     public function dashboard()
     {
         $Action = Action::latest()->paginate(7);
-        return view('dashboard', compact('Action'));
+        $Category = Category::all();
+        $Product = Product::all();
+        $Sale = Sale::all();
+
+        // calculate total profit on sale
+        // $total_amount = 0;
+        $sale_total_profit = 0;
+        // $product_count = 0 ;
+        foreach ($Sale as $sale) {
+            // $total_amount += $sale->total_amount;
+            $sale_total_profit += $sale->total_profit;
+            // $product_count += $sale->saleDetails->count();
+        }
+
+        // calculate top-selling product 
+        $mostSoldProducts = DB::table('sale_details')
+            ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            //->whereDate('created_at', $today)  Filtrer pour les ventes d'aujourd'hui
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->paginate(4);
+
+        // Add information about each product
+        $mostSoldProducts->each(function ($saleDetail) {
+            $saleDetail->product = Product::find($saleDetail->product_id);
+        });
+
+        return view('dashboard', compact('Action','Category','Product','Sale','sale_total_profit','mostSoldProducts'));
     }
+
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle

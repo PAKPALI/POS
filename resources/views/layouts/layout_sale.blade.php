@@ -41,6 +41,16 @@
 				transition: transform 0.2s ease;
 				border: 2px solid rgba(255, 0, 0, 0.5); /* Bord rouge léger */
 			}
+
+			.img {
+			width: 100%;
+			height: 150px; /* Ajustez la hauteur comme souhaité */
+			background-size: cover; /* Assure que l'image couvre tout l'espace sans se déformer */
+			background-position: center; /* Centre l'image pour un meilleur cadrage */
+			border-radius: 8px; /* Facultatif : pour donner un effet arrondi */
+			overflow: hidden; /* Empêche le débordement */
+		}
+
 		</style>
 		
 </head>
