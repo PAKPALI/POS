@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sale;
 
 use Carbon\Carbon;
 use App\Models\Sale;
+use App\Models\User;
 use App\Models\Action;
 use App\Models\Product;
 use App\Models\Category;
@@ -13,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -160,11 +162,18 @@ class SaleController extends Controller
                 ]);
 
                 // update product quantity if product qte is greater than user quantity
-                if($Product->qte>$product['quantity']){
+                if($Product->qte > $product['quantity']){
                     $newQte = $Product->qte - $product['quantity'];
                     $Product->update([
                         'qte' =>$newQte,
                     ]);
+                    // check if security margin is affected
+                    if($newQte <= $Product->margin) {
+                        $User = User::where('status',1)->get();
+                        foreach ($User as $user) {
+                            $this->sendEmailMargin($user->name,$user->email,$Product->name,$Product->margin, $newQte);
+                        }
+                    }
                 }else{
                     DB::rollBack();
                     return response()->json([
@@ -206,6 +215,7 @@ class SaleController extends Controller
                 'function' => 'VENTE',
                 'text' => auth()->user()->name." a effectué une vente",
             ]);
+
             DB::commit();
             return response()->json([
                 "status" => true,
@@ -220,6 +230,18 @@ class SaleController extends Controller
             Log::error('Une erreur est survenue lors de la vente' . $th->getMessage());
             return response()->json(["status" => false, "msg" => $saleDetails."Erreur survenue lors de la vente , contacter le développeur". $th->getMessage()]);
         }
+    }
+
+    // send security margin mail
+    public function sendEmailMargin($user_name, $email, $product_name, $margin, $newQte)
+    {
+        $text = "Le produit '".strtoupper($product_name)."' a atteint sa marge de sécurité(".$margin.")";
+        $text2 = "La nouvelle quantitée du produit : ".$newQte;
+        // Envoyez l'e-mail avec le code généré
+        Mail::send('emails.user.marginMail', ['user_name' => $user_name, 'text' => $text, 'text2' => $text2, 'product_name' => $product_name], function($message) use ($email){
+            $message->to($email);
+            $message->subject(config('app.name'));
+        });
     }
 
     /**
