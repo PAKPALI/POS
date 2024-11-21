@@ -7,6 +7,31 @@
     #datatable tbody tr:hover {
         background-color: #e0e0e0;
     }
+
+    /* Transform button in circle */
+    .state {
+        display: inline-block;
+        width: 15px; /* circle width */
+        height: 15px; /* circle height */
+        border-radius: 50%; /* Rounded edges to make a circle */
+        animation: blink 1s infinite; /* Add blink animation */
+    }
+    .state1 {
+        display: inline-block;
+        width: 15px; /* circle width */
+        height: 15px; /* circle height */
+        border-radius: 50%; /* Rounded edges to make a circle */
+    }
+
+    /* Animation of blink */
+    @keyframes blink {
+        0%, 100% {
+        opacity: 1; /* Completely visible */
+        }
+        50% {
+        opacity: 0.5; /* Semi-transparent */
+        }
+    }
 </style>
 @endpush
 
@@ -135,13 +160,14 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
+                                                <th>Etat</th>
                                                 <th>Nom</th>
                                                 <th>Catégorie</th>
                                                 <th>Quantité</th>
                                                 <th>Prix</th>
                                                 <th>Status</th>
                                                 <!-- <th>Créer par</th> -->
-                                                <th>Créer le</th>
+                                                <!-- <th>Créer le</th> -->
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -200,13 +226,14 @@
                 ajax: "{{ route('product.index')}}",
                 columns: [
                     {data: 'id',name: 'id'},
+                    {data: 'margin',name: 'margin'},
                     {data: 'name',name: 'name'},
                     {data: 'category_id',name: 'category_id'},
                     {data: 'qte',name: 'qte'},
                     {data: 'price',name: 'price'},
                     {data: 'status',name: 'status'},
                     // {data: 'created_by',name: 'created_by'},
-                    {data: 'created_at',name: 'created_at'},
+                    // {data: 'created_at',name: 'created_at'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
                 responsive: true, 
@@ -407,7 +434,110 @@
                 // Display result in profit field
                 $('.profit').val(profit);
             });
+            
+            $('body').on('click', '.archive', function () {
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                var id = $(this).data("id");   
+                
+                Swal.fire({
+                    icon: "question",
+                    title: "Etes vous sur de vouloir archiver ce produit?",
+                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                    confirmButtonText: "Oui",
+                    confirmButtonColor: 'red',
+                    showCancelButton: true,
+                    cancelButtonText: "Non",
+                    cancelButtonColor: 'blue',
+                }).then((result) => {
+                    if (result.isConfirmed){
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            type: "post",
+                            url: 'product/'+id,
+                            type: "DELETE",
+                            datatype: 'json',
+                            success: function (data) {
+                                if(data.status){
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top',
+                                        icon: "success",
+                                        title: data.title,
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true,
+                                        text: data.msg,
+                                    });
+                                    Datatable.draw();
+                                }else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: data.title,
+                                        text: data.msg,
+                                    })
+                                }
+                            },
+                            error: function (data) {
+                                console.log('Error:', data);
+                            }
+                        });
+                    }
+                })
+            });
 
+            $('body').on('click', '.restore', function () {
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                var id = $(this).data("id");
+                
+                Swal.fire({
+                    icon: "question",
+                    title: "Etes vous sur de vouloir restaurer ce produit?",
+                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                    confirmButtonText: "Oui",
+                    confirmButtonColor: 'green',
+                    showCancelButton: true,
+                    cancelButtonText: "Non",
+                    cancelButtonColor: 'blue',
+                }).then((result) => {
+                    if (result.isConfirmed){
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            type: "post",
+                            url: 'product/'+id,
+                            type: "DELETE",
+                            datatype: 'json',
+                            success: function (data) {
+                                if(data.status){
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top',
+                                        icon: "success",
+                                        title: data.title,
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true,
+                                        text: data.msg,
+                                    });
+                                    Datatable.draw();
+                                }else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: data.title,
+                                        text: data.msg,
+                                    })
+                                }
+                            },
+                            error: function (data) {
+                                console.log('Error:', data);
+                            }
+                        });
+                    }
+                })
+            });
         });
     </script>
 

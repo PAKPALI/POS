@@ -57,6 +57,11 @@
                         <td>Créer par :</td>
                         <td>{{$Product->user->name}}</td>
                     </tr>
+                    <tr>
+                        <th scope="row">9</th>
+                        <td>Créer le :</td>
+                        <td>{{$Product->created_at->format('d-m-Y H:i:s')}}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

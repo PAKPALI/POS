@@ -99,6 +99,7 @@
                                                 <th>Nom</th>
                                                 <th>Créer par</th>
                                                 <th>Créer le</th>
+                                                <th>Status</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -160,6 +161,7 @@
                     {data: 'name',name: 'name'},
                     {data: 'created_by',name: 'created_by'},
                     {data: 'created_at',name: 'created_at'},
+                    {data: 'status',name: 'status'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
                 responsive: true, 
@@ -330,6 +332,112 @@
                                     }).then(() => {
                                         user_list.draw();
                                     })
+                                }else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: data.title,
+                                        text: data.msg,
+                                    })
+                                }
+                            },
+                            error: function (data) {
+                                console.log('Error:', data);
+                            }
+                        });
+                    }
+                })
+            });
+
+            // archive object
+            $('body').on('click', '.archive', function () {
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                var id = $(this).data("id");   
+                
+                Swal.fire({
+                    icon: "question",
+                    title: "Etes vous sur de vouloir archiver ce produit?",
+                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                    confirmButtonText: "Oui",
+                    confirmButtonColor: 'red',
+                    showCancelButton: true,
+                    cancelButtonText: "Non",
+                    cancelButtonColor: 'blue',
+                }).then((result) => {
+                    if (result.isConfirmed){
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            type: "post",
+                            url: 'category/'+id,
+                            type: "DELETE",
+                            datatype: 'json',
+                            success: function (data) {
+                                if(data.status){
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top',
+                                        icon: "success",
+                                        title: data.title,
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true,
+                                        text: data.msg,
+                                    });
+                                    Datatable.draw();
+                                }else{
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: data.title,
+                                        text: data.msg,
+                                    })
+                                }
+                            },
+                            error: function (data) {
+                                console.log('Error:', data);
+                            }
+                        });
+                    }
+                })
+            });
+
+            // restore object
+            $('body').on('click', '.restore', function () {
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                var id = $(this).data("id");
+                
+                Swal.fire({
+                    icon: "question",
+                    title: "Etes vous sur de vouloir restaurer ce produit?",
+                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                    confirmButtonText: "Oui",
+                    confirmButtonColor: 'green',
+                    showCancelButton: true,
+                    cancelButtonText: "Non",
+                    cancelButtonColor: 'blue',
+                }).then((result) => {
+                    if (result.isConfirmed){
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            type: "post",
+                            url: 'category/'+id,
+                            type: "DELETE",
+                            datatype: 'json',
+                            success: function (data) {
+                                if(data.status){
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top',
+                                        icon: "success",
+                                        title: data.title,
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true,
+                                        text: data.msg,
+                                    });
+                                    Datatable.draw();
                                 }else{
                                     Swal.fire({
                                         icon: "error",

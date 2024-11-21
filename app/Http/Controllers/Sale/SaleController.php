@@ -35,7 +35,6 @@ class SaleController extends Controller
         // composer require yajra/laravel-datatables-oracle
         $Object = Sale::with('saleDetails.product')->latest()->whereDate('created_at', $today)->get();
         if(request()->ajax()){
-            // $Student = Student::all();
             return DataTables::of($Object)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
@@ -102,6 +101,132 @@ class SaleController extends Controller
         return $code;
     }
 
+    // public function store(Request $request)
+    // {
+    //     $error_messages = [
+    //         'products.required' => "Choisir un produit",
+    //         'products.*.quantity.min' => "La quantité doit être supérieure à 0 pour chaque produit",
+    //         'total_amount.required' => "Remplir le total",
+    //     ];
+        
+    //     $validator = Validator::make($request->all(), [
+    //         'products' => 'required|array',
+    //         'products.*.quantity' => 'required|integer|min:1',
+    //         'total_amount' => 'required|numeric'
+    //     ], $error_messages);
+        
+    //     if($validator->fails())
+    //     return response()->json([
+    //         "status" => false,
+    //         "reload" => false,
+    //         "title" => "VENTE ECHOUEE",
+    //         "msg" => $validator->errors()->first()
+    //     ]);
+    //     try {
+    //         DB::beginTransaction();
+    //         // store sale
+    //         $sale = Sale::create([
+    //             'code' => '#'.$this->code(),
+    //             'total_amount' => $request->total_amount,
+    //             'cashier' => auth()->user()->name
+    //         ]);
+    //         $totalProfit = 0; // Initialize the variable before the loop
+
+    //         // store sale detail
+    //         foreach ($request->products as $product) {
+    //             // search product
+    //             $Product = Product::findOrFail($product['product_id']);
+    //             if (!$Product) {
+    //                 DB::rollBack();
+    //                 return response()->json([
+    //                     "status" => false,
+    //                     "reload" => false,
+    //                     "title" => "VENTE ECHOUEE",
+    //                     "msg" => "Le produit avec l'ID ". $product['product_id'] . " est introuvable."
+    //                 ]);
+    //             }
+
+    //             // calculate profit and store it in sale detail
+    //             $profit = $Product->profit*$product['quantity'];
+
+    //             // store sale detail
+    //             $saleDetails = $sale->saleDetails()->create([
+    //                 'product_id' => $product['product_id'],
+    //                 'quantity' => $product['quantity'],
+    //                 'unit_price' => $product['unit_price'],
+    //                 'total_price' => $product['total_price'],
+    //                 'profit' => $profit
+    //             ]);
+
+    //             // update product quantity if product qte is greater than user quantity
+    //             if($Product->qte >= $product['quantity']){
+    //                 $newQte = $Product->qte - $product['quantity'];
+    //                 $Product->update([
+    //                     'qte' =>$newQte,
+    //                 ]);
+    //                 // check if security margin is affected
+    //                 if($newQte <= $Product->margin) {
+    //                     $User = User::where('status',1)->get();
+    //                     foreach ($User as $user) {
+    //                         $this->sendEmailMargin($user->name,$user->email,$Product->name,$Product->margin, $newQte);
+    //                     }
+    //                 }
+    //             }else{
+    //                 DB::rollBack();
+    //                 return response()->json([
+    //                     "status" => false,
+    //                     "reload" => false,
+    //                     "title" => "VENTE ECHOUEE",
+    //                     "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
+    //                 ]);
+    //             }
+
+    //             // update total profit to sale table column
+    //             $totalProfit += $profit;// add totalProfit
+    //             $sale->update([
+    //                 'total_profit' =>$totalProfit,
+    //             ]);
+    //         }
+
+    //         // Generate  PDF invoice
+    //         // composer require barryvdh/laravel-dompdf
+    //         $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale,'saleDetails' => $sale->saleDetails])
+    //             // ->setPaper('A6', 'portrait')
+    //             ->setOptions([
+    //                 'isHtml5ParserEnabled' => true,
+    //                 'isRemoteEnabled' => true,
+    //                 'dpi' => 150 // Augmente le DPI pour une meilleure résolution
+    //             ]);
+
+    //         $pdf->setPaper([0, 0, 300, 400],'portrait'); // Dimensions personnalisées en points pour un reçu plus petit
+
+    //         // save or return PDF in base64
+    //         $pdfBase64 = base64_encode($pdf->output());
+
+    //         // log action
+    //         Action::create([
+    //             'user_id' => auth()->user()->id,
+    //             'function' => 'VENTE',
+    //             'text' => auth()->user()->name." a effectué une vente",
+    //         ]);
+
+    //         DB::commit();
+    //         return response()->json([
+    //             "status" => true,
+    //             "reload" => true,
+    //             // "redirect_to" => route('user'),
+    //             "title" => "VENTE EFFECTUEE",
+    //             "msg" => "",
+    //             'pdfBase64' => $pdfBase64
+    //         ]);
+
+    //     } catch (\Throwable $th) {
+    //         DB::rollBack();
+    //         Log::error('Une erreur est survenue lors de la vente' . $th->getMessage());
+    //         return response()->json(["status" => false, "msg" => $saleDetails."Erreur survenue lors de la vente , contacter le développeur". $th->getMessage()]);
+    //     }
+    // }
+
     public function store(Request $request)
     {
         $error_messages = [
@@ -116,120 +241,138 @@ class SaleController extends Controller
             'total_amount' => 'required|numeric'
         ], $error_messages);
         
-        
-        if($validator->fails())
-        return response()->json([
-            "status" => false,
-            "reload" => false,
-            "title" => "VENTE ECHOUEE",
-            "msg" => $validator->errors()->first()
-        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "VENTE ECHOUEE",
+                "msg" => $validator->errors()->first()
+            ]);
+        }
+
         try {
             DB::beginTransaction();
-            // store sale
+
+            // Store sale
             $sale = Sale::create([
                 'code' => $this->code(),
                 'total_amount' => $request->total_amount,
-                'cashier' => auth()->user()->name
+                'cashier' => auth()->user()->name,
             ]);
 
-            $totalProfit = 0; // Initialize the variable before the loop
+            // Process products and store sale details
+            $totalProfit = $this->processProducts($sale, $request->products);
 
-            // store sale detail
-            foreach ($request->products as $product) {
-                // search product
-                $Product = Product::findOrFail($product['product_id']);
-                if (!$Product) {
-                    DB::rollBack();
-                    return response()->json([
-                        "status" => false,
-                        "reload" => false,
-                        "title" => "VENTE ECHOUEE",
-                        "msg" => "Le produit avec l'ID ". $product['product_id'] . " est introuvable."
-                    ]);
-                }
+            // Update the total profit in the sale table
+            $sale->update(['total_profit' => $totalProfit]);
 
-                // calculate profit and store it in sale detail
-                $profit = $Product->profit*$product['quantity'];
+            // Generate PDF invoice
+            $pdfBase64 = $this->generatePdfInvoice($sale);
 
-                // store sale detail
-                $saleDetails = $sale->saleDetails()->create([
-                    'product_id' => $product['product_id'],
-                    'quantity' => $product['quantity'],
-                    'unit_price' => $product['unit_price'],
-                    'total_price' => $product['total_price'],
-                    'profit' => $profit
-                ]);
-
-                // update product quantity if product qte is greater than user quantity
-                if($Product->qte > $product['quantity']){
-                    $newQte = $Product->qte - $product['quantity'];
-                    $Product->update([
-                        'qte' =>$newQte,
-                    ]);
-                    // check if security margin is affected
-                    if($newQte <= $Product->margin) {
-                        $User = User::where('status',1)->get();
-                        foreach ($User as $user) {
-                            $this->sendEmailMargin($user->name,$user->email,$Product->name,$Product->margin, $newQte);
-                        }
-                    }
-                }else{
-                    DB::rollBack();
-                    return response()->json([
-                        "status" => false,
-                        "reload" => false,
-                        "title" => "VENTE ECHOUEE",
-                        "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
-                    ]);
-                }
-
-                // update total profit to sale table column
-                $totalProfit += $profit;// add totalProfit
-                $sale->update([
-                    'total_profit' =>$totalProfit,
-                ]);
-            }
-
-            // Generate  PDF invoice
-            // composer require barryvdh/laravel-dompdf
-            $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale,'saleDetails' => $sale->saleDetails])
-                // ->setPaper('A6', 'portrait')
-                ->setOptions([
-                    'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled' => true,
-                    'dpi' => 150 // Augmente le DPI pour une meilleure résolution
-                ]);
-
-            $pdf->setPaper([0, 0, 300, 400],'portrait'); // Dimensions personnalisées en points pour un reçu plus petit
-
-            // $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale, 'saleDetails' => $saleDetails])
-            //     ->setPaper([0, 0, 226.77, 650], 'portrait'); // Largeur 80mm, hauteur ajustable
-
-            // save or return PDF in base64
-            $pdfBase64 = base64_encode($pdf->output());
-
-            // log action
+            // Log action
             Action::create([
                 'user_id' => auth()->user()->id,
                 'function' => 'VENTE',
-                'text' => auth()->user()->name." a effectué une vente",
+                'text' => auth()->user()->name . " a effectué une vente",
             ]);
 
             DB::commit();
             return response()->json([
                 "status" => true,
                 "reload" => true,
-                // "redirect_to" => route('user'),
                 "title" => "VENTE EFFECTUEE",
                 "msg" => "",
-                'pdfBase64' => $pdfBase64
+                'pdfBase64' => $pdfBase64,
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
-            Log::error('Une erreur est survenue lors de la vente' . $th->getMessage());
-            return response()->json(["status" => false, "msg" => $saleDetails."Erreur survenue lors de la vente , contacter le développeur". $th->getMessage()]);
+            Log::error('Une erreur est survenue lors de la vente : ' . $th->getMessage());
+            return response()->json([
+                "status" => false,
+                "msg" => "Erreur survenue lors de la vente, contacter le développeur. " . $th->getMessage(),
+            ]);
         }
+    }
+
+    private function processProducts($sale, $products)
+    {
+        $totalProfit = 0;
+
+        foreach ($products as $product) {
+            // search product
+            $Product = Product::findOrFail($product['product_id']);
+            if (!$Product) {
+                throw new \Exception("Le produit avec l'ID " . $product['product_id'] . " est introuvable.");
+                DB::rollBack();
+                return response()->json([
+                    "status" => false,
+                    "reload" => false,
+                    "title" => "VENTE ECHOUEE",
+                    "msg" => "Le produit avec l'ID ". $product['product_id'] . " est introuvable."
+                ]);
+            }
+
+            // calculate profit and store it in sale detail
+            $profit = $Product->profit*$product['quantity'];
+
+            // store sale detail
+            $sale->saleDetails()->create([
+                'product_id' => $product['product_id'],
+                'quantity' => $product['quantity'],
+                'unit_price' => $product['unit_price'],
+                'total_price' => $product['total_price'],
+                'profit' => $profit
+            ]);
+
+            // update product quantity if product qte is greater than user quantity
+            $this->updateProductQuantity($Product, $product['quantity']);
+
+            // Ajouter le profit total
+            $totalProfit += $profit;
+        }
+        return $totalProfit;
+    }
+
+    private function updateProductQuantity($product, $quantity)
+    {
+        if ($product->qte >= $quantity) {
+            $newQte = $product->qte - $quantity;
+            $product->update(['qte' => $newQte]);
+
+            // check if security margin is affected
+            if ($newQte <= $product->margin) {
+                $users = User::where('status', 1)->get();
+                foreach ($users as $user) {
+                    $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
+                }
+            }
+        } else {
+            throw new \Exception("Le produit " . $product->name . " n'a plus de stock disponible pour la quantité demandée.");
+            DB::rollBack();
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "VENTE ECHOUEE",
+                "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
+            ]);
+        }
+    }
+
+    private function generatePdfInvoice($sale)
+    {
+        $pdf = Pdf::loadView('pos.invoice', [
+            'sale' => $sale,
+            'saleDetails' => $sale->saleDetails,
+        ])
+        ->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'dpi' => 150,
+        ])
+        ->setPaper([0, 0, 300, 400], 'portrait'); // Dimensions personnalisées
+
+        //return PDF in base64
+        return base64_encode($pdf->output());
     }
 
     // send security margin mail
@@ -251,6 +394,70 @@ class SaleController extends Controller
     {
         $Sale = Sale::findOrFail($id);
         return view('pos.sale.show_detail', compact('Sale'));
+    }
+
+    public function history(Request $request)
+    {
+        if ($request->ajax()) {
+            $daterange = $request->daterange; // Exemple : "01/10/2024 - 31/10/2024"
+        
+            if ($daterange) {
+                [$startDate, $endDate] = explode(' - ', $daterange);
+                $startDate = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay()->format('Y-m-d');
+                $endDate = Carbon::createFromFormat('d-m-Y', $endDate)->endOfDay()->format('Y-m-d');
+            }else {
+                // Plage de date par défaut : aujourd'hui
+                $startDate = Carbon::today()->startOfDay()->format('Y-m-d');
+                $endDate = Carbon::today()->endOfDay()->format('Y-m-d');
+            }
+        
+            $Object = Sale::with('saleDetails.product')->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+
+            // somme calcul on sale
+            $total_sale = $Object->count();
+            $total_amount = 0;
+            $total_profit = 0;
+            $product_count = 0 ;
+            foreach ($Object as $sale) {
+                $total_amount += $sale->total_amount;
+                $total_profit += $sale->total_profit;
+                $product_count += $sale->saleDetails->count();
+            }
+
+            //top-selling product 
+            $mostSoldProducts = DB::table('sale_details')
+            ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->take(10)
+            ->get();
+
+            $mostSoldProducts = $mostSoldProducts->map(function ($saleDetail) {
+                $saleDetail->product = Product::find($saleDetail->product_id);
+                return $saleDetail;
+            });
+        
+            return DataTables::of($Object)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    return '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
+                })
+                ->editColumn('created_at', function ($Object) {
+                    return $Object->created_at->format('d-m-Y H:i:s');
+                })
+                ->with([
+                    'totalSale' => $total_sale,
+                    'totalAmount' => $total_amount,
+                    'totalProfit' => $total_profit,
+                    'productCount' => $product_count,
+                    'mostSoldProducts' => $mostSoldProducts,
+                ])
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+        
+        return view('pos.sale.history');
     }
 
     /**

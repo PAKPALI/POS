@@ -16,7 +16,6 @@
 		 <!--link j-query-->
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 		<style>
-			
 			@keyframes shadowWhiteToRed {
 				0% {
 					box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Ombre blanche */
@@ -31,6 +30,7 @@
 				border: 2px solid; /* Bord rouge léger */
 			}
 		</style>
+		@stack('css-scripts')
 </head>
 
 	<body>
@@ -259,54 +259,62 @@
 		<!-- DataTables JS -->
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 		<script>
-        $(function () {
-            //ajax pour se deconnecter
-            $('#form-logout').submit(function(){ 
-                let chemin = "connexion"
-                event.preventDefault();
-                Swal.fire({
-                    icon: "question",
-                    title: "DECONNEXION",
-                    text: "Etes vous sur de vous deconnecter?",
-                    showCancelButton: true,
-                    cancelButtonText: 'NON',
-                    confirmButtonText:  'OUI',
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor:  '#3085d6',
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            type: 'POST',
-                            url: "{{ route('outUser') }}",
-                            //enctype: 'multipart/form-data',
-                            data: $('#form-logout').serialize(),
-                            datatype: 'json',
-                            success: function (data){
-                                if (data.status)
-                                {
-                                    Swal.fire({
-                                        icon: "success",
-                                        title: data.title,
-                                        text: data.msg,
-                                    }).then(() => {
-                                        window.location.replace("{{ route('user_login') }}");
-                                    })
-                                }
-                            },
-                            error: function (data){
-                                console.log(data)
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "erreur",
-                                    timer: 3600,
-                                })
-                            }
-                        });
-                    }
-                })
-            });
-            return false;
-        });
-    </script>
+			$(function () {
+				//ajax pour se deconnecter
+				$('#form-logout').submit(function(){ 
+					let chemin = "connexion"
+					event.preventDefault();
+					Swal.fire({
+						icon: "question",
+						title: "DECONNEXION",
+						text: "Etes vous sur de vous deconnecter?",
+						showCancelButton: true,
+						cancelButtonText: 'NON',
+						confirmButtonText:  'OUI',
+						confirmButtonColor: '#d33',
+						cancelButtonColor:  '#3085d6',
+					}).then((result) => {
+						if (result.isConfirmed){
+							$.ajax({
+								type: 'POST',
+								url: "{{ route('outUser') }}",
+								//enctype: 'multipart/form-data',
+								data: $('#form-logout').serialize(),
+								datatype: 'json',
+								success: function (data){
+									if (data.status)
+									{
+										Swal.fire({
+											icon: "success",
+											title: data.title,
+											text: data.msg,
+										}).then(() => {
+											window.location.replace("{{ route('user_login') }}");
+										})
+									}
+								},
+								error: function (data){
+									console.log(data)
+									Swal.fire({
+										icon: "error",
+										title: "erreur",
+										timer: 3600,
+									})
+								}
+							});
+						}
+					})
+				});
+				return false;
+			});
+
+			// $('.menu-item').on('click', function() {
+			// 	// Supprimer la classe 'active' de tous les menus
+			// 	$('.menu-item').removeClass('active');
+
+			// 	// Ajouter la classe 'active' au menu cliqué
+			// 	$(this).addClass('active');
+			// });
+		</script>
 	</body>
 </html>

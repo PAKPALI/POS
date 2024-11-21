@@ -24,9 +24,23 @@ class CategoryController extends Controller
             return DataTables::of($Object)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
-                    <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
-                    <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    if($row->status==1){
+                        $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                                <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    }else{
+                        $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                                <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="restaurer" class="btn btn-success btn-sm restore"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    }
+                    return $btn;
+                })
+                ->editColumn('status', function ($Object) {
+                    if($Object->status==1){
+                        $btn = ' <a class="btn btn-success btn-sm">Actif</a>';
+                    }else{
+                        $btn = ' <a class="btn btn-danger btn-sm">Inactif</a>';
+                    }
                     return $btn;
                 })
                 ->editColumn('created_by', function ($Object) {
@@ -35,7 +49,7 @@ class CategoryController extends Controller
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['action','status'])
                 ->make(true);
         }
         return view('component.category.index');
@@ -146,6 +160,45 @@ class CategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $Object = Category::findOrFail($id);
+        if($Object->status ==1){
+            // update category status
+            $Object->update(['status' => 0,]);
+            // update category product status
+            foreach($Object->products as $product){
+                $product->update(['status' => 0,]);
+            }
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'ARCHIVAGE D\'UNE CATEGORIE',
+                'text' => auth()->user()->name." a désactivé la catégorie : ".$Object->name,
+            ]);
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "ARCHIVAGE REUSSIE",
+                "msg" => "La catégorie ".$Object->name." a bien été désactivée"
+            ]);
+        }else{
+            // update category status
+            $Object->update(['status' => 1,]);
+            // update category product status
+            foreach($Object->products as $product){
+                $product->update(['status' => 1,]);
+            }
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'RESTAURER UNE CATEGORIE',
+                'text' => auth()->user()->name." a restauré la catégorie : ".$Object->name,
+            ]); 
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "RESTAURATION REUSSIE",
+                "msg" => "La catégorie ".$Object->name." a bien été restaurée"
+            ]);
+        }
     }
 }

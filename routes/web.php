@@ -39,6 +39,7 @@ Route::get('user_login', function () {
         return view('admin/login');
     }
 })->name('user_login');
+
 Route::post('admin_register', [UserController::class, "register"])->name('admin_register');
 
 /*manage user after auth-login*/
@@ -47,9 +48,8 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     Route::get('dashboard', 'dashboard')->name('dashboard');
     //profil
     Route::get('profil', function () {return view('user/profile');})->name('profil');
-
+    // user
     Route::resource('user', UserController::class);
-
     // update email
     Route::post('updateEmail', 'updateEmail');
     // update password
@@ -74,6 +74,8 @@ Route::prefix('pos')->middleware(['auth'])->group(function () {
     //sale
     Route::controller(SaleController::class)->group(function () {
         Route::resource('sale', SaleController::class);
+        //history
+        Route::get('history', 'history')->name('history');
     });
 });
 

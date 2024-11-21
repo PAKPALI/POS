@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -24,10 +25,25 @@ class ProductController extends Controller
             // $Student = Student::all();
             return DataTables::of($Object)
                 ->addIndexColumn()
+                ->editColumn('margin', function ($Object) {
+                    if($Object->qte>$Object->margin){
+                        $btn = '<a class="btn btn-primary btn-sm state1"></a>';
+                    }else{
+                        $btn = '<a class="btn btn-danger btn-sm state"></a>';
+                    }
+                    // $btn = ' <a data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"></a>';
+                    return $btn;
+                })
                 ->addColumn('action', function($row){
-                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
-                    <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
-                    <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    if($row->status==1){
+                        $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                                <a data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    }else{
+                        $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                                <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="restaurer" class="btn btn-success btn-sm restore"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    }
                     return $btn;
                 })
                 ->editColumn('category_id', function ($Object) {
@@ -35,9 +51,9 @@ class ProductController extends Controller
                 })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
-                        $btn = ' <a  class="btn btn-success btn-sm">Actif</a>';
+                        $btn = ' <a class="btn btn-success btn-sm">Actif</a>';
                     }else{
-                        $btn = ' <a  class="btn btn-danger btn-sm">Inactif</a>';
+                        $btn = ' <a class="btn btn-danger btn-sm">Inactif</a>';
                     }
                     return $btn;
                 })
@@ -47,7 +63,7 @@ class ProductController extends Controller
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');
                 })
-                ->rawColumns(['action','status'])
+                ->rawColumns(['margin','action','status'])
                 ->make(true);
         }
         $Category = Category::where('status','1')->latest()->get();
@@ -209,6 +225,13 @@ class ProductController extends Controller
             ];
 
             if ($request->hasFile('image')) {
+                // delete image if exist
+                $oldImagePath = public_path('images/' . $Product->image);
+                if (File::exists($oldImagePath)) {
+                    File::delete($oldImagePath);
+                }
+
+                // save new image
                 $image = $request->file('image');
                 $imageName = time().'.'.$image->getClientOriginalExtension();
                 $image->move(public_path('images'), $imageName);
@@ -238,6 +261,39 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $Object = Product::findOrFail($id);
+        if($Object->status ==1){
+            $Object->update([
+                'status' => 0,
+            ]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'ARCHIVAGE D\'UN PRODUIT',
+                'text' => auth()->user()->name." a désactivé le produit : ".$Object->name,
+            ]);
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "ARCHIVAGE REUSSIE",
+                "msg" => "Le produit ".$Object->name." a bien été désactivé"
+            ]);
+        }else{
+            $Object->update([
+                'status' => 1,
+            ]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'RESTAURER UN PRODUIT',
+                'text' => auth()->user()->name." a restaurer le produit : ".$Object->name,
+            ]); 
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "RESTAURATION REUSSIE",
+                "msg" => "Le produit ".$Object->name." a bien été restauré"
+            ]);
+        }
     }
 }

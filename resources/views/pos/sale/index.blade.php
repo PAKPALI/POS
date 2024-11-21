@@ -35,7 +35,7 @@
                                     <div class="card">
                                         <div class="card-body">
                                             <i class="fa fa-fw fa-utensils"></i> Tous
-                                            ( <span>{{$Product->count()}}</span> )
+                                            ( <span>{{$Product->where('status',1)->count()}}</span> )
                                         </div>
                                         <div class="card-arrow">
                                             <div class="card-arrow-top-left"></div>
@@ -47,7 +47,7 @@
                                 </a>
                             </li>
 
-                            @foreach($Category as $category)
+                            @foreach($Category->where('status',1) as $category)
                             <li class="nav-item">
                                 <a class="nav-link" href="#" data-filter="{{$category->name}}">
                                     <div class="card">
@@ -241,8 +241,8 @@
                         </div>
 
                         <!-- product list -->
-                        @foreach($Category as $category)
-                            @foreach($category->products as $product)
+                        @foreach($Category->where('status',1) as $category)
+                            @foreach($category->products->where('status',1) as $product)
                                 <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="{{ $category->name }}">
                                     <div class="card h-100">
                                         <div class="card-body h-100 p-1">
