@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('profit')->nullable();
             $table->string('image')->nullable();
             $table->string('status')->default(1);
+            $table->string('email')->default(0);
             $table->integer('type');
             $table->integer('created_by');
             $table->timestamps();

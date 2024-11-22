@@ -286,10 +286,9 @@ class SaleController extends Controller
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
-            Log::error('Une erreur est survenue lors de la vente : ' . $th->getMessage());
             return response()->json([
                 "status" => false,
-                "msg" => "Erreur survenue lors de la vente, contacter le développeur. " . $th->getMessage(),
+                "msg" => "Erreur survenue lors de la vente liée au produit ou au menu. " . $th->getMessage(),
             ]);
         }
     }
@@ -339,12 +338,22 @@ class SaleController extends Controller
             $newQte = $product->qte - $quantity;
             $product->update(['qte' => $newQte]);
 
-            // check if security margin is affected
-            if ($newQte <= $product->margin) {
-                $users = User::where('status', 1)->get();
-                foreach ($users as $user) {
-                    $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
+            if($product->type == 2){
+                foreach ($product->MenuProducts as $item){
+                    $MenuProduct = Product::findOrFail($item->product_id);
+                    $this->updateProductQuantity($MenuProduct, $item->quantity);
                 }
+            }
+
+            // check if security margin is affected
+            if($product->email == 0){
+                if ($newQte <= $product->margin) {
+                    $users = User::where('status', 1)->get();
+                    foreach ($users as $user) {
+                        $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
+                    }
+                }
+                $product->update(['email' => 1]);
             }
         } else {
             throw new \Exception("Le produit " . $product->name . " n'a plus de stock disponible pour la quantité demandée.");

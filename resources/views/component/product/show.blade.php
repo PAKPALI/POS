@@ -2,7 +2,7 @@
     <div class="card">
         <div class="card-body text-center">
             @if ($Product->image)
-                <img class="mb-5" src="{{ asset('images/' . $Product->image) }}" alt="Image du produit" style="width: 400px; height: auto;">
+                <img class="mb-5" src="{{ asset('images/' . $Product->image) }}" alt="Image du produit" style="width: 300px; height: auto;">
             @else
                 Pas d'image
             @endif

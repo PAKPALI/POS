@@ -238,6 +238,13 @@ class ProductController extends Controller
 
                 $data['image'] = $imageName;
             }
+
+            // verify if new qte of product > product margin
+            if ($Product->email ==1) {
+                if ($request->qte > $Product->margin) {
+                    $data['email'] = 0;
+                }
+            }
             
             $Product->update($data);
 

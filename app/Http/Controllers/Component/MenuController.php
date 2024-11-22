@@ -181,7 +181,8 @@ class MenuController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $MenuProduct = Product::findOrFail($id);
+        return view('component.menu.show', compact('MenuProduct'));
     }
 
     /**
@@ -310,6 +311,39 @@ class MenuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $Object = Product::findOrFail($id);
+        if($Object->status ==1){
+            $Object->update([
+                'status' => 0,
+            ]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'ARCHIVAGE D\'UN MENU',
+                'text' => auth()->user()->name." a désactivé le produit : ".$Object->name,
+            ]);
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "ARCHIVAGE REUSSIE",
+                "msg" => "Le menu ".$Object->name." a bien été désactivé"
+            ]);
+        }else{
+            $Object->update([
+                'status' => 1,
+            ]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'RESTAURER UN MENU',
+                'text' => auth()->user()->name." a restaurer le menu : ".$Object->name,
+            ]); 
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "RESTAURATION REUSSIE",
+                "msg" => "Le menu ".$Object->name." a bien été restauré"
+            ]);
+        }
     }
 }

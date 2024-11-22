@@ -505,7 +505,7 @@
             $('body').on('click', '.view', function () {
                 var id = $(this).data("id");
                 $.ajax({
-                    url:'{{url('component/product')}}/'+id,
+                    url:'{{url('component/menu')}}/'+id,
                     dataType: 'html',
                     success:function(result)
                     {
@@ -596,7 +596,7 @@
                                 'X-CSRF-TOKEN': csrfToken
                             },
                             type: "post",
-                            url: 'product/'+id,
+                            url: 'menu/'+id,
                             type: "DELETE",
                             datatype: 'json',
                             success: function (data) {
@@ -648,7 +648,7 @@
                                 'X-CSRF-TOKEN': csrfToken
                             },
                             type: "post",
-                            url: 'product/'+id,
+                            url: 'menu/'+id,
                             type: "DELETE",
                             datatype: 'json',
                             success: function (data) {

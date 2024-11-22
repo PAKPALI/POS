@@ -1,67 +1,103 @@
 <div id="stripedRows" class="mb-5">
     <div class="card">
         <div class="card-body text-center">
-            @if ($Product->image)
-                <img class="mb-5" src="{{ asset('images/' . $Product->image) }}" alt="Image du produit" style="width: 400px; height: auto;">
+            @if ($MenuProduct->image)
+                <img class="mb-5" src="{{ asset('images/' . $MenuProduct->image) }}" alt="Image du produit" style="width: 300px; height: auto;">
             @else
                 Pas d'image
             @endif
-        
+
+            <div class="card">
+                <div class="card-header text-center">
+                    <h6>INFORMATIONS SUR LE MENU</h6>
+                </div>
+            </div>
             <table class="table table-striped border mb-0 text-center">
-                <!-- <thead>
+                {{-- <thead>
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">First</th>
                         <th scope="col">Last</th>
                         <th scope="col">Handle</th>
                     </tr>
-                </thead> -->
+                </thead> --}}
                 <tbody>
                     <tr>
                         <th scope="row">1</th>
                         <td>Catégorie : </td>
-                        <td>{{$Product->category->name}}</td>
+                        <td>{{$MenuProduct->category->name}}</td>
                     </tr>
                     <tr>
                         <th scope="row">2</th>
                         <td>Nom : </td>
-                        <td>{{$Product->name}}</td>
+                        <td>{{$MenuProduct->name}}</td>
                     </tr>
                     <tr>
                         <th scope="row">3</th>
                         <td>Quantité : </td>
-                        <td>{{$Product->qte}}</td>
+                        <td>{{$MenuProduct->qte}}</td>
                     </tr>
                     <tr>
                         <th scope="row">4</th>
                         <td>Marge : </td>
-                        <td>{{$Product->margin}}</td>
+                        <td>{{$MenuProduct->margin}}</td>
                     </tr>
                     <tr>
                         <th scope="row">5</th>
                         <td>Prix unitaire : </td>
-                        <td>{{$Product->price}}</td>
+                        <td>{{$MenuProduct->price}}</td>
                     </tr>
                     <tr>
                         <th scope="row">6</th>
                         <td>Prix d'achat : </td>
-                        <td>{{$Product->purchase_price}}</td>
+                        <td>{{$MenuProduct->purchase_price}}</td>
                     </tr>
                     <tr>
                         <th scope="row">7</th>
                         <td>Bénefice: </td>
-                        <td>{{$Product->profit}}</td>
+                        <td>{{$MenuProduct->profit}}</td>
                     </tr>
                     <tr>
                         <th scope="row">8</th>
                         <td>Créer par :</td>
-                        <td>{{$Product->user->name}}</td>
+                        <td>{{$MenuProduct->user->name}}</td>
                     </tr>
                     <tr>
                         <th scope="row">9</th>
                         <td>Créer le :</td>
-                        <td>{{$Product->created_at->format('d-m-Y H:i:s')}}</td>
+                        <td>{{$MenuProduct->created_at->format('d-m-Y H:i:s')}}</td>
                     </tr>
+                </tbody>
+            </table>
+            
+            <div class="card">
+                <div class="card-header text-center mt-4">
+                    <h6>INFORMATIONS SUR LES PRODUITS DU MENU</h6>
+                </div>
+            </div>
+            <table class="table table-striped border text-center">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Nom</th>
+                        <th scope="col">Quantité</th>
+                        {{-- <th scope="col">Handle</th> --}}
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($MenuProduct->MenuProducts as $item)
+                        <tr>
+                            <td>
+                                @if ($item->product->image)
+                                    <img class="mb-0" src="{{ asset('images/' . $item->product->image) }}" alt="Image du produit" style="width: 40px; height: auto;">
+                                @else
+                                    Pas d'image
+                                @endif
+                            </td>
+                            <td class="@if($item->product->qte<=$item->product->margin) bg-danger @endif">{{ $item->product->name }} ({{ $item->product->qte }})</td>
+                            <td>{{ $item->quantity }}</td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
