@@ -13,9 +13,9 @@
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-xl-10">
+            <div class="col-xl-12">
                 <div class="row">
-                    <div class="col-xl-10">
+                    <div class="col-xl-12">
                         <ul class="breadcrumb">
                             <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
                             <li class="breadcrumb-item active">TABLE PLUGINS</li> -->

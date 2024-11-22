@@ -48,7 +48,7 @@
 					</div>
 					<div class="menu-submenu">
 						<div class="menu-item @if(Request::route()->getName() === 'menu.index') active @endif">
-							<a href="pos_customer_order.html" target="_blank" class="menu-link">
+							<a href="{{ route('menu.index') }}" class="menu-link">
 								<div class="menu-text">Ajouter menu</div>
 							</a>
 						</div>
@@ -115,7 +115,7 @@
 		<div class="p-3 px-4 mt-auto">
 			<a href="documentation/index.html" target="_blank" class="btn d-block btn-outline-theme">
 				<!-- <i class="fa fa-code-branch me-2 ms-n2 opacity-5"></i>  -->
-				LUX GRILL
+				{{config('app.name')}}
 			</a>
 		</div>
 	</div>

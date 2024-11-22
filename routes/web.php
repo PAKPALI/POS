@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Sale\SaleController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\Component\MenuController;
 use App\Http\Controllers\Component\ProductController;
 use App\Http\Controllers\Component\CategoryController;
 
@@ -56,7 +57,6 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     Route::post('updatePassword', 'updatePassword');
 });
 
-
 /*manage component*/
 Route::prefix('component')->middleware(['auth'])->group(function () {
     //category
@@ -66,6 +66,10 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     //product
     Route::controller(ProductController::class)->group(function () {
         Route::resource('product', ProductController::class);
+    });
+    //menu
+    Route::controller(MenuController::class)->group(function () {
+        Route::resource('menu', MenuController::class);
     });
 });
 

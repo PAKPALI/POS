@@ -10,7 +10,7 @@
 
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
-		<link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet">
+		<!-- <link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet"> -->
 		<!-- DataTables CSS -->
 		<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 		 <!--link j-query-->
@@ -31,7 +31,7 @@
 			}
 		</style>
 		@stack('css-scripts')
-</head>
+	</head>
 
 	<body>
 		<div id="app" class="app">
@@ -239,8 +239,8 @@
 		
 		<script src="{{asset('hub/assets/js/vendor.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
 		<script src="{{asset('hub/assets/js/app.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
-		<script src="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
-		<script src="{{asset('hub/assets/plugins/jvectormap-content/world-mill.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
+		<!-- <script src="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
+		<script src="{{asset('hub/assets/plugins/jvectormap-content/world-mill.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script> -->
 		<script src="{{asset('hub/assets/plugins/apexcharts/dist/apexcharts.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
 		<script src="{{asset('hub/assets/js/demo/dashboard.demo.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
 

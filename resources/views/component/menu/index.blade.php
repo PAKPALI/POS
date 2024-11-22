@@ -38,15 +38,15 @@
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-xl-12">
+            <div class="col-12">
                 <div class="row">
-                    <div class="col-xl-12">
+                    <div class="col-12">
                         <ul class="breadcrumb">
                             <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
                             <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
                         </ul>
                         <h1 class="page-header">
-                            PRODUITS
+                            MENU
                             <!-- <img src="{{ asset('images/1729538166.jpg') }}" alt="Image du produit"> -->
                         </h1>
                         <hr class="mb-4">
@@ -55,7 +55,7 @@
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-primary">
-                                        <h3 class="modal-title">Ajouter produit</h3>
+                                        <h3 class="modal-title">Ajouter menu</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -63,7 +63,10 @@
                                         @csrf
                                         <div class="card-body">
                                             <div class="row">
-                                                <input type="hidden" name="type" value="1" class="form-control" id="exampleInputText0" placeholder="0">
+                                                <input type="hidden" name="type" value="2" class="form-control" id="exampleInputText0" placeholder="0">
+                                                <div class="form-group col-12 mb-3 text-center bg-light">
+                                                    <label for="exampleInputText0"><h5 class="text-dark">informations menu</h5></label>
+                                                </div>
                                                 <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Catégorie</label>
                                                     
@@ -83,7 +86,7 @@
                                                     <label for="exampleInputText0">Quantité</label>
                                                     <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
                                                 </div>
-                                                <div class="form-group col-6">
+                                                <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Marge de sécurité</label>
                                                     <input type="number" name="margin" value="0" class="form-control" id="exampleInputText0" placeholder="0">
                                                 </div>
@@ -92,7 +95,7 @@
                                                     <label for="exampleInputText0">Prix unitaire</label>
                                                     <input type="number" name="price" class="form-control price" id="exampleInputText0" placeholder="0">
                                                 </div>
-                                                <div class="form-group col-6">
+                                                <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Prix d'achat</label>
                                                     <input type="number" name="purchase_price" class="form-control purchase_price" id="exampleInputText0" placeholder="0">
                                                 </div>
@@ -106,6 +109,33 @@
                                                     <label class="form-label" for="smFile">Choisir une image</label>
                                                     <input type="file" class="form-control form-control-sm" name="image" id="smFile">
                                                 </div>
+                                            </div>
+
+                                            <div class="row mt-3">
+                                                <div class="form-group col-12 mb-3 text-center bg-light">
+                                                    <label for="exampleInputText0"><h5 class="text-dark">informations produits</h5></label>
+                                                </div>
+                                                <button type="button" class="btn btn-info add-product-field mb-2">
+                                                    <i class="fa fa-plus"></i> Ajouter un produit
+                                                </button>
+                                                <div id="product-fields-container">
+                                                    <!-- Dynamic field will be here -->
+                                                </div>
+                                                {{-- <div class="form-group col-6 mb-3">
+                                                    <label for="exampleInputText0">Produits</label>
+                                                    
+                                                    <select class="form-select mb-3" name="category">
+                                                        <option value="">selectionnez un produits</option>
+                                                        @foreach ($Product as $product)
+                                                            <option value="{{$product->id}}">{{$product->name}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+
+                                                <div class="form-group col-6 mb-3">
+                                                    <label for="exampleInputText0">Quantité</label>
+                                                    <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
+                                                </div> --}}
                                             </div>
                                         </div>
                                         <div class="card-footer mt-4">
@@ -150,8 +180,34 @@
                             </div>
                         </div>
 
+                        <!-- template for dynamic field -->
+                        <template id="product-field-template">
+                            <div class="row product-field">
+                                <div class="form-group col-5 mb-2">
+                                    <label for="exampleInputText0">Produits</label>
+                                    <select class="form-select mb-3 product-select" name="products[]">
+                                        <option value="">selectionnez un produit</option>
+                                        @foreach ($Product as $product)
+                                            <option value="{{$product->id}}">{{$product->name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-6 mb-2">
+                                    <label for="exampleInputText0">Quantité</label>
+                                    <input type="number" name="quantities[]" class="form-control product-quantity" placeholder="0">
+                                </div>
+
+                                <div class="form-group col-1 mb-2 d-flex align-items-center">
+                                    <button type="button" class="btn btn-danger remove-product-field">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+
                         <div id="" class="mb-5">
-                            <h4>Listes des produits</h4>
+                            <h4>Listes des menus</h4>
                             <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                             <!-- <p>DataTables is a plug-in for the jQuery Javascript library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table. Please read the <a href="https://datatables.net/" target="_blank">official documentation</a> for the full list of options.</p> -->
                             <div class="card">
@@ -223,7 +279,7 @@
             var Datatable = $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('product.index')}}",
+                ajax: "{{ route('menu.index')}}",
                 columns: [
                     {data: 'id',name: 'id'},
                     {data: 'margin',name: 'margin'},
@@ -287,24 +343,111 @@
                 Datatable.ajax.reload(null, false);
             });
 
-            //Add category
-            $('#add').submit(function() {
+            // Add product field
+            $('.add-product-field').on('click', function () {
+                let template = $('#product-field-template').html(); // get template model
+                $('#product-fields-container').append(template);   // Add template in container
+            });
+
+            // Delete product field
+            $('#product-fields-container').on('click', '.remove-product-field', function () {
+                $(this).closest('.product-field').remove(); // Delete parent bloc
+            });
+
+            //Add menu
+            $('#add').submit(function () {
                 $('#loader').fadeIn();
                 $('#submitText').hide();
-                var formData = new FormData($('#add')[0]);
+
+                let isValid = true; 
+                let products = [];
+
+                // Construire la liste des produits
+                $('.product-field').each(function () {
+                    let productSelect = $(this).find('.product-select').val();
+                    let productQuantity = $(this).find('.product-quantity').val();
+
+                    // if (!productSelect && !productQuantity) {
+                    //     return true; // Ignore les champs vides
+                    // }
+
+                    if (!productSelect) {
+                        alert("Veuillez sélectionner un produit !")
+                        Swal.fire({
+                            toast: true,
+                            position: 'top',
+                            icon: "error",
+                            title: "ERREUR",
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            text: "Veuillez sélectionner un produit !",
+                        });
+                        isValid = false;
+                        return false;
+                    }
+
+                    if (!productQuantity || productQuantity <= 0) {
+                        alert("Veuillez saisir une quantité valide !")
+                        Swal.fire({
+                            toast: true,
+                            position: 'top',
+                            icon: "error",
+                            title: "ERREUR",
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            text: "Veuillez saisir une quantité valide !",
+                        });
+                        isValid = false;
+                        return false;
+                    }
+
+                    products.push({
+                        product_id: productSelect,
+                        quantity: parseInt(productQuantity)
+                    });
+                });
+
+                // Vérifier si la validation a échoué ou si aucun produit n'a été ajouté
+                if (!isValid || products.length === 0) {
+                    $('#loader').hide();
+                    $('#submitText').fadeIn();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top',
+                        icon: "error",
+                        title: "ERREUR",
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        text: "Ajoutez au moins un produit valide avant de soumettre !",
+                    });
+                    return false;
+                }
+
+                // Préparer les données du formulaire
+                let formData = new FormData($('#add')[0]);
+
+                // Ajouter les produits dans le FormData
+                products.forEach((product, index) => {
+                    formData.append(`products[${index}][product_id]`, product.product_id);
+                    formData.append(`products[${index}][quantity]`, product.quantity);
+                });
+
+                // Envoi des données via AJAX
                 $.ajax({
                     type: 'POST',
-                    url: "{{ route('product.store') }}",
+                    url: "{{ route('menu.store') }}",
                     enctype: 'multipart/form-data',
                     data: formData,
                     processData: false,
                     contentType: false,
                     datatype: 'json',
-                    success: function(data) {
-                        console.log(data)
+                    success: function (data) {
+                        $('#loader').hide();
+                        $('#submitText').fadeIn();
                         if (data.status) {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -315,12 +458,9 @@
                                 timerProgressBar: true,
                                 text: data.msg,
                             });
-                            
                             $('#addModal').modal('hide');
                             Datatable.draw();
                         } else {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -333,25 +473,26 @@
                             });
                         }
                     },
-                    error: function(data) {
-                        console.log(data)
+                    error: function (data) {
                         $('#loader').hide();
                         $('#submitText').fadeIn();
                         Swal.fire({
                             icon: "error",
-                            title: "erreur",
+                            title: "Erreur",
                             text: "Impossible de communiquer avec le serveur.",
                             timer: 3600,
-                        })
+                        });
                     }
                 });
-                return false;
+
+                return false; 
             });
+
 
             $('body').on('click', '.editModal', function () {
                 var id = $(this).data("id");
                 $.ajax({
-                    url:'{{url('component/product')}}/'+id+'/edit',
+                    url:'{{url('component/menu')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {
