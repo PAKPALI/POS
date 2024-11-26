@@ -55,6 +55,10 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     Route::post('updateEmail', 'updateEmail');
     // update password
     Route::post('updatePassword', 'updatePassword');
+
+    // chart
+    Route::post('/statistics/top-products', [UserController::class, 'topSellingProducts'])->name('statistics.topProducts');
+
 });
 
 /*manage component*/

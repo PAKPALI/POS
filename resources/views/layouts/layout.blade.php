@@ -107,18 +107,18 @@
 											class="app-theme-list-link bg-yellow" data-theme-class="theme-yellow"
 											data-toggle="theme-selector" data-bs-toggle="tooltip" data-bs-trigger="hover"
 											data-bs-container="body" data-bs-title="Yellow">&nbsp;</a></div>
-									<div class="app-theme-list-item"><a href="javascript:;"
+									{{-- <div class="app-theme-list-item"><a href="javascript:;"
 											class="app-theme-list-link bg-lime" data-theme-class="theme-lime"
 											data-toggle="theme-selector" data-bs-toggle="tooltip" data-bs-trigger="hover"
-											data-bs-container="body" data-bs-title="Lime">&nbsp;</a></div>
+											data-bs-container="body" data-bs-title="Lime">&nbsp;</a></div> --}}
 									<div class="app-theme-list-item"><a href="javascript:;"
 											class="app-theme-list-link bg-green" data-theme-class="theme-green"
 											data-toggle="theme-selector" data-bs-toggle="tooltip" data-bs-trigger="hover"
 											data-bs-container="body" data-bs-title="Green">&nbsp;</a></div>
-									<div class="app-theme-list-item active"><a href="javascript:;"
+									{{-- <div class="app-theme-list-item active"><a href="javascript:;"
 											class="app-theme-list-link bg-teal" data-theme-class
 											data-toggle="theme-selector" data-bs-toggle="tooltip" data-bs-trigger="hover"
-											data-bs-container="body" data-bs-title="Default">&nbsp;</a></div>
+											data-bs-container="body" data-bs-title="Default">&nbsp;</a></div> --}}
 									<div class="app-theme-list-item"><a href="javascript:;"
 											class="app-theme-list-link bg-info" data-theme-class="theme-info"
 											data-toggle="theme-selector" data-bs-toggle="tooltip" data-bs-trigger="hover"
@@ -239,7 +239,7 @@
 		
 		<script src="{{asset('hub/assets/js/vendor.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
 		<script src="{{asset('hub/assets/js/app.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
-		<!-- <script src="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
+		{{-- <script src="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>--}}
 		<script src="{{asset('hub/assets/plugins/jvectormap-content/world-mill.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script> -->
 		<script src="{{asset('hub/assets/plugins/apexcharts/dist/apexcharts.min.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>
 		<script src="{{asset('hub/assets/js/demo/dashboard.demo.js')}}" type="9763b948d984f4be9ade72e9-text/javascript"></script>

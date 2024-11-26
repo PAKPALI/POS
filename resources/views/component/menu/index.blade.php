@@ -155,7 +155,7 @@
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-warning">
-                                        <h3 class="modal-title text-dark ">Modifier produit</h3>
+                                        <h3 class="modal-title text-dark ">Modifier menu</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -582,7 +582,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir archiver ce produit?",
+                    title: "Etes vous sur de vouloir archiver ce menu?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'red',
@@ -634,7 +634,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir restaurer ce produit?",
+                    title: "Etes vous sur de vouloir restaurer ce menu?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'green',

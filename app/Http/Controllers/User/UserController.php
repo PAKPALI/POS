@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\User;
 
+use Log;
+use Carbon\Carbon;
 use App\Models\Sale;
 use App\Models\User;
 use App\Models\Action;
@@ -355,6 +357,34 @@ class UserController extends Controller
                 "title" => "TENTATIVE ECHOUEE",
                 "msg" => "L'ancien email saisie ne correspond pas au email enregistré actuelement dans la base de donnée"
             ]);
+        }
+    }
+
+    public function topSellingProducts(Request $request)
+    {
+        try {
+            $daterange = $request->daterange; // Exemple : "01/10/2024 - 31/10/2024"
+        
+            if ($daterange) {
+                [$startDate, $endDate] = explode(' - ', $daterange);
+                $startDate = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay()->format('Y-m-d');
+                $endDate = Carbon::createFromFormat('d-m-Y', $endDate)->format('Y-m-d 23:59:59');
+            }
+            // Log::error('Error in topProducts: ' . $endDate);
+
+            $topProducts = DB::table('sale_details')
+                ->join('products', 'sale_details.product_id', '=', 'products.id')
+                ->select('products.name', DB::raw('SUM(sale_details.quantity) as total_quantity'))
+                ->groupBy('products.name')
+                ->orderBy('total_quantity', 'desc')
+                ->whereBetween('sale_details.created_at', [$startDate, $endDate])
+                ->take(10)
+                ->get();
+            return response()->json($topProducts, 200);
+    
+        } catch (\Exception $e) {
+            Log::error('Error in topProducts: ' . $e->getMessage());
+            return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
 

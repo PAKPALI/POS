@@ -114,7 +114,7 @@
 
 		<div class="p-3 px-4 mt-auto">
 			<a href="documentation/index.html" target="_blank" class="btn d-block btn-outline-theme">
-				<!-- <i class="fa fa-code-branch me-2 ms-n2 opacity-5"></i>  -->
+				{{-- <!-- <i class="fa fa-code-branch me-2 ms-n2 opacity-5"></i>  --> --}}
 				{{config('app.name')}}
 			</a>
 		</div>
