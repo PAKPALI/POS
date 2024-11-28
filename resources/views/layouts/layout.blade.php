@@ -31,7 +31,7 @@
 			}
 		</style>
 		@stack('css-scripts')
-	</head>
+</head>
 
 	<body>
 		<div id="app" class="app">
