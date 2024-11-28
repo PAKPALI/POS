@@ -360,7 +360,11 @@
                 
                 Swal.fire({
                     icon: "question",
+<<<<<<< Updated upstream
                     title: "Etes vous sur de vouloir archiver cette catégorie?",
+=======
+                    title: "Etes vous sur de vouloir archiver ce produit?",
+>>>>>>> Stashed changes
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'red',
@@ -413,7 +417,11 @@
                 
                 Swal.fire({
                     icon: "question",
+<<<<<<< Updated upstream
                     title: "Etes vous sur de vouloir restaurer cette catégorie?",
+=======
+                    title: "Etes vous sur de vouloir restaurer ce produit?",
+>>>>>>> Stashed changes
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'green',

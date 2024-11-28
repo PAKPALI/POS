@@ -335,29 +335,15 @@ class SaleController extends Controller
     private function updateProductQuantity($product, $quantity)
     {
         if ($product->qte >= $quantity) {
-            // update new qty of product after sell
             $newQte = $product->qte - $quantity;
             $product->update(['qte' => $newQte]);
 
-            // new moove if the product is menu
-            if($product->type == 2){
-                foreach ($product->MenuProducts as $item){
-                    $MenuProduct = Product::findOrFail($item->product_id);
-                    $this->updateProductQuantity($MenuProduct, $item->quantity);
+            // check if security margin is affected
+            if ($newQte <= $product->margin) {
+                $users = User::where('status', 1)->get();
+                foreach ($users as $user) {
+                    $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
                 }
-            }
-
-            // check if security margin is affected generaly check if email has been send about this product
-            if($product->email == 0){
-                // check if new qty is < than product margin 
-                if ($newQte <= $product->margin) {
-                    $users = User::where('status', 1)->get();
-                    foreach ($users as $user) {
-                        $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
-                    }
-                }
-                // change product email status to sign that email has been sent about this
-                $product->update(['email' => 1]);
             }
         } else {
             throw new \Exception("Le produit " . $product->name . " n'a plus de stock disponible pour la quantité demandée.");
