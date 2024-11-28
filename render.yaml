@@ -4,10 +4,15 @@ services:
     env: php
     plan: free
     buildCommand: |
+      echo "Building application"
+      php -v
+      php -m
       composer install --optimize-autoloader --no-dev
       php artisan config:cache
       php artisan route:cache
+      echo "Build complete"
     startCommand: |
+      echo "Start Command"
       if php artisan migrate:status; then
         php artisan migrate --force
       else
