@@ -7,7 +7,7 @@ services:
       echo "Building application"
       php -v
       php -m
-      composer install --optimize-autoloader --no-dev
+      # composer install --optimize-autoloader --no-dev
       php artisan config:cache
       php artisan route:cache
       echo "Build complete"
