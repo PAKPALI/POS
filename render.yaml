@@ -29,7 +29,7 @@ services:
       - key: DB_PORT
         value: 5432
       - key: DB_DATABASE
-        value: DATABASE
+        value: pro_seller
       - key: DB_USERNAME
         value: pro_seller_user
       - key: DB_PASSWORD
