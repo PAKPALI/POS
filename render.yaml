@@ -1,33 +1,101 @@
+# Exported from Render on 2024-11-28T17:39:11Z
 services:
-  - type: web
-    name: PRO SELLER
-    env: php
-    plan: free
-    buildCommand: |
-      composer install --optimize-autoloader --no-dev
-      php artisan config:cache
-      php artisan route:cache
-    startCommand: |
-      if php artisan migrate:status; then
-        php artisan migrate --force
-      else
-        echo "Migration skipped"
-      fi
-      php artisan serve --host=0.0.0.0 --port=$PORT  # Utilisation du port dynamique
-    envVars:
-      - key: APP_ENV
-        value: production
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DB_HOST
-        value: dpg-ct47td3tq21c7391qh40-a
-      - key: DB_PORT
-        value: 5432
-      - key: DB_DATABASE
-        value: DATABASE
-      - key: DB_USERNAME
-        value: pro_seller_user
-      - key: DB_PASSWORD
-        value: ZHxAZ6pn7VMmhTosShaEf4Jp6j18Zx43
-      - key: APP_URL
-        value: https://pro_seller.onrender.com
+- type: web
+  name: PRO SELLER
+  runtime: docker
+  repo: https://github.com/PAKPALI/POS
+  plan: free
+  envVars:
+  - key: DB_PORT
+    sync: false
+  - key: DB_PASSWORD
+    sync: false
+  - key: DB_HOST
+    sync: false
+  - key: DB_DATABASE
+    sync: false
+  - key: DB_CONNECTION
+    sync: false
+  - key: AWS_USE_PATH_STYLE_ENDPOINT
+    sync: false
+  - key: AWS_ACCESS_KEY_ID
+    sync: false
+  - key: APP_URL
+    sync: false
+  - key: APP_NAME
+    sync: false
+  - key: MIX_PUSHER_APP_CLUSTER
+    sync: false
+  - key: MIX_PUSHER_APP_KEY
+    sync: false
+  - key: PUSHER_APP_CLUSTER
+    sync: false
+  - key: PUSHER_APP_SECRET
+    sync: false
+  - key: PUSHER_APP_KEY
+    sync: false
+  - key: PUSHER_APP_ID
+    sync: false
+  - key: AWS_BUCKET
+    sync: false
+  - key: AWS_DEFAULT_REGION
+    sync: false
+  - key: AWS_SECRET_ACCESS_KEY
+    sync: false
+  - key: MAIL_FROM_NAME
+    sync: false
+  - key: MAIL_FROM_ADDRESS
+    sync: false
+  - key: MAIL_ENCRYPTION
+    sync: false
+  - key: MAIL_PASSWORD
+    sync: false
+  - key: MAIL_USERNAME
+    sync: false
+  - key: MAIL_PORT
+    sync: false
+  - key: MAIL_HOST
+    sync: false
+  - key: MAIL_MAILER
+    sync: false
+  - key: REDIS_PORT
+    sync: false
+  - key: REDIS_PASSWORD
+    sync: false
+  - key: REDIS_HOST
+    sync: false
+  - key: MEMCACHED_HOST
+    sync: false
+  - key: SESSION_LIFETIME
+    sync: false
+  - key: SESSION_DRIVER
+    sync: false
+  - key: QUEUE_CONNECTION
+    sync: false
+  - key: FILESYSTEM_DISK
+    sync: false
+  - key: CACHE_DRIVER
+    sync: false
+  - key: BROADCAST_DRIVER
+    sync: false
+  - key: DB_USERNAME
+    sync: false
+  - key: LOG_LEVEL
+    sync: false
+  - key: LOG_DEPRECATIONS_CHANNEL
+    sync: false
+  - key: LOG_CHANNEL
+    sync: false
+  - key: APP_DEBUG
+    sync: false
+  - key: APP_KEY
+    sync: false
+  - key: APP_ENV
+    sync: false
+  region: oregon
+  dockerCommand: composer install --optimize-autoloader --no-dev && \ php artisan
+    config:cache && \ php artisan route:cache && \ php artisan migrate --force &&
+    \ php artisan serve --host=0.0.0.0 --port=80
+  dockerContext: .
+  dockerfilePath: ./Dockerfile
+version: "1"
