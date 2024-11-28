@@ -10,6 +10,11 @@ services:
     startCommand: |
       php artisan migrate --force
       php artisan serve --host=0.0.0.0 --port=80
+
+    startCommand: |
+      php artisan migrate --force
+      php-fpm  # cela lance php artisan serve --host=0.0.0.0 --port=80
+
     envVars:
       - key: APP_ENV
         value: production
@@ -25,3 +30,5 @@ services:
         value: pro_seller_user
       - key: DB_PASSWORD
         value: ZHxAZ6pn7VMmhTosShaEf4Jp6j18Zx43
+      - key: APP_URL
+        value: https://pro_seller.onrender.com
