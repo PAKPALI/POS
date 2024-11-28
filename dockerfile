@@ -28,16 +28,15 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # Exposer le port utilisé par Laravel
 EXPOSE 80
 
-# Utiliser root pour exécuter composer install
+# Utiliser root pour créer l'utilisateur
 USER root
-RUN composer install --optimize-autoloader --no-dev --no-interaction
-
-# Revenir à l'utilisateur non-root
-USER www-data
-
-# Créer un utilisateur non-root pour Composer
 RUN useradd -m composeruser
+
+# Passer à l'utilisateur composeruser
 USER composeruser
+
+# Installer les dépendances Composer
+RUN composer install --optimize-autoloader --no-dev --no-interaction
 
 # Démarrer Apache
 CMD ["apache2-foreground"]
