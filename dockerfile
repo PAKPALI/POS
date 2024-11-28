@@ -1,43 +1,30 @@
-# Utiliser une image PHP officielle avec Apache
+# Utilisez une image PHP avec Apache ou Nginx
 FROM php:8.2-apache
 
-# Installer les extensions nécessaires pour Laravel
-RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libonig-dev \
-    libzip-dev \
-    unzip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl gd
+# Activez l'extension PDO et les extensions nécessaires pour Laravel
+RUN docker-php-ext-install pdo pdo_mysql
 
-# Installer Composer en copiant le binaire depuis l'image officielle de Composer
-COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
-
-# Copier les fichiers du projet dans le conteneur
+# Copier le code source de l'application dans le conteneur
 COPY . /var/www/html
 
-# Définir le répertoire de travail
+# Installez Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Donner des permissions au dossier des applications (initialement, la copie peut échouer si des permissions sont insuffisantes)
+RUN chmod -R 775 /var/www/html
+
+# Installer les dépendances Composer
 WORKDIR /var/www/html
+RUN composer install --no-dev --optimize-autoloader
 
-# Créer un utilisateur non-root (composeruser) pour exécuter Composer
-RUN useradd -m composeruser
+# Créez les répertoires nécessaires si ce n'est pas déjà fait
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Passer à l'utilisateur non-root
-USER composeruser
-
-# Autoriser l'exécution de Composer en tant que superutilisateur (optionnel si vous voulez forcer Composer à s'exécuter en tant que root)
-ENV COMPOSER_ALLOW_SUPERUSER=1
-
-# Donner les permissions appropriées aux répertoires de Laravel (storage, cache)
+# Changer les permissions des répertoires storage et cache pour que l'utilisateur web puisse y écrire
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Installer les dépendances Composer en mode production (pas de dépendances de développement)
-RUN composer install --optimize-autoloader --no-dev --no-interaction
-
-# Exposer le port utilisé par Apache (80)
+# Exposer le port 80 pour Apache
 EXPOSE 80
 
-# Démarrer Apache en mode non-daemon
+# Démarrer Apache en mode premier plan
 CMD ["apache2-foreground"]
