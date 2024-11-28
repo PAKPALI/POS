@@ -31,6 +31,10 @@ EXPOSE 80
 RUN useradd -m composeruser
 USER composeruser
 
+# Donner les permissions appropriées aux répertoires de Laravel
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
+
 # Installer Composer et les dépendances
 RUN curl -sS https://getcomposer.org/installer | php
 RUN php composer.phar install --optimize-autoloader --no-dev
