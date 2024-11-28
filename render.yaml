@@ -14,7 +14,7 @@ services:
     startCommand: |
       echo "Start Command"
       if php artisan migrate:status; then
-        php artisan migrate --force
+        php artisan migrate
       else
         echo "Migration skipped"
       fi
