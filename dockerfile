@@ -27,6 +27,10 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Exposer le port utilisé par Laravel
 EXPOSE 80
 
+# Créer un utilisateur non-root pour Composer
+RUN useradd -m composeruser
+USER composeruser
+
 # Installer Composer et les dépendances
 RUN curl -sS https://getcomposer.org/installer | php
 RUN php composer.phar install --optimize-autoloader --no-dev
