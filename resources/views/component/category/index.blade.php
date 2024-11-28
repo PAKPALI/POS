@@ -103,6 +103,7 @@
                                                 <th>Créer par</th>
                                                 <th>Créer le</th>
                                                 <th>Status</th>
+                                                <th>Status</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -166,6 +167,7 @@
                     {data: 'name',name: 'name'},
                     {data: 'created_by',name: 'created_by'},
                     {data: 'created_at',name: 'created_at'},
+                    {data: 'status',name: 'status'},
                     {data: 'status',name: 'status'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
@@ -360,11 +362,7 @@
                 
                 Swal.fire({
                     icon: "question",
-<<<<<<< Updated upstream
                     title: "Etes vous sur de vouloir archiver cette catégorie?",
-=======
-                    title: "Etes vous sur de vouloir archiver ce produit?",
->>>>>>> Stashed changes
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'red',
@@ -417,11 +415,7 @@
                 
                 Swal.fire({
                     icon: "question",
-<<<<<<< Updated upstream
                     title: "Etes vous sur de vouloir restaurer cette catégorie?",
-=======
-                    title: "Etes vous sur de vouloir restaurer ce produit?",
->>>>>>> Stashed changes
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'green',
