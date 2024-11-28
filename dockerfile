@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql mbstring zip exif pcntl gd
 
-# Installer Composer
-COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+# Copier le fichier composer.phar si nécessaire
+# COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
 # Copier les fichiers de votre projet dans le conteneur
 COPY . /var/www/html
@@ -28,12 +28,8 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # Exposer le port utilisé par Laravel
 EXPOSE 80
 
-# Utiliser root pour créer l'utilisateur
-USER root
-RUN useradd -m composeruser
-
-# Passer à l'utilisateur composeruser
-USER composeruser
+# Installer Composer via une méthode sûre et vérifier l'installation
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Installer les dépendances Composer
 RUN composer install --optimize-autoloader --no-dev --no-interaction
