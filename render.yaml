@@ -8,7 +8,11 @@ services:
       php artisan config:cache
       php artisan route:cache
     startCommand: |
-      php artisan migrate --force
+      if php artisan migrate:status; then
+        php artisan migrate --force
+      else
+        echo "Migration skipped"
+      fi
       php artisan serve --host=0.0.0.0 --port=$PORT  # Utilisation du port dynamique
     envVars:
       - key: APP_ENV
