@@ -86,12 +86,15 @@
                             </div>
                         </div>
 
-                        <div id="" class="mb-5">
-                            <h4>Listes des catégories</h4>
-                            <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
-                            <!-- <p>DataTables is a plug-in for the jQuery Javascript library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table. Please read the <a href="https://datatables.net/" target="_blank">official documentation</a> for the full list of options.</p> -->
-                            <div class="card">
+                        <div class="col-xl-12">
+                            <div class="card mb-3">
                                 <div class="card-body">
+                                    <div class="d-flex fw-bold small mb-3">
+                                        <span class="flex-grow-1"><h4>Listes des catégories</h4></span>
+                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
+                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
+                                    </div>
+                                    <div class="table-responsive">
                                     <table id="datatable" class="table text-nowrap w-100">
                                         <thead>
                                             <tr>
@@ -107,15 +110,17 @@
                                             
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
+                                <div class="d-flex justify-content-center mt-3">
+                                    
+                                </div>
+
                                 <div class="card-arrow">
                                     <div class="card-arrow-top-left"></div>
                                     <div class="card-arrow-top-right"></div>
                                     <div class="card-arrow-bottom-left"></div>
                                     <div class="card-arrow-bottom-right"></div>
-                                </div>
-                                <div class="hljs-container">
-                                    <pre><code class="xml" data-url="assets/data/table-plugins/code-1.json"></code></pre>
                                 </div>
                             </div>
                         </div>
@@ -355,7 +360,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir archiver ce produit?",
+                    title: "Etes vous sur de vouloir archiver cette catégorie?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'red',
@@ -408,7 +413,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir restaurer ce produit?",
+                    title: "Etes vous sur de vouloir restaurer cette catégorie?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'green',
