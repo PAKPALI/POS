@@ -403,11 +403,11 @@ class SaleController extends Controller
             if ($daterange) {
                 [$startDate, $endDate] = explode(' - ', $daterange);
                 $startDate = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay()->format('Y-m-d');
-                $endDate = Carbon::createFromFormat('d-m-Y', $endDate)->endOfDay()->format('Y-m-d');
+                $endDate = Carbon::createFromFormat('d-m-Y', $endDate)->format('Y-m-d 23:59:59');
             }else {
                 // Plage de date par défaut : aujourd'hui
                 $startDate = Carbon::today()->startOfDay()->format('Y-m-d');
-                $endDate = Carbon::today()->endOfDay()->format('Y-m-d');
+                $endDate = Carbon::today()->format('Y-m-d 23:59:59');
             }
         
             $Object = Sale::with('saleDetails.product')->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
