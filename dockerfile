@@ -1,27 +1,20 @@
-FROM php:8.1-fpm
+FROM richarvey/nginx-php-fpm:3.1.6
 
-# Installer les dépendances nécessaires
-RUN apt-get update && apt-get install -y \
-    git curl libzip-dev zip unzip \
-    && docker-php-ext-install pdo pdo_mysql zip
-
-# Installer Composer
-COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
-
-# Configurer le dossier de travail
-WORKDIR /var/www/html
-
-# Copier les fichiers de l'application
 COPY . .
 
-# Installer les dépendances PHP
-RUN composer install --no-dev --optimize-autoloader
+# Image config
+ENV SKIP_COMPOSER 1
+ENV WEBROOT /var/www/html/public
+ENV PHP_ERRORS_STDERR 1
+ENV RUN_SCRIPTS 1
+ENV REAL_IP_HEADER 1
 
-# Définir les permissions
-RUN chown -R www-data:www-data /var/www/html
+# Laravel config
+ENV APP_ENV production
+ENV APP_DEBUG false
+ENV LOG_CHANNEL stderr
 
-# Exposer le port
-EXPOSE 8000
+# Allow composer to run as root
+ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Commande par défaut pour le conteneur
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["/start.sh"]

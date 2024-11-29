@@ -53,7 +53,6 @@ class LoginController extends Controller
             'function' => 'CONNEXION',
             'text' => " s'est connecté",
         ]);           
-        
     }
 
     public function login(Request $request)
@@ -80,6 +79,7 @@ class LoginController extends Controller
 
         if($user){
             if(Hash::check($request-> password, $user-> password)){
+                // verify admin login
                 if($user->user_type == 2){
                     $this->loginUser($user);           
                     return response()->json([
@@ -90,7 +90,8 @@ class LoginController extends Controller
                         'check' => Auth::check(),
                         "msg" => "connexion réussie"
                     ]);
-                }else{
+                }elseif($user->user_type == 3){
+                    // verify employe login
                     if($user->status == 1){
                         $this->loginUser($user);
                         return response()->json([
@@ -102,6 +103,7 @@ class LoginController extends Controller
                             "msg" => "connexion réussie"
                         ]);
                     }else{
+                        // verify super admin login
                         return response()->json([
                             "status" => false,
                             "reload" => true,
@@ -110,6 +112,15 @@ class LoginController extends Controller
                             "msg" => "Vous n'etes pas autorisé à vous connecté"
                         ]);  
                     }
+                }else{
+                    return response()->json([
+                        "status" => true,
+                        "reload" => true,
+                        "redirect_to" => route('dashboard'),
+                        "title" => "CONNEXION REUSSIE",
+                        'check' => Auth::check(),
+                        "msg" => "connexion réussie"
+                    ]);
                 }
             }else{
                 return response()->json([
