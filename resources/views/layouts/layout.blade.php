@@ -29,11 +29,32 @@
 				transition: transform 0.2s ease;
 				border: 2px solid; /* Bord rouge léger */
 			}
+			#page-preloader {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(255, 255, 255, 0.9); /* Fond opaque */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 99999; /* Couvrir toute la page */
+			}
+			#page-preloader img {
+				width: 150px; /* Ajustez la taille */
+				height: auto;
+				animation: zoom 0.8s infinite ease-in-out, vibrate 0.5s infinite linear;
+			}
 		</style>
 		@stack('css-scripts')
 </head>
 
 	<body>
+		<div id="page-preloader">
+			<img src="{{asset('hub/assets/img/logo.png')}}" alt="Chargement...">
+		</div>
+
 		<div id="app" class="app">
 			<!-- Navbar -->
 				@include('partials.navbar')
@@ -258,7 +279,49 @@
 		<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 		<!-- DataTables JS -->
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+		
 		<script>
+			const image = document.querySelector("#page-preloader img");
+			let scale = 1; // Échelle initiale
+			let direction = 1; // Indique si on "zoome" ou "dézoome"
+
+			function animateZoom() {
+				// Augmenter ou réduire l'échelle
+				scale += direction * 0.005;
+				
+				// Inverser la direction au seuil
+				if (scale >= 1.2 || scale <= 1) {
+					direction *= -1;
+				}
+
+				// Appliquer la transformation
+				image.style.transform = `scale(${scale})`;
+
+				// Répéter l'animation
+				requestAnimationFrame(animateZoom);
+			}
+			// Lancer l'animation
+			animateZoom();
+			function animateVibrate() {
+				const offsetX = (Math.random() - 0.05) * 4; // Déplacement horizontal
+				const offsetY = (Math.random() - 0.05) * 4; // Déplacement vertical
+
+				image.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+				// Répéter l'animation
+				setTimeout(animateVibrate, 1000);
+			}
+
+			// Lancer l'animation
+			animateVibrate();
+
+
+			window.addEventListener("load", function () {
+				const preloader = document.getElementById("page-preloader");
+				preloader.style.opacity = "0.5"; // Transition douce
+				setTimeout(() => preloader.style.display = "none", 500); // Masque après l'animation
+			});
+
 			$(function () {
 				//ajax pour se deconnecter
 				$('#form-logout').submit(function(){ 

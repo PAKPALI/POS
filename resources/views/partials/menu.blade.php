@@ -48,7 +48,7 @@
 					</div>
 					<div class="menu-submenu">
 						<div class="menu-item @if(Request::route()->getName() === 'menu.index') active @endif">
-							<a href="pos_customer_order.html" target="_blank" class="menu-link">
+							<a href="{{ route('menu.index') }}" class="menu-link">
 								<div class="menu-text">Ajouter menu</div>
 							</a>
 						</div>
