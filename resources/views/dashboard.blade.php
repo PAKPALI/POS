@@ -88,7 +88,7 @@
                 </div>
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
-                        <h3 class="mb-0">4{{$Sale->count()}}</h3>
+                        <h3 class="mb-0">{{$Sale->count()}}</h3>
                     </div>
                     <div class="col-5">
                         <div class="mt-n3 mb-n2" data-render="apexchart" data-type="bar"
