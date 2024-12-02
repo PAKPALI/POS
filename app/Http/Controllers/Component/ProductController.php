@@ -90,9 +90,15 @@ class ProductController extends Controller
             "name.required" => "Remplir le champ Nom!",
             "qte.required" => "Remplir le champ Quantité!",
             "qte.numeric" => "Le champ Quantité doit être un nombre!",
+            "qte.min" => "La quantité ne doit pas être négative!",
             "price.required" => "Remplir le champ Prix unitaire!",
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
-            // "margin.required" => "Remplir le champ Marge de sécurité!",
+            "price.min" => "Le prix unitaire ne doit pas être négatif!",
+            "purchase_price.required" => "Remplir le champ Prix d'achat!",
+            "purchase_price.numeric" => "Le champ Prix d'achat doit être un nombre!",
+            "purchase_price.min" => "Le Prix d'achat ne doit pas être négatif!",
+            "margin.numeric" => "Le champ Marge doit être un nombre!",
+            "margin.min" => "La marge ne doit pas être négative!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
@@ -102,11 +108,13 @@ class ProductController extends Controller
             'type' => ['required', 'numeric'],
             'category' => ['required'],
             'name' => ['required'],
-            'qte' => ['required', 'numeric'],
-            'price' => ['required', 'numeric'],
-            'margin' => ['numeric'],
+            'qte' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['required', 'numeric', 'min:0'],
+            'margin' => ['numeric', 'min:0'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ], $error_messages);
+        
         
         if($validator->fails())
             return response()->json([
@@ -188,9 +196,15 @@ class ProductController extends Controller
             "name.required" => "Remplir le champ Nom!",
             "qte.required" => "Remplir le champ Quantité!",
             "qte.numeric" => "Le champ Quantité doit être un nombre!",
+            "qte.min" => "La quantité ne doit pas être négative!",
             "price.required" => "Remplir le champ Prix unitaire!",
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
-            // "margin.required" => "Remplir le champ Marge de sécurité!",
+            "price.min" => "Le prix unitaire ne doit pas être négatif!",
+            "purchase_price.required" => "Remplir le champ Prix d'achat!",
+            "purchase_price.numeric" => "Le champ Prix d'achat doit être un nombre!",
+            "purchase_price.min" => "Le Prix d'achat ne doit pas être négatif!",
+            "margin.numeric" => "Le champ Marge doit être un nombre!",
+            "margin.min" => "La marge ne doit pas être négative!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
@@ -199,8 +213,10 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'category' => ['required'],
             'name' => ['required'],
-            'qte' => ['required', 'numeric'],
-            'margin' => ['numeric'],
+            'qte' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['required', 'numeric', 'min:0'],
+            'margin' => ['numeric', 'min:0'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ], $error_messages);
 
