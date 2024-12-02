@@ -6,6 +6,7 @@ use App\Models\Action;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -257,7 +258,8 @@ class ProductController extends Controller
 
             // verify if new qte of product > product margin
             if ($Product->email ==1) {
-                if ($request->qte > $Product->margin) {
+                if ($request->qte > $request->margin) {
+                    // Log::info('ok');
                     $data['email'] = 0;
                 }
             }
