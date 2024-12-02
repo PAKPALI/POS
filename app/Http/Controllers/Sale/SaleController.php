@@ -346,7 +346,7 @@ class SaleController extends Controller
             }
 
             // check if security margin is affected
-            if($product->email == 0){
+            // if($product->email == 0){
                 if ($newQte <= $product->margin) {
                     $users = User::where('status', 1)->get();
                     foreach ($users as $user) {
@@ -354,7 +354,7 @@ class SaleController extends Controller
                     }
                 }
                 $product->update(['email' => 1]);
-            }
+            // }
         }else {
             throw new \Exception("Le produit " . $product->name . " n'a plus de stock disponible pour la quantité demandée.");
             DB::rollBack();
