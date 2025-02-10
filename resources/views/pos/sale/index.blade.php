@@ -218,7 +218,9 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Code</th>
-                                            <th>Somme totale</th>
+                                            <th>Montant reçu</th>
+                                            <th>Montant payé</th>
+                                            <th>Monnaie rendue</th>
                                             <th>Profit total</th>
                                             <th>Caissier</th>
                                             <th>Action</th>
@@ -616,81 +618,101 @@
             console.log(products);
 
             Swal.fire({
-                icon: "question",
-                title: "Confirmez?",
-                // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
-                confirmButtonText: "Oui",
-                confirmButtonColor: 'green',
+                title: "Saisissez le montant donné par le client",
+                input: "number",
+                inputAttributes: {
+                    min: totalAmount, // Empêcher une saisie inférieure au total
+                    step: "1"
+                },
                 showCancelButton: true,
-                cancelButtonText: "Non",
-                cancelButtonColor: 'blue',
+                confirmButtonText: "Calculer la monnaie",
+                cancelButtonText: "Annuler",
+                inputValidator: (value) => {
+                    if (!value || value < totalAmount) {
+                        return "Le montant doit être supérieur ou égal au total de la vente.";
+                    }
+                }
             }).then((result) => {
-                if (result.isConfirmed){
-                    $('#loader').show();
-                    $('#saleLoader').show();
-                    $('#confirmSale').hide();
-                    $('.product_list').fadeOut();
-                    // AJAX forsend data
-                    $.ajax({
-                        url: '{{ route("sale.store") }}',
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            products: products,
-                            total_amount: totalAmount
-                        },
-                        success: function(data) {
-                            console.log(data)
-                            if (data.status) {
-                                Swal.fire({
-                                    toast: true,
-                                    position: 'top',
-                                    icon: "success",
-                                    title: data.title,
-                                    showConfirmButton: false,
-                                    timer: 3000,
-                                    timerProgressBar: true,
-                                    text: data.msg,
-                                });
-                                // create new window for print pdf
-                                // var pdfWindow = window.open("");
-                                // pdfWindow.document.write(
-                                //     "<iframe width='100%' height='100%' src='data:application/pdf;base64, " +
-                                //     encodeURI(data.pdfBase64) + "'></iframe>"
-                                // );
+                if (result.isConfirmed) {
+                    let received_amount1 = result.value;
+                    let received_amount = parseFloat(result.value);
+                    let monnaie = received_amount - totalAmount;
 
-                                // Appellez cette fonction avec la donnée pdfBase64 reçue du serveur
-                                openPdfInModal(data.pdfBase64);
-                            } else {
-                                $('#loader').hide();
-                                $('#saleLoader').hide();
-                                $('#confirmSale').show();
-                                $('.product_list').fadeIn();
-                                Swal.fire({
-                                    title: data.title,
-                                    text: data.msg,
-                                    icon: 'error',
-                                    confirmButtonText: "D'accord",
-                                    confirmButtonColor: '#A40000',
-                                })
-                            }
-                        },
-                        error: function(data) {
-                            console.log(data)
-                            $('#loader').hide();
-                            $('#saleLoader').hide();
-                            $('#confirmSale').show();
-                            $('.product_list').fadeIn();
-                            Swal.fire({
-                                icon: "error",
-                                title: "erreur",
-                                text: "Impossible de communiquer avec le serveur.",
-                                timer: 3600,
-                            })
+                    Swal.fire({
+                        title: "Confirmation de la vente",
+                        html: `<p>Total à payer : <b>${totalAmount.toFixed(2)}</b> </p>
+                            <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
+                            <p>Monnaie à rendre : <b style="color:green">${monnaie.toFixed(2)}</b></p>`,
+                        icon: "question",
+                        confirmButtonText: "Confirmer la vente",
+                        confirmButtonColor: "green",
+                        showCancelButton: true,
+                        cancelButtonText: "Annuler",
+                        cancelButtonColor: "blue",
+                    }).then((saleResult) => {
+                        if (saleResult.isConfirmed) {
+                            $('#loader').show();
+                            $('#saleLoader').show();
+                            $('#confirmSale').hide();
+                            $('.product_list').fadeOut();
+
+                            // Envoyer les données via AJAX
+                            $.ajax({
+                                url: '{{ route("sale.store") }}',
+                                type: 'POST',
+                                data: {
+                                    _token: '{{ csrf_token() }}',
+                                    products: products,
+                                    received_amount: received_amount1,
+                                    total_amount: totalAmount
+                                },
+                                success: function(data) {
+                                    if (data.status) {
+                                        Swal.fire({
+                                            toast: true,
+                                            position: 'top',
+                                            icon: "success",
+                                            title: data.title,
+                                            showConfirmButton: false,
+                                            timer: 3000,
+                                            timerProgressBar: true,
+                                            text: data.msg,
+                                        });
+
+                                        // Ouvrir le reçu PDF
+                                        openPdfInModal(data.pdfBase64);
+                                    } else {
+                                        $('#loader').hide();
+                                        $('#saleLoader').hide();
+                                        $('#confirmSale').show();
+                                        $('.product_list').fadeIn();
+                                        Swal.fire({
+                                            title: data.title,
+                                            text: data.msg,
+                                            icon: 'error',
+                                            confirmButtonText: "D'accord",
+                                            confirmButtonColor: '#A40000',
+                                        })
+                                    }
+                                },
+                                error: function() {
+                                    $('#loader').hide();
+                                    $('#saleLoader').hide();
+                                    $('#confirmSale').show();
+                                    $('.product_list').fadeIn();
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Erreur",
+                                        text: "Impossible de communiquer avec le serveur.",
+                                        timer: 3600,
+                                    })
+                                }
+                            });
                         }
                     });
                 }
-            })
+            });
+
         });
 
         $('#print').on('click', function(e) {
@@ -862,9 +884,11 @@
             serverSide: true,
             ajax: "{{ route('sale.index')}}",
             columns: [
-                {data: 'id',name: 'id'},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                 {data: 'code',name: 'code'},
+                {data: 'received_amount',name: 'received_amount'},
                 {data: 'total_amount',name: 'total_amount'},
+                {data: 'remaining_amount',name: 'remaining_amount'},
                 {data: 'total_profit',name: 'total_profit'},
                 {data: 'cashier',name: 'cashier'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},

@@ -68,7 +68,6 @@
             text-align: right;
             margin-top: 2px;
         }
-
         .footer {
             text-align: center;
             font-size: 8px;
@@ -160,7 +159,9 @@
     <div class="total">
         <!-- <p>Total : {{ number_format($sale->total_amount, 2) }} FCFA</p>
         <p>Taxe : {{ 0 }} FCFA</p> -->
-        <p>Net à Payer : {{ number_format($sale->total_amount + 0) }} FCFA</p>
+        <p>Montant payé : {{ number_format($sale->total_amount) }} FCFA</p>
+        <p>Montant reçu : {{ number_format($sale->received_amount) }} FCFA</p>
+        <p>Monnaie rendue : {{ number_format($sale->remaining_amount) }} FCFA</p>
     </div>
 
     <hr />

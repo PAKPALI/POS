@@ -256,7 +256,9 @@ class SaleController extends Controller
             // Store sale
             $sale = Sale::create([
                 'code' => $this->code(),
+                'received_amount' => $request->received_amount,
                 'total_amount' => $request->total_amount,
+                'remaining_amount' => $request->received_amount-$request->total_amount,
                 'cashier' => auth()->user()->name,
             ]);
 
