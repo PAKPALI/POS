@@ -8,6 +8,7 @@ use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Component\MenuController;
 use App\Http\Controllers\Component\ProductController;
 use App\Http\Controllers\Component\CategoryController;
+use App\Http\Controllers\CodePromo\CodePromoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,6 +85,13 @@ Route::prefix('pos')->middleware(['auth'])->group(function () {
         Route::resource('sale', SaleController::class);
         //history
         Route::get('history', 'history')->name('history');
+    });
+});
+
+Route::prefix('code')->middleware(['auth'])->group(function () {
+    //sale
+    Route::controller(CodePromoController::class)->group(function () {
+        Route::resource('code', CodePromoController::class);
     });
 });
 

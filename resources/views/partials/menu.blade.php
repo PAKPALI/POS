@@ -87,6 +87,17 @@
 				</div>
 			</div>
 
+			<!-- PROMO CODE -->
+			@if(auth()->user()->user_type!=3)
+				<div class="menu-header">CODE PROMO</div>
+				<div class="menu-item @if(Request::route()->getName() === 'code.index') active @endif">
+					<a href="{{ route('code.index') }}" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-bag-check"></i></span>
+						<span class="menu-text">Code promo</span>
+					</a>
+				</div>
+			@endif
+
 			<!-- UTILISATEURS -->
 			<div class="menu-divider"> </div>
 			@if(auth()->user()->user_type!=3)
