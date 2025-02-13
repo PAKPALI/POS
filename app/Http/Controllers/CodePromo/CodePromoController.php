@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers\CodePromo;
 
+use App\Models\Action;
 use App\Models\CodePromo;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use League\CommonMark\Extension\CommonMark\Node\Inline\Code;
 
 class CodePromoController extends Controller
 {
@@ -64,7 +70,57 @@ class CodePromoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $error_messages = [
+            "name.required" => "Remplir le champ Nom!",
+            "percents.required" => "Remplir le champ Pourcentage!",
+            "code.required" => "Générez le code!",
+            'code.unique' => 'Le code généré de ce code promo existe déjà',
+            "comments.required" => "Remplir le champ Description!",
+        ];
+
+        $validator = Validator::make($request->all(),[
+            'name' => ['required'],
+            'percents' => ['required'],
+            'code' => 'required|unique:code_promos,code',
+            'comments' => ['required'],
+        ], $error_messages);
+
+        if($validator->fails())
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "AJOUT ECHOUE",
+                "msg" => $validator->errors()->first()
+            ]);
+
+            // Generate the QR code as an image and save it in storage/app/public/qrcodes/
+            $qrCodePath = 'qrcodes/' . $request->code . '.png';
+            Storage::disk('public')->put($qrCodePath, QrCode::format('png')->size(200)->generate($request->code));
+
+            $data = [
+                'name' => $request-> name,
+                'percents' => $request-> percents,
+                'code' => $request-> code,
+                'comments' => $request-> comments,
+                'created_by' => Auth::user()->id,
+                'qr_code' => $qrCodePath,
+            ];
+            
+            CodePromo::create($data);
+
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'AJOUT CODE PROMO',
+                'text' => auth()->user()->name." a créer un nouveau code promo '".$request->name."'",
+            ]);
+
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "AJOUT REUSSI",
+                "msg" => "Le code promo au nom de ".$request-> name." a bien été ajouté"
+            ]);
     }
 
     /**

@@ -44,23 +44,23 @@
                                                 </div>
                                                 <div class="form-group col-6">
                                                     <label for="exampleInputText0">Pourcentage</label>
-                                                    <input type="text" name="percent" class="form-control" id="exampleInputText0"
+                                                    <input type="number" name="percents" class="form-control" id="exampleInputText0"
                                                         placeholder="Votre pourcentage">
                                                 </div>
                                             </div>
                                             <div class="row mt-3">
                                                 <div class="form-group col-11">
                                                     <label for="exampleInputText0">Code</label>
-                                                    <input type="text" name="code" class="form-control" id="exampleInputText0"
-                                                        placeholder="Code">
+                                                    <input id="code" type="text" name="code" class="form-control" id="exampleInputText0"
+                                                        placeholder="Code" readonly>
                                                 </div>
                                                 <div class="form-group col-1">
                                                     <label for="exampleInputText0"></label>
                                                     <div>
-                                                        <button type="submit" class="btn btn-secondary">
+                                                        <a id="generateCode" class="btn btn-secondary">
                                                             <!-- <div id="" class="spinner-grow"></div> -->
-                                                            <div id="submitText">Générer</div>
-                                                        </button>
+                                                            <div id="">Générer</div>
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -256,14 +256,14 @@
                 Datatable.ajax.reload(null, false);
             });
 
-            //Add category
+            //Add code
             $('#add').submit(function() {
                 event.preventDefault();
                 $('#loader').fadeIn();
                 $('#submitText').hide();
                 $.ajax({
                     type: 'POST',
-                    url: "{{ route('category.store') }}",
+                    url: "{{ route('code.store') }}",
                     //enctype: 'multipart/form-data',
                     data: $('#add').serialize(),
                     datatype: 'json',
@@ -314,6 +314,21 @@
                 });
                 return false;
             });
+
+            $("#generateCode").click(function () {
+                let code = generateRandomCode(7);
+                $("#code").val(code);
+            });
+
+            function generateRandomCode(length) {
+                let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                let code = "";
+                for (let i = 0; i < length; i++) {
+                    let randomIndex = Math.floor(Math.random() * characters.length);
+                    code += characters[randomIndex];
+                }
+                return code;
+            }
 
             $('body').on('click', '.editModal', function () {
                 var id = $(this).data("id");

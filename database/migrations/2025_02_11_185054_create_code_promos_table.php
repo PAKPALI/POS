@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('percents');
             $table->string('status')->default(1);
             $table->string('comments');
+            $table->string('qr_code')->nullable();
             $table->timestamps();
         });
     }
