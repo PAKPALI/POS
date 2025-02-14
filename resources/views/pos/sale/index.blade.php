@@ -435,6 +435,12 @@
                             <div>Total</div>
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
+                        <div class="bg-light">
+                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVS.png" alt="Code Barre">
+                        </div>
+                        
+
+                        <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo">
                         <div class="mt-3">
                             <div class="btn-group d-flex">
                                 <!-- <a href="#" class="btn btn-outline-default rounded-0 w-80px">
@@ -449,6 +455,7 @@
                                     <i class="bi bi-send-check fa-lg"></i><br>
                                     <span class="small">Vendre</span>
                                 </a>
+
                                 <a href="#" id="saleLoader" class="btn btn-outline-theme rounded-0 w-150px">
                                     <div id="loader" class="spinner-grow"></div>
                                 </a>
@@ -975,5 +982,40 @@
         });
     });
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let inputField = document.getElementById("promoCodeInput");
+
+        inputField.addEventListener("keypress", function(event) {
+            alert()
+            if (event.key === "Enter") {  
+                alert()
+                event.preventDefault(); // Empêche le rechargement de la page
+                let promoCode = inputField.value.trim(); // Récupère le code
+
+                if (promoCode !== "") {
+                    console.log("Code promo scanné :", promoCode); // Vérification console
+                    inputField.value = ""; // Efface le champ après scan
+
+                    // 🔥 Envoi à Laravel via AJAX pour vérification
+                    fetch(`/verify-promo/${promoCode}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.valid) {
+                                alert("✅ Code promo valide : " + promoCode);
+                                // Remplir automatiquement un autre champ si besoin
+                                document.getElementById("appliedPromo").value = promoCode;
+                            } else {
+                                alert("❌ Code promo invalide !");
+                            }
+                        });
+                }
+            }
+        });
+    });
+</script>
+
+
 
 @endsection

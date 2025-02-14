@@ -2,24 +2,35 @@
     <div class="card">
         <div class="card-body">
             <table class="table table-striped border mb-0">
-                <!-- <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">First</th>
-                        <th scope="col">Last</th>
-                        <th scope="col">Handle</th>
-                    </tr>
-                </thead> -->
+                <div class=" mb-5 bg-light text-center">
+                    <img src="{{ asset('storage/' . $CodePromo->qr_code) }}" alt="Code Barre">
+                </div>
+                
                 <tbody>
                     <tr>
                         <th scope="row">1</th>
                         <td>Nom : </td>
-                        <td>{{$Category->name}}</td>
+                        <td>{{$CodePromo->name}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Code : </td>
+                        <td>{{$CodePromo->code}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Pourcentage : </td>
+                        <td>{{$CodePromo->percents}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Description : </td>
+                        <td>{{$CodePromo->comments}}</td>
                     </tr>
                     <tr>
                         <th scope="row">2</th>
-                        <td>Creer par :</td>
-                        <td>{{$Category->user->name}}</td>
+                        <td>Créer par :</td>
+                        <td>{{$CodePromo->user->name}}</td>
                     </tr>
                 </tbody>
             </table>

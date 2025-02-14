@@ -346,7 +346,7 @@
             $('body').on('click', '.view', function () {
                 var id = $(this).data("id");
                 $.ajax({
-                    url:'{{url('component/category')}}/'+id,
+                    url:'{{url('code/code')}}/'+id,
                     dataType: 'html',
                     success:function(result)
                     {

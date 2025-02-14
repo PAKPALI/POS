@@ -92,6 +92,8 @@ Route::prefix('code')->middleware(['auth'])->group(function () {
     //sale
     Route::controller(CodePromoController::class)->group(function () {
         Route::resource('code', CodePromoController::class);
+        Route::get('/verify-promo/{code}', [CodePromoController::class, 'verifyPromo']);
+
     });
 });
 
