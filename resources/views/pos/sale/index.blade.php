@@ -420,7 +420,6 @@
                         </div>
                     </div>
 
-
                     <div class="pos-sidebar-footer">
                         <!-- <div class="d-flex align-items-center mb-2">
                             <div>Subtotal</div>
@@ -436,11 +435,12 @@
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
                         <div class="bg-light">
-                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVS.png" alt="Code Barre">
-                        </div>
+                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVS.png" alt="Code Barre"></div>
                         
-
-                        <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo">
+                        <!-- <form action=""> -->
+                            <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
+                            <!-- <button id="promo" type="">ok</button> -->
+                        <!-- </form> -->
                         <div class="mt-3">
                             <div class="btn-group d-flex">
                                 <!-- <a href="#" class="btn btn-outline-default rounded-0 w-80px">
@@ -983,36 +983,71 @@
     });
 </script>
 
+<!-- verify code promo -->
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        let inputField = document.getElementById("promoCodeInput");
+    $(document).ready(function() {
+        let inputField = $("#promoCodeInput");
 
-        inputField.addEventListener("keypress", function(event) {
-            alert()
-            if (event.key === "Enter") {  
-                alert()
+        // Capture l'événement "Enter" après scan
+        inputField.on("keydown", function(event) {
+            let promoCode = inputField.val().trim(); // Récupère la valeur scannée
+            if (event.key === "Enter") {
                 event.preventDefault(); // Empêche le rechargement de la page
-                let promoCode = inputField.value.trim(); // Récupère le code
-
-                if (promoCode !== "") {
-                    console.log("Code promo scanné :", promoCode); // Vérification console
-                    inputField.value = ""; // Efface le champ après scan
-
-                    // 🔥 Envoi à Laravel via AJAX pour vérification
-                    fetch(`/verify-promo/${promoCode}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.valid) {
-                                alert("✅ Code promo valide : " + promoCode);
-                                // Remplir automatiquement un autre champ si besoin
-                                document.getElementById("appliedPromo").value = promoCode;
-                            } else {
-                                alert("❌ Code promo invalide !");
-                            }
-                        });
-                }
+                verifyCode(promoCode)
+                inputField.val(""); // Efface le champ après scan
+                // Focus automatique sur le champ input
+                inputField.focus();
+            }else{
+                verifyCode(promoCode)
             }
         });
+
+        function verifyCode(promoCode){
+            if (promoCode.length >= 6) {
+                console.log("Code promo scanné :", promoCode); // Vérification console
+
+                // Envoi à Laravel via AJAX pour vérification
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('verifyPromo')}}",
+                    data: {
+                        code: promoCode,
+                        _token: "{{ csrf_token() }}" // Protection CSRF Laravel
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.valid) {
+                            Swal.fire({
+                                toast: true,
+                                position: "top",
+                                icon: "success",
+                                title: "Code promo valide !",
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        } else {
+                            Swal.fire({
+                                toast: true,
+                                position: "top",
+                                icon: "error",
+                                title: "Code promo invalide !",
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Erreur serveur",
+                            text: "Impossible de vérifier le code promo.",
+                            timer: 3600
+                        });
+                    }
+                });
+            }
+        }
     });
 </script>
 

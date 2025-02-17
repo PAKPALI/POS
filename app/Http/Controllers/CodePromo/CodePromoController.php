@@ -194,8 +194,9 @@ class CodePromoController extends Controller
         return view('code.show', compact('CodePromo'));
     }
 
-    public function verifyPromo($code)
+    public function verifyPromo(Request $request)
     {
+        $code = $request->input('code');
         $promo = CodePromo::where('code', $code)->first();
 
         if ($promo) {
