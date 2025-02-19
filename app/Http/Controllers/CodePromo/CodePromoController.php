@@ -200,7 +200,7 @@ class CodePromoController extends Controller
         $promo = CodePromo::where('code', $code)->first();
 
         if ($promo) {
-            return response()->json(['valid' => true, 'promo' => $promo]);
+            return response()->json(['valid' => true, 'promo' => $promo, 'percent'=>$promo->percents]);
         } else {
             return response()->json(['valid' => false]);
         }

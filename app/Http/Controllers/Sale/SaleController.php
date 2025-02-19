@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Action;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\CodePromo;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -252,6 +253,12 @@ class SaleController extends Controller
 
         try {
             DB::beginTransaction();
+            $percent=0;
+
+            if($request->code_promo){
+                $code_promo = CodePromo::where('code', $request->code_promo)->first();
+                $percent = $code_promo->percent;
+            }
 
             // Store sale
             $sale = Sale::create([
@@ -259,6 +266,9 @@ class SaleController extends Controller
                 'received_amount' => $request->received_amount,
                 'total_amount' => $request->total_amount,
                 'remaining_amount' => $request->received_amount-$request->total_amount,
+                'code_promo' => $percent,
+                'discount' => $request->discount,
+                'amount_init' => $request->discount+$request->total_amount,
                 'cashier' => auth()->user()->name,
             ]);
 

@@ -641,85 +641,200 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    let received_amount1 = result.value;
                     let received_amount = parseFloat(result.value);
-                    let monnaie = received_amount - totalAmount;
+                    let codePromo = $('#promoCodeInput').val();
 
-                    Swal.fire({
-                        title: "Confirmation de la vente",
-                        html: `<p>Total à payer : <b>${totalAmount.toFixed(2)}</b> </p>
-                            <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
-                            <p>Monnaie à rendre : <b style="color:green">${monnaie.toFixed(2)}</b></p>`,
-                        icon: "question",
-                        confirmButtonText: "Confirmer la vente",
-                        confirmButtonColor: "green",
-                        showCancelButton: true,
-                        cancelButtonText: "Annuler",
-                        cancelButtonColor: "blue",
-                    }).then((saleResult) => {
-                        if (saleResult.isConfirmed) {
-                            $('#loader').show();
-                            $('#saleLoader').show();
-                            $('#confirmSale').hide();
-                            $('.product_list').fadeOut();
+                    // Vérifier s'il y a un code promo
+                    if (codePromo.trim() !== "") {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ route('verifyPromo') }}",
+                            data: {
+                                code: codePromo,
+                                _token: "{{ csrf_token() }}" // Protection CSRF Laravel
+                            },
+                            dataType: "json",
+                            success: function(response) {
+                                let discount = 0;
+                                let finalAmount = totalAmount;
 
-                            // Envoyer les données via AJAX
-                            $.ajax({
-                                url: '{{ route("sale.store") }}',
-                                type: 'POST',
-                                data: {
-                                    _token: '{{ csrf_token() }}',
-                                    products: products,
-                                    received_amount: received_amount1,
-                                    total_amount: totalAmount
-                                },
-                                success: function(data) {
-                                    if (data.status) {
-                                        Swal.fire({
-                                            toast: true,
-                                            position: 'top',
-                                            icon: "success",
-                                            title: data.title,
-                                            showConfirmButton: false,
-                                            timer: 3000,
-                                            timerProgressBar: true,
-                                            text: data.msg,
+                                if (response.valid) {
+                                    let percent = response.percent; // Récupérer le pourcentage
+                                    discount = (totalAmount * percent) / 100;
+                                    finalAmount = totalAmount - discount;
+                                }
+
+                                let monnaie = received_amount - finalAmount;
+
+                                // Affichage de la confirmation avec réduction
+                                Swal.fire({
+                                    title: "Confirmation de la vente avec code promo",
+                                    html: `<p>Montant initial : <b>${totalAmount.toFixed(2)}</b></p>
+                                        <p>Réduction appliquée (${response.valid ? response.percent : 0}%) : <b style="color:red">-${discount.toFixed(2)}</b></p>
+                                        <p><b>Total à payer après réduction : ${finalAmount.toFixed(2)}</b></p>
+                                        <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
+                                        <p>Monnaie à rendre : <b style="color:green">${monnaie.toFixed(2)}</b></p>`,
+                                    icon: "question",
+                                    confirmButtonText: "Confirmer la vente",
+                                    confirmButtonColor: "green",
+                                    showCancelButton: true,
+                                    cancelButtonText: "Annuler",
+                                    cancelButtonColor: "blue",
+                                }).then((saleResult) => {
+                                    if (saleResult.isConfirmed) {
+                                        $('#loader').show();
+                                        $('#saleLoader').show();
+                                        $('#confirmSale').hide();
+                                        $('.product_list').fadeOut();
+
+                                        // Envoyer les données via AJAX
+                                        $.ajax({
+                                            url: '{{ route("sale.store") }}',
+                                            type: 'POST',
+                                            data: {
+                                                _token: '{{ csrf_token() }}',
+                                                products: products,
+                                                received_amount: received_amount,
+                                                total_amount: finalAmount,
+                                                discount: discount, // Ajout de la réduction
+                                                code_promo: codePromo
+                                            },
+                                            success: function(data) {
+                                                if (data.status) {
+                                                    Swal.fire({
+                                                        toast: true,
+                                                        position: 'top',
+                                                        icon: "success",
+                                                        title: data.title,
+                                                        showConfirmButton: false,
+                                                        timer: 3000,
+                                                        timerProgressBar: true,
+                                                        text: data.msg,
+                                                    });
+
+                                                    // Ouvrir le reçu PDF
+                                                    openPdfInModal(data.pdfBase64);
+                                                } else {
+                                                    $('#loader').hide();
+                                                    $('#saleLoader').hide();
+                                                    $('#confirmSale').show();
+                                                    $('.product_list').fadeIn();
+                                                    Swal.fire({
+                                                        title: data.title,
+                                                        text: data.msg,
+                                                        icon: 'error',
+                                                        confirmButtonText: "D'accord",
+                                                        confirmButtonColor: '#A40000',
+                                                    })
+                                                }
+                                            },
+                                            error: function() {
+                                                $('#loader').hide();
+                                                $('#saleLoader').hide();
+                                                $('#confirmSale').show();
+                                                $('.product_list').fadeIn();
+                                                Swal.fire({
+                                                    icon: "error",
+                                                    title: "Erreur",
+                                                    text: "Impossible de communiquer avec le serveur.",
+                                                    timer: 3600,
+                                                })
+                                            }
                                         });
+                                    }
+                                });
+                            },
+                            error: function(xhr, status, error) {
+                                console.log(xhr.responseText);
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Erreur serveur",
+                                    text: "Impossible de vérifier le code promo.",
+                                    timer: 3600
+                                });
+                            }
+                        });
+                    } else {
+                        // Aucun code promo, traitement direct
+                        let monnaie = received_amount - totalAmount;
 
-                                        // Ouvrir le reçu PDF
-                                        openPdfInModal(data.pdfBase64);
-                                    } else {
+                        Swal.fire({
+                            title: "Confirmation de la vente",
+                            html: `<p>Total à payer : <b>${totalAmount.toFixed(2)}</b></p>
+                                <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
+                                <p>Monnaie à rendre : <b style="color:green">${monnaie.toFixed(2)}</b></p>`,
+                            icon: "question",
+                            confirmButtonText: "Confirmer la vente",
+                            confirmButtonColor: "green",
+                            showCancelButton: true,
+                            cancelButtonText: "Annuler",
+                            cancelButtonColor: "blue",
+                        }).then((saleResult) => {
+                            if (saleResult.isConfirmed) {
+                                $('#loader').show();
+                                $('#saleLoader').show();
+                                $('#confirmSale').hide();
+                                $('.product_list').fadeOut();
+
+                                // Envoyer les données via AJAX
+                                $.ajax({
+                                    url: '{{ route("sale.store") }}',
+                                    type: 'POST',
+                                    data: {
+                                        _token: '{{ csrf_token() }}',
+                                        products: products,
+                                        received_amount: received_amount,
+                                        total_amount: totalAmount,
+                                        discount: 0, // Pas de réduction
+                                        code_promo: codePromo
+                                    },
+                                    success: function(data) {
+                                        if (data.status) {
+                                            Swal.fire({
+                                                toast: true,
+                                                position: 'top',
+                                                icon: "success",
+                                                title: data.title,
+                                                showConfirmButton: false,
+                                                timer: 3000,
+                                                timerProgressBar: true,
+                                                text: data.msg,
+                                            });
+
+                                            // Ouvrir le reçu PDF
+                                            openPdfInModal(data.pdfBase64);
+                                        } else {
+                                            $('#loader').hide();
+                                            $('#saleLoader').hide();
+                                            $('#confirmSale').show();
+                                            $('.product_list').fadeIn();
+                                            Swal.fire({
+                                                title: data.title,
+                                                text: data.msg,
+                                                icon: 'error',
+                                                confirmButtonText: "D'accord",
+                                                confirmButtonColor: '#A40000',
+                                            })
+                                        }
+                                    },
+                                    error: function() {
                                         $('#loader').hide();
                                         $('#saleLoader').hide();
                                         $('#confirmSale').show();
                                         $('.product_list').fadeIn();
                                         Swal.fire({
-                                            title: data.title,
-                                            text: data.msg,
-                                            icon: 'error',
-                                            confirmButtonText: "D'accord",
-                                            confirmButtonColor: '#A40000',
+                                            icon: "error",
+                                            title: "Erreur",
+                                            text: "Impossible de communiquer avec le serveur.",
+                                            timer: 3600,
                                         })
                                     }
-                                },
-                                error: function() {
-                                    $('#loader').hide();
-                                    $('#saleLoader').hide();
-                                    $('#confirmSale').show();
-                                    $('.product_list').fadeIn();
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: "Erreur",
-                                        text: "Impossible de communiquer avec le serveur.",
-                                        timer: 3600,
-                                    })
-                                }
-                            });
-                        }
-                    });
+                                });
+                            }
+                        });
+                    }
                 }
             });
-
         });
 
         $('#print').on('click', function(e) {
@@ -990,15 +1105,15 @@
 
         // Capture l'événement "Enter" après scan
         inputField.on("keydown", function(event) {
-            let promoCode = inputField.val().trim(); // Récupère la valeur scannée
             if (event.key === "Enter") {
                 event.preventDefault(); // Empêche le rechargement de la page
-                verifyCode(promoCode)
-                inputField.val(""); // Efface le champ après scan
-                // Focus automatique sur le champ input
-                inputField.focus();
-            }else{
-                verifyCode(promoCode)
+                
+                let promoCode = inputField.val().trim(); // Récupère la valeur
+                if (promoCode.length >= 6) {  // Vérifie si le code est suffisant avant d'envoyer
+                    verifyCode(promoCode);
+                }
+
+                inputField.focus(); // Remet le focus
             }
         });
 

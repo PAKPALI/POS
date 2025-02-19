@@ -18,6 +18,9 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->decimal('remaining_amount', 10, 2);
             $table->decimal('total_profit', 10, 2)->nullable();
+            $table->decimal('code_promo', 10, 2)->nullable();
+            $table->decimal('discount', 10, 2)->nullable();
+            $table->decimal('amount_init', 10, 2)->nullable();
             $table->string('cashier');
             $table->timestamps();
         });

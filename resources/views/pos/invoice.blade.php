@@ -159,9 +159,18 @@
     <div class="total">
         <!-- <p>Total : {{ number_format($sale->total_amount, 2) }} FCFA</p>
         <p>Taxe : {{ 0 }} FCFA</p> -->
-        <p>Montant payé : {{ number_format($sale->total_amount) }} FCFA</p>
-        <p>Montant reçu : {{ number_format($sale->received_amount) }} FCFA</p>
-        <p>Monnaie rendue : {{ number_format($sale->remaining_amount) }} FCFA</p>
+        @if ($sale->code_promo)
+            <p>Montant initial : {{ number_format($sale->amount_init) }} FCFA</p>
+            <p>Réduction : {{ number_format($sale->discount) }} FCFA</p>
+            <p>Montant payé : {{ number_format($sale->total_amount) }} FCFA</p>
+            <p>Montant donné : {{ number_format($sale->received_amount) }} FCFA</p>
+            <p>Monnaie rendue : {{ number_format($sale->remaining_amount) }} FCFA</p>
+        @else
+            <p>Montant payé : {{ number_format($sale->total_amount) }} FCFA</p>
+            <p>Montant donné : {{ number_format($sale->received_amount) }} FCFA</p>
+            <p>Monnaie rendue : {{ number_format($sale->remaining_amount) }} FCFA</p>
+        @endif
+        
     </div>
 
     <hr />
