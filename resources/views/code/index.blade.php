@@ -8,6 +8,8 @@
         background-color: #e0e0e0;
     }
 </style>
+<link href="{{asset('hub/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css')}}" rel="stylesheet">
+
 @endpush
 
 @section('content')
@@ -54,7 +56,7 @@
                                                     <input id="code" type="text" name="code" class="form-control" id="exampleInputText0"
                                                         placeholder="Code" readonly>
                                                 </div>
-                                                <div class="form-group col-1">
+                                                <div class="form-group col-1 text-end">
                                                     <label for="exampleInputText0"></label>
                                                     <div>
                                                         <a id="generateCode" class="btn btn-secondary">
@@ -63,12 +65,19 @@
                                                         </a>
                                                     </div>
                                                 </div>
+                                                <!-- <div class="form-group col-6">
+                                                    <label for="exampleInputText0"></label>
+                                                    <div>
+                                                    <label class="form-label">Default <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="datepicker-default" placeholder="dd/mm/yyyy">
+                                                    </div>
+                                                </div> -->
                                             </div>
                                             <div class="row mt-3">
                                                 <div class="form-group col-12">
                                                     <label for="exampleInputText0">Description</label>
-                                                    <input type="text" name="comments" class="form-control" id="exampleInputText0"
-                                                        placeholder="Votre description">
+                                                    
+                                                        <textarea name="comments" class="form-control" placeholder="Votre description" id="exampleInputText"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -89,7 +98,7 @@
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header bg-warning">
-                                        <h3 class="modal-title text-dark ">Modifier catégorie</h3>
+                                        <h3 class="modal-title text-dark ">Modifier code</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -183,6 +192,7 @@
     <script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
     <script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
     <script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
+    <script src="{{asset('hub/assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js')}}" type="a39dbf23fc02d8553cf0dcf0-text/javascript"></script>
 
     <script>
         $(function() {
@@ -333,7 +343,7 @@
             $('body').on('click', '.editModal', function () {
                 var id = $(this).data("id");
                 $.ajax({
-                    url:'{{url('component/category')}}/'+id+'/edit',
+                    url:'{{url('code/code')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {
@@ -411,7 +421,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir archiver cette catégorie?",
+                    title: "Etes vous sur de vouloir désactiver ce code?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'red',
@@ -425,7 +435,7 @@
                                 'X-CSRF-TOKEN': csrfToken
                             },
                             type: "post",
-                            url: 'category/'+id,
+                            url: 'code/'+id,
                             type: "DELETE",
                             datatype: 'json',
                             success: function (data) {
@@ -460,11 +470,11 @@
             // restore object
             $('body').on('click', '.restore', function () {
                 var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data("id");
+                var id = $(this).data("id");   
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir restaurer cette catégorie?",
+                    title: "Etes vous sur de vouloir restaurer ce code?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'green',
@@ -478,7 +488,7 @@
                                 'X-CSRF-TOKEN': csrfToken
                             },
                             type: "post",
-                            url: 'category/'+id,
+                            url: 'code/'+id,
                             type: "DELETE",
                             datatype: 'json',
                             success: function (data) {

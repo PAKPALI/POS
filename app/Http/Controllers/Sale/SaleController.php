@@ -254,10 +254,9 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
             $percent=0;
-
             if($request->code_promo){
-                $code_promo = CodePromo::where('code', $request->code_promo)->first();
-                $percent = $code_promo->percent;
+                $code_promo = CodePromo::where('code', $request->code_promo)->where('status', 1)->first();
+                $percent = $code_promo->percents;
             }
 
             // Store sale

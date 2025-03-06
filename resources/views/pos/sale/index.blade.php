@@ -222,6 +222,7 @@
                                             <th>Montant payé</th>
                                             <th>Monnaie rendue</th>
                                             <th>Profit total</th>
+                                            <th>Code promo</th>
                                             <th>Caissier</th>
                                             <th>Action</th>
                                         </tr>
@@ -435,11 +436,11 @@
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
                         <div class="bg-light">
-                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVS.png" alt="Code Barre"></div>
+                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div>
                         
                         <!-- <form action=""> -->
                             <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
-                            <!-- <button id="promo" type="">ok</button> -->
+                            <button class="btn btn-danger btn-sm" id="deletpromoinput" type=""><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></button>
                         <!-- </form> -->
                         <div class="mt-3">
                             <div class="btn-group d-flex">
@@ -1012,6 +1013,7 @@
                 {data: 'total_amount',name: 'total_amount'},
                 {data: 'remaining_amount',name: 'remaining_amount'},
                 {data: 'total_profit',name: 'total_profit'},
+                {data: 'code_promo',name: 'code_promo'},
                 {data: 'cashier',name: 'cashier'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ],
@@ -1095,6 +1097,10 @@
             // Add the click effect of other products
             $(this).addClass('product-clicked');
         });
+
+        $("#deletpromoinput").on("click", function () {
+            $("#promoCodeInput").val("").focus(); // Effacer et remettre le focus
+        });
     });
 </script>
 
@@ -1138,16 +1144,16 @@
                                 icon: "success",
                                 title: "Code promo valide !",
                                 showConfirmButton: false,
-                                timer: 3000
+                                timer: 5000
                             });
                         } else {
                             Swal.fire({
                                 toast: true,
                                 position: "top",
                                 icon: "error",
-                                title: "Code promo invalide !",
+                                title: "Code promo invalide ou  inactif !",
                                 showConfirmButton: false,
-                                timer: 3000
+                                timer: 5000
                             });
                         }
                     },

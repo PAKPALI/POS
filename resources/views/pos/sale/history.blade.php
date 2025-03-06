@@ -200,6 +200,7 @@
                                                 <th>Code</th>
                                                 <th>Somme totale</th>
                                                 <th>Profit total</th>
+                                                <th>Code promo</th>
                                                 <th>Caissier</th>
                                                 <th>Action</th>
                                             </tr>
@@ -236,6 +237,7 @@
                             </tbody>
                         </table>
                     </div>
+
                     <!-- view modal -->
                     <div class="modal fade" id="showModal">
                         <div class="modal-dialog modal-xl">
@@ -282,6 +284,7 @@
                     {data: 'code',name: 'code'},
                     {data: 'total_amount',name: 'total_amount'},
                     {data: 'total_profit',name: 'total_profit'},
+                    {data: 'code_promo',name: 'code_promo'},
                     {data: 'cashier',name: 'cashier'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],

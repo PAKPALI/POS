@@ -197,7 +197,7 @@ class CodePromoController extends Controller
     public function verifyPromo(Request $request)
     {
         $code = $request->input('code');
-        $promo = CodePromo::where('code', $code)->first();
+        $promo = CodePromo::where('code', $code)->where('status', 1)->first();
 
         if ($promo) {
             return response()->json(['valid' => true, 'promo' => $promo, 'percent'=>$promo->percents]);
@@ -210,9 +210,10 @@ class CodePromoController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $CodePromo = CodePromo::findOrFail($id);
+        return view('code.edit', compact('CodePromo'));
     }
 
     /**
@@ -220,7 +221,71 @@ class CodePromoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $error_messages = [
+            "name.required" => "Remplir le champ Nom!",
+            "percents.required" => "Remplir le champ Pourcentage!",
+            "code.required" => "Générez le code!",
+            "code.unique" => "Le code généré de ce code promo existe déjà",
+            "comments.required" => "Remplir le champ Description!",
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'name' => ['required'],
+            'percents' => ['required'],
+            'code' => 'required|unique:code_promos,code,' . $id, // Ignorer la contrainte unique pour l'ID en cours
+            'comments' => ['required'],
+        ], $error_messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "MISE A JOUR  ÉCHOUÉE",
+                "msg" => $validator->errors()->first(),
+            ]);
+        }
+
+        $Code = CodePromo::findOrFail($id);
+
+        // Vérifier si le code a changé
+        if ($Code->code !== $request->code) {
+            // Supprimer l'ancien code-barres s'il existe
+            if ($Code->qr_code && Storage::disk('public')->exists($Code->qr_code)) {
+                Storage::disk('public')->delete($Code->qr_code);
+            }
+
+            // Générer le nouveau code-barres
+            $generator = new BarcodeGeneratorPNG();
+            $barcodeData = $generator->getBarcode($request->code, $generator::TYPE_CODE_128);
+
+            // Définir le chemin du nouveau code-barres
+            $barcodePath = 'barcodes/' . $request->code . '.png';
+            Storage::disk('public')->put($barcodePath, $barcodeData);
+
+            // Mettre à jour le chemin dans l'objet
+            $Code->qr_code = $barcodePath;
+        }
+
+        $Code->update([
+            'name' => $request->name,
+            'percents' => $request->percents,
+            'code' => $request->code,
+            'comments' => $request->comments,
+            'created_by' => Auth::user()->id,
+        ]);
+
+        Action::create([
+            'user_id' => auth()->user()->id,
+            'function' => 'MODIFIER CODE PROMO',
+            'text' => auth()->user()->name . " a modifié le code promo '" . $request->name . "'",
+        ]);
+
+        return response()->json([
+            "status" => true,
+            "reload" => true,
+            "title" => "MISE A JOUR RÉUSSIE",
+            "msg" => "Le code promo au nom de " . $request->name . " a bien été mis à jour.",
+        ]);
     }
 
     /**
@@ -228,6 +293,37 @@ class CodePromoController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $Object = CodePromo::findOrFail($id);
+        if($Object->status ==1){
+            // update code status
+            $Object->update(['status' => 0,]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'ARCHIVAGE D\'UN CODE PROMO',
+                'text' => auth()->user()->name." a désactivé le code promo : ".$Object->name,
+            ]);
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "ARCHIVAGE REUSSIE",
+                "msg" => "Le code promo ".$Object->name." a bien été désactivée"
+            ]);
+        }else{
+            // update code status
+            $Object->update(['status' => 1,]);
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'RESTAURER UN CODE PROMO',
+                'text' => auth()->user()->name." a restauré  le code promo : ".$Object->name,
+            ]); 
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                // "redirect_to" => route('user'),
+                "title" => "RESTAURATION REUSSIE",
+                "msg" => "Le code promo ".$Object->name." a bien été restauré"
+            ]);
+        }
     }
 }
