@@ -93,6 +93,8 @@ Route::prefix('code')->middleware(['auth'])->group(function () {
     Route::controller(CodePromoController::class)->group(function () {
         Route::resource('code', CodePromoController::class);
         Route::post('/verify-promo', [CodePromoController::class, 'verifyPromo'])->name('verifyPromo');
+        Route::get('/code-promo/{id}/pdf', [CodePromoController::class, 'generatePDF'])->name('codePromo.pdf');
+
     });
 });
 

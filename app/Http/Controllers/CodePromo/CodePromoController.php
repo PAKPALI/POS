@@ -5,14 +5,13 @@ namespace App\Http\Controllers\CodePromo;
 use App\Models\Action;
 use App\Models\CodePromo;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use League\CommonMark\Extension\CommonMark\Node\Inline\Code;
 
 class CodePromoController extends Controller
 {
@@ -28,12 +27,14 @@ class CodePromoController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
                     if($row->status==1){
-                        $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
-                                <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                        $btn = '<a data-id="'.$row->id.'" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                                <a data-id="'.$row->id.'" data-toggle="modal" data-target="#updateModal" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"><i class="fas fa-file-pdf"></i> PDF</a>
                                 <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
                     }else{
                         $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
                                 <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"><i class="fas fa-file-pdf"></i> PDF</a>
                                 <a data-id="'.$row->id.'" data-original-title="restaurer" class="btn btn-success btn-sm restore"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
                     }
                     return $btn;
@@ -206,7 +207,6 @@ class CodePromoController extends Controller
         }
     }
 
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -286,6 +286,25 @@ class CodePromoController extends Controller
             "title" => "MISE A JOUR RÉUSSIE",
             "msg" => "Le code promo au nom de " . $request->name . " a bien été mis à jour.",
         ]);
+    }
+
+    public function code()
+    {
+        $code = '';
+        for ($i = 0; $i < 10; $i++) {
+            $code .= rand(0, 9);
+        }
+        return $code;
+    }
+
+    public function generatePDF($id)
+    {
+        $codePromo = CodePromo::findOrFail($id);
+        $jokeCode = $this->code();
+
+        $pdf = Pdf::loadView('code.pdf', compact('codePromo', 'jokeCode'));
+        
+        return $pdf->download('CodePromo_' . $codePromo->code . '.pdf');
     }
 
     /**

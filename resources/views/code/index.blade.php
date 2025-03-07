@@ -366,6 +366,11 @@
                 $('#showModal').modal('show');
             });
 
+            $('body').on('click', '.pdf', function () {
+                var id = $(this).data("id");
+                window.location.href = '/code/code-promo/' + id + '/pdf';
+            });
+
             $('body').on('click', '.deleteUser', function () {
                 var csrfToken = $('meta[name="csrf-token"]').attr('content');
                 var id = $(this).data("id");

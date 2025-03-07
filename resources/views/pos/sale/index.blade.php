@@ -1108,18 +1108,30 @@
 <script>
     $(document).ready(function() {
         let inputField = $("#promoCodeInput");
+        
 
         // Capture l'événement "Enter" après scan
-        inputField.on("keydown", function(event) {
+        inputField.on("keyup", function(event) {
+            let promoCode = inputField.val().trim();
             if (event.key === "Enter") {
                 event.preventDefault(); // Empêche le rechargement de la page
-                
-                let promoCode = inputField.val().trim(); // Récupère la valeur
+                 // Récupère la valeur
                 if (promoCode.length >= 6) {  // Vérifie si le code est suffisant avant d'envoyer
                     verifyCode(promoCode);
+                }else{
+                    Swal.fire({
+                        toast: true,
+                        position: "top",
+                        icon: "error",
+                        title: "Nombre de caractère du Code promo invalide !"+promoCode.length,
+                        showConfirmButton: false,
+                        timer: 5000
+                    });
                 }
-
                 inputField.focus(); // Remet le focus
+            }else{
+                verifyCode(promoCode);
+                inputField.focus();
             }
         });
 
@@ -1151,7 +1163,7 @@
                                 toast: true,
                                 position: "top",
                                 icon: "error",
-                                title: "Code promo invalide ou  inactif !",
+                                title: "Code promo invalide ou inactif !",
                                 showConfirmButton: false,
                                 timer: 5000
                             });
@@ -1167,6 +1179,16 @@
                         });
                     }
                 });
+            }else{
+                // Swal.fire({
+                //     toast: true,
+                //     position: "top",
+                //     icon: "error",
+                //     title: "Nombre de caractère du Code promo invalide !"+promoCode.length,
+                //     showConfirmButton: false,
+                //     timer: 5000
+                // });
+                console.log("Nombre de caractère du Code promo invalide !");
             }
         }
     });
