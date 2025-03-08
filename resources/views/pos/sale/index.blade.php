@@ -436,7 +436,7 @@
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
                         <div class="bg-light">
-                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div>
+                        <img src="http://127.0.0.1:8000/storage/barcodes/RABI007.png" alt="Code Barre"></div>
                         
                         <!-- <form action=""> -->
                             <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
