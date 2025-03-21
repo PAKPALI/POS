@@ -389,7 +389,7 @@ class SaleController extends Controller
             'isRemoteEnabled' => true,
             'dpi' => 45,
         ])
-        ->setPaper([0, 0, 390, 1300], 'portrait'); // Largeur 58mm (~203 points) // Dimensions personnalisées
+        ->setPaper([0, 0, 390, 1000], 'portrait'); // Largeur 58mm (~203 points) // Dimensions personnalisées
 
         //return PDF in base64
         return base64_encode($pdf->output());

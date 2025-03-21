@@ -436,7 +436,7 @@
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
                         <div class="bg-light">
-                        <img src="http://127.0.0.1:8000/storage/barcodes/RABI007.png" alt="Code Barre"></div>
+                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div>
                         
                         <!-- <form action=""> -->
                             <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
@@ -478,7 +478,7 @@
 
     <!-- Modal pour afficher le PDF -->
     <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl"> <!-- Utilisez modal-xl pour un modal plus large -->
+        <div class="modal-dialog modal-lg"> <!-- Utilisez modal-xl pour un modal plus large -->
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="pdfModalLabel">Aperçu du reçu</h5>
@@ -546,7 +546,7 @@
             loadingTask.promise.then(function(pdf) {
                 // On récupère la première page
                 pdf.getPage(1).then(function(page) {
-                    const scale = 3;// Augmente l'échelle pour une meilleure qualité
+                    const scale = 1.5;// Augmente l'échelle pour une meilleure qualité
                     const viewport = page.getViewport({ scale: scale });
                     
                     // Préparez l'élément canvas

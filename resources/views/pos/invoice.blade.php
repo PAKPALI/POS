@@ -43,7 +43,7 @@
         .items-table {
             width: 100%;
             font-size: 12px;
-            margin-top: 10px;
+            margin-top: 5px;
             border-collapse: collapse;
         }
 
@@ -60,13 +60,13 @@
             font-size: 14px;
             font-weight: bold;
             text-align: right;
-            margin-top: 15px;
+            margin-top: 5px;
         }
 
         .footer {
             text-align: center;
             font-size: 12px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         /* Styles spécifiques pour l'impression */
@@ -152,7 +152,7 @@
     <hr />
 
     <div class="footer">
-        <h1>Les meilleurs wings de la capitale</h1>
+        <h3>Les meilleurs wings de la capitale</h3>
         <p>Merci pour votre visite.</p>
     </div>
 </div>
