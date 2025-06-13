@@ -14,6 +14,14 @@ return [
     |
     */
 
+    'kprimesms' => [
+        'base_url' => env('KPRIME_SMS_BASE_URL'),
+        'token' => env('KPRIME_SMS_TOKEN'),
+        'key' => env('KPRIME_SMS_KEY'),
+        'sender' => env('KPRIME_SMS_SENDER'),
+        'response_url' => env('KPRIME_SMS_RESPONSE_URL'),
+    ],
+
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),

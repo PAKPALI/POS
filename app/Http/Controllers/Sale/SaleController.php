@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\CodePromo;
 use Illuminate\Support\Str;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -280,6 +281,11 @@ class SaleController extends Controller
             // Generate PDF invoice
             $pdfBase64 = $this->generatePdfInvoice($sale);
 
+            // send sms to client
+            $number = '90859488';
+            $message = 'Vous venez de faire un achat au total de 0FCFA au niveau de LUX-GRILL et nous vous remercions.';
+            $this->sendSms($number, $message);
+
             // Log action
             Action::create([
                 'user_id' => auth()->user()->id,
@@ -376,6 +382,26 @@ class SaleController extends Controller
                 "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
             ]);
         }
+    }
+
+    public function sendSms($number, $message)
+    {
+        $smsService = new SmsService ();
+        $response = $smsService->send($number, $message);
+        log::info($response);
+        return response()->json($response);
+
+        // response example in format json
+        // array (
+        //     'status' => true,
+        //     'message' => 'MESSAGE_SENT_SUCCESSFULLY',
+        //     'data' => 
+        //     array (
+        //         'status' => 1,
+        //         'response_token' => 'push_sms_afgrchw6re2bjnr',
+        //     ),
+        //     'status_code' => 200,
+        // )
     }
 
     private function generatePdfInvoice($sale)
