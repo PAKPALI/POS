@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -101,3 +102,4 @@ Route::prefix('code')->middleware(['auth'])->group(function () {
 Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::post('outUser', [UserController::class, 'outUser'])->name('outUser');
+Route::post('/login', [LoginController::class, 'login'])->name('login');

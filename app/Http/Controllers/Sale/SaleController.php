@@ -365,7 +365,7 @@ class SaleController extends Controller
             // check if security margin is affected
             // if($product->email == 0){
                 if ($newQte <= $product->margin) {
-                    $users = User::where('status', 1)->get();
+                    $users = User::where('status', 1)->where('user_type','!=', 1)->get();
                     foreach ($users as $user) {
                         $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
                     }
