@@ -115,12 +115,12 @@
 					<span class="menu-text">Profil</span>
 				</a>
 			</div>
-			<div class="menu-item">
+			<!-- <div class="menu-item">
 				<a href="settings.html" class="menu-link">
 					<span class="menu-icon"><i class="bi bi-gear"></i></span>
 					<span class="menu-text">Parametres</span>
 				</a>
-			</div>
+			</div> -->
 		</div>
 
 		<div class="p-3 px-4 mt-auto">

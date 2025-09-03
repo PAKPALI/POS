@@ -49,17 +49,17 @@
                         </a>
                     </div>
                 </div>
-                <div class="row row-grid gx-0">
+                <!-- <div class="row row-grid gx-0">
                     <div class="col-12">
                         <a href="settings.html" class="dropdown-item text-decoration-none p-3 bg-none">
                             <div class="position-relative">
-                                <!-- <i class="bi bi-circle-fill position-absolute text-theme top-0 mt-n2 me-n2 fs-6px d-block text-center w-100"></i> -->
+                                <i class="bi bi-circle-fill position-absolute text-theme top-0 mt-n2 me-n2 fs-6px d-block text-center w-100"></i> 
                                 <i class="bi bi-sliders h2 opacity-5 d-block my-1"></i>
                             </div>
                             <div class="fw-500 fs-10px text-inverse">PARAMETRES</div>
                         </a>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
         <div class="menu-item dropdown dropdown-mobile-full">
@@ -101,7 +101,7 @@
             </a>
             <div class="dropdown-menu dropdown-menu-end me-lg-3 fs-11px mt-1">
                 <a class="dropdown-item d-flex align-items-center" href="{{ route('profil') }}">PROFIL <i class="bi bi-person-circle ms-auto text-theme fs-16px my-n1"></i></a>
-                <a class="dropdown-item d-flex align-items-center" href="settings.html">PARAMETRE<i class="bi bi-gear ms-auto text-theme fs-16px my-n1"></i></a>
+                <!-- <a class="dropdown-item d-flex align-items-center" href="settings.html">PARAMETRE<i class="bi bi-gear ms-auto text-theme fs-16px my-n1"></i></a> -->
                 <div class="dropdown-divider"></div>
                 <form id="form-logout">
                     @csrf

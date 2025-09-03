@@ -21,7 +21,7 @@
             <div class="pos-menu">
                 <!-- logo -->
                 <div class="logo">
-                    <a href="index.html">
+                    <a href="{{ route('dashboard') }}">
                         <div class="logo-img"><i class="bi bi-x-diamond" style="font-size: 2.1rem;"></i></div>
                         <div class="logo-text">{{config('app.name')}}</div>
                     </a>
