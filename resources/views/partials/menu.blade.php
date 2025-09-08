@@ -24,7 +24,7 @@
 					<div class="menu-submenu">
 						<div class="menu-item @if(Request::route()->getName() === 'category.index') active @endif">
 							<a href="{{ route('category.index') }}" class="menu-link">
-								<div class="menu-text">Ajouter</div>
+								<div class="menu-text">Liste Catégories</div>
 							</a>
 						</div>
 					</div>
@@ -42,14 +42,14 @@
 					<div class="menu-submenu">
 						<div class="menu-item @if(Request::route()->getName() === 'product.index') active @endif">
 							<a href="{{ route('product.index') }}" class="menu-link">
-								<div class="menu-text">Ajouter produit</div>
+								<div class="menu-text">Liste Produits</div>
 							</a>
 						</div>
 					</div>
 					<div class="menu-submenu">
 						<div class="menu-item @if(Request::route()->getName() === 'menu.index') active @endif">
 							<a href="{{ route('menu.index') }}" class="menu-link">
-								<div class="menu-text">Ajouter menu</div>
+								<div class="menu-text">Liste menu</div>
 							</a>
 						</div>
 					</div>
@@ -115,12 +115,25 @@
 					<span class="menu-text">Profil</span>
 				</a>
 			</div>
-			<!-- <div class="menu-item">
-				<a href="settings.html" class="menu-link">
-					<span class="menu-icon"><i class="bi bi-gear"></i></span>
-					<span class="menu-text">Parametres</span>
-				</a>
-			</div> -->
+			@if(auth()->user()->user_type!=3)
+			<div class="menu-header">PARAMETRES</div>
+				<div class="menu-item has-sub @if(Request::route()->getName() === 'company.index') active @endif">
+					<a href="javascript:;" class="menu-link">
+						<div class="menu-icon">
+							<i class="bi bi-gear"></i>
+						</div>
+						<div class="menu-text d-flex align-items-center">Parametres</div>
+						<span class="menu-caret"><b class="caret"></b></span>
+					</a>
+					<div class="menu-submenu">
+						<div class="menu-item @if(Request::route()->getName() === 'company.index') active @endif">
+							<a href="{{ route('company.index') }}" class="menu-link">
+								<div class="menu-text">Compagnie</div>
+							</a>
+						</div>
+					</div>
+				</div>
+			@endif
 		</div>
 
 		<div class="p-3 px-4 mt-auto">

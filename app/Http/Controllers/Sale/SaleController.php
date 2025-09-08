@@ -12,6 +12,7 @@ use App\Models\CodePromo;
 use Illuminate\Support\Str;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
+use App\Models\CompanySetting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,6 +34,7 @@ class SaleController extends Controller
         // get all categories with their associated products
         $Category = Category::with('products')->get();
         $Product = Product::all();
+        $company = CompanySetting::first();
 
         // composer require yajra/laravel-datatables-oracle
         $Object = Sale::with('saleDetails.product')->latest()->whereDate('created_at', $today)->get();
@@ -79,7 +81,7 @@ class SaleController extends Controller
         });
 
         // Send data to view
-        return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count','total_amount'));
+        return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count','total_amount','company'));
     }
 
     /**
@@ -284,7 +286,7 @@ class SaleController extends Controller
             // send sms to client
             $number = '90859488';
             $message = 'Vous venez de faire un achat au total de 0FCFA au niveau de LUX-GRILL et nous vous remercions.';
-            $this->sendSms($number, $message);
+            // $this->sendSms($number, $message);
 
             // Log action
             Action::create([
@@ -406,9 +408,11 @@ class SaleController extends Controller
 
     private function generatePdfInvoice($sale)
     {
+        $company = CompanySetting::first();
         $pdf = Pdf::loadView('pos.invoice', [
             'sale' => $sale,
             'saleDetails' => $sale->saleDetails,
+            'company' => $company,
         ])
         ->setOptions([
             'isHtml5ParserEnabled' => true,
@@ -426,7 +430,9 @@ class SaleController extends Controller
         $sale = Sale::findOrFail($id);
         $saleDetails = $sale->saleDetails;
 
-        $pdf = Pdf::loadView('pos.invoice',compact('sale', 'saleDetails'));
+        $company = CompanySetting::first();
+
+        $pdf = Pdf::loadView('pos.invoice',compact('sale', 'saleDetails','company'));
         return $pdf->download('Facture' . $sale->code . '.pdf');
     }
 
@@ -492,12 +498,19 @@ class SaleController extends Controller
                 $saleDetail->product = Product::find($saleDetail->product_id);
                 return $saleDetail;
             });
-        
+
             return DataTables::of($Object)
                 ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    return '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
-                    <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"><i class="fas fa-file-pdf"></i> PDF</a>';
+                ->addColumn('action', function ($row) { 
+                    $company = \App\Models\CompanySetting::first();
+                    $buttons = '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view">
+                        <i class="fas fa-lg fa-fw me-0 fa-eye"></i>
+                    </a>';
+
+                    if ($company->count() > 0) {
+                        $buttons .= ' <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"> <i class="fas fa-file-pdf"></i> PDF</a>';
+                    }
+                    return $buttons;
                 })
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');

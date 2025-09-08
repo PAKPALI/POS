@@ -257,11 +257,11 @@ class UserController extends Controller
                     $search -> update([
                         'password' =>  Hash::make($request-> CM)
                     ]);
-                    Action::create([
-                        'user_id' => auth()->user()->id,
-                        'function' => 'MISE A JOUR DU MOT DE PASSE',
-                        'text' => auth()->user()->name." a fait la mise a jour de son mot de passe",
-                    ]); 
+                    // Action::create([
+                    //     'user_id' => auth()->user()->id,
+                    //     'function' => 'MISE A JOUR DU MOT DE PASSE',
+                    //     'text' => auth()->user()->name." a fait la mise a jour de son mot de passe",
+                    // ]); 
                     return response()->json([
                         "status" => true,
                         "reload" => true,
@@ -321,11 +321,11 @@ class UserController extends Controller
                         $search -> update([
                             'email' =>  $request-> CE
                         ]);
-                        Action::create([
-                            'user_id' => auth()->user()->id,
-                            'function' => 'MISE A JOUR DU EMAIL',
-                            'text' => auth()->user()->name." a fait la mise a jour de son email",
-                        ]); 
+                        // Action::create([
+                        //     'user_id' => auth()->user()->id,
+                        //     'function' => 'MISE A JOUR DU EMAIL',
+                        //     'text' => auth()->user()->name." a fait la mise a jour de son email",
+                        // ]); 
                         return response()->json([
                             "status" => true,
                             "reload" => true,

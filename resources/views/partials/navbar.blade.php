@@ -22,7 +22,7 @@
     <div class="brand">
         <a href="index.html" class="brand-logo">
             <span class="brand-img">
-                <span class="brand-img-text text-theme">LG</span>
+                <span class="brand-img-text text-theme">PS</span>
             </span>
             <span class="brand-text">{{ config('app.name') }}</span>
         </a>
@@ -67,7 +67,7 @@
                 <div class="menu-icon"><i class="bi bi-bell nav-icon"></i></div>
                 <div class="menu-badge bg-theme"></div>
             </a>
-            <div class="dropdown-menu dropdown-menu-end mt-1 w-300px fs-11px pt-1">
+            <!-- <div class="dropdown-menu dropdown-menu-end mt-1 w-300px fs-11px pt-1">
                 <h6 class="dropdown-header fs-10px mb-1">NOTIFICATIONS</h6>
                 <div class="dropdown-divider mt-1"></div>
                 <a href="#" class="d-flex align-items-center py-10px dropdown-item text-wrap fw-semibold">
@@ -87,12 +87,12 @@
                 <div class="py-10px mb-n2 text-center">
                     <a href="#" class="text-decoration-none fw-bold">Voir tout</a>
                 </div>
-            </div>
+            </div> -->
         </div>
         <div class="menu-item dropdown dropdown-mobile-full">
             <a href="#" data-bs-toggle="dropdown" data-bs-display="static" class="menu-link">
                 <div class="menu-img online">
-                    <img src="assets/img/user/profile.jpg" alt="Profile" height="60">
+                    <img src="{{asset('hub/assets/img/logo.png')}}" alt="Profile" height="60">
                 </div>
                 <div class="menu-text d-sm-block d-none w-170px">
                     <!-- <span class="__cf_email__"data-cfemail="32474157405c535f57725351515d475c461c515d5f">[email&#160;protected]</span> -->

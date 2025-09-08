@@ -89,9 +89,10 @@
 
 <div class="receipt">
     <div class="header">
-        <h1>{{config('app.name')}}</h1>
-        <p>Lomé-Togo</p>
-        <p>Tél : </p>
+        <h1>{{strtoupper($company->name ?? config('app.name'))}}</h1>
+        <p><strong>Email :</strong> {{$company->email}}</p>
+        <p><strong>Adresse :</strong> {{$company->adress}}</p>
+        <p><strong>Tél :</strong> {{ $company->number1 }}{{ $company->number2 ? ' / ' . $company->number2 : '' }}</p>
     </div>
 
     <hr />
@@ -153,8 +154,8 @@
 
     <div class="footer">
         <!-- <h3>Les meilleurs wings de la capitale</h3> -->
-         <h1>{{config('app.name')}}</h1>
-        <p>Merci pour votre achat.</p>
+        <h1>{{strtoupper($company->name ?? config('app.name'))}}</h1>
+        <p>{{$company->message??''}}</p>
     </div>
 </div>
 
