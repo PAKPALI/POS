@@ -421,6 +421,15 @@ class SaleController extends Controller
         return base64_encode($pdf->output());
     }
 
+    public function generatePDF($id)
+    {
+        $sale = Sale::findOrFail($id);
+        $saleDetails = $sale->saleDetails;
+
+        $pdf = Pdf::loadView('pos.invoice',compact('sale', 'saleDetails'));
+        return $pdf->download('Facture' . $sale->code . '.pdf');
+    }
+
     // send security margin mail
     public function sendEmailMargin($user_name, $email, $product_name, $margin, $newQte)
     {
@@ -487,7 +496,8 @@ class SaleController extends Controller
             return DataTables::of($Object)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    return '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
+                    return '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                    <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"><i class="fas fa-file-pdf"></i> PDF</a>';
                 })
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');

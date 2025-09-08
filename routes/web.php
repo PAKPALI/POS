@@ -86,6 +86,7 @@ Route::prefix('pos')->middleware(['auth'])->group(function () {
         Route::resource('sale', SaleController::class);
         //history
         Route::get('history', 'history')->name('history');
+        Route::get('sale/invoice/{id}/pdf', 'generatePDF')->name('codePromo.pdf');
     });
 });
 

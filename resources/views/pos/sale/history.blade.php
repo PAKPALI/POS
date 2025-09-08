@@ -474,6 +474,11 @@
                 });
                 $('#showModal').modal('show');
             });
+
+            $('body').on('click', '.pdf', function () {
+                var id = $(this).data("id");
+                window.location.href = 'sale/invoice/' + id + '/pdf';
+            });
         }); 
     </script>
 @endsection

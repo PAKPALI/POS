@@ -91,7 +91,7 @@
     <div class="header">
         <h1>{{config('app.name')}}</h1>
         <p>Lomé-Togo</p>
-        <p>Tél : 70019278</p>
+        <p>Tél : </p>
     </div>
 
     <hr />
@@ -152,8 +152,9 @@
     <hr />
 
     <div class="footer">
-        <h3>Les meilleurs wings de la capitale</h3>
-        <p>Merci pour votre visite.</p>
+        <!-- <h3>Les meilleurs wings de la capitale</h3> -->
+         <h1>{{config('app.name')}}</h1>
+        <p>Merci pour votre achat.</p>
     </div>
 </div>
 
