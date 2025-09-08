@@ -452,15 +452,14 @@
                                     <i class="bi bi-receipt fa-fw fa-lg"></i><br>
                                     <span class="small">Bill</span>
                                 </a> -->
-                                @if ($company->count()==1)
-                                    <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 w-150px">
-                                        <i class="bi bi-send-check fa-lg"></i><br>
+                                @if ($company AND $company->count()==1)
+                                    <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 w-150px"><i class="bi bi-send-check fa-lg"></i><br>
                                         <span class="small">Vendre</span>
                                     </a>
                                 @else
-                                    <a href="#" id="" class="btn btn-outline-theme rounded-0 w-150px" disabled>
-                                        <i class="bi bi-send-check fa-lg"></i><br>
+                                    <a href="#" id="" class="btn btn-outline-theme rounded-0 w-150px" disabled><i class="bi bi-send-check fa-lg"></i><br>
                                         <span class="small">CREER UNE COMPAGNIE</span>
+                                    </a>
                                 @endif
                                 
 
