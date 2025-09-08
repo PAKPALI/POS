@@ -457,7 +457,7 @@
                                         <span class="small">Vendre</span>
                                     </a>
                                 @else
-                                    <a href="#" id="" class="btn btn-outline-theme rounded-0 w-150px" disabled><i class="bi bi-send-check fa-lg"></i><br>
+                                    <a href="#" id="" class="btn btn-outline-theme rounded-0 w-150px" disabled><br>
                                         <span class="small">CREER UNE COMPAGNIE</span>
                                     </a>
                                 @endif

@@ -507,7 +507,7 @@ class SaleController extends Controller
                         <i class="fas fa-lg fa-fw me-0 fa-eye"></i>
                     </a>';
 
-                    if ($company->count() > 0) {
+                    if ($company AND $company->count() > 0) {
                         $buttons .= ' <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"> <i class="fas fa-file-pdf"></i> PDF</a>';
                     }
                     return $buttons;
