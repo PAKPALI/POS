@@ -84,6 +84,24 @@ class SaleController extends Controller
         return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count','total_amount','company'));
     }
 
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        // $category = $request->get('category'); // id ou nom selon ton choix
+
+        $products = Product::where('status', 1)->where('name', 'like', "%{$query}%")
+            // ->when($category && $category !== 'all', function ($q) use ($category) {
+            //     $q->where('category_id', $category); // si tu as category_id dans Product
+            // })
+            // ->when(strlen($query) >= 2, function ($q) use ($query) {
+            //     $q->where('name', 'like', "%{$query}%");
+            // })
+            ->get();
+
+        return response()->json($products);
+    }
+
+
     /**
      * Show the form for creating a new resource.
      */

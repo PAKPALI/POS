@@ -73,7 +73,14 @@
             <!-- product -->
             <div class="pos-content">
                 <div class="pos-content-container h-100 p-4 text-center" data-scrollbar="true" data-height="100%">
-                    <div class="row gx-4 text-center">
+                    <!-- search product -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <input type="text" id="searchProduct" class="form-control" placeholder="Rechercher un produit...">
+                        </div>
+                    </div>
+
+                    <div class="row gx-4 text-center" id="product_list">
                         <!-- statistics of sale -->
 
                         <!-- sale total daily-->
@@ -242,13 +249,20 @@
                                 <pre><code class="xml" data-url="assets/data/table-plugins/code-1.json"></code></pre>
                             </div>
                         </div>
+                        
+                        <!-- search loader -->
+                        <div id="search_loader" class="text-center my-3" style="display:none;">
+                            <div class="spinner-border text-warning" role="status">
+                                <span class="visually-hidden">Chargement...</span>
+                            </div>
+                        </div>
 
                         <!-- product list -->
                         @foreach($Category->where('status',1) as $category)
                             @foreach($category->products->where('status',1) as $product)
                                 <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="{{ $category->name }}">
                                     <div class="card h-100">
-                                        <div class="card-body h-100 p-1">
+                                        <div class="card-body products h-100 p-1">
                                             <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
                                                 data-id="{{ $product->id }}"
                                                 data-name="{{ $product->name }}"
@@ -274,7 +288,6 @@
                                             <div class="card-arrow-bottom-right"></div>
                                         </div>
                                     </div>
-
                                 </div>
                             @endforeach
                         @endforeach
@@ -462,7 +475,6 @@
                                     </a>
                                 @endif
                                 
-
                                 <a href="#" id="saleLoader" class="btn btn-outline-theme rounded-0 w-150px">
                                     <div id="loader" class="spinner-grow"></div>
                                 </a>
@@ -544,6 +556,193 @@
         $('.sale_list').hide();
         $('#loader').hide();
         $('#saleLoader').hide();
+        $('#search_loader').hide();
+        let originalProducts = $('#product_list').html();
+        bindProductEvents();
+
+        // Au clic sur un élément de navigation
+        $('.nav-link').on('click', function(e) {
+            e.preventDefault();
+            // hide sale list
+            $('.sale_list').fadeOut();
+            $('#confirmSale').fadeIn();
+            $('.no-sale').hide();
+            
+            // Get the selected category
+            var filter = $(this).attr('data-filter');
+            
+            // Delete active class from all tabs and add to clicked tab
+            $('.nav-link').removeClass('active');
+            $(this).addClass('active');
+            $('#product_list').html(originalProducts); // Remet les produits initiaux
+            bindProductEvents();
+            
+            // Filter items by category
+            if (filter == 'all') {
+                // Afficher tous les articles
+                $('.pos-content .col-xxl-3').show();
+            } else {
+               // Hide all items, then show only those in the category
+                $('.pos-content .col-xxl-3').hide();
+                $('.pos-content .col-xxl-3[data-type="' + filter + '"]').show();
+            }
+            
+        });
+
+        $('#searchProduct').on('keyup', function () {
+            let value = $(this).val();
+            $('.search_product_list').remove();
+            if (value.length === 0) {
+                let originalProducts = $('#product_list').html();
+                bindProductEvents();
+                return;
+            }
+
+            $('#search_loader').show();
+            $.ajax({
+                url: "{{ route('products.search') }}",
+                type: "GET",
+                data: { q: value},
+                success: function (products) {
+                    let container = $('#product_list');
+                    container.empty();
+                    if (products.length === 0) {
+                        container.append('<h1 class="text-center" >Aucun produit trouvé</h1>');
+                    } else {
+                        products.forEach(product => {
+                            container.append(`
+                                <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 search_product_list">
+                                    <div class="card h-100">
+                                        <div class="card-body products h-100 p-1">
+                                            <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
+                                                data-id="${product.id}"
+                                                data-name="${product.name}"
+                                                data-price="${product.price}"
+                                                data-image="/images/${product.image}"
+                                                data-qte="${product.qte}">
+                                                <div class="img" style="background-image: url(/images/${product.image}); background-size: cover; background-position: center; width: 100%; height: 150px;"></div>
+                                                <div class="info">
+                                                    <div class="title">Nom : ${product.name}&reg;</div>
+                                                    <div class="title price">Prix : ${product.price} FCFA</div>
+                                                    <div class="title qte">Quantité : ${product.qte}</div>
+                                                </div>
+                                            </a> 
+                                        </div>
+                                        <div class="card-arrow">
+                                            <div class="card-arrow-top-left"></div>
+                                            <div class="card-arrow-top-right"></div>
+                                            <div class="card-arrow-bottom-left"></div>
+                                            <div class="card-arrow-bottom-right"></div>
+                                        </div>   
+                                    </div>  
+                                </div>
+                            `);
+                        });
+                        bindProductEvents();
+                    }
+                },
+                complete: function () {
+                    // Cache le loader après la réponse (réussie ou échouée)
+                    $('#search_loader').hide();
+                }
+            });
+        });
+
+        // Au clic sur élément de navigation de la liste des ventes
+        $('.nav-sale').on('click', function(e) {
+            e.preventDefault();
+            $('.product_list').hide();
+            $('.sale_list').fadeIn();
+            $('#confirmSale').hide();
+            $('.no-sale').show();
+        });
+
+        // Au clic sur élément de commande dans la navigation laterale
+        $('.nav-sale-command').on('click', function(e) {
+            e.preventDefault();
+            $('.sale_list').hide();
+            $('.product_list').fadeIn();
+            $('#confirmSale').fadeIn();
+        });
+
+        // Au clic sur élément fermez modal print
+        $('.close').on('click', function(e) {
+            e.preventDefault();
+            window.location.reload();
+        });
+
+        function bindProductEvents() {
+            $('#search_loader').hide();
+            // Supprime les événements avant de les ré-attacher pour éviter les doublons
+            $('.pos-product').off('click').on('click', function (e) {
+                e.preventDefault();
+
+                let productId = $(this).data('id');
+                let productName = $(this).data('name');
+                let productPrice = $(this).data('price');
+                let productImage = $(this).data('image');
+                let productQte = 1;
+
+                // Vérifier si le produit existe déjà
+                let existingProduct = $(`.pos-order-product[data-product-id="${productId}"]`);
+                if (existingProduct.length > 0) {
+                    let quantityInput = existingProduct.find('.quantity-input');
+                    quantityInput.val(parseInt(quantityInput.val()) + 1);
+                    updateProductTotal(existingProduct, productPrice);
+                } else {
+                    let productHtml = `
+                        <div class="pos-order">
+                            <div class="pos-order-product" data-product-id="${productId}">
+                                <div class="img" style="background-image: url(${productImage})"></div>
+                                <div class="flex-1">
+                                    <div class="h6 mb-1">${productName}</div>
+                                    <div class="small">${productPrice} FCFA</div>
+                                    <div class="d-flex">
+                                        <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
+                                        <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}">
+                                        <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
+                                    </div>
+                                </div>
+                                <div class="pos-order-price">${productPrice * productQte} FCFA</div>
+                                <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
+                            </div>
+                        </div>
+                    `;
+
+                    $('#newOrderTab').append(productHtml);
+                    addProduct(productId);
+                }
+                updateTotal();
+            });
+
+            // Rebind des effets hover (si tu les veux encore)
+            $('.pos-product').off('mouseenter mouseleave').hover(
+                function () {
+                    $(this).addClass('product-hover');
+                },
+                function () {
+                    $(this).removeClass('product-hover');
+                }
+            );
+
+            $('.search_product_list .pos-product').hover(
+                function() {
+                    $(this).addClass('product-hover');
+                },
+                function() {
+                    $(this).removeClass('product-hover');
+                }
+            );
+            $('.search_product_list .pos-product').on('click', function(e) {
+                e.preventDefault();
+                
+                // Removes the click effect of other products
+                $('.product_list .pos-product').removeClass('product-clicked');
+                
+                // Add the click effect of other products
+                $(this).addClass('product-clicked');
+            });
+        }
 
         function openPdfInModal(pdfBase64) {
             const pdfData = atob(pdfBase64); // Décode le base64
@@ -846,55 +1045,6 @@
 
         $('#print').on('click', function(e) {
             printPdf()
-        });
-
-        // Au clic sur un élément de navigation
-        $('.nav-link').on('click', function(e) {
-            e.preventDefault();
-            // hide sale list
-            $('.sale_list').fadeOut();
-            $('#confirmSale').fadeIn();
-            $('.no-sale').hide();
-            
-            // Get the selected category
-            var filter = $(this).attr('data-filter');
-            
-            // Delete active class from all tabs and add to clicked tab
-            $('.nav-link').removeClass('active');
-            $(this).addClass('active');
-            
-            // Filter items by category
-            if (filter == 'all') {
-                // Afficher tous les articles
-                $('.pos-content .col-xxl-3').show();
-            } else {
-               // Hide all items, then show only those in the category
-                $('.pos-content .col-xxl-3').hide();
-                $('.pos-content .col-xxl-3[data-type="' + filter + '"]').show();
-            }
-        });
-
-        // Au clic sur élément de navigation de la liste des ventes
-        $('.nav-sale').on('click', function(e) {
-            e.preventDefault();
-            $('.product_list').hide();
-            $('.sale_list').fadeIn();
-            $('#confirmSale').hide();
-            $('.no-sale').show();
-        });
-
-        // Au clic sur élément de commande dans la navigation laterale
-        $('.nav-sale-command').on('click', function(e) {
-            e.preventDefault();
-            $('.sale_list').hide();
-            $('.product_list').fadeIn();
-            $('#confirmSale').fadeIn();
-        });
-
-        // Au clic sur élément fermez modal print
-        $('.close').on('click', function(e) {
-            e.preventDefault();
-            window.location.reload();
         });
 
         let selectedProducts = new Set(); // init count for count order
