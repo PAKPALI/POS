@@ -351,6 +351,7 @@
                             });
                             
                             // $('#addModal').modal('hide');
+                            $('#add')[0].reset();
                             Datatable.draw();
                         } else {
                             $('#loader').hide();
