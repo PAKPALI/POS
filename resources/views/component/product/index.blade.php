@@ -350,7 +350,7 @@
                                 text: data.msg,
                             });
                             
-                            $('#addModal').modal('hide');
+                            // $('#addModal').modal('hide');
                             Datatable.draw();
                         } else {
                             $('#loader').hide();
