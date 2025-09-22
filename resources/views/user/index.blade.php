@@ -86,7 +86,7 @@
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des admins</h4></span>
+                                        <span class="flex-grow-1"><h4>Listes des utilisateurs</h4></span>
                                         <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
