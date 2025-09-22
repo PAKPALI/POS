@@ -54,6 +54,7 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     Route::get('profil', function () {return view('user/profile');})->name('profil');
     // user
     Route::resource('user', UserController::class);
+    // Route::get('getEmployeList', 'getEmployeList')->name('getEmployeList');
     // update email
     Route::post('updateEmail', 'updateEmail');
     // update password

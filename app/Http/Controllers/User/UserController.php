@@ -76,6 +76,14 @@ class UserController extends Controller
                     }
                     return $btn;
                 })
+                ->editColumn('user_type', function ($Object) {
+                    if($Object->user_type==2){
+                        $btn = ' ADMIN';
+                    }else{
+                        $btn = ' EMPLOYE';
+                    }
+                    return $btn;
+                })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
                         $btn = ' <a  class="btn btn-success btn-sm">Actif</a>';
@@ -118,6 +126,7 @@ class UserController extends Controller
             "email.required" => "Remplir le champ email!",
             "email.email" => "La structure d'un email n'est pas respecte!",
             "email.unique" => "Ce mail existe deja",
+            "user_type.required" => "Sélectionnez un type d'utilisateur!",
             // "password.required" => "Remplir le champ mot de passe!",
             // "password.min" => "Le mot de passe doit comporter au moins 8 caracteres!",
             // "password.confirmed" => "Les mots de passe ne correspondent pas",
@@ -126,6 +135,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'user_type' => ['required'],
             // 'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], $error_messages);
 
@@ -140,11 +150,12 @@ class UserController extends Controller
         }else{
             $email = $request['email'];
             $name = $request['name'];
+            $user_type = $request['user_type'];
             $code = $this->code();
             User::create([
                 'name' => $name,
                 'email' => $email,
-                'user_type' => 3,
+                'user_type' => $user_type,
                 'password' => Hash::make($code),
             ]);
             $this->sendEmail($email,$name,$code);

@@ -45,6 +45,13 @@
                                                     <label for="exampleInputText0">Email</label>
                                                     <input type="email" name="email" class="form-control" id="exampleInputText0" placeholder="Email">
                                                 </div>
+                                                <div class="form-group col-12 mt-3">
+                                                    <select class="form-select mb-3" name="user_type">
+                                                        <option value="">selectionnez le type d'utilisateur</option>
+                                                        <option value="2">ADMIN</option>
+                                                        <option value="3">EMPLOYE</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="card-footer mt-4">
@@ -74,16 +81,55 @@
                             </div>
                         </div>
 
+                        <!-- admin list -->
                         <div class="col-xl-12">
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des utilisateurs</h4></span>
+                                        <span class="flex-grow-1"><h4>Listes des admins</h4></span>
                                         <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
                                     <div class="table-responsive">
                                         <table id="datatable" class="table text-nowrap w-100">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Nom</th>
+                                                    <th>Email</th>
+                                                    <th>Type</th>
+                                                    <th>Statut</th>
+                                                    <th>Créer le</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-center mt-3"></div>
+
+                                <div class="card-arrow">
+                                    <div class="card-arrow-top-left"></div>
+                                    <div class="card-arrow-top-right"></div>
+                                    <div class="card-arrow-bottom-left"></div>
+                                    <div class="card-arrow-bottom-right"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- employe list -->
+                        <!-- <div class="col-xl-12">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex fw-bold small mb-3">
+                                        <span class="flex-grow-1"><h4>Listes des employés</h4></span>
+                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
+                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table id="employeDatatable" class="table text-nowrap w-100">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
@@ -100,9 +146,7 @@
                                         </table>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-center mt-3">
-                                    
-                                </div>
+                                <div class="d-flex justify-content-center mt-3"></div>
 
                                 <div class="card-arrow">
                                     <div class="card-arrow-top-left"></div>
@@ -111,7 +155,7 @@
                                     <div class="card-arrow-bottom-right"></div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                     {{-- <div class="col-xl-2">
                         <nav id="sidebar-bootstrap" class="navbar navbar-sticky d-none d-xl-block">
@@ -146,6 +190,7 @@
             $('#loader').hide();
             $('.pre_loader').hide();
 
+            // admin datatable
             var Datatable = $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -154,6 +199,7 @@
                     {data: 'id',name: 'id'},
                     {data: 'name',name: 'name'},
                     {data: 'email',name: 'email'},
+                    {data: 'user_type',name: 'user_type'},
                     {data: 'status',name: 'status'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
@@ -204,9 +250,70 @@
                     $('#datatable').css('width', '100%');
                 },
             });
-            window.addEventListener('datatableUpdated', function() {
-                Datatable.ajax.reload(null, false);
-            });
+
+            // employe datatable
+            // var employeDatatable = $('#employeDatatable').DataTable({
+            //     processing: true,
+            //     serverSide: true,
+            //     ajax: "{{ route('user.index')}}",
+            //     columns: [
+            //         {data: 'id',name: 'id'},
+            //         {data: 'name',name: 'name'},
+            //         {data: 'email',name: 'email'},
+            //         {data: 'status',name: 'status'},
+            //         {data: 'created_at',name: 'created_at'},
+            //         {data: 'action', name: 'action', orderable: false, searchable: false},
+            //     ],
+            //     responsive: true, 
+            //     language: {
+            //         "lengthMenu": "Afficher _MENU_ entrées",
+            //         "zeroRecords": "Aucune donnée disponible",
+            //         "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+            //         "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
+            //         "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
+            //         "search": "Rechercher:",
+            //         "paginate": {
+            //             "first": "Premier",
+            //             "last": "Dernier",
+            //             "next": "Suivant",
+            //             "previous": "Précédent"
+            //         }
+            //     },
+                
+            //     drawCallback: function() {
+            //         $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
+            //         $('#datatable').css('width','100%');
+            //         $('#datatable tbody tr').each(function() {
+            //             $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
+            //             $(this).css('color', 'white');
+            //         });
+            //         $('.dataTables_info, .dataTables_paginate').css('color', 'white');
+            //         $('.dataTables_paginate .paginate_button a').css('color', 'white');
+            //         $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
+            //         $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+
+            //         // Appliquer la couleur blanche au texte des labels
+            //         $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
+            //         $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
+                    
+            //         // Appliquer les styles pour le dropdown et le champ de recherche
+            //         $('.dataTables_length select').css({
+            //             'background-color': 'black', // Fond noir
+            //             'color': 'white' // Texte en blanc
+            //         });
+
+            //         $('.dataTables_filter input').css({
+            //             'background-color': 'black', // Fond noir
+            //             'color': 'white' // Texte en blanc
+            //         });
+            //         $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
+            //         $('#datatable').css('width', '100%');
+            //     },
+            // });
+            // window.addEventListener('datatableUpdated', function() {
+            //     Datatable.ajax.reload(null, false);
+            //     employeDatatable.ajax.reload(null, false);
+            // });
 
             //Add user
             $('#add').submit(function() {
