@@ -117,22 +117,22 @@
 			</div>
 			@if(auth()->user()->user_type!=3)
 			<div class="menu-header">PARAMETRES</div>
-				<div class="menu-item has-sub @if(Request::route()->getName() === 'company.index') active @endif">
-					<a href="javascript:;" class="menu-link">
-						<div class="menu-icon">
-							<i class="bi bi-gear"></i>
-						</div>
-						<div class="menu-text d-flex align-items-center">Parametres</div>
-						<span class="menu-caret"><b class="caret"></b></span>
-					</a>
-					<div class="menu-submenu">
-						<div class="menu-item @if(Request::route()->getName() === 'company.index') active @endif">
-							<a href="{{ route('company.index') }}" class="menu-link">
-								<div class="menu-text">Compagnie</div>
-							</a>
-						</div>
+			<div class="menu-item has-sub @if(Request::route()->getName() === 'company.index') active @endif">
+				<a href="javascript:;" class="menu-link">
+					<div class="menu-icon">
+						<i class="bi bi-gear"></i>
+					</div>
+					<div class="menu-text d-flex align-items-center">Parametres</div>
+					<span class="menu-caret"><b class="caret"></b></span>
+				</a>
+				<div class="menu-submenu">
+					<div class="menu-item @if(Request::route()->getName() === 'company.index') active @endif">
+						<a href="{{ route('company.index') }}" class="menu-link">
+							<div class="menu-text">Compagnie</div>
+						</a>
 					</div>
 				</div>
+			</div>
 			@endif
 		</div>
 

@@ -87,7 +87,8 @@
                         <h3><strong class="sale_list">Statistiques des ventes cette journée</strong></h3>
                         <div class="row sale_list mb-5">
                             <!-- total sale -->
-                            <div class="col-xl-3 col-lg-6 ">
+                            
+                            <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
@@ -119,7 +120,7 @@
                                 </div>
                             </div>
                             <!-- total  product sold daily-->
-                            <div class="col-xl-3 col-lg-6 ">
+                            <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
@@ -151,7 +152,7 @@
                                 </div>
                             </div>
                             <!-- total  amount daily-->
-                            <div class="col-xl-3 col-lg-6 ">
+                            <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
@@ -183,37 +184,39 @@
                                 </div>
                             </div>
                             <!-- total day profit daily-->
-                            <div class="col-xl-3 col-lg-6 ">
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <div class="d-flex fw-bold small mb-3">
-                                            <span class="flex-grow-0"><h5><strong>Bénefice journalier</strong><h5></span>
-                                            <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
-                                                <i class="bi bi-fullscreen"></i></a> -->
-                                        </div>
-                                        <div class="row align-items-center mb-2">
-                                            <div class="col-7">
-                                                <h3 class="mb-0">{{$sale_total_profit}}</h3>
+                             @if (auth()->user()->user_type!=3)
+                                 <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <div class="d-flex fw-bold small mb-3">
+                                                <span class="flex-grow-0"><h5><strong>Bénefice journalier</strong><h5></span>
+                                                <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
+                                                    <i class="bi bi-fullscreen"></i></a> -->
                                             </div>
-                                            <div class="col-5">
-                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
-                                                    data-height="30"></div>
+                                            <div class="row align-items-center mb-2">
+                                                <div class="col-7">
+                                                    <h3 class="mb-0">{{$sale_total_profit}}</h3>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
+                                                        data-height="30"></div>
+                                                </div>
                                             </div>
+                                            <!-- <div class="small text-inverse text-opacity-50 text-truncate">
+                                                <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
+                                                <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
+                                                <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                            </div> -->
                                         </div>
-                                        <!-- <div class="small text-inverse text-opacity-50 text-truncate">
-                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
-                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
-                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
-                                        </div> -->
-                                    </div>
-                                    <div class="card-arrow">
-                                        <div class="card-arrow-top-left"></div>
-                                        <div class="card-arrow-top-right"></div>
-                                        <div class="card-arrow-bottom-left"></div>
-                                        <div class="card-arrow-bottom-right"></div>
+                                        <div class="card-arrow">
+                                            <div class="card-arrow-top-left"></div>
+                                            <div class="card-arrow-top-right"></div>
+                                            <div class="card-arrow-bottom-left"></div>
+                                            <div class="card-arrow-bottom-right"></div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                             @endif
                         </div>
 
                         <!-- sale list daily-->

@@ -21,7 +21,7 @@ class ProductController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = Product::latest()->get();
+        $Object = Product::where('type',1)->latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)

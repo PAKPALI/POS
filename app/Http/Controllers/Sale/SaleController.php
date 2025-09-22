@@ -33,7 +33,7 @@ class SaleController extends Controller
 
         // get all categories with their associated products
         $Category = Category::with('products')->get();
-        $Product = Product::all();
+        $Product = Product::where('status', 1)->where('qte', '>', 0)->get();
         $company = CompanySetting::first();
 
         // composer require yajra/laravel-datatables-oracle
@@ -89,7 +89,7 @@ class SaleController extends Controller
         $query = $request->get('q');
         // $category = $request->get('category'); // id ou nom selon ton choix
 
-        $products = Product::where('status', 1)->where('name', 'like', "%{$query}%")
+        $products = Product::where('status', 1)->where('qte', '>', 0)->where('name', 'like', "%{$query}%")
             // ->when($category && $category !== 'all', function ($q) use ($category) {
             //     $q->where('category_id', $category); // si tu as category_id dans Product
             // })
