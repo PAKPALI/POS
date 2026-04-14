@@ -125,12 +125,6 @@ class ProductController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            Action::create([
-                'user_id' => auth()->user()->id,
-                'function' => 'AJOUT PRODUIT',
-                'text' => auth()->user()->name." a créer un nouveau produit '".$request->name."'",
-            ]);
-
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,

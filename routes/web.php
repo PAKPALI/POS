@@ -1,16 +1,17 @@
 <?php
 
+use App\Http\Controllers\AMS\CashAccountController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CodePromo\CodePromoController;
+use App\Http\Controllers\Company\CompanyController;
+use App\Http\Controllers\Component\CategoryController;
+use App\Http\Controllers\Component\MenuController;
+use App\Http\Controllers\Component\ProductController;
+use App\Http\Controllers\Sale\SaleController;
+use App\Http\Controllers\User\UserController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Sale\SaleController;
-use App\Http\Controllers\User\UserController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Component\MenuController;
-use App\Http\Controllers\Company\CompanyController;
-use App\Http\Controllers\Component\ProductController;
-use App\Http\Controllers\Component\CategoryController;
-use App\Http\Controllers\CodePromo\CodePromoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -100,6 +101,10 @@ Route::prefix('code')->middleware(['auth'])->group(function () {
         Route::post('/verify-promo', [CodePromoController::class, 'verifyPromo'])->name('verifyPromo');
         Route::get('/code-promo/{id}/pdf', [CodePromoController::class, 'generatePDF'])->name('codePromo.pdf');
     });
+});
+
+Route::prefix('ams')->middleware(['auth'])->group(function () {
+    Route::resource('cash-account', CashAccountController::class);
 });
 
 Route::prefix('setting')->middleware(['auth'])->group(function () {

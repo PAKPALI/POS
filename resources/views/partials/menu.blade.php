@@ -16,7 +16,7 @@
 				<div class="menu-item has-sub @if(Request::route()->getName() === 'category.index') active @endif">
 					<a href="javascript:;" class="menu-link">
 						<div class="menu-icon">
-							<i class="bi bi-bag-check"></i>
+							<i class="fas fa-tags"></i>
 						</div>
 						<div class="menu-text d-flex align-items-center">Catégories</div>
 						<span class="menu-caret"><b class="caret"></b></span>
@@ -33,7 +33,7 @@
 				<div class="menu-item has-sub @if(Request::route()->getName() === 'product.index' OR Request::route()->getName() === 'menu.index') active @endif">
 					<a href="javascript:;" class="menu-link">
 						<div class="menu-icon">
-							<i class="bi bi-bag-check"></i>
+							<i class="fas fa-cube"></i>
 							<!-- <span class="w-5px h-5px rounded-3 bg-theme position-absolute top-0 end-0 mt-3px me-3px"></span> -->
 						</div>
 						<div class="menu-text d-flex align-items-center">Produits</div>
@@ -61,7 +61,7 @@
 			<div class="menu-item has-sub @if(Request::route()->getName() === 'history') active @endif">
 				<a href="javascript:;" class="menu-link">
 					<div class="menu-icon">
-						<i class="bi bi-bag-check"></i>
+						<i class="fas fa-store"></i>
 						<!-- <span class="w-5px h-5px rounded-3 bg-theme position-absolute top-0 end-0 mt-3px me-3px"></span> -->
 					</div>
 					<div class="menu-text d-flex align-items-center">Point de ventes</div>
@@ -92,9 +92,59 @@
 				<div class="menu-header">CODE PROMO</div>
 				<div class="menu-item @if(Request::route()->getName() === 'code.index') active @endif">
 					<a href="{{ route('code.index') }}" class="menu-link">
-						<span class="menu-icon"><i class="bi bi-bag-check"></i></span>
+						<span class="menu-icon"><i class="fas fa-barcode"></i></span>
 						<span class="menu-text">Code promo</span>
 					</a>
+				</div>
+			@endif
+
+			<!-- AMS -->
+			@if(auth()->user()->user_type!=3)
+				<div class="menu-header">COMPTABILITE</div>
+				<div class="menu-item has-sub @if(Request::route()->getName() === 'cash-account.index') active @endif">
+					<a href="javascript:;" class="menu-link">
+						<div class="menu-icon">
+							<i class="fas fa-balance-scale"></i>
+						</div>
+						<div class="menu-text d-flex align-items-center">Comptabilité</div>
+						<span class="menu-caret"><b class="caret"></b></span>
+					</a>
+					<!--dashboard-->
+					<div class="menu-submenu">
+						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
+							<a href="{{ route('cash-account.index') }}" class="menu-link">
+								<span class="menu-icon"><i class="fas fa-tachometer-alt"></i></span>
+								<span class="menu-text">Tableau de bord</span>
+							</a>
+						</div>
+					</div>
+					<!--cash-->
+					<div class="menu-submenu">
+						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
+							<a href="{{ route('cash-account.index') }}" class="menu-link">
+								<span class="menu-icon"><i class="fas fa-wallet"></i></span>
+								<span class="menu-text">Caisse</span>
+							</a>
+						</div>
+					</div>
+					<!--operations-->
+					<div class="menu-submenu">
+						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
+							<a href="{{ route('cash-account.index') }}" class="menu-link">
+								<span class="menu-icon"><i class="fas fa-exchange-alt"></i></span>
+								<span class="menu-text">Opérations</span>
+							</a>
+						</div>
+					</div>
+					<!--setting-->
+					<div class="menu-submenu">
+						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
+							<a href="{{ route('cash-account.index') }}" class="menu-link">
+								<span class="menu-icon"><i class="fas fa-tools"></i></span>
+								<span class="menu-text">Paramètres</span>
+							</a>
+						</div>
+					</div>
 				</div>
 			@endif
 
@@ -111,7 +161,7 @@
 			@endif
 			<div class="menu-item @if(Request::route()->getName() === 'profil') active @endif">
 				<a href="{{ route('profil') }}" class="menu-link">
-					<span class="menu-icon"><i class="bi bi-people"></i></span>
+					<span class="menu-icon"><i class="fas fa-id-badge"></i></span>
 					<span class="menu-text">Profil</span>
 				</a>
 			</div>

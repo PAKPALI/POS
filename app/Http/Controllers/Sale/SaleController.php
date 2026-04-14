@@ -100,8 +100,6 @@ class SaleController extends Controller
 
         return response()->json($products);
     }
-
-
     /**
      * Show the form for creating a new resource.
      */
