@@ -101,7 +101,11 @@
 			<!-- AMS -->
 			@if(auth()->user()->user_type!=3)
 				<div class="menu-header">COMPTABILITE</div>
-				<div class="menu-item has-sub @if(Request::route()->getName() === 'cash-account.index') active @endif">
+				<div class="menu-item has-sub 
+					@if(Request::route()->getName() === 'cash-account.index' || Request::route()->getName() === 'transaction.index' 
+					|| Request::route()->getName() === 'ams.settings' || Request::route()->getName() === 'ams.dashboard')
+						active 
+					@endif">
 					<a href="javascript:;" class="menu-link">
 						<div class="menu-icon">
 							<i class="fas fa-balance-scale"></i>
@@ -111,8 +115,8 @@
 					</a>
 					<!--dashboard-->
 					<div class="menu-submenu">
-						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
-							<a href="{{ route('cash-account.index') }}" class="menu-link">
+						<div class="menu-item @if(Request::route()->getName() === 'ams.dashboard') active @endif">
+							<a href="{{ route('ams.dashboard') }}" class="menu-link">
 								<span class="menu-icon"><i class="fas fa-tachometer-alt"></i></span>
 								<span class="menu-text">Tableau de bord</span>
 							</a>
@@ -129,8 +133,8 @@
 					</div>
 					<!--operations-->
 					<div class="menu-submenu">
-						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
-							<a href="{{ route('cash-account.index') }}" class="menu-link">
+						<div class="menu-item @if(Request::route()->getName() === 'transaction.index') active @endif">
+							<a href="{{ route('transaction.index') }}" class="menu-link">
 								<span class="menu-icon"><i class="fas fa-exchange-alt"></i></span>
 								<span class="menu-text">Opérations</span>
 							</a>
@@ -138,8 +142,8 @@
 					</div>
 					<!--setting-->
 					<div class="menu-submenu">
-						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
-							<a href="{{ route('cash-account.index') }}" class="menu-link">
+						<div class="menu-item @if(Request::route()->getName() === 'ams.settings') active @endif">
+							<a href="{{ route('ams.settings') }}" class="menu-link">
 								<span class="menu-icon"><i class="fas fa-tools"></i></span>
 								<span class="menu-text">Paramètres</span>
 							</a>

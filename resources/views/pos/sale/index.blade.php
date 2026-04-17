@@ -468,12 +468,30 @@
                                     <i class="bi bi-receipt fa-fw fa-lg"></i><br>
                                     <span class="small">Bill</span>
                                 </a> -->
-                                @if ($company AND $company->count()==1)
-                                    <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 w-150px"><i class="bi bi-send-check fa-lg"></i><br>
-                                        <span class="small">Vendre</span>
-                                    </a>
+                                @if ($company && $company->count() == 1)
+                                    @if(!$mainCash)
+                                        <div class="alert alert-danger text-center">
+                                            ⚠️ Aucune caisse principale configurée !
+                                        </div>
+                                        <a href="{{ route('ams.settings') }}" class="btn btn-danger w-150px">
+                                            Configurer
+                                        </a>
+                                    @elseif($setting && $setting->default_tax > 0 && !$taxCash)
+                                        <div class="alert alert-warning text-center">
+                                            ⚠️ Taxe définie mais aucune caisse de taxe !
+                                        </div>
+
+                                        <a href="{{ route('ams.settings') }}" class="btn btn-warning w-150px">
+                                            Configurer
+                                        </a>
+                                    @else
+                                        <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 w-150px">
+                                            <i class="bi bi-send-check fa-lg"></i><br>
+                                            <span class="small">Vendre</span>
+                                        </a>
+                                    @endif
                                 @else
-                                    <a href="#" id="" class="btn btn-outline-theme rounded-0 w-150px" disabled><br>
+                                    <a href="#" class="btn btn-outline-theme rounded-0 w-150px" disabled>
                                         <span class="small">CREER UNE COMPAGNIE</span>
                                     </a>
                                 @endif

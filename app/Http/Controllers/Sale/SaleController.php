@@ -2,24 +2,27 @@
 
 namespace App\Http\Controllers\Sale;
 
-use Carbon\Carbon;
-use App\Models\Sale;
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use App\Models\Action;
-use App\Models\Product;
+use App\Models\AMS\CashAccount;
+use App\Models\AMS\Setting;
+use App\Models\AMS\Transaction;
 use App\Models\Category;
 use App\Models\CodePromo;
-use Illuminate\Support\Str;
-use App\Services\SmsService;
-use Illuminate\Http\Request;
 use App\Models\CompanySetting;
+use App\Models\Product;
+use App\Models\Sale;
+use App\Models\User;
+use App\Services\SmsService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Yajra\DataTables\Facades\DataTables;
 
 class SaleController extends Controller
 {
@@ -35,6 +38,10 @@ class SaleController extends Controller
         $Category = Category::with('products')->get();
         $Product = Product::where('status', 1)->where('qte', '>', 0)->get();
         $company = CompanySetting::first();
+
+        $mainCash = CashAccount::where('is_default', 1)->first();
+        $taxCash = CashAccount::where('is_tax', 1)->first();
+        $setting  = Setting::first();
 
         // composer require yajra/laravel-datatables-oracle
         $Object = Sale::with('saleDetails.product')->latest()->whereDate('created_at', $today)->get();
@@ -81,7 +88,11 @@ class SaleController extends Controller
         });
 
         // Send data to view
-        return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count','total_amount','company'));
+        return view('pos.sale.index',
+            compact(
+                'Category','Product','mostSoldProducts','Object','sale_total_profit',
+                'product_count','total_amount','company','mainCash','taxCash','setting'
+            ));
     }
 
     public function search(Request $request)
@@ -296,6 +307,9 @@ class SaleController extends Controller
             // Update the total profit in the sale table
             $sale->update(['total_profit' => $totalProfit]);
 
+            // comptabilty run code
+            $this->handleAmsAccounting($sale);
+
             // Generate PDF invoice
             $pdfBase64 = $this->generatePdfInvoice($sale);
 
@@ -462,6 +476,83 @@ class SaleController extends Controller
             $message->to($email);
             $message->subject(config('app.name'));
         });
+    }
+
+    private function handleAmsAccounting($sale)
+    {
+        $setting = Setting::first();
+        if(!$setting){
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "ERREUR COMPTABILITEE",
+                "msg" => "Pas de configuration comptable trouvée",
+            ]);
+        }
+
+        $mainCash = CashAccount::find($setting->default_cash_id);
+        $taxCash = CashAccount::find($setting->tax_cash_id);
+
+        $taxPercent = $setting->default_tax ?? 0;
+
+        // calculate taxe
+        $taxAmount = 0;
+        if($taxPercent > 0){
+            $taxAmount = ($sale->total_amount * $taxPercent) / 100;
+        }
+
+        // net
+        $netAmount = $sale->total_amount;
+
+        // update sale
+        $sale->update([
+            'tax_amount' => $taxAmount
+        ]);
+
+        // =====================
+        // PRINCIPAL CASH ACCOUNT
+        // =====================
+        if($mainCash){
+            $mainCash->increment('balance', $netAmount);
+            Transaction::create([
+                'type' => 'IN',
+                'to_cash_id' => $mainCash->id,
+                'amount' => $netAmount,
+                'description' => 'Vente #' . $sale->code,
+                'created_by' => auth()->id(),
+            ]);
+        }else{
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "ERREUR COMPTABILITEE",
+                "msg" => "Pas de caisse principale trouvée",
+            ]);
+        }
+
+        // =====================
+        // TAXE CASH ACCOUNT
+        // =====================
+        if($taxAmount > 0) {
+            if($taxCash ){
+                $taxCash->increment('balance', $taxAmount);
+                Transaction::create([
+                    'type' => 'IN',
+                    'to_cash_id' => $taxCash->id,
+                    'amount' => $taxAmount,
+                    'description' => 'Taxe vente #' . $sale->code,
+                    'created_by' => auth()->id(),
+                ]);
+            }else{
+                return response()->json([
+                    "status" => false,
+                    "reload" => false,
+                    "title" => "ERREUR COMPTABILITEE",
+                    "msg" => "Pas de caisse taxe trouvée",
+                ]);
+            }
+        }
+        
     }
 
     /**

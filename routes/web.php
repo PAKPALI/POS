@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\AMS\CashAccountController;
+use App\Http\Controllers\AMS\DashboardController;
+use App\Http\Controllers\AMS\SettingController;
+use App\Http\Controllers\AMS\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CodePromo\CodePromoController;
 use App\Http\Controllers\Company\CompanyController;
@@ -104,7 +107,15 @@ Route::prefix('code')->middleware(['auth'])->group(function () {
 });
 
 Route::prefix('ams')->middleware(['auth'])->group(function () {
+    //dashboard
+    Route::get('/dashboard-ams', [DashboardController::class, 'index'])->name('ams.dashboard');
+    Route::post('/dashboard-ams/stats', [DashboardController::class, 'transactionStats'])->name('ams.stats');
+    // cash account
     Route::resource('cash-account', CashAccountController::class);
+    Route::resource('transaction', TransactionController::class);
+    // setting
+    Route::get('settings', [SettingController::class, 'index'])->name('ams.settings');
+    Route::post('settings', [SettingController::class, 'store'])->name('ams.settings.store');
 });
 
 Route::prefix('setting')->middleware(['auth'])->group(function () {

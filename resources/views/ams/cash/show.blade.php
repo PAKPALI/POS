@@ -55,6 +55,18 @@
 
                     <tr>
                         <th scope="row">6</th>
+                        <td>Caisse de taxe :</td>
+                        <td>
+                            @if($cashAccount->is_tax)
+                                <span class="badge bg-success text-dark">Oui</span>
+                            @else
+                                <span class="badge bg-secondary">Non</span>
+                            @endif
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">7</th>
                         <td>Statut :</td>
                         <td>
                             @if($cashAccount->status)
@@ -66,13 +78,13 @@
                     </tr>
 
                     <tr>
-                        <th scope="row">7</th>
+                        <th scope="row">8</th>
                         <td>Description :</td>
                         <td>{{ $cashAccount->description ?? '---' }}</td>
                     </tr>
 
                     <tr>
-                        <th scope="row">8</th>
+                        <th scope="row">9</th>
                         <td>Créé le :</td>
                         <td>{{ $cashAccount->created_at->format('d-m-Y H:i:s') }}</td>
                     </tr>

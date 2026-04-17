@@ -8,17 +8,12 @@
 
             <div class="col-md-12 mb-3">
                 <label>Nom de la caisse</label>
-                <input type="text"
-                       name="name"
-                       value="{{ $cashAccount->name }}"
-                       class="form-control"
-                       required>
+                <input type="text" name="name" value="{{ $cashAccount->name }}" class="form-control" required>
             </div>
 
             <!-- TOGGLE DEFAULT -->
-            <div class="col-md-6 mt-3">
+            <div class="col-md-4 mt-3">
                 <label class="form-label">Caisse principale</label>
-
                 <div class="d-flex justify-content-center align-items-center">
                     <div class="form-check form-switch">
                         <input class="form-check-input"
@@ -28,16 +23,25 @@
                             {{ isset($cashAccount) && $cashAccount->is_default ? 'checked' : '' }}>
                     </div>
                 </div>
-
                 <!-- <div class="text-center small text-muted mt-1">
                     Activer comme caisse par défaut
                 </div> -->
             </div>
 
-            <!-- TOGGLE STATUS -->
-            <div class="col-md-6 mt-3">
-                <label class="form-label">Statut</label>
+            <!-- TOGGLE TAX -->
+            <div class="col-md-4 mt-3">
+                <label class="form-label">Caisse de taxe</label>
+                <div class="d-flex justify-content-center align-items-center">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_tax" value="1"
+                            {{ isset($cashAccount) && $cashAccount->is_tax ? 'checked' : '' }}>
+                    </div>
+                </div>
+            </div>
 
+            <!-- TOGGLE STATUS -->
+            <div class="col-md-4 mt-3">
+                <label class="form-label">Statut</label>
                 <div class="d-flex justify-content-center align-items-center">
                     <div class="form-check form-switch">
                         <input class="form-check-input"
@@ -47,7 +51,6 @@
                             {{ isset($cashAccount) && $cashAccount->status ? 'checked' : '' }}>
                     </div>
                 </div>
-
                 <!-- <div class="text-center small text-muted mt-1">
                     Caisse active / inactive
                 </div> -->
@@ -56,10 +59,8 @@
             <!-- DESCRIPTION -->
             <div class="col-md-12 mt-3">
                 <label>Description</label>
-                <textarea name="description"
-                          class="form-control">{{ $cashAccount->description }}</textarea>
+                <textarea name="description" class="form-control">{{ $cashAccount->description }}</textarea>
             </div>
-
         </div>
 
     </div>

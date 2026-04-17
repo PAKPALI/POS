@@ -9,27 +9,34 @@
     }
 
     /* Transform button in circle */
-    .state {
-        display: inline-block;
-        width: 15px; /* circle width */
-        height: 15px; /* circle height */
-        border-radius: 50%; /* Rounded edges to make a circle */
-        animation: blink 1s infinite; /* Add blink animation */
-    }
-    .state1 {
-        display: inline-block;
-        width: 15px; /* circle width */
-        height: 15px; /* circle height */
-        border-radius: 50%; /* Rounded edges to make a circle */
+    .badge-warning {
+        background: #ffc107;
+        color: #000;
     }
 
-    /* Animation of blink */
-    @keyframes blink {
-        0%, 100% {
-        opacity: 1; /* Completely visible */
+    .blink-badge {
+        animation: glowBlink 1.5s infinite;
+        font-weight: bold;
+        padding: 6px 10px;
+        border-radius: 10px;
+    }
+
+    /* effet lumineux */
+    @keyframes glowBlink {
+        0% {
+            box-shadow: 0 0 5px #ffc107;
+            opacity: 1;
+            transform: scale(1);
         }
         50% {
-        opacity: 0.5; /* Semi-transparent */
+            box-shadow: 0 0 20px #ffc107, 0 0 30px #ffdb58;
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+        100% {
+            box-shadow: 0 0 5px #ffc107;
+            opacity: 1;
+            transform: scale(1);
         }
     }
     /* Switch OFF (rouge) */
@@ -51,6 +58,18 @@
     .form-check-input {
         transition: all 0.2s ease-in-out;
     }
+
+    .card-white-shadow {
+        background: #1e1e2f; /* optionnel si fond sombre */
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .card-white-shadow:hover {
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
+        transform: translateY(-3px);
+    }
     
 </style>
 @endpush
@@ -59,6 +78,107 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-xl-12">
+                <div class="row">
+                    <!-- TOTAL CAISSES -->
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="card border-color mb-3 card-white-shadow">
+                            <div class="card-body">
+                                <div class="d-flex fw-bold small mb-3">
+                                    <span class="flex-grow-1">TOTAL CAISSES</span>
+                                </div>
+
+                                <div class="row align-items-center mb-2">
+                                    <div class="col-7">
+                                        <h3 class="mb-0">{{ $totalCash->count }}</h3>
+                                        <span class="badge blink-badge">
+                                            {{ number_format($totalCash->total, 0, ',', ' ') }} F CFA
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAISSES ACTIVES -->
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="card border-color mb-3 card-white-shadow">
+                            <div class="card-body">
+                                <div class="d-flex fw-bold small mb-3">
+                                    <span class="flex-grow-1">CAISSES ACTIVES</span>
+                                </div>
+
+                                <div class="row align-items-center mb-2">
+                                    <div class="col-7">
+                                        <h3 class="mb-0">{{ $activeCash->count }}</h3>
+                                        <span class="badge blink-badge">
+                                            {{ number_format($activeCash->total, 0, ',', ' ') }} F CFA
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAISSES INACTIVES -->
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="card border-color mb-3 card-white-shadow">
+                            <div class="card-body">
+                                <div class="d-flex fw-bold small mb-3">
+                                    <span class="flex-grow-1">CAISSES INACTIVES</span>
+                                </div>
+
+                                <div class="row align-items-center mb-2">
+                                    <div class="col-7">
+                                        <h3 class="mb-0">{{ $inactiveCash->count }}</h3>
+                                        <span class="badge blink-badge">
+                                            {{ number_format($inactiveCash->total, 0, ',', ' ') }} F CFA
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAISSE PRINCIPALE -->
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="card border-color mb-3 card-white-shadow">
+                            <div class="card-body">
+                                <div class="d-flex fw-bold small mb-3">
+                                    <span class="flex-grow-1">CAISSE PRINCIPALE</span>
+                                </div>
+
+                                <div class="row align-items-center mb-2">
+                                    <div class="col-7">
+                                        <h3 class="mb-0">{{ $defaultCashName ?? 'Aucune' }}</h3>
+                                        <span class="badge blink-badge">
+                                            {{ number_format($defaultCash->total, 0, ',', ' ') }} F CFA
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- TAXE --}}
+                    <div class="col-xl-6 col-lg-6">
+                        <div class="card border-color mb-3 card-white-shadow">
+                            <div class="card-body">
+                                <div class="d-flex fw-bold small mb-3">
+                                    <span class="flex-grow-1">CAISSE TAXE</span>
+                                </div>
+
+                                <div class="row align-items-center mb-2">
+                                    <div class="col-7">
+                                        <h3 class="mb-0">{{ $taxCash ? $taxCash->name : 'Aucune' }}</h3>
+                                        <span class="badge blink-badge">
+                                            {{ $taxCash ? number_format($taxCash->balance, 0, ',', ' ') : 0 }} FCFA
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-xl-12">
                         <ul class="breadcrumb">
@@ -84,13 +204,13 @@
                                             <div class="card-body">
                                                 <div class="row text-center">
 
-                                                    <div class="col-md-12">
+                                                    <div class="col-md-12 mb-4">
                                                         <label>Nom de la caisse</label>
                                                         <input type="text" name="name" class="form-control" required>
                                                     </div>
 
                                                     <!-- TOGGLE DEFAULT -->
-                                                    <div class="col-md-6 mt-3">
+                                                    <div class="col-md-4 mt-3">
                                                         <label class="form-label">Caisse principale</label>
                                                         <div class="d-flex justify-content-center align-items-center">
                                                             <div class="form-check form-switch">
@@ -100,8 +220,18 @@
                                                         </div>
                                                     </div>
 
+                                                    <!-- TOGGLE TAX -->
+                                                    <div class="col-md-4 mt-3">
+                                                        <label class="form-label">Caisse de taxe</label>
+                                                        <div class="d-flex justify-content-center align-items-center">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" name="is_tax" value="1">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     <!-- TOGGLE STATUS -->
-                                                    <div class="col-md-6 mt-3">
+                                                    <div class="col-md-4 mt-3">
                                                         <label class="form-label">Statut</label>
                                                         <div class="d-flex justify-content-center align-items-center">
                                                             <div class="form-check form-switch">
@@ -111,7 +241,7 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-md-12 mt-3">
+                                                    <div class="col-md-12 mt-4">
                                                         <label>Description</label>
                                                         <textarea name="description" class="form-control"></textarea>
                                                     </div>
@@ -160,7 +290,6 @@
                                 </div>
                             </div>
                         </div>
-
 
                         <div class="col-xl-12">
                             <div class="card mb-3">
@@ -324,7 +453,7 @@
                             position: 'top',
                             icon: "success",
                             title: "Succès",
-                            text: "Caisse créée",
+                            text: "Caisse créée avec succès",
                             timer: 3000,
                             showConfirmButton: false,
                         });

@@ -64,7 +64,27 @@ class CashAccountController extends Controller
                 ->rawColumns(['is_default','action','status'])
                 ->make(true);
         }
-        return view('ams.cash.index');
+
+        $totalCash = CashAccount::selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')->first();
+        $activeCash = CashAccount::where('status', 1)
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')
+            ->first();
+        $inactiveCash = CashAccount::where('status', 0)
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')
+            ->first();
+        $defaultCash = CashAccount::where('is_default', 1)
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')
+            ->first();
+        $defaultCashName = CashAccount::where('is_default', 1)->first()->name;
+        $taxCash = CashAccount::where('is_tax', 1)->first();
+        return view('ams.cash.index', compact(
+            'totalCash',
+            'activeCash',
+            'inactiveCash',
+            'defaultCash',
+            'defaultCashName',
+            'taxCash'
+        ));
     }
 
     /**
@@ -100,11 +120,6 @@ class CashAccountController extends Controller
         DB::beginTransaction();
 
         try {
-            if ($request->is_default) {
-                CashAccount::where('is_default', 1)->update([
-                    'is_default' => 0
-                ]);
-            }
             $nextId = CashAccount::max('id') + 1;
             $code = 'CASH-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
@@ -112,12 +127,21 @@ class CashAccountController extends Controller
                 'name' => $request->name,
                 'code' => $code,
                 'is_default' => $request->is_default ? 1 : 0,
+                'is_tax' => $request->is_tax ? 1 : 0,
                 'status' => $request->status ? 1 : 0,
                 'description' => $request->description,
                 'created_by' => auth()->user()->id,
             ];
 
-            CashAccount::create($data);
+            $newCash = CashAccount::create($data);
+
+            if ($request->is_default) {
+                CashAccount::setDefaultCash($newCash->id);
+            }
+
+            if ($request->is_tax) {
+                CashAccount::setTaxCash($newCash->id);
+            }
 
             // LOG ACTION (comme ton POS)
             Action::create([
@@ -193,24 +217,23 @@ class CashAccountController extends Controller
         DB::beginTransaction();
 
         try {
-
-            // 🔥 gestion caisse par défaut (une seule)
-            if ($request->is_default) {
-                CashAccount::where('id', '!=', $cashAccount->id)
-                    ->where('is_default', 1)
-                    ->update([
-                        'is_default' => 0
-                    ]);
-            }
-
             $cashAccount->update([
                 'name' => $request->name,
                 'is_default' => $request->is_default ? 1 : 0,
+                'is_tax' => $request->is_tax ? 1 : 0,
                 'status' => $request->status ? 1 : 0,
                 'description' => $request->description,
             ]);
 
-            // LOG ACTION (comme ton POS)
+            //cash manage by default, only one cash can be default
+            if ($request->is_default) {
+                CashAccount::setDefaultCash($cashAccount->id);
+            }
+            if ($request->is_tax) {
+                CashAccount::setTaxCash($cashAccount->id); // 👈 NEW
+            }
+
+            // LOG ACTION
             Action::create([
                 'user_id' => auth()->user()->id,
                 'function' => 'MODIFICATION CAISSE',

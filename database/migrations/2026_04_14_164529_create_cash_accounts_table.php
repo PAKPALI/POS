@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('code')->unique();
             $table->decimal('balance', 15, 2)->default(0);
-            $table->string('currency')->default('XOF');
+            $table->string('currency')->default('');
             $table->boolean('is_default')->default(false);
             $table->boolean('status')->default(true);
             $table->text('description')->nullable();
