@@ -75,7 +75,7 @@ class CashAccountController extends Controller
         $defaultCash = CashAccount::where('is_default', 1)
             ->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')
             ->first();
-        $defaultCashName = CashAccount::where('is_default', 1)->first()->name;
+        $defaultCashName = CashAccount::where('is_default', 1)->first()?->name;
         $taxCash = CashAccount::where('is_tax', 1)->first();
         return view('ams.cash.index', compact(
             'totalCash',
