@@ -69,7 +69,7 @@
                         <div class="col-7">
                             <h3 class="mb-0">{{ $totalTransactions->count }}</h3>
                             <span class="badge blink-badge">
-                                {{ number_format($totalTransactions->total, 0, ',', ' ') }} F CFA
+                                {{ number_format($totalTransactions->total, 2, ',', ' ') }} F CFA
                             </span>
                         </div>
                     </div>
@@ -88,7 +88,7 @@
                         <div class="col-7">
                             <h3 class="mb-0">{{ $inTransactions->count }}</h3>
                             <span class="badge blink-badge">
-                                {{ number_format($inTransactions->total, 0, ',', ' ') }} F CFA
+                                {{ number_format($inTransactions->total, 2, ',', ' ') }} F CFA
                             </span>
                         </div>
                     </div>
@@ -107,7 +107,7 @@
                         <div class="col-7">
                             <h3 class="mb-0">{{ $outTransactions->count }}</h3>
                             <span class="badge blink-badge">
-                                {{ number_format($outTransactions->total, 0, ',', ' ') }} F CFA
+                                {{ number_format($outTransactions->total, 2, ',', ' ') }} F CFA
                             </span>
                         </div>
                     </div>
@@ -126,7 +126,7 @@
                         <div class="col-7">
                             <h3 class="mb-0">{{ $transferTransactions->count }}</h3>
                             <span class="badge blink-badge">
-                                {{ number_format($transferTransactions->total, 0, ',', ' ') }} F CFA
+                                {{ number_format($transferTransactions->total, 2, ',', ' ') }} F CFA
                             </span>
                         </div>
                     </div>
@@ -144,7 +144,7 @@
                     <div class="row align-items-center mb-2">
                         <div class="col-12">
                             <h3 class="mb-0">
-                                {{ number_format($netBalance, 0, ',', ' ') }} F CFA
+                                {{ number_format($netBalance, 2, ',', ' ') }} F CFA
                             </h3>
 
                             @if($netBalance >= 0)
@@ -185,7 +185,7 @@
                                         <label>Type</label>
                                         <select name="type" id="type" class="form-select" required>
                                             <option value="">-- Choisir --</option>
-                                            <option value="IN">Entrée</option>
+                                            {{--<option value="IN">Entrée</option>--}}
                                             <option value="OUT">Sortie</option>
                                             <option value="TRANSFER">Transfert</option>
                                         </select>
@@ -196,7 +196,7 @@
                                         <select name="from_cash_id" class="form-select">
                                             <option value="">-- Choisir --</option>
                                             @foreach($cashes as $cash)
-                                                <option value="{{ $cash->id }}">{{ $cash->name }}</option>
+                                                <option value="{{ $cash->id }}">{{ $cash->name }}  ({{ number_format($cash->balance, 2, ',', ' ') }} FCFA)</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -206,7 +206,7 @@
                                         <select name="to_cash_id" class="form-select">
                                             <option value="">-- Choisir --</option>
                                             @foreach($cashes as $cash)
-                                                <option value="{{ $cash->id }}">{{ $cash->name }}</option>
+                                                <option value="{{ $cash->id }}">{{ $cash->name }}  ({{ number_format($cash->balance, 2, ',', ' ') }} FCFA)</option>
                                             @endforeach
                                         </select>
                                     </div>

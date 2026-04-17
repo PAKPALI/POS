@@ -1087,46 +1087,46 @@
             updateOrderCount();
         }
 
-        $('.pos-product').on('click', function(e) {
-            e.preventDefault();
+        // $('.pos-product').on('click', function(e) {
+        //     e.preventDefault();
 
-            let productId = $(this).data('id');
-            let productName = $(this).data('name');
-            let productPrice = $(this).data('price');
-            let productImage = $(this).data('image');
-            let productQte = 1;
+        //     let productId = $(this).data('id');
+        //     let productName = $(this).data('name');
+        //     let productPrice = $(this).data('price');
+        //     let productImage = $(this).data('image');
+        //     let productQte = 1;
 
-            // Verify if product already exist
-            let existingProduct = $(`.pos-order-product[data-product-id="${productId}"]`);
-            if (existingProduct.length > 0) {
-                let quantityInput = existingProduct.find('.quantity-input');
-                quantityInput.val(parseInt(quantityInput.val()) + 1);
-                updateProductTotal(existingProduct, productPrice);
-            } else {
-                let productHtml = `
-                    <div class="pos-order">
-                        <div class="pos-order-product" data-product-id="${productId}">
-                            <div class="img" style="background-image: url(${productImage})"></div>
-                            <div class="flex-1">
-                                <div class="h6 mb-1">${productName}</div>
-                                <div class="small">${productPrice} FCFA</div>
-                                <div class="d-flex">
-                                    <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
-                                    <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}">
-                                    <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
-                                </div>
-                            </div>
-                            <div class="pos-order-price">${productPrice * productQte} FCFA</div>
-                            <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
-                        </div>
-                    </div>
-                `;
+        //     // Verify if product already exist
+        //     let existingProduct = $(`.pos-order-product[data-product-id="${productId}"]`);
+        //     if (existingProduct.length > 0) {
+        //         let quantityInput = existingProduct.find('.quantity-input');
+        //         quantityInput.val(parseInt(quantityInput.val()) + 1);
+        //         updateProductTotal(existingProduct, productPrice);
+        //     } else {
+        //         let productHtml = `
+        //             <div class="pos-order">
+        //                 <div class="pos-order-product" data-product-id="${productId}">
+        //                     <div class="img" style="background-image: url(${productImage})"></div>
+        //                     <div class="flex-1">
+        //                         <div class="h6 mb-1">${productName}</div>
+        //                         <div class="small">${productPrice} FCFA</div>
+        //                         <div class="d-flex">
+        //                             <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
+        //                             <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}">
+        //                             <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
+        //                         </div>
+        //                     </div>
+        //                     <div class="pos-order-price">${productPrice * productQte} FCFA</div>
+        //                     <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
+        //                 </div>
+        //             </div>
+        //         `;
 
-                $('#newOrderTab').append(productHtml);
-                addProduct(productId)
-            }
-            updateTotal();
-        });
+        //         $('#newOrderTab').append(productHtml);
+        //         addProduct(productId)
+        //     }
+        //     updateTotal();
+        // });
 
         function updateProductTotal(productRow, unitPrice) {
             let quantity = productRow.find('.quantity-input').val();

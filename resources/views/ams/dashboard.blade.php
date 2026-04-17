@@ -87,7 +87,7 @@
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
                         <h4 class="mb-0">
-                            {{ number_format($totalSalesAmount, 0, ',', ' ') }} FCFA
+                            {{ number_format($totalSalesAmount, 2, ',', ' ') }} FCFA
                         </h4>
                     </div>
 
@@ -112,7 +112,7 @@
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
                         <h4 class="mb-0 ">
-                            {{ number_format($sale_total_profit, 0, ',', ' ') }} FCFA
+                            {{ number_format($sale_total_profit, 2, ',', ' ') }} FCFA
                         </h4>
                     </div>
 
@@ -157,7 +157,7 @@
                         <td>Solde :</td>
                         <td>
                             <span class="badge bg-secondary">
-                                <strong>{{ number_format($mainCash->balance, 0, ',', ' ') }} FCFA</strong>
+                                <strong>{{ number_format($mainCash->balance, 2, ',', ' ') }} FCFA</strong>
                             </span>
                         </td>
                     </tr>
@@ -185,7 +185,7 @@
                         <td>Solde :</td>
                         <td>
                             <span class="badge bg-secondary">
-                                <strong>{{ number_format($taxCash->balance, 0, ',', ' ') }} FCFA</strong>
+                                <strong>{{ number_format($taxCash->balance, 2, ',', ' ') }} FCFA</strong>
                             </span>
                         </td>
                     </tr>
@@ -260,7 +260,7 @@
                                     {{ $typeName[$t->type] ?? $t->type }}
                                 </span>
                                 <br>
-                                <strong>{{ number_format($t->amount,0,',',' ') }} FCFA</strong>
+                                <strong>{{ number_format($t->amount,2,',',' ') }} FCFA</strong>
                                 <div class="small text-muted mt-1">
                                     @if($t->type == 'IN')
                                         ➜ Caisse :
