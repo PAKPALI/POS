@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Component;
 
-use App\Models\Action;
-use App\Models\Product;
-use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\Action;
+use App\Models\AMS\Setting;
+use App\Models\Category;
+use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
 {
@@ -49,6 +50,12 @@ class ProductController extends Controller
                 })
                 ->editColumn('category_id', function ($Object) {
                     return $Object->category->name;
+                })
+                ->editColumn('price', function ($Object) {
+                    return $Object->price? number_format($Object->price, 0, ',', ' ') . ' FCFA' : '-';
+                })
+                ->editColumn('price_ttc', function ($Object) {
+                    return $Object->price_ttc? number_format($Object->price_ttc, 0, ',', ' ') . ' FCFA' : '-';
                 })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
@@ -125,11 +132,18 @@ class ProductController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
+            $setting = Setting::first();
+            $tax = $setting->default_tax ?? 0;
+
+            // calcul TTC
+            $price_ttc = $request->price + ($request->price * $tax / 100);
+
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
                 'price' => $request-> price,
+                'price_ttc' => $price_ttc,
                 'purchase_price' => $request-> purchase_price,
                 'type' => $request-> type,
                 'margin' => $request-> margin,
@@ -223,12 +237,18 @@ class ProductController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
+            $setting = Setting::first();
+            $tax = $setting->default_tax ?? 0;
+
+            $price_ttc = $request->price + ($request->price * $tax / 100);
+
             $Product = Product::findOrFail($id);
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
                 'price' => $request-> price,
+                'price_ttc' => $price_ttc,
                 'purchase_price' => $request-> purchase_price,
                 'margin' => $request-> margin,
                 'profit' => $request-> profit,

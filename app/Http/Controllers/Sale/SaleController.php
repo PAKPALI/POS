@@ -350,7 +350,6 @@ class SaleController extends Controller
             // search product
             $Product = Product::findOrFail($product['product_id']);
             if (!$Product) {
-                throw new \Exception("Le produit avec l'ID " . $product['product_id'] . " est introuvable.");
                 DB::rollBack();
                 return response()->json([
                     "status" => false,
@@ -405,7 +404,6 @@ class SaleController extends Controller
                 $product->update(['email' => 1]);
             // }
         }else {
-            throw new \Exception("Le produit " . $product->name . " n'a plus de stock disponible pour la quantité demandée.");
             DB::rollBack();
             return response()->json([
                 "status" => false,

@@ -269,7 +269,7 @@
                                             <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
                                                 data-id="<?php echo e($product->id); ?>"
                                                 data-name="<?php echo e($product->name); ?>"
-                                                data-price="<?php echo e($product->price); ?>"
+                                                data-price="<?php echo e($product->price_ttc ?? $product->price); ?>"
                                                 data-image="<?php echo e(asset('images/' . $product->image)); ?>"
                                                 data-qte="<?php echo e($product->qte); ?>"
                                             >
@@ -279,7 +279,7 @@
                                             <div class="info">
                                                 <div class="title">Nom : <?php echo e($product->name); ?>&reg;</div>
                                                 <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
-                                                <div class="title price">Prix : <?php echo e($product->price); ?> FCFA</div>
+                                                <div class="title price">Prix : <?php echo e($product->price_ttc ?? $product->price); ?> FCFA</div>
                                                 <div class="title qte">Quantité : <?php echo e($product->qte); ?></div>
                                             </div>
                                             </a>
@@ -387,7 +387,7 @@
                                                                                             class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU90400</small>
                                                                                     </div> -->
                                                                                     <div class="fw-500 text-inverse"><?php echo e($productDetail->product->name ?? 'Produit supprimé'); ?></div>
-                                                                                    <?php echo e($productDetail->product->price); ?> FCFA
+                                                                                    <?php echo e($productDetail->product->price_ttc ?? $productDetail->product->price); ?> FCFA
                                                                                 </div>
                                                                             </div>
                                                                         </td>

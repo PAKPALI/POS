@@ -173,7 +173,7 @@
 								<div class="app-theme-cover">
 									<div class="app-theme-cover-item active">
 										<a href="javascript:;" class="app-theme-cover-link"
-											
+											style="background-image: url(hub/assets/img/cover/cover-thumb-1.jpg);"
 											data-theme-cover-class data-toggle="theme-cover-selector"
 											data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-container="body"
 											data-bs-title="Default">&nbsp;</a>

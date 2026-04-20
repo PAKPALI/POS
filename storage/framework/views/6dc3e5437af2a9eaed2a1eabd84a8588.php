@@ -33,7 +33,7 @@
                 <input type="number" name="margin" value="<?php echo e($Product->margin); ?>" class="form-control" id="exampleInputText0" placeholder="0">
             </div>
             <div class="form-group col-6 mb-3">
-                <label for="exampleInputText0">Prix unitaire</label>
+                <label for="exampleInputText0">Prix de vente</label>
                 <input type="number" name="price" value="<?php echo e($Product->price); ?>" class="form-control price1" id="exampleInputText0" placeholder="0">
             </div>
             <div class="form-group col-6">
@@ -41,9 +41,14 @@
                 <input type="number" name="purchase_price" value="<?php echo e($Product->purchase_price); ?>" class="form-control purchase_price1" id="exampleInputText0" placeholder="0">
             </div>
 
-            <div class="form-group col-12 mb-3">
+            <div class="form-group col-6 mb-3">
                 <label for="exampleInputText0">Bénefice</label>
                 <input type="number" name="profit" value="<?php echo e($Product->profit); ?>" class="form-control profit1" id="exampleInputText0" readonly placeholder="0">
+            </div>
+
+            <div class="form-group col-6 mb-3">
+                <label for="exampleInputText0">Prix TTC</label>
+                <input type="number" class="form-control price_ttc1" readonly>
             </div>
             <div class="form-group col-12">
                 <label class="form-label" for="smFile">Choisir une image</label>
@@ -145,6 +150,7 @@
             });
         });
 
+        let TAX = <?php echo e(\App\Models\AMS\Setting::first()->default_tax ?? 0); ?>;
         // when unit price and purchase price are updated
         $('.price1, .purchase_price1').on('input', function() {
             // Récupérer les valeurs des champs
@@ -153,9 +159,10 @@
             
             // Calculate profit
             var profit = unitPrice - purchasePrice;
-
-            // Display result in profit field
             $('.profit1').val(profit);
+
+            var ttc = unitPrice + (unitPrice * TAX / 100);
+            $('.price_ttc1').val(ttc.toFixed(0));
         });
     });
 </script><?php /**PATH C:\POS\resources\views/component/product/edit.blade.php ENDPATH**/ ?>

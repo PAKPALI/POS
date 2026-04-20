@@ -89,7 +89,7 @@
                                                 </div>
 
                                                 <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Prix unitaire</label>
+                                                    <label for="exampleInputText0">Prix de vente</label>
                                                     <input type="number" name="price" class="form-control price" id="exampleInputText0" placeholder="0">
                                                 </div>
                                                 <div class="form-group col-6">
@@ -97,11 +97,16 @@
                                                     <input type="number" name="purchase_price" class="form-control purchase_price" id="exampleInputText0" placeholder="0">
                                                 </div>
 
-                                                <div class="form-group col-12 mb-3">
+                                                <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Bénefice</label>
                                                     <input type="number" name="profit" class="form-control profit" id="exampleInputText0" readonly placeholder="0">
                                                 </div>
-                                                
+
+                                                <div class="form-group col-6 mb-3">
+                                                    <label for="exampleInputText0">Prix TTC</label>
+                                                    <input type="number" class="form-control price_ttc" readonly>
+                                                </div>
+
                                                 <div class="form-group col-12">
                                                     <label class="form-label" for="smFile">Choisir une image</label>
                                                     <input type="file" class="form-control form-control-sm" name="image" id="smFile">
@@ -196,7 +201,8 @@
                                                     <th>Nom</th>
                                                     <th>Catégorie</th>
                                                     <th>Quantité</th>
-                                                    <th>Prix</th>
+                                                    <th>Prix HT</th>
+                                                    <th>Prix TTC</th>
                                                     <th>Status</th>
                                                     <!-- <th>Créer par</th> -->
                                                     <!-- <th>Créer le</th> -->
@@ -272,6 +278,7 @@
                     {data: 'category_id',name: 'category_id'},
                     {data: 'qte',name: 'qte'},
                     {data: 'price',name: 'price'},
+                    {data: 'price_ttc', name: 'price_ttc'},
                     {data: 'status',name: 'status'},
                     // {data: 'created_by',name: 'created_by'},
                     // {data: 'created_at',name: 'created_at'},
@@ -463,6 +470,8 @@
                 })
             });
 
+            let TAX = {{ \App\Models\AMS\Setting::first()->default_tax ?? 0 }};
+
             // when unit price and purchase price are updated
             $('.price, .purchase_price').on('input', function() {
                 // Récupérer les valeurs des champs
@@ -471,9 +480,11 @@
                 
                 // Calculate profit
                 var profit = unitPrice - purchasePrice;
-
-                // Display result in profit field
                 $('.profit').val(profit);
+
+                // TTC
+                var ttc = unitPrice + (unitPrice * TAX / 100);
+                $('.price_ttc').val(ttc.toFixed(0));
             });
             
             $('body').on('click', '.archive', function () {

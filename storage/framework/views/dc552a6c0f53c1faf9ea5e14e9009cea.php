@@ -39,13 +39,18 @@
                     </tr>
                     <tr>
                         <th scope="row">5</th>
-                        <td>Prix unitaire : </td>
+                        <td>Prix de vente : </td>
                         <td><?php echo e($Product->price); ?></td>
                     </tr>
                     <tr>
                         <th scope="row">6</th>
                         <td>Prix d'achat : </td>
                         <td><?php echo e($Product->purchase_price); ?></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">5</th>
+                        <td>Prix TTC : </td>
+                        <td><?php echo e($Product->price_ttc??'-'); ?></td>
                     </tr>
                     <tr>
                         <th scope="row">7</th>

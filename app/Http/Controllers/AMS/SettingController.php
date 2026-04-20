@@ -53,7 +53,14 @@ class SettingController extends Controller
                     'default_tax' => $request->default_tax
                 ]
             );
-             CashAccount::setDefaultCash($request->default_cash_id);
+
+            $tax = $request->default_tax;
+            DB::statement("
+                UPDATE products 
+                SET price_ttc = price + (price * ? / 100)
+            ", [$tax]);
+            
+            CashAccount::setDefaultCash($request->default_cash_id);
 
             Action::create([
                 'user_id' => auth()->id(),

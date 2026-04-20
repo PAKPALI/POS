@@ -341,7 +341,7 @@
                                             </div>
                                             <div class="flex-1 ps-3">
                                                 <div class="fw-500 text-inverse">${product ? product.name : 'Produit supprimé'}</div>
-                                                ${product ? product.price + ' FCFA' : ''}
+                                                ${product ? ((product.price_ttc && product.price_ttc > 0 ? product.price_ttc : product.price) + ' FCFA') : ''}
                                             </div>
                                         </div>
                                     </td>
