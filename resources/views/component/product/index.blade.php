@@ -79,11 +79,11 @@
                                                     <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
                                                 </div>
 
-                                                <div class="form-group col-6 mb-3">
+                                                <!-- <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Quantité</label>
                                                     <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
-                                                </div>
-                                                <div class="form-group col-6">
+                                                </div> -->
+                                                <div class="form-group col-12 mb-3">
                                                     <label for="exampleInputText0">Marge de sécurité</label>
                                                     <input type="number" name="margin" value="0" class="form-control" id="exampleInputText0" placeholder="0">
                                                 </div>
