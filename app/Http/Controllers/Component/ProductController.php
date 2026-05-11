@@ -222,7 +222,7 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'category' => ['required'],
             'name' => ['required'],
-            'qte' => ['required', 'numeric', 'min:0'],
+            // 'qte' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
             'purchase_price' => ['required', 'numeric', 'min:0'],
             'margin' => ['numeric', 'min:0'],
@@ -246,7 +246,7 @@ class ProductController extends Controller
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,
-                'qte' => $request-> qte,
+                // 'qte' => $request-> qte??0,
                 'price' => $request-> price,
                 'price_ttc' => $price_ttc,
                 'purchase_price' => $request-> purchase_price,

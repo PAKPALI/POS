@@ -24,11 +24,11 @@
                 <label for="exampleInputText0">Nom</label>
                 <input type="text" name="name" value="<?php echo e($Product->name); ?>" class="form-control" id="exampleInputText0" placeholder="Nom">
             </div>
-            <div class="form-group col-6">
+            <!-- <div class="form-group col-6">
                 <label for="exampleInputText0">Quantité</label>
                 <input type="number" name="qte" value="<?php echo e($Product->qte); ?>" class="form-control" id="exampleInputText0" placeholder="0">
-            </div>
-            <div class="form-group col-6 mb-3">
+            </div> -->
+            <div class="form-group col-12 mb-3">
                 <label for="exampleInputText0">Marge de sécurité</label>
                 <input type="number" name="margin" value="<?php echo e($Product->margin); ?>" class="form-control" id="exampleInputText0" placeholder="0">
             </div>
