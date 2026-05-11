@@ -53,6 +53,14 @@
 							</a>
 						</div>
 					</div>
+
+					<div class="menu-submenu">
+						<div class="menu-item @if(Request::route()->getName() === 'inventory.index') active @endif">
+							<a href="{{ route('inventory.index') }}" class="menu-link">
+								<div class="menu-text">Inventaires</div>
+							</a>
+						</div>
+					</div>
 				</div>
 			@endif
 

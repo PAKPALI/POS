@@ -15,7 +15,7 @@ class SettingController extends Controller
     public function index()
     {
         $setting = Setting::first();
-        $cashes = CashAccount::where('status',1)->get();
+        $cashes = CashAccount::where('status',1)->orderBy('name', 'asc')->get();
 
         return view('ams.settings.index', compact('setting','cashes'));
     }

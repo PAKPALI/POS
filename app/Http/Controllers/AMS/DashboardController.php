@@ -16,8 +16,8 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $Category = Category::all();
-        $Product = Product::all();
+        $Category = Category::where('status',1)->orderBy('name', 'asc')->get();
+        $Product =  $Product = Product::where('status',1)->orderBy('name', 'asc')->get();
 
         $cashAccounts = CashAccount::all();
         $mainCash = CashAccount::where('is_default', 1)->first();

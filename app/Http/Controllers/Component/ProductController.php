@@ -74,7 +74,7 @@ class ProductController extends Controller
                 ->rawColumns(['margin','action','status'])
                 ->make(true);
         }
-        $Category = Category::where('status','1')->latest()->get();
+        $Category = Category::where('status','1')->orderBy('name', 'asc')->get();
         return view('component.product.index',compact('Category'));
     }
 

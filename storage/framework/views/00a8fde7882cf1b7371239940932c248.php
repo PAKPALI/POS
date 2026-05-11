@@ -53,6 +53,14 @@
 							</a>
 						</div>
 					</div>
+
+					<div class="menu-submenu">
+						<div class="menu-item <?php if(Request::route()->getName() === 'inventory.index'): ?> active <?php endif; ?>">
+							<a href="<?php echo e(route('inventory.index')); ?>" class="menu-link">
+								<div class="menu-text">Inventaires</div>
+							</a>
+						</div>
+					</div>
 				</div>
 			<?php endif; ?>
 

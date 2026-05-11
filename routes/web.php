@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CodePromo\CodePromoController;
 use App\Http\Controllers\Company\CompanyController;
 use App\Http\Controllers\Component\CategoryController;
+use App\Http\Controllers\Component\InventoryController;
 use App\Http\Controllers\Component\MenuController;
 use App\Http\Controllers\Component\ProductController;
 use App\Http\Controllers\Sale\SaleController;
@@ -82,6 +83,10 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     //menu
     Route::controller(MenuController::class)->group(function () {
         Route::resource('menu', MenuController::class);
+    });
+    // inventory
+    Route::controller(InventoryController::class)->group(function () {
+        Route::resource('inventory', InventoryController::class);
     });
 });
 

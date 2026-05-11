@@ -25,4 +25,9 @@ class Product extends Model
     {
         return $this->hasMany(MenuProduct::class, 'menu_id', 'id');
     }
+
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class);
+    }
 }
