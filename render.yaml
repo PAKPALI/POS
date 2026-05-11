@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: PRO SELLER
+    env: php
+    plan: free
+    buildCommand: |
+      echo "Building application"
+      php -v
+      php -m
+      # composer install --optimize-autoloader --no-dev
+      php artisan config:cache
+      php artisan route:cache
+      echo "Build complete"
+    startCommand: |
+      echo "Start Command"
+      if php artisan migrate:status; then
+        php artisan migrate
+      else
+        echo "Migration skipped"
+      fi
+      php artisan serve --host=0.0.0.0 --port=$PORT  # Utilisation du port dynamique
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: dpg-ct47td3tq21c7391qh40-a
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: pro_seller
+      - key: DB_USERNAME
+        value: pro_seller_user
+      - key: DB_PASSWORD
+        value: ZHxAZ6pn7VMmhTosShaEf4Jp6j18Zx43
+      - key: APP_URL
+        value: https://pro_seller.onrender.com

@@ -103,6 +103,7 @@
                                                 <th>Créer par</th>
                                                 <th>Créer le</th>
                                                 <th>Status</th>
+                                                <!-- <th>Status</th> -->
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -167,6 +168,7 @@
                     {data: 'created_by',name: 'created_by'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'status',name: 'status'},
+                    // {data: 'status',name: 'status'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
                 responsive: true, 

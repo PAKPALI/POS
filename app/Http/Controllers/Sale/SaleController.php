@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers\Sale;
 
-use Carbon\Carbon;
+use App\Http\Controllers\Controller;
+use App\Models\Action;
+use App\Models\AMS\CashAccount;
+use App\Models\AMS\Setting;
+use App\Models\AMS\Transaction;
+use App\Models\Category;
+use App\Models\CodePromo;
+use App\Models\CompanySetting;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
-use App\Models\Action;
-use App\Models\Product;
-use App\Models\Category;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use App\Services\SmsService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Yajra\DataTables\Facades\DataTables;
 
 class SaleController extends Controller
 {
@@ -30,7 +36,12 @@ class SaleController extends Controller
 
         // get all categories with their associated products
         $Category = Category::with('products')->get();
-        $Product = Product::all();
+        $Product = Product::where('status', 1)->where('qte', '>', 0)->get();
+        $company = CompanySetting::first();
+
+        $mainCash = CashAccount::where('is_default', 1)->first();
+        $taxCash = CashAccount::where('is_tax', 1)->first();
+        $setting  = Setting::first();
 
         // composer require yajra/laravel-datatables-oracle
         $Object = Sale::with('saleDetails.product')->latest()->whereDate('created_at', $today)->get();
@@ -77,9 +88,29 @@ class SaleController extends Controller
         });
 
         // Send data to view
-        return view('pos.sale.index',compact('Category','Product','mostSoldProducts','Object','sale_total_profit','product_count','total_amount'));
+        return view('pos.sale.index',
+            compact(
+                'Category','Product','mostSoldProducts','Object','sale_total_profit',
+                'product_count','total_amount','company','mainCash','taxCash','setting'
+            ));
     }
 
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        // $category = $request->get('category'); // id ou nom selon ton choix
+
+        $products = Product::where('status', 1)->where('qte', '>', 0)->where('name', 'like', "%{$query}%")
+            // ->when($category && $category !== 'all', function ($q) use ($category) {
+            //     $q->where('category_id', $category); // si tu as category_id dans Product
+            // })
+            // ->when(strlen($query) >= 2, function ($q) use ($query) {
+            //     $q->where('name', 'like', "%{$query}%");
+            // })
+            ->get();
+
+        return response()->json($products);
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -252,11 +283,21 @@ class SaleController extends Controller
 
         try {
             DB::beginTransaction();
+            $percent=0;
+            if($request->code_promo){
+                $code_promo = CodePromo::where('code', $request->code_promo)->where('status', 1)->first();
+                $percent = $code_promo->percents;
+            }
 
             // Store sale
             $sale = Sale::create([
                 'code' => $this->code(),
+                'received_amount' => $request->received_amount,
                 'total_amount' => $request->total_amount,
+                'remaining_amount' => $request->received_amount-$request->total_amount,
+                'code_promo' => $percent,
+                'discount' => $request->discount,
+                'amount_init' => $request->discount+$request->total_amount,
                 'cashier' => auth()->user()->name,
             ]);
 
@@ -266,8 +307,16 @@ class SaleController extends Controller
             // Update the total profit in the sale table
             $sale->update(['total_profit' => $totalProfit]);
 
+            // comptabilty run code
+            $this->handleAmsAccounting($sale);
+
             // Generate PDF invoice
             $pdfBase64 = $this->generatePdfInvoice($sale);
+
+            // send sms to client
+            $number = '90859488';
+            $message = 'Vous venez de faire un achat au total de 0FCFA au niveau de LUX-GRILL et nous vous remercions.';
+            // $this->sendSms($number, $message);
 
             // Log action
             Action::create([
@@ -301,7 +350,6 @@ class SaleController extends Controller
             // search product
             $Product = Product::findOrFail($product['product_id']);
             if (!$Product) {
-                throw new \Exception("Le produit avec l'ID " . $product['product_id'] . " est introuvable.");
                 DB::rollBack();
                 return response()->json([
                     "status" => false,
@@ -335,11 +383,9 @@ class SaleController extends Controller
     private function updateProductQuantity($product, $quantity)
     {
         if ($product->qte >= $quantity) {
-            // update new qty of product after sell
             $newQte = $product->qte - $quantity;
             $product->update(['qte' => $newQte]);
 
-            // new moove if the product is menu
             if($product->type == 2){
                 foreach ($product->MenuProducts as $item){
                     $MenuProduct = Product::findOrFail($item->product_id);
@@ -347,20 +393,17 @@ class SaleController extends Controller
                 }
             }
 
-            // check if security margin is affected generaly check if email has been send about this product
-            if($product->email == 0){
-                // check if new qty is < than product margin 
+            // check if security margin is affected
+            // if($product->email == 0){
                 if ($newQte <= $product->margin) {
-                    $users = User::where('status', 1)->get();
+                    $users = User::where('status', 1)->where('user_type','!=', 1)->get();
                     foreach ($users as $user) {
                         $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
                     }
                 }
-                // change product email status to sign that email has been sent about this
                 $product->update(['email' => 1]);
-            }
-        } else {
-            throw new \Exception("Le produit " . $product->name . " n'a plus de stock disponible pour la quantité demandée.");
+            // }
+        }else {
             DB::rollBack();
             return response()->json([
                 "status" => false,
@@ -371,21 +414,54 @@ class SaleController extends Controller
         }
     }
 
+    public function sendSms($number, $message)
+    {
+        $smsService = new SmsService ();
+        $response = $smsService->send($number, $message);
+        log::info($response);
+        return response()->json($response);
+
+        // response example in format json
+        // array (
+        //     'status' => true,
+        //     'message' => 'MESSAGE_SENT_SUCCESSFULLY',
+        //     'data' => 
+        //     array (
+        //         'status' => 1,
+        //         'response_token' => 'push_sms_afgrchw6re2bjnr',
+        //     ),
+        //     'status_code' => 200,
+        // )
+    }
+
     private function generatePdfInvoice($sale)
     {
+        $company = CompanySetting::first();
         $pdf = Pdf::loadView('pos.invoice', [
             'sale' => $sale,
             'saleDetails' => $sale->saleDetails,
+            'company' => $company,
         ])
         ->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
-            'dpi' => 150,
+            'dpi' => 45,
         ])
-        ->setPaper([0, 0, 300, 400], 'portrait'); // Dimensions personnalisées
+        ->setPaper([0, 0, 390, 1000], 'portrait'); // Largeur 58mm (~203 points) // Dimensions personnalisées
 
         //return PDF in base64
         return base64_encode($pdf->output());
+    }
+
+    public function generatePDF($id)
+    {
+        $sale = Sale::findOrFail($id);
+        $saleDetails = $sale->saleDetails;
+
+        $company = CompanySetting::first();
+
+        $pdf = Pdf::loadView('pos.invoice',compact('sale', 'saleDetails','company'));
+        return $pdf->download('Facture' . $sale->code . '.pdf');
     }
 
     // send security margin mail
@@ -398,6 +474,83 @@ class SaleController extends Controller
             $message->to($email);
             $message->subject(config('app.name'));
         });
+    }
+
+    private function handleAmsAccounting($sale)
+    {
+        $setting = Setting::first();
+        if(!$setting){
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "ERREUR COMPTABILITEE",
+                "msg" => "Pas de configuration comptable trouvée",
+            ]);
+        }
+
+        $mainCash = CashAccount::find($setting->default_cash_id);
+        $taxCash = CashAccount::find($setting->tax_cash_id);
+
+        $taxPercent = $setting->default_tax ?? 0;
+
+        // calculate taxe
+        $taxAmount = 0;
+        if($taxPercent > 0){
+            $taxAmount = ($sale->total_amount * $taxPercent) / 100;
+        }
+
+        // net
+        $netAmount = $sale->total_amount;
+
+        // update sale
+        $sale->update([
+            'tax_amount' => $taxAmount
+        ]);
+
+        // =====================
+        // PRINCIPAL CASH ACCOUNT
+        // =====================
+        if($mainCash){
+            $mainCash->increment('balance', $netAmount);
+            Transaction::create([
+                'type' => 'IN',
+                'to_cash_id' => $mainCash->id,
+                'amount' => $netAmount,
+                'description' => 'Vente #' . $sale->code,
+                'created_by' => auth()->id(),
+            ]);
+        }else{
+            return response()->json([
+                "status" => false,
+                "reload" => false,
+                "title" => "ERREUR COMPTABILITEE",
+                "msg" => "Pas de caisse principale trouvée",
+            ]);
+        }
+
+        // =====================
+        // TAXE CASH ACCOUNT
+        // =====================
+        if($taxAmount > 0) {
+            if($taxCash ){
+                $taxCash->increment('balance', $taxAmount);
+                Transaction::create([
+                    'type' => 'IN',
+                    'to_cash_id' => $taxCash->id,
+                    'amount' => $taxAmount,
+                    'description' => 'Taxe vente #' . $sale->code,
+                    'created_by' => auth()->id(),
+                ]);
+            }else{
+                return response()->json([
+                    "status" => false,
+                    "reload" => false,
+                    "title" => "ERREUR COMPTABILITEE",
+                    "msg" => "Pas de caisse taxe trouvée",
+                ]);
+            }
+        }
+        
     }
 
     /**
@@ -417,11 +570,11 @@ class SaleController extends Controller
             if ($daterange) {
                 [$startDate, $endDate] = explode(' - ', $daterange);
                 $startDate = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay()->format('Y-m-d');
-                $endDate = Carbon::createFromFormat('d-m-Y', $endDate)->endOfDay()->format('Y-m-d');
+                $endDate = Carbon::createFromFormat('d-m-Y', $endDate)->format('Y-m-d 23:59:59');
             }else {
                 // Plage de date par défaut : aujourd'hui
                 $startDate = Carbon::today()->startOfDay()->format('Y-m-d');
-                $endDate = Carbon::today()->endOfDay()->format('Y-m-d');
+                $endDate = Carbon::today()->format('Y-m-d 23:59:59');
             }
         
             $Object = Sale::with('saleDetails.product')->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
@@ -450,11 +603,19 @@ class SaleController extends Controller
                 $saleDetail->product = Product::find($saleDetail->product_id);
                 return $saleDetail;
             });
-        
+
             return DataTables::of($Object)
                 ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    return '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
+                ->addColumn('action', function ($row) { 
+                    $company = \App\Models\CompanySetting::first();
+                    $buttons = '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view">
+                        <i class="fas fa-lg fa-fw me-0 fa-eye"></i>
+                    </a>';
+
+                    if ($company AND $company->count() > 0) {
+                        $buttons .= ' <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"> <i class="fas fa-file-pdf"></i> PDF</a>';
+                    }
+                    return $buttons;
                 })
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');

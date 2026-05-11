@@ -41,6 +41,7 @@
     <script>
         $(function() {
             $('#loader').hide();
+
             //ajax pour se connecter
             $('#form_login').submit(function(){
                 event.preventDefault();
@@ -48,7 +49,7 @@
                 $('#loader').fadeIn();
                 $.ajax({
                     type: 'POST',
-                    url: 'login',
+                    url: "{{ route('login') }}",
                     data: $('#form_login').serialize(),
                     datatype: 'json',
                     success: function (data){

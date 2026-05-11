@@ -1,13 +1,21 @@
 <?php
 
+use App\Http\Controllers\AMS\CashAccountController;
+use App\Http\Controllers\AMS\DashboardController;
+use App\Http\Controllers\AMS\SettingController;
+use App\Http\Controllers\AMS\TransactionController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CodePromo\CodePromoController;
+use App\Http\Controllers\Company\CompanyController;
+use App\Http\Controllers\Component\CategoryController;
+use App\Http\Controllers\Component\InventoryController;
+use App\Http\Controllers\Component\MenuController;
+use App\Http\Controllers\Component\ProductController;
+use App\Http\Controllers\Sale\SaleController;
+use App\Http\Controllers\User\UserController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Sale\SaleController;
-use App\Http\Controllers\User\UserController;
-use App\Http\Controllers\Component\MenuController;
-use App\Http\Controllers\Component\ProductController;
-use App\Http\Controllers\Component\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +59,7 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     Route::get('profil', function () {return view('user/profile');})->name('profil');
     // user
     Route::resource('user', UserController::class);
+    // Route::get('getEmployeList', 'getEmployeList')->name('getEmployeList');
     // update email
     Route::post('updateEmail', 'updateEmail');
     // update password
@@ -75,6 +84,10 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     Route::controller(MenuController::class)->group(function () {
         Route::resource('menu', MenuController::class);
     });
+    // inventory
+    Route::controller(InventoryController::class)->group(function () {
+        Route::resource('inventory', InventoryController::class);
+    });
 });
 
 /*manage POS*/
@@ -84,9 +97,40 @@ Route::prefix('pos')->middleware(['auth'])->group(function () {
         Route::resource('sale', SaleController::class);
         //history
         Route::get('history', 'history')->name('history');
+        Route::get('/products/search', 'search')->name('products.search');
+        Route::get('sale/invoice/{id}/pdf', 'generatePDF')->name('codePromo.pdf');
+    });
+});
+
+Route::prefix('code')->middleware(['auth'])->group(function () {
+    //sale
+    Route::controller(CodePromoController::class)->group(function () {
+        Route::resource('code', CodePromoController::class);
+        Route::post('/verify-promo', [CodePromoController::class, 'verifyPromo'])->name('verifyPromo');
+        Route::get('/code-promo/{id}/pdf', [CodePromoController::class, 'generatePDF'])->name('codePromo.pdf');
+    });
+});
+
+Route::prefix('ams')->middleware(['auth'])->group(function () {
+    //dashboard
+    Route::get('/dashboard-ams', [DashboardController::class, 'index'])->name('ams.dashboard');
+    Route::post('/dashboard-ams/stats', [DashboardController::class, 'transactionStats'])->name('ams.stats');
+    // cash account
+    Route::resource('cash-account', CashAccountController::class);
+    Route::resource('transaction', TransactionController::class);
+    // setting
+    Route::get('settings', [SettingController::class, 'index'])->name('ams.settings');
+    Route::post('settings', [SettingController::class, 'store'])->name('ams.settings.store');
+});
+
+Route::prefix('setting')->middleware(['auth'])->group(function () {
+    //company
+    Route::controller(CompanyController::class)->group(function () {
+        Route::resource('company', CompanyController::class);
     });
 });
 
 Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::post('outUser', [UserController::class, 'outUser'])->name('outUser');
+Route::post('/login', [LoginController::class, 'login'])->name('login');

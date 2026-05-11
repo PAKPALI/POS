@@ -88,7 +88,7 @@
                 </div>
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
-                        <h3 class="mb-0">4{{$Sale->count()}}</h3>
+                        <h3 class="mb-0">{{$Sale->count()}}</h3>
                     </div>
                     <div class="col-5">
                         <div class="mt-n3 mb-n2" data-render="apexchart" data-type="bar"
@@ -110,7 +110,7 @@
         </div>
     </div>
 
-
+    @if (auth()->user()->user_type!=3)
     <div class="col-xl-3 col-lg-6">
         <div class="card border-color mb-3">
             <div class="card-body">
@@ -143,6 +143,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="col-xl-8">
         <div class="card mb-3">
@@ -392,7 +393,6 @@
             }
         }, cb);
         cb(start, end);
-
 
         function getCookie(name) {
             const value = `; ${document.cookie}`;

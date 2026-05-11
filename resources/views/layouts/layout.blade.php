@@ -13,6 +13,7 @@
 		<!-- <link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet"> -->
 		<!-- DataTables CSS -->
 		<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+		<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 		 <!--link j-query-->
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 		<style>
@@ -29,11 +30,32 @@
 				transition: transform 0.2s ease;
 				border: 2px solid; /* Bord rouge léger */
 			}
+			#page-preloader {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(255, 255, 255, 0.9); /* Fond opaque */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 99999; /* Couvrir toute la page */
+			}
+			#page-preloader img {
+				width: 150px; /* Ajustez la taille */
+				height: auto;
+				animation: zoom 0.8s infinite ease-in-out, vibrate 0.5s infinite linear;
+			}
 		</style>
 		@stack('css-scripts')
-	</head>
+</head>
 
 	<body>
+		<div id="page-preloader">
+			<img src="{{asset('hub/assets/img/logo.png')}}" alt="Chargement...">
+		</div>
+
 		<div id="app" class="app">
 			<!-- Navbar -->
 				@include('partials.navbar')
@@ -256,9 +278,52 @@
 		<script src="{{asset('cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js')}}" data-cf-settings="9763b948d984f4be9ade72e9-|49" defer></script>
 		<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"8a3d40de7d4c8877","version":"2024.6.1","r":1,"serverTiming":{"name":{"cfL4":true}},"token":"4db8c6ef997743fda032d4f73cfeff63","b":1}' crossorigin="anonymous"></script>
 		<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+		<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 		<!-- DataTables JS -->
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+		
 		<script>
+			const image = document.querySelector("#page-preloader img");
+			let scale = 1; // Échelle initiale
+			let direction = 1; // Indique si on "zoome" ou "dézoome"
+
+			function animateZoom() {
+				// Augmenter ou réduire l'échelle
+				scale += direction * 0.005;
+				
+				// Inverser la direction au seuil
+				if (scale >= 1.2 || scale <= 1) {
+					direction *= -1;
+				}
+
+				// Appliquer la transformation
+				image.style.transform = `scale(${scale})`;
+
+				// Répéter l'animation
+				requestAnimationFrame(animateZoom);
+			}
+			// Lancer l'animation
+			animateZoom();
+			function animateVibrate() {
+				const offsetX = (Math.random() - 0.05) * 4; // Déplacement horizontal
+				const offsetY = (Math.random() - 0.05) * 4; // Déplacement vertical
+
+				image.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+				// Répéter l'animation
+				setTimeout(animateVibrate, 1000);
+			}
+
+			// Lancer l'animation
+			animateVibrate();
+
+
+			window.addEventListener("load", function () {
+				const preloader = document.getElementById("page-preloader");
+				preloader.style.opacity = "0.5"; // Transition douce
+				setTimeout(() => preloader.style.display = "none", 500); // Masque après l'animation
+			});
+
 			$(function () {
 				//ajax pour se deconnecter
 				$('#form-logout').submit(function(){ 

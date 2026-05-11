@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Component;
 
-use App\Models\Action;
-use App\Models\Product;
-use App\Models\Category;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Action;
+use App\Models\AMS\Setting;
+use App\Models\Category;
+use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
 {
@@ -20,7 +22,7 @@ class ProductController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = Product::latest()->get();
+        $Object = Product::where('type',1)->latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -49,6 +51,12 @@ class ProductController extends Controller
                 ->editColumn('category_id', function ($Object) {
                     return $Object->category->name;
                 })
+                ->editColumn('price', function ($Object) {
+                    return $Object->price? number_format($Object->price, 0, ',', ' ') . ' FCFA' : '-';
+                })
+                ->editColumn('price_ttc', function ($Object) {
+                    return $Object->price_ttc? number_format($Object->price_ttc, 0, ',', ' ') . ' FCFA' : '-';
+                })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
                         $btn = ' <a class="btn btn-success btn-sm">Actif</a>';
@@ -66,7 +74,7 @@ class ProductController extends Controller
                 ->rawColumns(['margin','action','status'])
                 ->make(true);
         }
-        $Category = Category::where('status','1')->latest()->get();
+        $Category = Category::where('status','1')->orderBy('name', 'asc')->get();
         return view('component.product.index',compact('Category'));
     }
 
@@ -90,9 +98,15 @@ class ProductController extends Controller
             "name.required" => "Remplir le champ Nom!",
             "qte.required" => "Remplir le champ Quantité!",
             "qte.numeric" => "Le champ Quantité doit être un nombre!",
+            "qte.min" => "La quantité ne doit pas être négative!",
             "price.required" => "Remplir le champ Prix unitaire!",
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
-            // "margin.required" => "Remplir le champ Marge de sécurité!",
+            "price.min" => "Le prix unitaire ne doit pas être négatif!",
+            "purchase_price.required" => "Remplir le champ Prix d'achat!",
+            "purchase_price.numeric" => "Le champ Prix d'achat doit être un nombre!",
+            "purchase_price.min" => "Le Prix d'achat ne doit pas être négatif!",
+            "margin.numeric" => "Le champ Marge doit être un nombre!",
+            "margin.min" => "La marge ne doit pas être négative!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
@@ -102,11 +116,13 @@ class ProductController extends Controller
             'type' => ['required', 'numeric'],
             'category' => ['required'],
             'name' => ['required'],
-            'qte' => ['required', 'numeric'],
-            'price' => ['required', 'numeric'],
-            'margin' => ['numeric'],
+            'qte' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['required', 'numeric', 'min:0'],
+            'margin' => ['numeric', 'min:0'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ], $error_messages);
+        
         
         if($validator->fails())
             return response()->json([
@@ -116,17 +132,18 @@ class ProductController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            Action::create([
-                'user_id' => auth()->user()->id,
-                'function' => 'AJOUT PRODUIT',
-                'text' => auth()->user()->name." a créer un nouveau produit '".$request->name."'",
-            ]);
+            $setting = Setting::first();
+            $tax = $setting->default_tax ?? 0;
+
+            // calcul TTC
+            $price_ttc = $request->price + ($request->price * $tax / 100);
 
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
                 'price' => $request-> price,
+                'price_ttc' => $price_ttc,
                 'purchase_price' => $request-> purchase_price,
                 'type' => $request-> type,
                 'margin' => $request-> margin,
@@ -188,9 +205,15 @@ class ProductController extends Controller
             "name.required" => "Remplir le champ Nom!",
             "qte.required" => "Remplir le champ Quantité!",
             "qte.numeric" => "Le champ Quantité doit être un nombre!",
+            "qte.min" => "La quantité ne doit pas être négative!",
             "price.required" => "Remplir le champ Prix unitaire!",
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
-            // "margin.required" => "Remplir le champ Marge de sécurité!",
+            "price.min" => "Le prix unitaire ne doit pas être négatif!",
+            "purchase_price.required" => "Remplir le champ Prix d'achat!",
+            "purchase_price.numeric" => "Le champ Prix d'achat doit être un nombre!",
+            "purchase_price.min" => "Le Prix d'achat ne doit pas être négatif!",
+            "margin.numeric" => "Le champ Marge doit être un nombre!",
+            "margin.min" => "La marge ne doit pas être négative!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
@@ -199,8 +222,10 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'category' => ['required'],
             'name' => ['required'],
-            'qte' => ['required', 'numeric'],
-            'margin' => ['numeric'],
+            'qte' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['required', 'numeric', 'min:0'],
+            'margin' => ['numeric', 'min:0'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
         ], $error_messages);
 
@@ -212,12 +237,18 @@ class ProductController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
+            $setting = Setting::first();
+            $tax = $setting->default_tax ?? 0;
+
+            $price_ttc = $request->price + ($request->price * $tax / 100);
+
             $Product = Product::findOrFail($id);
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
                 'price' => $request-> price,
+                'price_ttc' => $price_ttc,
                 'purchase_price' => $request-> purchase_price,
                 'margin' => $request-> margin,
                 'profit' => $request-> profit,
@@ -241,7 +272,8 @@ class ProductController extends Controller
 
             // verify if new qte of product > product margin
             if ($Product->email ==1) {
-                if ($request->qte > $Product->margin) {
+                if ($request->qte > $request->margin) {
+                    // Log::info('ok');
                     $data['email'] = 0;
                 }
             }

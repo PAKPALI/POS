@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Product extends Model
 {
     use HasFactory;
-    protected $fillable = ['category_id','name','created_by','qte','price','purchase_price','margin','profit','image','status','email','type'];
+    protected $fillable = ['category_id','name','created_by','qte','price','purchase_price','price_ttc','margin','profit','image','status','email','type'];
 
     public function category()
     {
@@ -24,5 +24,10 @@ class Product extends Model
     public function MenuProducts()
     {
         return $this->hasMany(MenuProduct::class, 'menu_id', 'id');
+    }
+
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class);
     }
 }
