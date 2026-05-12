@@ -315,8 +315,8 @@ class SaleController extends Controller
 
             // send sms to client
             $number = '90859488';
-            $message = 'Vous venez de faire un achat au total de 0FCFA au niveau de LUX-GRILL et nous vous remercions.';
-            // $this->sendSms($number, $message);
+            $message = 'Vous venez de faire un achat au total de '.$request->total_amount.' FCFA au niveau de LUX-GRILL et nous vous remercions.';
+            $this->sendSms($number, $message);
 
             // Log action
             Action::create([

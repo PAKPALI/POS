@@ -10,6 +10,7 @@ class SmsService
     protected $token;
     protected $key;
     protected $sender;
+    protected $sender_id;
     protected $responseUrl;
 
     public function __construct()
@@ -18,6 +19,7 @@ class SmsService
         $this->token = config('services.kprimesms.token');
         $this->key = config('services.kprimesms.key');
         $this->sender = config('services.kprimesms.sender');
+        $this->sender_id = config('services.kprimesms.sender_id');
         $this->responseUrl = config('services.kprimesms.response_url');
     }
 
@@ -29,6 +31,7 @@ class SmsService
             'key' => $this->key,
         ])->post($this->baseUrl, [
             'sender' => $this->sender,
+            'sender_id' => $this->sender_id,
             'country' => 'TG',
             'phone_number' => $phoneNumber,
             'message' => $message,
