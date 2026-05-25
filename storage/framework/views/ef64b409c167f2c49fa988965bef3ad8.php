@@ -1,13 +1,11 @@
-@extends('layouts.layout_admin')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="register">
         <div class="register-content p-2">
             <form  id="form">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <h1 class="text-center">INSCRIPTION</h1>
-                <p class="text-inverse text-opacity-50 text-center">{{ config('app.name') }}</p>
-                <!-- <p class="text-inverse text-opacity-50 text-center">PRO-SELLER</p> -->
+                <!-- <p class="text-inverse text-opacity-50 text-center"><?php echo e(config('app.name')); ?></p> -->
+                <p class="text-inverse text-opacity-50 text-center">PRO-SELLER</p>
                 <div class="mb-3">
                     <label class="form-label">Nom <span class="text-danger">*</span></label>
                     <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" placeholder="nom" name="name" value>
@@ -59,7 +57,7 @@
                 $('#loader').fadeIn();
                 $.ajax({
                     type: 'POST',
-                    url: "{{ route('admin_register') }}",
+                    url: "<?php echo e(route('admin_register')); ?>",
                     data: $('#form').serialize(),
                     datatype: 'json',
                     success: function (data){
@@ -130,4 +128,5 @@
             });
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.layout_admin', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\POS\resources\views/admin/register.blade.php ENDPATH**/ ?>

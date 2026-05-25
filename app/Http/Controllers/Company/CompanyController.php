@@ -118,14 +118,26 @@ class CompanyController extends Controller
             ]);
 
             $Company = CompanySetting::findOrFail($id);
-            $Company->update([
-                'name' => $request-> name,
-                'email' => $request-> email,
-                'adress' => $request-> adress,
-                'number1' => $request-> number1,
-                'number2' => $request-> number2,
-                'message' => $request-> message,
-            ]);
+            if($Company->created_by == NULL){
+                $Company->update([
+                    'name' => $request-> name,
+                    'created_by' => Auth::user()->id,
+                    'email' => $request-> email,
+                    'adress' => $request-> adress,
+                    'number1' => $request-> number1,
+                    'number2' => $request-> number2,
+                    'message' => $request-> message,
+                ]);
+            }else{
+                $Company->update([
+                    'name' => $request-> name,
+                    'email' => $request-> email,
+                    'adress' => $request-> adress,
+                    'number1' => $request-> number1,
+                    'number2' => $request-> number2,
+                    'message' => $request-> message,
+                ]);
+            }
 
             return response()->json([
                 "status" => true,

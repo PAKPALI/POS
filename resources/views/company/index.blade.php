@@ -33,49 +33,49 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
-                                    <form id="add">
-                                        @csrf
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText0">Nom</label>
-                                                    <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
+                                        <form id="add">
+                                            @csrf
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="form-group col-6">
+                                                        <label for="exampleInputText0">Nom</label>
+                                                        <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
+                                                    </div>
+                                                    <div class="form-group col-6">
+                                                        <label for="exampleInputText1">Email</label>
+                                                        <input type="text" name="email" class="form-control" id="exampleInputText1" placeholder="Email">
+                                                    </div>
                                                 </div>
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText1">Email</label>
-                                                    <input type="text" name="email" class="form-control" id="exampleInputText1" placeholder="Email">
-                                                </div>
-                                            </div>
 
-                                            <div class="row mt-4">
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText2">Numéro 1</label>
-                                                    <input type="number" name="number1" class="form-control" id="exampleInputText2" placeholder="Numéro 1">
+                                                <div class="row mt-4">
+                                                    <div class="form-group col-6">
+                                                        <label for="exampleInputText2">Numéro 1</label>
+                                                        <input type="number" name="number1" class="form-control" id="exampleInputText2" placeholder="Numéro 1">
+                                                    </div>
+                                                    <div class="form-group col-6">
+                                                        <label for="exampleInputText3">Numéro 2</label>
+                                                        <input type="number" name="number2" class="form-control" id="exampleInputText3" placeholder="Numéro 2">
+                                                    </div>
                                                 </div>
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText3">Numéro 2</label>
-                                                    <input type="number" name="number2" class="form-control" id="exampleInputText3" placeholder="Numéro 2">
-                                                </div>
-                                            </div>
 
-                                            <div class="row mt-4">
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText4">Adresse</label>
-                                                    <input type="text" name="adress" class="form-control" id="exampleInputText4" placeholder="Adresse">
-                                                </div>
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText5">Message</label>
-                                                    <input type="text" name="message" class="form-control" id="exampleInputText5" placeholder="Message">
+                                                <div class="row mt-4">
+                                                    <div class="form-group col-6">
+                                                        <label for="exampleInputText4">Adresse</label>
+                                                        <input type="text" name="adress" class="form-control" id="exampleInputText4" placeholder="Adresse">
+                                                    </div>
+                                                    <div class="form-group col-6">
+                                                        <label for="exampleInputText5">Message</label>
+                                                        <input type="text" name="message" class="form-control" id="exampleInputText5" placeholder="Message">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="card-footer mt-4">
-                                            <button type="submit" class="btn btn-primary">
-                                                <div id="loader" class="spinner-grow"></div>
-                                                <div id="submitText">Valider</div>
-                                            </button> 
-                                        </div>
-                                    </form>
+                                            <div class="card-footer mt-4">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <div id="loader" class="spinner-grow"></div>
+                                                    <div id="submitText">Valider</div>
+                                                </button> 
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
