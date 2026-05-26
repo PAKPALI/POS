@@ -262,7 +262,7 @@
 
                         <!-- product list -->
                         <?php $__currentLoopData = $Category->where('status',1); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <?php $__currentLoopData = $category->products->where('status',1); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php $__currentLoopData = $category->products->where('status',1)->where('qte', '>', 0); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="<?php echo e($category->name); ?>">
                                     <div class="card h-100">
                                         <div class="card-body products h-100 p-1">
@@ -274,14 +274,21 @@
                                                 data-qte="<?php echo e($product->qte); ?>"
                                             >
 
-                                            <!-- 1440 * 1024 -->
-                                            <div class="img" style="background-image: url(<?php echo e(asset('images/' . $product->image)); ?>); background-size: cover; background-position: center; width: 100%; height: 150px;"></div>
-                                            <div class="info">
-                                                <div class="title">Nom : <?php echo e($product->name); ?>&reg;</div>
-                                                <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
-                                                <div class="title price">Prix : <?php echo e($product->price_ttc ?? $product->price); ?> FCFA</div>
-                                                <div class="title qte">Quantité : <?php echo e($product->qte); ?></div>
-                                            </div>
+                                                <!-- 1440 * 1024 -->
+                                                <div class="img" style=" background-image: url('<?php echo e(asset('images/' . $product->image)); ?>');
+                                                    background-size: contain;
+                                                    background-repeat: no-repeat;
+                                                    background-position: center;
+                                                    width: 100%;
+                                                    height: 300px;
+                                                ">
+                                                </div>
+                                                <div class="info">
+                                                    <div class="title">Nom : <?php echo e($product->name); ?>&reg;</div>
+                                                    <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
+                                                    <div class="title price">Prix : <?php echo e($product->price_ttc ?? $product->price); ?> FCFA</div>
+                                                    <div class="title qte">Quantité : <?php echo e($product->qte); ?></div>
+                                                </div>
                                             </a>
                                         </div>
                                         <div class="card-arrow">

@@ -495,12 +495,13 @@ class SaleController extends Controller
 
         // calculate taxe
         $taxAmount = 0;
+        $netAmount = $sale->total_amount;
         if($taxPercent > 0){
-            $taxAmount = ($sale->total_amount * $taxPercent) / 100;
+            $netAmount = $sale->total_amount / (1 + ($taxPercent / 100));
         }
 
-        // net
-        $netAmount = $sale->total_amount;
+        //tax amount
+        $taxAmount = $sale->total_amount - $netAmount;
 
         // update sale
         $sale->update([

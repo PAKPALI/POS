@@ -262,7 +262,7 @@
 
                         <!-- product list -->
                         @foreach($Category->where('status',1) as $category)
-                            @foreach($category->products->where('status',1) as $product)
+                            @foreach($category->products->where('status',1)->where('qte', '>', 0) as $product)
                                 <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="{{ $category->name }}">
                                     <div class="card h-100">
                                         <div class="card-body products h-100 p-1">
@@ -274,14 +274,21 @@
                                                 data-qte="{{ $product->qte }}"
                                             >
 
-                                            <!-- 1440 * 1024 -->
-                                            <div class="img" style="background-image: url({{ asset('images/' . $product->image) }}); background-size: cover; background-position: center; width: 100%; height: 150px;"></div>
-                                            <div class="info">
-                                                <div class="title">Nom : {{ $product->name }}&reg;</div>
-                                                <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
-                                                <div class="title price">Prix : {{ $product->price_ttc ?? $product->price }} FCFA</div>
-                                                <div class="title qte">Quantité : {{ $product->qte }}</div>
-                                            </div>
+                                                <!-- 1440 * 1024 -->
+                                                <div class="img" style=" background-image: url('{{ asset('images/' . $product->image) }}');
+                                                    background-size: contain;
+                                                    background-repeat: no-repeat;
+                                                    background-position: center;
+                                                    width: 100%;
+                                                    height: 300px;
+                                                ">
+                                                </div>
+                                                <div class="info">
+                                                    <div class="title">Nom : {{ $product->name }}&reg;</div>
+                                                    <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
+                                                    <div class="title price">Prix : {{ $product->price_ttc ?? $product->price }} FCFA</div>
+                                                    <div class="title qte">Quantité : {{ $product->qte }}</div>
+                                                </div>
                                             </a>
                                         </div>
                                         <div class="card-arrow">

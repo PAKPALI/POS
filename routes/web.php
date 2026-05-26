@@ -80,6 +80,8 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     Route::controller(ProductController::class)->group(function () {
         Route::resource('product', ProductController::class);
     });
+    Route::get('product/export/pdf', [ProductController::class, 'exportPdf'])
+    ->name('product.export.pdf');
     //menu
     Route::controller(MenuController::class)->group(function () {
         Route::resource('menu', MenuController::class);

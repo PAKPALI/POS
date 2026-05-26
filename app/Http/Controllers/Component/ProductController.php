@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Action;
 use App\Models\AMS\Setting;
 use App\Models\Category;
+use App\Models\CompanySetting;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -293,6 +295,14 @@ class ProductController extends Controller
                 "title" => "MISE A JOUR REUSSIE",
                 "msg" => "La catégorie au nom de '".$request-> name."' a bien été mis à jour".$request-> profit
             ]);
+    }
+
+    public function exportPdf()
+    {
+        $products = Product::where('type', 1)->latest()->get();
+        $company = CompanySetting::first();
+        $pdf = Pdf::loadView('component.product.pdf', compact('products', 'company'));
+        return $pdf->download('liste-produits-' . strtoupper($company->name ?? config('app.name')) . '.pdf');
     }
 
     /**

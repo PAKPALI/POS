@@ -189,6 +189,9 @@
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
                                         <span class="flex-grow-1"><h4>Listes des produits</h4></span>
+                                        <a href="{{ route('product.export.pdf') }}" class="btn btn-secondary me-2">
+                                            Liste PDF
+                                        </a>
                                         <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
