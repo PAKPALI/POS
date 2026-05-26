@@ -33,7 +33,7 @@
                                 <a class="nav-link active" href="#" data-filter="all">
                                     <div class="card">
                                         <div class="card-body">
-                                            <i class="fa fa-fw fa-utensils"></i> Tous
+                                            <i class="fa fa-th-large"></i> Tous
                                             ( <span><?php echo e($Product->where('status',1)->count()); ?></span> )
                                         </div>
                                         <div class="card-arrow">
@@ -51,7 +51,7 @@
                                 <a class="nav-link" href="#" data-filter="<?php echo e($category->name); ?>">
                                     <div class="card">
                                         <div class="card-body">
-                                            <i class="fa fa-fw fa-drumstick-bite"></i> <?php echo e($category->name); ?>
+                                            <i class="fa fa-tags"></i> <?php echo e($category->name); ?>
 
                                             ( <span><?php echo e($category->products->count()); ?></span> )
                                         </div>
@@ -276,11 +276,11 @@
 
                                                 <!-- 1440 * 1024 -->
                                                 <div class="img" style=" background-image: url('<?php echo e(asset('images/' . $product->image)); ?>');
-                                                    background-size: contain;
+                                                    background-size: cover;
                                                     background-repeat: no-repeat;
                                                     background-position: center;
                                                     width: 100%;
-                                                    height: 300px;
+                                                    height: 100%;
                                                 ">
                                                 </div>
                                                 <div class="info">
@@ -458,8 +458,8 @@
                             <div>Total</div>
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
-                        <div class="bg-light">
-                        <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div>
+                        <!-- <div class="bg-light"> -->
+                        <!-- <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div> -->
                         
                         <!-- <form action=""> -->
                             <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
