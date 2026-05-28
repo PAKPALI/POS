@@ -161,12 +161,59 @@
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
                                         <span class="flex-grow-1"><h4>Listes des produits</h4></span>
-                                        <a href="<?php echo e(route('product.export.pdf')); ?>" class="btn btn-secondary me-2">
-                                            Liste PDF
-                                        </a>
-                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
+                                        <button type="button" id="exportPdf" class="btn btn-secondary mb-1 me-2 text-right">PDF</button>
+                                        <button type="button" class="btn btn-primary mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
+                                    <hr class="">
+                                    <div class="accordion" id="accordionExample">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingTwo">
+                                                <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                                    FILTRER PAR :
+                                                </button>
+                                            </h2>
+                                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                                <div class="accordion-body">
+                                                    <div class="row mb-2">
+                                                        <div class="col-md-4 mb-2">
+                                                            <label>Catégorie</label>
+                                                            <select class="form-select" id="filter_category">
+                                                                <option value="">Toutes les catégories</option>
+
+                                                                <?php $__currentLoopData = $Category; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                    <option value="<?php echo e($cat->id); ?>">
+                                                                        <?php echo e($cat->name); ?>
+
+                                                                    </option>
+                                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-4 mb-2">
+                                                            <label>Quantité</label>
+                                                            <select class="form-select" id="filter_qte">
+                                                                <option value="">Tous</option>
+                                                                <option value="with">Avec quantité</option>
+                                                                <option value="without">Sans quantité</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-4 mb-2">
+                                                            <label>Status</label>
+                                                            <select class="form-select" id="filter_status">
+                                                                <option value="">Tous</option>
+                                                                <option value="1">Actif</option>
+                                                                <option value="0">Inactif</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="mb-3">
                                     <div class="table-responsive">
                                         <table id="datatable" class="table text-nowrap w-100">
                                             <thead>
@@ -238,7 +285,14 @@
             var Datatable = $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "<?php echo e(route('product.index')); ?>",
+                ajax: {
+                    url: "<?php echo e(route('product.index')); ?>",
+                    data: function(d){
+                        d.category_id = $('#filter_category').val();
+                        d.qte = $('#filter_qte').val();
+                        d.status = $('#filter_status').val();
+                    }
+                },
                 columns: [
                     {data: 'id',name: 'id'},
                     {data: 'margin',name: 'margin'},
@@ -301,6 +355,10 @@
 
             window.addEventListener('datatableUpdated', function() {
                 Datatable.ajax.reload(null, false);
+            });
+
+            $('#filter_category, #filter_qte, #filter_status').on('change', function(){
+                Datatable.draw();
             });
 
             //Add category
@@ -557,6 +615,21 @@
                         });
                     }
                 })
+            });
+
+            $('#exportPdf').on('click', function(e){
+                e.preventDefault();
+
+                let params = $.param({
+                    category_id: $('#filter_category').val(),
+                    qte: $('#filter_qte').val(),
+                    status: $('#filter_status').val()
+                });
+
+                window.open(
+                    "<?php echo e(route('product.export.pdf')); ?>?" + params,
+                    '_blank'
+                );
             });
         });
     </script>

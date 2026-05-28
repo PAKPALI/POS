@@ -69,6 +69,50 @@
                             </div>
                         </div>
 
+                        <!-- remove modal -->
+                        <div class="modal modal fade" id="removeModal">
+                            <div class="modal-dialog modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger">
+                                        <h3 class="modal-title">Retirer inventaire</h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                    <form id="remove">
+                                        @csrf
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="form-group col-6">
+                                                    <label for="product_id">Produit</label>
+                                                    <select name="product_id" id="product_id" class="form-select">
+                                                        <option value="">Sélectionner un produit</option>
+                                                        @foreach($Product->where('qte', '>', 0) as $item)
+                                                            <option value="{{$item->id}}">{{$item->name}} ({{$item->qte}})</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="form-group col-6">
+                                                    <label for="qte_removed">Quantité retirée</label>
+                                                    <input type="number" name="qte_removed" id="qte_removed" class="form-control" placeholder="Quantité retirée">
+                                                </div>
+                                                <div class="form-group col-12 mt-3">
+                                                    <label for="qte_before">Note</label>
+                                                    <textarea name="note" id="note" class="form-control" placeholder="Note"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer mt-4">
+                                            <button type="submit" class="btn btn-danger">
+                                                <div id="loader2" class="spinner-grow"></div>
+                                                <div id="submitText2">Valider</div>
+                                            </button> 
+                                        </div>
+                                    </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- view modal -->
                         <div class="modal fade" id="showModal">
                             <div class="modal-dialog modal-xl">
@@ -89,43 +133,70 @@
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
                                         <span class="flex-grow-1"><h4>Listes des inventaires</h4></span>
-                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
+                                        <button type="button" class="btn btn-xs btn-secondary mb-1 me-2 text-right" id="exportPdf">PDF</button>
+                                        <button type="button" class="btn btn-xs btn-primary mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Entrée</button>
+                                        <button type="button" class="btn btn-xs btn-danger mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#removeModal">Sortie</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
-                                    <div class="row mb-5">
+                                    <hr class="">
+                                    <div class="accordion" id="accordionExample">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="headingTwo">
+                                                <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                                    FILTRER PAR :
+                                                </button>
+                                            </h2>
+                                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                                <div class="accordion-body">
+                                                    <div class="row mb-2">
+                                                        <div class="col-md-3 mb-2">
+                                                            <label>Type</label>
+                                                            <select class="form-select" id="type">
+                                                                <option value="">Choisir Type</option>
+                                                                <option value="1">Entrée</option>
+                                                                <option value="2">Sortie</option>
+                                                            </select>
+                                                        </div>
 
-                                        <div class="col-md-4">
-                                            <label>Produit</label>
-                                            <select class="form-select" id="filter_product">
-                                                <option value="">Tous les produits</option>
+                                                        <div class="col-md-3 mb-2">
+                                                            <label>Produit</label>
+                                                            <select class="form-select" id="filter_product">
+                                                                <option value="">Tous les produits</option>
 
-                                                @foreach($Product as $prod)
-                                                    <option value="{{ $prod->id }}">
-                                                        {{ $prod->name }} ({{ $prod->qte }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
+                                                                @foreach($Product as $prod)
+                                                                    <option value="{{ $prod->id }}">
+                                                                        {{ $prod->name }} ({{ $prod->qte }})
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-3 mb-2">
+                                                            <label>Date début</label>
+                                                            <input type="date" class="form-control" id="start_date">
+                                                        </div>
+
+                                                        <div class="col-md-3 mb-2">
+                                                            <label>Date fin</label>
+                                                            <input type="date" class="form-control" id="end_date">
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-
-                                        <div class="col-md-3">
-                                            <label>Date début</label>
-                                            <input type="date" class="form-control" id="start_date">
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <label>Date fin</label>
-                                            <input type="date" class="form-control" id="end_date">
-                                        </div>
-
                                     </div>
+                                    <hr class="mb-3">
                                     <div class="table-responsive">
                                         <table id="datatable" class="table text-nowrap w-100">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
+                                                    <th>Type</th>
                                                     <th>Produit</th>
                                                     <th>Qté avant</th>
-                                                    <th>Qté ajoutée</th>
+                                                    <th>Qté saisie</th>
                                                     <th>Qté après</th>
                                                     <th>Créer par</th>
                                                     <th>Créer le</th>
@@ -182,6 +253,7 @@
         $(function() {
             // hide loader
             $('#loader').hide();
+            $('#loader2').hide();
 
             var Datatable = $('#datatable').DataTable({
                 processing: true,
@@ -189,6 +261,7 @@
                 ajax: {
                     url: "{{ route('inventory.index') }}",
                     data: function (d) {
+                        d.type = $('#type').val();
                         d.product_id = $('#filter_product').val();
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
@@ -196,6 +269,7 @@
                 },
                 columns: [
                     {data: 'id',name: 'id'},
+                    {data: 'type',name: 'type'},
                     {data: 'product_id',name: 'product_id'},
                     {data: 'qte_before',name: 'qte_before'},
                     {data: 'qte_added',name: 'qte_added'},
@@ -251,7 +325,7 @@
                 },
             });
 
-            $('#filter_product, #start_date, #end_date').on('change', function(){
+            $('#filter_product, #start_date, #end_date, #type').on('change', function(){
                 Datatable.draw();
             });
 
@@ -318,6 +392,64 @@
                 return false;
             });
 
+            $('#remove').submit(function() {
+                event.preventDefault();
+                $('#loader2').fadeIn();
+                $('#submitText2').hide();
+                $.ajax({
+                    type: 'POST',
+                    url: "{{ route('inventory.remove') }}",
+                    //enctype: 'multipart/form-data',
+                    data: $('#remove').serialize(),
+                    datatype: 'json',
+                    success: function(data) {
+                        console.log(data)
+                        if (data.status) {
+                            $('#loader2').hide();
+                            $('#submitText2').fadeIn();
+                            Swal.fire({
+                                toast: true,
+                                position: 'top',
+                                icon: "success",
+                                title: data.title,
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                text: data.msg,
+                            });
+                            
+                            $('#removeModal').modal('hide');
+                            Datatable.draw();
+                        } else {
+                            $('#loader2').hide();
+                            $('#submitText2').fadeIn();
+                            Swal.fire({
+                                toast: true,
+                                position: 'top',
+                                icon: "error",
+                                title: data.title,
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                text: data.msg,
+                            });
+                        }
+                    },
+                    error: function(data) {
+                        console.log(data)
+                        $('#loader').hide();
+                        $('#submitText').fadeIn();
+                        Swal.fire({
+                            icon: "error",
+                            title: "erreur",
+                            text: "Impossible de communiquer avec le serveur.",
+                            timer: 3600,
+                        })
+                    }
+                });
+                return false;
+            });
+
             $('body').on('click', '.view', function () {
                 var id = $(this).data("id");
                 $.ajax({
@@ -329,6 +461,19 @@
                     }
                 });
                 $('#showModal').modal('show');
+            });
+
+            $('#exportPdf').on('click', function(e){
+                e.preventDefault();
+
+                let params = $.param({
+                    type: $('#type').val(),
+                    product_id: $('#filter_product').val(),
+                    start_date: $('#start_date').val(),
+                    end_date: $('#end_date').val()
+                });
+
+                window.open("{{ route('inventory.export.pdf') }}?" + params, '_blank');
             });
         }); 
     </script>

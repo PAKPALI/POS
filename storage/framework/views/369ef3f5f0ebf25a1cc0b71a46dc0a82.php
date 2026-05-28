@@ -68,7 +68,7 @@
 			<button class="app-sidebar-mobile-backdrop" data-toggle-target=".app"
 			data-toggle-class="app-sidebar-mobile-toggled"></button>
 
-			<div id="content" class="app-content">
+			<div id="content" class="app-content " style="background-color: black;">
 				<?php echo $__env->yieldContent('content'); ?>
 			</div>
 

@@ -89,6 +89,8 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     // inventory
     Route::controller(InventoryController::class)->group(function () {
         Route::resource('inventory', InventoryController::class);
+        Route::post('inventory-remove', 'remove')->name('inventory.remove');
+        Route::get('inventory/export/pdf', [InventoryController::class, 'exportPdf'])->name('inventory.export.pdf');
     });
 });
 

@@ -79,7 +79,7 @@
 			<img src="<?php echo e(asset('hub/assets/img/logo.png')); ?>" alt="Chargement...">
 		</div>
 
-			<div id="app" class="app app-content-full-height app-without-sidebar app-without-header">
+			<div id="app" class="app app-content-full-height app-without-sidebar app-without-header" style="background-color: black;">
 				<?php echo $__env->yieldContent('content'); ?>
 			</div>
 

@@ -21,10 +21,28 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = Product::where('type',1)->latest()->get();
+        $query = Product::where('type',1);
+
+        if($request->category_id){
+            $query->where('category_id', $request->category_id);
+        }
+
+        if($request->status !== null && $request->status !== ''){
+            $query->where('status', $request->status);
+        }
+
+        if($request->qte == 'with'){
+            $query->where('qte', '>', 0);
+        }
+
+        if($request->qte == 'without'){
+            $query->where('qte', '<=', 0);
+        }
+
+        $Object = $query->latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -297,11 +315,40 @@ class ProductController extends Controller
             ]);
     }
 
-    public function exportPdf()
+    // public function exportPdf()
+    // {
+    //     $products = Product::where('type', 1)->where('status', 1)->latest()->get();
+    //     $company = CompanySetting::first();
+    //     $pdf = Pdf::loadView('component.product.pdf', compact('products', 'company'));
+    //     return $pdf->download('liste-produits-' . strtoupper($company->name ?? config('app.name')) . '.pdf');
+    // }
+
+    public function exportPdf(Request $request)
     {
-        $products = Product::where('type', 1)->latest()->get();
+        $query = Product::where('type', 1);
+
+        if($request->category_id){
+            $query->where('category_id', $request->category_id);
+        }
+
+        if($request->status !== null && $request->status !== ''){
+            $query->where('status', $request->status);
+        }
+
+        if($request->qte == 'with'){
+            $query->where('qte', '>', 0);
+        }
+
+        if($request->qte == 'without'){
+            $query->where('qte', '<=', 0);
+        }
+
+        $products = $query->latest()->get();
+
         $company = CompanySetting::first();
-        $pdf = Pdf::loadView('component.product.pdf', compact('products', 'company'));
+
+        $pdf = Pdf::loadView('component.product.pdf',compact('products', 'company'));
+
         return $pdf->download('liste-produits-' . strtoupper($company->name ?? config('app.name')) . '.pdf');
     }
 
