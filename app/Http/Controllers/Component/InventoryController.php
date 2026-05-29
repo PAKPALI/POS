@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Component;
 
 use App\Http\Controllers\Controller;
 use App\Models\Action;
+use App\Models\CompanySetting;
 use App\Models\Inventory;
 use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -268,10 +269,16 @@ class InventoryController extends Controller
 
         $inventories = $query->latest()->get();
 
-        $company = null; // si tu as une table company
+        $company = CompanySetting::first();
 
         $pdf = Pdf::loadView('component.inventory.pdf', compact('inventories', 'company','start_date','end_date'));
-        return $pdf->download('inventaires.pdf');
+        return $pdf->download('inventaires.pdf-'. strtoupper($company->name ?? config('app.name')) . '.pdf');
+
+        
+
+        $pdf = Pdf::loadView('component.product.pdf',compact('products', 'company'));
+
+        return $pdf->download('liste-produits-' . strtoupper($company->name ?? config('app.name')) . '.pdf');
     }
 
     /**

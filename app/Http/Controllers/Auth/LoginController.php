@@ -44,15 +44,19 @@ class LoginController extends Controller
     //     $this->middleware('auth')->only('logout');
     // }
 
-    public function loginUser($user)
+    public function loginUser($user, Request $request)
     {
         Auth::login($user);
-        // $request->session()->regenerate();
-        Action::create([
-            'user_id' => auth()->user()->id,
-            'function' => 'CONNEXION',
-            'text' => " s'est connecté",
-        ]); 
+        $request->session()->regenerate();
+
+        if($user->user_type !== 1){
+            Action::create([
+                'user_id' => auth()->user()->id,
+                'function' => 'CONNEXION',
+                'text' => " s'est connecté",
+            ]);        
+        }
+        
         return response()->json([
             "status" => true,
             "reload" => true,
@@ -89,31 +93,23 @@ class LoginController extends Controller
             if(Hash::check($request-> password, $user-> password)){
                 // verify admin login
                 if($user->user_type == 2){
-                    $this->loginUser($user);           
+                    return $this->loginUser($user, $request);           
                 }elseif($user->user_type == 3){
                     // verify employe login
                     if($user->status == 1){
-                        $this->loginUser($user);
+                        return $this->loginUser($user, $request);
                     }else{
-                        // verify super admin login
+                        // employe is not active
                         return response()->json([
                             "status" => false,
                             "reload" => true,
                             'check' => Auth::check(),
                             "title" => "CONNECTION ECHOUEE",
-                            "msg" => "Vous n'etes pas autorisé à vous connecté"
+                            "msg" => "Pas autorisé à vous connecté"
                         ]);  
                     }
-                }else{
-                    Auth::login($user);
-                    return response()->json([
-                        "status" => true,
-                        "reload" => true,
-                        "redirect_to" => route('dashboard'),
-                        "title" => "CONNEXION REUSSIE",
-                        'check' => Auth::check(),
-                        "msg" => "connexion réussie"
-                    ]);
+                }else{// verify super admin login
+                    return $this->loginUser($user, $request);
                 }
             }else{
                 return response()->json([

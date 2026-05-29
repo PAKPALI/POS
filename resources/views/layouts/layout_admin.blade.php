@@ -6,7 +6,10 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="description" content>
 		<meta name="author" content>
+		<link rel="manifest" href="/manifest.json">
+		<meta name="theme-color" content="#111111">
 
+		<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet">
