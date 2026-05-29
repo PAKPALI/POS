@@ -49,14 +49,23 @@ class LoginController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        if($user->user_type !== 1){
-            Action::create([
-                'user_id' => auth()->user()->id,
-                'function' => 'CONNEXION',
-                'text' => " s'est connecté",
-            ]);        
+        if($user->user_type == 1){
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                "redirect_to" => route('dashboard'),
+                "title" => "CONNEXION REUSSIE",
+                'check' => Auth::check(),
+                "msg" => "connexion réussie"
+            ]);      
         }
         
+        Action::create([
+            'user_id' => auth()->user()->id,
+            'function' => 'CONNEXION',
+            'text' => " s'est connecté",
+        ]);
+
         return response()->json([
             "status" => true,
             "reload" => true,
@@ -64,7 +73,8 @@ class LoginController extends Controller
             "title" => "CONNEXION REUSSIE",
             'check' => Auth::check(),
             "msg" => "connexion réussie"
-        ]);          
+        ]);
+                 
     }
 
     public function login(Request $request)
