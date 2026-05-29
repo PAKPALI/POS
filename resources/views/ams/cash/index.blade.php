@@ -91,7 +91,7 @@
                                     <div class="col-7">
                                         <h3 class="mb-0">{{ $totalCash->count }}</h3>
                                         <span class="badge blink-badge">
-                                            {{ $totalCash ? number_format($totalCash->balance, 2, ',', ' ') : 0 }} F CFA
+                                            {{ $totalCash ? number_format($totalCashSum, 2, ',', ' ') : 0 }} F CFA
                                         </span>
                                     </div>
                                 </div>
@@ -111,7 +111,7 @@
                                     <div class="col-7">
                                         <h3 class="mb-0">{{ $activeCash->count }}</h3>
                                         <span class="badge blink-badge">
-                                            {{ $activeCash ? number_format($activeCash->balance, 2, ',', ' ') : 0 }} F CFA
+                                            {{ $activeCash ? number_format($activeCashSum, 2, ',', ' ') : 0 }} F CFA
                                         </span>
                                     </div>
                                 </div>
@@ -131,7 +131,7 @@
                                     <div class="col-7">
                                         <h3 class="mb-0">{{ $inactiveCash->count }}</h3>
                                         <span class="badge blink-badge">
-                                            {{ $inactiveCash ? number_format($inactiveCash->balance, 2, ',', ' ') : 0 }} F CFA
+                                            {{ $inactiveCash ? number_format($inactiveCashSum, 2, ',', ' ') : 0 }} F CFA
                                         </span>
                                     </div>
                                 </div>

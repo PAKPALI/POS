@@ -8,6 +8,10 @@
 		<meta name="author" content>
 		<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>" />
 
+		<link rel="manifest" href="/manifest.json">
+		<meta name="theme-color" content="#111111">
+
+		<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
 		<link href="<?php echo e(asset('hub/assets/css/vendor.min.css')); ?>" rel="stylesheet">
 		<link href="<?php echo e(asset('hub/assets/css/app.min.css')); ?>" rel="stylesheet">
 		<!-- <link href="<?php echo e(asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')); ?>" rel="stylesheet"> -->
@@ -366,6 +370,10 @@
 				});
 				return false;
 			});
+
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker.register('/sw.js').then(() => console.log('SW enregistré')).catch(err => console.log('SW erreur', err));
+			}
 
 			// $('.menu-item').on('click', function() {
 			// 	// Supprimer la classe 'active' de tous les menus

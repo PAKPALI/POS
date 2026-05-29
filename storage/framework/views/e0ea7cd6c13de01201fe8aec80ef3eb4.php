@@ -90,7 +90,7 @@
                                     <div class="col-7">
                                         <h3 class="mb-0"><?php echo e($totalCash->count); ?></h3>
                                         <span class="badge blink-badge">
-                                            <?php echo e($totalCash ? number_format($totalCash->balance, 2, ',', ' ') : 0); ?> F CFA
+                                            <?php echo e($totalCash ? number_format($totalCashSum, 2, ',', ' ') : 0); ?> F CFA
                                         </span>
                                     </div>
                                 </div>
@@ -110,7 +110,7 @@
                                     <div class="col-7">
                                         <h3 class="mb-0"><?php echo e($activeCash->count); ?></h3>
                                         <span class="badge blink-badge">
-                                            <?php echo e($activeCash ? number_format($activeCash->balance, 2, ',', ' ') : 0); ?> F CFA
+                                            <?php echo e($activeCash ? number_format($activeCashSum, 2, ',', ' ') : 0); ?> F CFA
                                         </span>
                                     </div>
                                 </div>
@@ -130,7 +130,7 @@
                                     <div class="col-7">
                                         <h3 class="mb-0"><?php echo e($inactiveCash->count); ?></h3>
                                         <span class="badge blink-badge">
-                                            <?php echo e($inactiveCash ? number_format($inactiveCash->balance, 2, ',', ' ') : 0); ?> F CFA
+                                            <?php echo e($inactiveCash ? number_format($inactiveCashSum, 2, ',', ' ') : 0); ?> F CFA
                                         </span>
                                     </div>
                                 </div>

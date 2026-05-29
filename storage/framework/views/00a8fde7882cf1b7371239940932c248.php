@@ -77,7 +77,7 @@
 				</a>
 				<div class="menu-submenu">
 					<div class="menu-item">
-						<a href="<?php echo e(route('sale.index')); ?>" target="_blank" class="menu-link">
+						<a href="<?php echo e(route('sale.index')); ?>" class="menu-link">
 							<div class="menu-text">Poste de vente</div>
 						</a>
 					</div>

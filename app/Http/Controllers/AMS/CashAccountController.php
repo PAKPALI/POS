@@ -66,15 +66,15 @@ class CashAccountController extends Controller
         }
 
         $totalCash = CashAccount::selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')->first();
-        $activeCash = CashAccount::where('status', 1)
-            ->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')
-            ->first();
-        $inactiveCash = CashAccount::where('status', 0)
-            ->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')
-            ->first();
-        $defaultCash = CashAccount::where('is_default', 1)
-            ->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')
-            ->first();
+        $totalCashSum = CashAccount::sum('balance');
+
+        $activeCash = CashAccount::where('status', 1)->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')->first();
+        $activeCashSum = CashAccount::where('status', 1)->sum('balance');
+            
+        $inactiveCash = CashAccount::where('status', 0)->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')->first();
+        $inactiveCashSum = CashAccount::where('status', 0)->sum('balance');
+
+        $defaultCash = CashAccount::where('is_default', 1)->first();
         $defaultCashName = CashAccount::where('is_default', 1)->first()?->name;
         $taxCash = CashAccount::where('is_tax', 1)->first();
         return view('ams.cash.index', compact(
@@ -83,7 +83,10 @@ class CashAccountController extends Controller
             'inactiveCash',
             'defaultCash',
             'defaultCashName',
-            'taxCash'
+            'taxCash',
+            'totalCashSum',
+            'activeCashSum',
+            'inactiveCashSum'
         ));
     }
 
