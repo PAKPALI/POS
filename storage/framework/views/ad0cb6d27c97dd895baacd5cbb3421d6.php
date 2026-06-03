@@ -44,8 +44,13 @@
                                                     <label for="exampleInputText0">Email</label>
                                                     <input type="email" name="email" class="form-control" id="exampleInputText0" placeholder="Email">
                                                 </div>
-                                                <div class="form-group col-12 mt-3">
-                                                    <select class="form-select mb-3" name="user_type">
+                                                <div class="form-group col-6 mt-3">
+                                                    <label for="phone">Numéro de téléphone (sans espaces et indicatif)</label>
+                                                    <input type="number" name="phone" class="form-control" id="phone" value="" placeholder="ex: 90859488">
+                                                </div>
+                                                <div class="form-group col-6 mt-3">
+                                                    <label for="user_type">Type d'utilisateur</label>
+                                                    <select class="form-select " name="user_type">
                                                         <option value="">selectionnez le type d'utilisateur</option>
                                                         <option value="2">ADMIN</option>
                                                         <option value="3">EMPLOYE</option>
@@ -85,7 +90,7 @@
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des admins</h4></span>
+                                        <span class="flex-grow-1"><h4>Listes des utilisateurs</h4></span>
                                         <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
@@ -96,6 +101,7 @@
                                                     <th>#</th>
                                                     <th>Nom</th>
                                                     <th>Email</th>
+                                                    <th>Numéro</th>
                                                     <th>Type</th>
                                                     <th>Statut</th>
                                                     <th>Créer le</th>
@@ -191,6 +197,7 @@
                     {data: 'id',name: 'id'},
                     {data: 'name',name: 'name'},
                     {data: 'email',name: 'email'},
+                    {data: 'phone',name: 'phone'},
                     {data: 'user_type',name: 'user_type'},
                     {data: 'status',name: 'status'},
                     {data: 'created_at',name: 'created_at'},

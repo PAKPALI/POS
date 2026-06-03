@@ -6,11 +6,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="description" content>
 		<meta name="author" content>
+		<link rel="manifest" href="/manifest.json">
+		<meta name="theme-color" content="#111111">
 
 		<!-- Inclure PDF.js -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
 
+		<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
 		<link href="<?php echo e(asset('hub/assets/css/vendor.min.css')); ?>" rel="stylesheet">
 		<link href="<?php echo e(asset('hub/assets/css/app.min.css')); ?>" rel="stylesheet">
 		<link href="<?php echo e(asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')); ?>" rel="stylesheet">

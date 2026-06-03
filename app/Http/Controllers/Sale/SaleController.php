@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendMarginEmailJob;
+use App\Jobs\SendSaleWhatsappJob;
 use App\Models\Action;
 use App\Models\AMS\CashAccount;
 use App\Models\AMS\Setting;
@@ -132,131 +134,6 @@ class SaleController extends Controller
         return $code;
     }
 
-    // public function store(Request $request)
-    // {
-    //     $error_messages = [
-    //         'products.required' => "Choisir un produit",
-    //         'products.*.quantity.min' => "La quantité doit être supérieure à 0 pour chaque produit",
-    //         'total_amount.required' => "Remplir le total",
-    //     ];
-        
-    //     $validator = Validator::make($request->all(), [
-    //         'products' => 'required|array',
-    //         'products.*.quantity' => 'required|integer|min:1',
-    //         'total_amount' => 'required|numeric'
-    //     ], $error_messages);
-        
-    //     if($validator->fails())
-    //     return response()->json([
-    //         "status" => false,
-    //         "reload" => false,
-    //         "title" => "VENTE ECHOUEE",
-    //         "msg" => $validator->errors()->first()
-    //     ]);
-    //     try {
-    //         DB::beginTransaction();
-    //         // store sale
-    //         $sale = Sale::create([
-    //             'code' => '#'.$this->code(),
-    //             'total_amount' => $request->total_amount,
-    //             'cashier' => auth()->user()->name
-    //         ]);
-    //         $totalProfit = 0; // Initialize the variable before the loop
-
-    //         // store sale detail
-    //         foreach ($request->products as $product) {
-    //             // search product
-    //             $Product = Product::findOrFail($product['product_id']);
-    //             if (!$Product) {
-    //                 DB::rollBack();
-    //                 return response()->json([
-    //                     "status" => false,
-    //                     "reload" => false,
-    //                     "title" => "VENTE ECHOUEE",
-    //                     "msg" => "Le produit avec l'ID ". $product['product_id'] . " est introuvable."
-    //                 ]);
-    //             }
-
-    //             // calculate profit and store it in sale detail
-    //             $profit = $Product->profit*$product['quantity'];
-
-    //             // store sale detail
-    //             $saleDetails = $sale->saleDetails()->create([
-    //                 'product_id' => $product['product_id'],
-    //                 'quantity' => $product['quantity'],
-    //                 'unit_price' => $product['unit_price'],
-    //                 'total_price' => $product['total_price'],
-    //                 'profit' => $profit
-    //             ]);
-
-    //             // update product quantity if product qte is greater than user quantity
-    //             if($Product->qte >= $product['quantity']){
-    //                 $newQte = $Product->qte - $product['quantity'];
-    //                 $Product->update([
-    //                     'qte' =>$newQte,
-    //                 ]);
-    //                 // check if security margin is affected
-    //                 if($newQte <= $Product->margin) {
-    //                     $User = User::where('status',1)->get();
-    //                     foreach ($User as $user) {
-    //                         $this->sendEmailMargin($user->name,$user->email,$Product->name,$Product->margin, $newQte);
-    //                     }
-    //                 }
-    //             }else{
-    //                 DB::rollBack();
-    //                 return response()->json([
-    //                     "status" => false,
-    //                     "reload" => false,
-    //                     "title" => "VENTE ECHOUEE",
-    //                     "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
-    //                 ]);
-    //             }
-
-    //             // update total profit to sale table column
-    //             $totalProfit += $profit;// add totalProfit
-    //             $sale->update([
-    //                 'total_profit' =>$totalProfit,
-    //             ]);
-    //         }
-
-    //         // Generate  PDF invoice
-    //         // composer require barryvdh/laravel-dompdf
-    //         $pdf = Pdf::loadView('pos.invoice', ['sale' => $sale,'saleDetails' => $sale->saleDetails])
-    //             // ->setPaper('A6', 'portrait')
-    //             ->setOptions([
-    //                 'isHtml5ParserEnabled' => true,
-    //                 'isRemoteEnabled' => true,
-    //                 'dpi' => 150 // Augmente le DPI pour une meilleure résolution
-    //             ]);
-
-    //         $pdf->setPaper([0, 0, 300, 400],'portrait'); // Dimensions personnalisées en points pour un reçu plus petit
-
-    //         // save or return PDF in base64
-    //         $pdfBase64 = base64_encode($pdf->output());
-
-    //         // log action
-    //         Action::create([
-    //             'user_id' => auth()->user()->id,
-    //             'function' => 'VENTE',
-    //             'text' => auth()->user()->name." a effectué une vente",
-    //         ]);
-
-    //         DB::commit();
-    //         return response()->json([
-    //             "status" => true,
-    //             "reload" => true,
-    //             // "redirect_to" => route('user'),
-    //             "title" => "VENTE EFFECTUEE",
-    //             "msg" => "",
-    //             'pdfBase64' => $pdfBase64
-    //         ]);
-
-    //     } catch (\Throwable $th) {
-    //         DB::rollBack();
-    //         Log::error('Une erreur est survenue lors de la vente' . $th->getMessage());
-    //         return response()->json(["status" => false, "msg" => $saleDetails."Erreur survenue lors de la vente , contacter le développeur". $th->getMessage()]);
-    //     }
-    // }
 
     public function store(Request $request)
     {
@@ -284,7 +161,7 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
             $percent=0;
-            if($request->code_promo){
+           if ($request->code_promo && strlen($request->code_promo) == 6) {
                 $code_promo = CodePromo::where('code', $request->code_promo)->where('status', 1)->first();
                 $percent = $code_promo->percents;
             }
@@ -313,10 +190,15 @@ class SaleController extends Controller
             // Generate PDF invoice
             $pdfBase64 = $this->generatePdfInvoice($sale);
 
+            // send sale email notification to users
+            // $this->sendSaleEmailNotification($sale);
+            dispatch(new \App\Jobs\SendSaleEmailJob($sale->id));
+
             // send sms to client
             $number = '90859488';
             $message = 'Vous venez de faire un achat au total de '.$request->total_amount.' FCFA au niveau de LUX-GRILL et nous vous remercions.';
-            $this->sendSms($number, $message);
+            // $this->sendSms($number, $message);
+            dispatch(new SendSaleWhatsappJob($sale->id));
 
             // Log action
             Action::create([
@@ -396,12 +278,9 @@ class SaleController extends Controller
             // check if security margin is affected
             // if($product->email == 0){
                 if ($newQte <= $product->margin) {
-                    $users = User::where('status', 1)->where('user_type','!=', 1)->get();
-                    foreach ($users as $user) {
-                        $this->sendEmailMargin($user->name, $user->email, $product->name, $product->margin, $newQte);
-                    }
+                    dispatch(new SendMarginEmailJob($product->name,$product->margin,$newQte));
                 }
-                $product->update(['email' => 1]);
+                // $product->update(['email' => 1]);
             // }
         }else {
             DB::rollBack();
@@ -409,7 +288,7 @@ class SaleController extends Controller
                 "status" => false,
                 "reload" => false,
                 "title" => "VENTE ECHOUEE",
-                "msg" => "Le produit ". $Product->name. " n'a plus de stock disponible pour la quantité demandée"
+                "msg" => "Le produit ". $product->name. " n'a plus de stock disponible pour la quantité demandée"
             ]);
         }
     }
@@ -417,7 +296,27 @@ class SaleController extends Controller
     public function sendSms($number, $message)
     {
         $smsService = new SmsService ();
-        $response = $smsService->send($number, $message);
+        $response = $smsService->sendSms($number, $message);
+        log::info($response);
+        return response()->json($response);
+
+        // response example in format json
+        // array (
+        //     'status' => true,
+        //     'message' => 'MESSAGE_SENT_SUCCESSFULLY',
+        //     'data' => 
+        //     array (
+        //         'status' => 1,
+        //         'response_token' => 'push_sms_afgrchw6re2bjnr',
+        //     ),
+        //     'status_code' => 200,
+        // )
+    }
+
+    public function sendWhatsappSms($number, $title, $message)
+    {
+        $smsService = new SmsService ();
+        $response = $smsService->sendWhatsappSms($number, $title, $message);
         log::info($response);
         return response()->json($response);
 
@@ -465,15 +364,32 @@ class SaleController extends Controller
     }
 
     // send security margin mail
-    public function sendEmailMargin($user_name, $email, $product_name, $margin, $newQte)
+    // public function sendEmailMargin($user_name, $email, $product_name, $margin, $newQte)
+    // {
+    //     $text = "Le produit '".strtoupper($product_name)."' a atteint sa marge de sécurité(".$margin.")";
+    //     $text2 = "La nouvelle quantitée du produit : ".$newQte;
+    //     $company = CompanySetting::first();
+    //     // Envoyez l'e-mail avec le code généré
+    //     Mail::send('emails.user.marginMail', ['company' => $company, 'user_name' => $user_name, 'text' => $text, 'text2' => $text2, 'product_name' => $product_name], function($message) use ($email){
+    //         $message->to($email);
+    //         $message->subject($company->name ?? config('app.name'));
+    //     });
+    // }
+
+    private function sendSaleEmailNotification($sale)
     {
-        $text = "Le produit '".strtoupper($product_name)."' a atteint sa marge de sécurité(".$margin.")";
-        $text2 = "La nouvelle quantitée du produit : ".$newQte;
-        // Envoyez l'e-mail avec le code généré
-        Mail::send('emails.user.marginMail', ['user_name' => $user_name, 'text' => $text, 'text2' => $text2, 'product_name' => $product_name], function($message) use ($email){
-            $message->to($email);
-            $message->subject(config('app.name'));
-        });
+        $company = CompanySetting::first();
+        $users = User::where('status', 1)->where('user_type','!=', 1)->get();
+
+        foreach ($users as $user) {
+            Mail::send('emails.sale.saleNotification', [
+                'sale' => $sale,
+                'company' => $company,
+            ], function ($message) use ($user, $sale, $company) {
+                $message->to($user->email);
+                $message->subject("Nouvelle vente #" . $sale->code . " - " . $company->name ?? config('app.name'));
+            });
+        }
     }
 
     private function handleAmsAccounting($sale)

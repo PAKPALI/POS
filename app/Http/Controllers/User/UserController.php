@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\User;
 
-use Log;
-use Carbon\Carbon;
+use App\Http\Controllers\Controller;
+use App\Models\Action;
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
-use App\Models\Action;
-use App\Models\Product;
-use App\Models\Category;
-use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Yajra\DataTables\DataTables;
 
 class UserController extends Controller
 {
@@ -27,7 +27,7 @@ class UserController extends Controller
 
     public function dashboard()
     {
-        $Action = Action::latest()->paginate(7);
+        $Action = Action::whereDate('created_at', today())->latest()->paginate(10);
         $Category = Category::all();
         $Product = Product::all();
         $Sale = Sale::all();
@@ -61,7 +61,7 @@ class UserController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = User::where('user_type',3)->latest()->get();
+        $Object = User::whereIn('user_type',[2,3])->latest()->get();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -127,6 +127,10 @@ class UserController extends Controller
             "email.email" => "La structure d'un email n'est pas respecte!",
             "email.unique" => "Ce mail existe deja",
             "user_type.required" => "Sélectionnez un type d'utilisateur!",
+            "phone.required" => "Remplir le champ Numéro de téléphone!",
+            "phone.numeric" => "Le champ Numéro de téléphone doit être numérique!",
+            "phone.digits" => "Le champ Numéro de téléphone doit comporter exactement 8 chiffres!",
+
             // "password.required" => "Remplir le champ mot de passe!",
             // "password.min" => "Le mot de passe doit comporter au moins 8 caracteres!",
             // "password.confirmed" => "Les mots de passe ne correspondent pas",
@@ -136,6 +140,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'user_type' => ['required'],
+            'phone' => ['required', 'numeric', 'digits:8'],
             // 'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], $error_messages);
 
@@ -151,10 +156,12 @@ class UserController extends Controller
             $email = $request['email'];
             $name = $request['name'];
             $user_type = $request['user_type'];
+            $phone = $request['phone'];
             $code = $this->code();
             User::create([
                 'name' => $name,
                 'email' => $email,
+                'phone' => $phone,
                 'user_type' => $user_type,
                 'password' => Hash::make($code),
             ]);
@@ -423,10 +430,16 @@ class UserController extends Controller
     {
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "phone.required" => "Remplir le champ Numéro de téléphone!",
+            "phone.numeric" => "Le champ Numéro de téléphone doit être numérique!",
+            "phone.digits" => "Le champ Numéro de téléphone doit comporter exactement 8 chiffres!",
+            "user_type.required" => "Veuillez sélectionner un type d'utilisateur!",
         ];
 
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'name' => ['required'],
+            'phone' => ['required', 'numeric', 'digits:8'],
+            'user_type' => ['required'],
         ], $error_messages);
 
         if($validator->fails())
@@ -440,6 +453,8 @@ class UserController extends Controller
             $User = User::findOrFail($id);
             $User->update([
                 'name' => $request->name,
+                'phone' => $request->phone,
+                'user_type' => $request->user_type,
             ]);
 
             return response()->json([

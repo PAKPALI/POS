@@ -1,9 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email</title>
     <style>
         /* Styles spécifiques au client de messagerie */
         body {
@@ -55,42 +49,47 @@
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
         }
+
+        .info {
+            margin: 15px 0;
+            text-align: center;
+            background-color: #f1f1f1;
+            border-color: #2b0f0f;
+            border-width: 1px;
+            padding: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: black;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 8px;
+            text-align: center;
+        }
+
         .footer {
             text-align: center;
             padding: 20px;
             border-bottom-left-radius: 10px;
             border-bottom-right-radius: 10px;
-            background-color: #f0f0f0;
+            background-color: black;
+            color:white;
             margin-top: 20px;
         }
         .text-center{
             text-align: center;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1><?php echo e(config('app.name')); ?></h1>
-            <h4 style="color:red;">(Alerte de stock)</h4>
-        </div>
-        <div class="content text-center">
-            <p>
-                <h3>
-                    <?php echo e($text); ?><br>
-                    <?php echo e($text2); ?>
-
-                </h3>
-            </p>
-            <p style="color:red;"><strong> NB: Veuillez faire une mise à jour du stock afin d'éviter une rupture totale ! </strong></p>
-            <!-- <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p> -->
-            <!-- <a href="#" class="btn">Contacter le support</a> -->
-        </div>
-        <div class="footer">
-            <p>Cet e-mail a été envoyé par <strong class="text-primary"><?php echo e(config('app.name')); ?></strong> <strong></strong>.</p>
-            Copyright © 2024 <strong class="text-primary"><?php echo e(config('app.name')); ?></strong>. Tous droits réservés. Créé par: <strong class="text-primary">PAKPALI Essolissam Didier</strong>
-        </div>
-    </div>
-</body>
-</html>
-<?php /**PATH C:\Users\lenovo\laragon\www\POS\resources\views/emails/user/marginMail.blade.php ENDPATH**/ ?>

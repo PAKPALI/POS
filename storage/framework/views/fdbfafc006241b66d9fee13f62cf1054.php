@@ -2,9 +2,21 @@
     <?php echo csrf_field(); ?>
     <div class="card-body">
         <div class="row">
-            <div class="form-group col-12">
+            <div class="form-group col-6">
                 <label for="name">Nom</label>
                 <input type="text" name="name" class="form-control" id="name" value="<?php echo e($User->name); ?>" placeholder="Nom">
+            </div>
+            <div class="form-group col-6">
+                <label for="phone">Numéro de téléphone (sans espaces et indicatif)</label>
+                <input type="number" name="phone" class="form-control" id="phone" value="<?php echo e($User->phone); ?>" placeholder="ex: 90859488">
+            </div>
+            <div class="form-group col-12 mt-3">
+                <label for="user_type">Type d'utilisateur</label>
+                <select class="form-select " name="user_type">
+                    <option value="">selectionnez le type d'utilisateur</option>
+                    <option value="2" <?php echo e($User->user_type == 2 ? 'selected' : ''); ?>>ADMIN</option>
+                    <option value="3" <?php echo e($User->user_type == 3 ? 'selected' : ''); ?>>EMPLOYE</option>
+                </select>
             </div>
         </div>
     </div>

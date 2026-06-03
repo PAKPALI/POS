@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class SmsService
 {
@@ -23,7 +24,7 @@ class SmsService
         $this->responseUrl = config('services.kprimesms.response_url');
     }
 
-    public function send($phoneNumber, $message)
+    public function sendSms($phoneNumber, $message)
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
@@ -39,5 +40,29 @@ class SmsService
         ]);
 
         return $response->json();
+    }
+
+    public function sendWhatsappSms($phoneNumber, $title, $message)
+    {
+        Log::info("Sending WhatsApp message to $phoneNumber: $message");
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'token' => $this->token,
+                'key' => $this->key,
+            ])->post($this->baseUrl . '/whatsapp/template/text-message', [
+                "country" => "TG",
+                "phone_number" => $phoneNumber,
+                "title" => $title,
+                "content" => $message,
+            ]);
+
+            Log::info("WhatsApp API response: " . json_encode($response->json()));
+
+            return $response->json();
+        } catch (\Exception $e) {
+            Log::warning("Error sending WhatsApp message: " . $e->getMessage());
+            return null;
+        }
     }
 }
