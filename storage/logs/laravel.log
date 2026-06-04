@@ -175,3 +175,12 @@ Caissier: PAKPALICode: 12975570Total: 100.00 FCFAArticles: 1- wings tax x1 Merci
 [2026-06-03 22:28:42] local.INFO: Message content: VENTE | Vendeur:PAKPALI | Code:6549759 | Total:800.00F CFA | Nombre de produits:2 | Details:poulet->2, coca cola->1  
 [2026-06-03 22:28:42] local.INFO: Sending WhatsApp message to 93129015: VENTE | Vendeur:PAKPALI | Code:6549759 | Total:800.00F CFA | Nombre de produits:2 | Details:poulet->2, coca cola->1  
 [2026-06-03 22:28:43] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_mat49qildsqndo68f8"},"status_code":200}  
+[2026-06-04 09:59:14] local.INFO: Message content: VENTE | Vendeur:PAKPALI | Code:88211534 | Total:700.00F CFA | Nombre de produits:2 | Details:wings tax->1, coca cola->1  
+[2026-06-04 09:59:15] local.INFO: Sending WhatsApp message to 90859488: VENTE | Vendeur:PAKPALI | Code:88211534 | Total:700.00F CFA | Nombre de produits:2 | Details:wings tax->1, coca cola->1  
+[2026-06-04 09:59:18] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matlpxelh2rrom1c7l"},"status_code":200}  
+[2026-06-04 09:59:18] local.INFO: Message content: VENTE | Vendeur:PAKPALI | Code:88211534 | Total:700.00F CFA | Nombre de produits:2 | Details:wings tax->1, coca cola->1  
+[2026-06-04 09:59:18] local.INFO: Sending WhatsApp message to 93129015: VENTE | Vendeur:PAKPALI | Code:88211534 | Total:700.00F CFA | Nombre de produits:2 | Details:wings tax->1, coca cola->1  
+[2026-06-04 09:59:19] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_mathafssmvjxoibcye"},"status_code":200}  
+[2026-06-04 10:06:00] local.INFO: Message content: VENTE | Vendeur:PAKPALI | Code:89486016 | Total:150.00F CFA | Nombre de produits:1 | Details:pizz->1  
+[2026-06-04 10:06:00] local.INFO: Sending WhatsApp message to 90859488: VENTE | Vendeur:PAKPALI | Code:89486016 | Total:150.00F CFA | Nombre de produits:1 | Details:pizz->1  
+[2026-06-04 10:06:02] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_mattp5feqw4rt6mewh"},"status_code":200}  
