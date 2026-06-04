@@ -65,4 +65,67 @@ class SmsService
             return null;
         }
     }
+
+    public function uploadWhatsappDocument(string $filePath)
+    {
+        try {
+            $response = Http::withHeaders([
+                'token' => $this->token,
+                'key' => $this->key,
+            ])
+            ->attach(
+                'attachment_file',
+                fopen($filePath, 'r'),
+                basename($filePath)
+            )
+            ->post(
+                $this->baseUrl . '/whatsapp/upload-document'
+            );
+
+            Log::info(
+                'WhatsApp document upload response : '. json_encode($response->json())
+            );
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::error(
+                'WhatsApp document upload failed : '
+                . $e->getMessage()
+            );
+            return null;
+        }
+    }
+
+    public function sendWhatsappDocument(string $phoneNumber, string $mediaId, string $message)
+    {
+        try {
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'token' => $this->token,
+                'key' => $this->key,
+            ])->post(
+                $this->baseUrl . '/whatsapp/template/document-message',
+                [
+                    'media_id' => $mediaId,
+                    'country' => 'TG',
+                    'phone_number' => $phoneNumber,
+                    'content' => $message,
+                ]
+            );
+
+            Log::info(
+                'WhatsApp document send response : '
+                . json_encode($response->json())
+            );
+            return $response->json();
+        } catch (\Throwable $e) {
+
+            Log::error(
+                'WhatsApp document send failed : '
+                . $e->getMessage()
+            );
+
+            return null;
+        }
+    }
 }

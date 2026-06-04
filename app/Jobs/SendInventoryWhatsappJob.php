@@ -31,16 +31,11 @@ class SendInventoryWhatsappJob implements ShouldQueue
 
         $users = User::where('status', 1)->where('user_type', 2)->whereNotNull('phone')->get();
         $message = $this->formatMessage($inventory);
-
+        $smsService = app(SmsService::class);
         foreach ($users as $user) {
             if (!$user->phone) continue;
             try {
-                $smsService = app(SmsService::class);
-                $smsService->sendWhatsappSms(
-                    $user->phone,
-                    "Notification Inventaire",
-                    $message
-                );
+                $smsService->sendWhatsappSms($user->phone,"Notification Inventaire",$message);
                 Log::info("Inventory WhatsApp message sent with success to $user->phone");
             } catch (\Exception $e) {
                 Log::error("Inventory WhatsApp error: " . $e->getMessage());
