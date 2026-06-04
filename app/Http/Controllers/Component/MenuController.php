@@ -21,7 +21,7 @@ class MenuController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = Product::where('type',2)->latest()->get();
+        $Object = Product::where('type',2)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()

@@ -42,7 +42,7 @@ class ProductController extends Controller
             $query->where('qte', '<=', 0);
         }
 
-        $Object = $query->latest()->get();
+        $Object = $query->latest();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -343,7 +343,7 @@ class ProductController extends Controller
             $query->where('qte', '<=', 0);
         }
 
-        $products = $query->latest()->get();
+        $products = $query->latest();
 
         $company = CompanySetting::first();
 

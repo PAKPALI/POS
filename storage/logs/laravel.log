@@ -187,3 +187,67 @@ Caissier: PAKPALICode: 12975570Total: 100.00 FCFAArticles: 1- wings tax x1 Merci
 [2026-06-04 10:12:16] local.INFO: Message content: VENTE | Vendeur:PAKPALI | Code:95402382 | Total:100.00F CFA | Nombre de produits:1 | Details:wings tax->1  
 [2026-06-04 10:12:16] local.INFO: Sending WhatsApp message to 90859488: VENTE | Vendeur:PAKPALI | Code:95402382 | Total:100.00F CFA | Nombre de produits:1 | Details:wings tax->1  
 [2026-06-04 10:12:18] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matozkwyiixhztgp4o"},"status_code":200}  
+[2026-06-04 12:28:42] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: ENTRÉE | Effectué par: PAKPALI | Produit: poulet | Qté avant: 19 | Qté ajoutée: 52 | Qté après: 71 | Note: note  
+[2026-06-04 12:28:46] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matrqcopbhgqv54ww6"},"status_code":200}  
+[2026-06-04 12:28:46] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:36:51] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: poulet | Qté avant: 71 | Qté ajoutée: 1 | Qté après: 70 | Note: ok  
+[2026-06-04 12:36:52] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matufumbihgtat5mw5"},"status_code":200}  
+[2026-06-04 12:36:52] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:39:32] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: coca cola | Qté avant: 56 | Qté ajoutée: 1 | Qté après: 55 | Note: v  
+[2026-06-04 12:39:33] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matskqi6oxja4h33za"},"status_code":200}  
+[2026-06-04 12:39:33] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:40:26] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: wings tax | Qté avant: 58 | Qté retirée: 5 | Qté après: 53 | Note: vb
+
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:40:27] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:40:27] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:42:07] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: wings tax | Qté avant: 53 | Qté retirée: 1 | Qté après: 52 | Note: v
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:42:09] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:42:09] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:43:39] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: wings tax | Qté avant: 52 | Qté retirée: 1 | Qté après: 51 | Note: cv
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:43:40] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:43:40] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:44:40] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: wings | Qté avant: 43 | Qté retirée: 1 | Qté après: 42 | Note: dw
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:44:41] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:44:41] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:45:15] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: wings | Qté avant: 42 | Qté retirée: 1 | Qté après: 41 | Note: wd | Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:45:16] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_math2doqgho6b4qwdh"},"status_code":200}  
+[2026-06-04 12:45:16] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:46:38] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: ENTRÉE | Effectué par: PAKPALI | Produit: Koliko | Qté avant: 0 | Qté ajoutée: 50 | Qté après: 50 | Note: xxxx | /nPour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:46:39] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matpyzjpoltzldm4zp"},"status_code":200}  
+[2026-06-04 12:46:39] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:47:37] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: ENTRÉE | Effectué par: PAKPALI | Produit: racine | Qté avant: 0 | Qté ajoutée: 50 | Qté après: 50 | Note: edc
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:47:38] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:47:38] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:48:20] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: ENTRÉE | Effectué par: PAKPALI | Produit: menu | Qté avant: 3 | Qté ajoutée: 17 | Qté après: 20 | Note: cd
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:48:21] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:48:21] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:50:45] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: ENTRÉE | Effectué par: PAKPALI | Produit: menu | Qté avant: 20 | Qté ajoutée: 30 | Qté après: 50 | Note: df | 
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:50:53] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:50:53] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:54:10] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: wings | Qté avant: 41 | Qté retirée: 1 | Qté après: 40 | Note: dfg | %0APour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:54:12] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matyvs5rr6ot5s72fs"},"status_code":200}  
+[2026-06-04 12:54:12] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:56:14] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: wings tax | Qté avant: 51 | Qté retirée: 1 | Qté après: 50 | Note: nn%0A%0APour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:56:15] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matgh6iox0bhk2krbz"},"status_code":200}  
+[2026-06-04 12:56:15] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:57:09] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: pizz | Qté avant: 65 | Qté retirée: 1 | Qté après: 64 | Note: cvbn
+
+Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:57:10] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:57:10] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 12:59:03] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: pizz | Qté avant: 64 | Qté retirée: 1 | Qté après: 63 | Note: xc |       Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 12:59:04] local.INFO: WhatsApp API response: {"status":false,"message":"INTERNAL_SERVER_ERROR","errors":{"description":"Internal server error , try again or contact admin"},"status_code":500}  
+[2026-06-04 12:59:04] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 13:01:43] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: SORTIE | Effectué par: PAKPALI | Produit: pizz | Qté avant: 63 | Qté retirée: 1 | Qté après: 62 | Note: bn |----Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 13:01:44] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_matp5q0mfqersigkkg"},"status_code":200}  
+[2026-06-04 13:01:44] local.INFO: Inventory WhatsApp message sent with success to 90859488  
+[2026-06-04 13:03:03] local.INFO: Sending WhatsApp message to 90859488: 📦 INVENTAIRE | Type: ENTRÉE | Effectué par: PAKPALI | Produit: pizz | Qté avant: 62 | Qté ajoutée: 4 | Qté après: 66 | Note: s | _________Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.  
+[2026-06-04 13:03:04] local.INFO: WhatsApp API response: {"status":true,"message":"MESSAGE_SUCCESSFULLY_SENT","data":{"status":2000,"message_id":"push_wa_mat5ehbn5sbnlr0afu"},"status_code":200}  
+[2026-06-04 13:03:04] local.INFO: Inventory WhatsApp message sent with success to 90859488  

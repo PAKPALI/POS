@@ -21,7 +21,7 @@ class CodePromoController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = CodePromo::latest()->get();
+        $Object = CodePromo::latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()

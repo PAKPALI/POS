@@ -18,7 +18,7 @@ class CategoryController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = Category::latest()->get();
+        $Object = Category::latest();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)

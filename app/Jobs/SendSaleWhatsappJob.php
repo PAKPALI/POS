@@ -34,13 +34,14 @@ class SendSaleWhatsappJob implements ShouldQueue
         foreach ($users as $user) {
             if (!$user->phone) continue;
             $message = $this->formatMessage($sale);
-            $smsService = new SmsService();
-            Log::info("Message content: $message");
+            $smsService = app(SmsService::class);
+
             $smsService->sendWhatsappSms(
                 $user->phone,
                 "Notification de vente",
                 $message
             );
+            Log::info("Sale WhatsApp message sent with success to $user->phone");
         }
     }
 
@@ -63,9 +64,10 @@ class SendSaleWhatsappJob implements ShouldQueue
         $msg = "VENTE | ";
         $msg .= "Vendeur:" . ($sale->cashier ?? 'N/A') . " | ";
         $msg .= "Code:" . ($sale->code ?? 'N/A') . " | ";
-        $msg .= "Total:" . number_format($sale->total_amount, 2) . "F CFA | ";
         $msg .= "Nombre de produits:" . $totalProducts . " | ";
         $msg .= "Details:" . $productsText;
+        $msg .= "Total:" . number_format($sale->total_amount, 2) . "F CFA | ";
+        $msg .= "Veuillez vérifier votre email pour voir liseblement les détails";
 
         return trim($msg);
     }

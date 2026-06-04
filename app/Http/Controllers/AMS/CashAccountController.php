@@ -19,7 +19,7 @@ class CashAccountController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = CashAccount::latest()->get();
+        $Object = CashAccount::latest();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)

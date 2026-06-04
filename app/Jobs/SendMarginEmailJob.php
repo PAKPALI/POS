@@ -52,6 +52,7 @@ class SendMarginEmailJob implements ShouldQueue
                         );
                     }
                 );
+                Log::info("Margin email sent with success to $user->email");
             }
         } catch (\Throwable $e) {
             Log::error('SendMarginEmailJob Error', [

@@ -361,7 +361,8 @@
                             });
                             
                             $('#addModal').modal('hide');
-                            Datatable.draw();
+                            window.location.reload();
+                            // Datatable.draw();
                         } else {
                             $('#loader').hide();
                             $('#submitText').fadeIn();
@@ -419,7 +420,8 @@
                             });
                             
                             $('#removeModal').modal('hide');
-                            Datatable.draw();
+                            window.location.reload();
+                            // Datatable.draw();
                         } else {
                             $('#loader2').hide();
                             $('#submitText2').fadeIn();

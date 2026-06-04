@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Component;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendInventoryWhatsappJob;
 use App\Models\Action;
 use App\Models\CompanySetting;
 use App\Models\Inventory;
@@ -38,7 +39,7 @@ class InventoryController extends Controller
             ]);
         }
 
-        $Object = $Object->latest()->get();
+        $Object = $Object->latest();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -122,7 +123,7 @@ class InventoryController extends Controller
             ]);
 
             // save historique
-            Inventory::create([
+            $inventory = Inventory::create([
                 'type' => 1,
                 'product_id' => $Product->id,
                 'qte_before' => $before,
@@ -137,6 +138,9 @@ class InventoryController extends Controller
                 'function' => 'ENTREE STOCK',
                 'text' => auth()->user()->name. " a ajouté ".$added." unité(s) au produit '".$Product->name."'",
             ]);
+
+            // dispatch notification WhatsApp
+            SendInventoryWhatsappJob::dispatch($inventory->id);
 
             DB::commit();
 
@@ -201,7 +205,7 @@ class InventoryController extends Controller
             ]);
 
             // save historique
-            Inventory::create([
+            $inventory = Inventory::create([
                 'type' => 2,
                 'product_id' => $Product->id,
                 'qte_before' => $before,
@@ -216,6 +220,9 @@ class InventoryController extends Controller
                 'function' => 'SORTIE STOCK',
                 'text' => auth()->user()->name. " a retiré ".$removed." unité(s) du produit '".$Product->name."'",
             ]);
+
+            // dispatch notification WhatsApp
+            SendInventoryWhatsappJob::dispatch($inventory->id);
 
             DB::commit();
 

@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class SendSaleEmailJob implements ShouldQueue
@@ -40,6 +41,7 @@ class SendSaleEmailJob implements ShouldQueue
                 $message->to($user->email);
                 $message->subject("Nouvelle vente #" . $sale->code . " - " . $company->name ?? config('app.name'));
             });
+            Log::info("Sale email sent with success to $user->email");
         }
     }
 }

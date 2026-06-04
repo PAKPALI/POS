@@ -46,7 +46,7 @@ class SaleController extends Controller
         $setting  = Setting::first();
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Sale::with('saleDetails.product')->latest()->whereDate('created_at', $today)->get();
+        $Object = Sale::with('saleDetails.product')->whereDate('created_at', $today)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()

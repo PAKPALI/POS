@@ -15,7 +15,7 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $transactions = Transaction::latest()->get();
+        $transactions = Transaction::latest();
 
         if(request()->ajax()){
             return DataTables::of($transactions)

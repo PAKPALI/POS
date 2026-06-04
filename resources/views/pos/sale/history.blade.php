@@ -15,7 +15,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <!-- total sale -->
-            <div class="col-xl-3 col-lg-6 ">
+            <div class="col-xl-3 col-lg-3 ">
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex fw-bold small mb-3">
@@ -48,7 +48,7 @@
             </div>
 
             <!-- total  product sold daily-->
-            <div class="col-xl-3 col-lg-6 ">
+            <div class="col-xl-3 col-lg-3 ">
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex fw-bold small mb-3">
@@ -81,7 +81,7 @@
             </div>
 
             <!-- total  amount daily-->
-            <div class="col-xl-3 col-lg-6 ">
+            <div class="col-xl-3 col-lg-3 ">
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex fw-bold small mb-3">
@@ -114,7 +114,7 @@
             </div>
 
             <!-- total day profit daily-->
-            <div class="col-xl-3 col-lg-6 ">
+            <div class="col-xl-3 col-lg-3 ">
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex fw-bold small mb-3">
@@ -148,7 +148,7 @@
 
             <div class="col-12">
                 <div class="row">
-                    <div class="col-9">
+                    <div class="col-12">
                         <ul class="breadcrumb">
                             <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
                             <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
@@ -187,45 +187,52 @@
                         </div>
                         <hr class="mb-4">
 
-                        <div id="" class="mb-2 mt-5">
-                            <h4>Listes des ventes</h4>
-                            <!-- <button type="button" class="btn btn-primary mb-1 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button> -->
-                            <!-- <p>DataTables is a plug-in for the jQuery Javascript library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table. Please read the <a href="https://datatables.net/" target="_blank">official documentation</a> for the full list of options.</p> -->
-                            <div class="card">
+                        <div class="col-xl-12">
+                            <div class="card mb-4">
                                 <div class="card-body">
-                                    <table id="datatable" class="table text-nowrap w-100">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Code</th>
-                                                <th>Somme totale</th>
-                                                <th>Profit total</th>
-                                                <th>Code promo</th>
-                                                <th>Caissier</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            
-                                        </tbody>
-                                    </table>
+                                    <div class="d-flex fw-bold small mb-3">
+                                        <span class="flex-grow-1"><h4>Listes des ventes</h4></span>
+                                        <!-- <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button> -->
+                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table id="datatable" class="table text-nowrap w-100">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Code</th>
+                                                    <th>Somme totale</th>
+                                                    <th>Profit total</th>
+                                                    <th>Date</th>
+                                                    <th>Caissier</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
+                                <div class="d-flex justify-content-center mt-3">
+                                    
+                                </div>
+
                                 <div class="card-arrow">
                                     <div class="card-arrow-top-left"></div>
                                     <div class="card-arrow-top-right"></div>
                                     <div class="card-arrow-bottom-left"></div>
                                     <div class="card-arrow-bottom-right"></div>
                                 </div>
-                                <div class="hljs-container">
-                                    <pre><code class="xml" data-url="assets/data/table-plugins/code-1.json"></code></pre>
-                                </div>
                             </div>
                         </div>
                     </div>
+                    </div>
+                    <hr class="mb-4 bg-light" style="opacity: 0.9">
 
-                    <div class="col-3">
+                    <div class="col-12 mt-3">
                         <table id="mostSoldProductsTable" class="table table-striped">
-                            <h6 id="mostText">Produits les plus vendus</h6>
+                            <h4 class="border" id="mostText">Produits les plus vendus</h4>
                             <thead>
                                 <tr>
                                     <th>Produit</th>
@@ -284,7 +291,7 @@
                     {data: 'code',name: 'code'},
                     {data: 'total_amount',name: 'total_amount'},
                     {data: 'total_profit',name: 'total_profit'},
-                    {data: 'code_promo',name: 'code_promo'},
+                    {data: 'created_at',name: 'created_at'},
                     {data: 'cashier',name: 'cashier'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
