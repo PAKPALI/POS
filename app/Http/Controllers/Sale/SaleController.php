@@ -46,7 +46,7 @@ class SaleController extends Controller
         $setting  = Setting::first();
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Sale::with('saleDetails.product')->whereDate('created_at', $today)->latest();
+        $Object = Sale::with('saleDetails.product')->whereDate('created_at', $today)->latest()->get();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()
@@ -54,9 +54,9 @@ class SaleController extends Controller
                     $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
                     return $btn;
                 })
-                // ->editColumn('cashier', function ($Object) {
-                //     return $Object->user->name;
-                // })
+                ->editColumn('cashier', function ($Object) {
+                    return $Object->cashier;
+                })
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');
                 })
