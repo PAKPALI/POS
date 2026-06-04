@@ -46,7 +46,7 @@
                                                     <input type="email" name="email" class="form-control" id="exampleInputText0" placeholder="Email">
                                                 </div>
                                                 <div class="form-group col-6 mt-3">
-                                                    <label for="phone">Numéro de téléphone (sans espaces et indicatif)</label>
+                                                    <label for="phone">Numéro de téléphone</label>
                                                     <input type="number" name="phone" class="form-control" id="phone" value="" placeholder="ex: 90859488">
                                                 </div>
                                                 <div class="form-group col-6 mt-3">

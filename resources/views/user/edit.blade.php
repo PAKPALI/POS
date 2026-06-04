@@ -7,7 +7,7 @@
                 <input type="text" name="name" class="form-control" id="name" value="{{$User->name}}" placeholder="Nom">
             </div>
             <div class="form-group col-6">
-                <label for="phone">Numéro de téléphone (sans espaces et indicatif)</label>
+                <label for="phone">Numéro de téléphone</label>
                 <input type="number" name="phone" class="form-control" id="phone" value="{{$User->phone}}" placeholder="ex: 90859488">
             </div>
             <div class="form-group col-12 mt-3">
