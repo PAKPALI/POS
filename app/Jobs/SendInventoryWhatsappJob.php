@@ -35,7 +35,11 @@ class SendInventoryWhatsappJob implements ShouldQueue
         foreach ($users as $user) {
             if (!$user->phone) continue;
             try {
-                $smsService->sendWhatsappSms($user->phone,"Notification Inventaire",$message);
+                $response = $smsService->sendWhatsappSms($user->phone, "Notification Inventaire", $message);
+                if (is_array($response) && isset($response['status']) && $response['status'] === false) {
+                    Log::warning("Inventory WhatsApp not sent to $user->phone: " . ($response['message'] ?? 'Quota ou erreur'));
+                    continue;
+                }
                 Log::info("Inventory WhatsApp message sent with success to $user->phone");
             } catch (\Exception $e) {
                 Log::error("Inventory WhatsApp error: " . $e->getMessage());

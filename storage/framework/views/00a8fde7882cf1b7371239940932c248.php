@@ -171,6 +171,15 @@
 					</a>
 				</div>
 			<?php endif; ?>
+			<?php if(auth()->user()->user_type == 1): ?>
+				<div class="menu-header">SUPER UTILISATEUR</div>
+				<div class="menu-item <?php if(Request::route()->getName() === 'sms-quota.index'): ?> active <?php endif; ?>">
+					<a href="<?php echo e(route('sms-quota.index')); ?>" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-chat-left-text"></i></span>
+						<span class="menu-text">Quota SMS</span>
+					</a>
+				</div>
+			<?php endif; ?>
 			<div class="menu-item <?php if(Request::route()->getName() === 'profil'): ?> active <?php endif; ?>">
 				<a href="<?php echo e(route('profil')); ?>" class="menu-link">
 					<span class="menu-icon"><i class="fas fa-id-badge"></i></span>

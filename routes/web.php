@@ -7,6 +7,7 @@ use App\Http\Controllers\AMS\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CodePromo\CodePromoController;
 use App\Http\Controllers\Company\CompanyController;
+use App\Http\Controllers\SmsQuotaController;
 use App\Http\Controllers\Component\CategoryController;
 use App\Http\Controllers\Component\InventoryController;
 use App\Http\Controllers\Component\MenuController;
@@ -75,10 +76,12 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     //category
     Route::controller(CategoryController::class)->group(function () {
         Route::resource('category', CategoryController::class);
+        Route::get('category-disabled', [CategoryController::class, 'disabledListing'])->name('category.disabled.listing');
     });
     //product
     Route::controller(ProductController::class)->group(function () {
         Route::resource('product', ProductController::class);
+        Route::get('product-disabled', [ProductController::class, 'disabledListing'])->name('product.disabled.listing');
     });
     Route::get('product/export/pdf', [ProductController::class, 'exportPdf'])
     ->name('product.export.pdf');
@@ -132,6 +135,9 @@ Route::prefix('setting')->middleware(['auth'])->group(function () {
     Route::controller(CompanyController::class)->group(function () {
         Route::resource('company', CompanyController::class);
     });
+
+    Route::get('sms-quota', [SmsQuotaController::class, 'index'])->name('sms-quota.index');
+    Route::post('sms-quota', [SmsQuotaController::class, 'update'])->name('sms-quota.update');
 });
 
 Auth::routes();

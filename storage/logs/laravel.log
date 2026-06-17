@@ -1,0 +1,28 @@
+[2026-06-17 20:49:57] local.ERROR: Command "optimize:clearf" is not defined.
+
+Did you mean one of these?
+    cache:clear
+    config:clear
+    event:clear
+    optimize
+    optimize:clear
+    queue:clear
+    route:clear
+    view:clear {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"optimize:clearf\" is not defined.
+
+Did you mean one of these?
+    cache:clear
+    config:clear
+    event:clear
+    optimize
+    optimize:clear
+    queue:clear
+    route:clear
+    view:clear at C:\\POS\\vendor\\symfony\\console\\Application.php:737)
+[stacktrace]
+#0 C:\\POS\\vendor\\symfony\\console\\Application.php(266): Symfony\\Component\\Console\\Application->find('optimize:clearf')
+#1 C:\\POS\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#2 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#3 C:\\POS\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#4 {main}
+"} 

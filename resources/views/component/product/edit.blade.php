@@ -1,5 +1,8 @@
 <form id="update_form">
     @csrf
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
     <div class="card-body text-center">
         @if ($Product->image)
             <img class="mb-5" src="{{ asset('images/' . $Product->image) }}" alt="Image du produit" style="width: 150px; height: auto;">
@@ -10,7 +13,7 @@
             <div class="form-group col-6 mb-3">
                 <label for="exampleInputText0">Catégorie</label>
 
-                <select class="form-select mb-3" name="category">
+                <select class="form-select mb-3 select2-category" name="category">
                     <option value="">selectionnez une catégorie</option>
                     @foreach ($Category as $cat)
                         <option value="{{ $cat->id }}" {{ $cat->id == $Product->category_id ? 'selected' : '' }}>
@@ -64,27 +67,41 @@
 </form>
 
 <script>
-    $(function() {
+    // Select2 is loaded in this file, so we can initialize it immediately
+    setTimeout(function() {
+        var $select = jQuery('.select2-category');
+        
+        if ($select.length && typeof jQuery.fn.select2 !== 'undefined') {
+            $select.select2({
+                dropdownParent: jQuery('#editModal'),
+                width: '100%',
+                placeholder: 'Sélectionnez une catégorie',
+                allowClear: true
+            });
+        }
+    }, 100);
+    
+    jQuery(function() {
         // Cache le loader au chargement de la page
-        $('.loader').hide();
+        jQuery('.loader').hide();
 
-        $.ajaxSetup({
+        jQuery.ajaxSetup({
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        $('#submit').click(function(e) {
+        jQuery('#submit').click(function(e) {
             e.preventDefault();
             // Affiche le loader et remplace le texte du bouton
-            $('.loader').fadeIn();
-            $('#submit_text').hide();
-            var formData = new FormData($('#update_form')[0]);
+            jQuery('.loader').fadeIn();
+            jQuery('#submit_text').hide();
+            var formData = new FormData(jQuery('#update_form')[0]);
 
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PUT');
 
-            $.ajax({
+            jQuery.ajax({
                 data: formData,
                 url: '{{ url('component/product/' . $Product->id) }}',
                 type: "POST",
@@ -96,8 +113,8 @@
                     if (data.status) {
                         console.log(data);
                         // Cache le loader et remet le texte "Modifier"
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
+                        jQuery('.loader').fadeOut();
+                        jQuery('#submit_text').fadeIn();
 
                         Swal.fire({
                             toast: true,
@@ -110,11 +127,11 @@
                             text: data.msg,
                         });
 
-                        $('#editModal').modal('hide');
+                        jQuery('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
                     } else {
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
+                        jQuery('.loader').fadeOut();
+                        jQuery('#submit_text').fadeIn();
 
                         Swal.fire({
                             toast: true,
@@ -126,13 +143,13 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        $('#submit').html('Modifier');
+                        jQuery('#submit').html('Modifier');
                     }
                 },
                 error: function(data) {
                     console.log('Error:', data);
-                    $('.loader').fadeOut();
-                    $('#submit_text').fadeIn();
+                    jQuery('.loader').fadeOut();
+                    jQuery('#submit_text').fadeIn();
 
                     Swal.fire({
                         toast: true,
@@ -144,24 +161,24 @@
                         timerProgressBar: true,
                         text: 'Une erreur est survenue, veuillez réessayer.',
                     });
-                    $('#submit').html('Modifier');
+                    jQuery('#submit').html('Modifier');
                 }
             });
         });
 
         let TAX = {{ \App\Models\AMS\Setting::first()->default_tax ?? 0 }};
         // when unit price and purchase price are updated
-        $('.price1, .purchase_price1').on('input', function() {
+        jQuery('.price1, .purchase_price1').on('input', function() {
             // Récupérer les valeurs des champs
-            var unitPrice = parseFloat($('.price1').val()) || 0;
-            var purchasePrice = parseFloat($('.purchase_price1').val()) || 0;
+            var unitPrice = parseFloat(jQuery('.price1').val()) || 0;
+            var purchasePrice = parseFloat(jQuery('.purchase_price1').val()) || 0;
             
             // Calculate profit
             var profit = unitPrice - purchasePrice;
-            $('.profit1').val(profit);
+            jQuery('.profit1').val(profit);
 
             var ttc = unitPrice + (unitPrice * TAX / 100);
-            $('.price_ttc1').val(ttc.toFixed(0));
+            jQuery('.price_ttc1').val(ttc.toFixed(0));
         });
     });
 </script>

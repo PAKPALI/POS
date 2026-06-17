@@ -24,7 +24,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         // composer require yajra/laravel-datatables-oracle
-        $query = Product::where('type',1);
+        $query = Product::where('type',1)->where('status', 1);
 
         if($request->category_id){
             $query->where('category_id', $request->category_id);
@@ -96,6 +96,47 @@ class ProductController extends Controller
         }
         $Category = Category::where('status','1')->orderBy('name', 'asc')->get();
         return view('component.product.index',compact('Category'));
+    }
+
+    public function disabledListing(Request $request)
+    {
+        $query = Product::where('type',1)->where('status', 0);
+
+        $Object = $query->latest();
+        if(request()->ajax()){
+            return DataTables::of($Object)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                            <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                            <a data-id="'.$row->id.'" data-original-title="restaurer" class="btn btn-success btn-sm restore"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                    return $btn;
+                })
+                ->editColumn('category_id', function ($Object) {
+                    return $Object->category->name;
+                })
+                ->editColumn('price', function ($Object) {
+                    return $Object->price? number_format($Object->price, 0, ',', ' ') . ' FCFA' : '-';
+                })
+                ->editColumn('price_ttc', function ($Object) {
+                    return $Object->price_ttc? number_format($Object->price_ttc, 0, ',', ' ') . ' FCFA' : '-';
+                })
+                ->editColumn('status', function ($Object) {
+                    if($Object->status==1){
+                        $btn = ' <a class="btn btn-success btn-sm">Actif</a>';
+                    }else{
+                        $btn = ' <a class="btn btn-danger btn-sm">Inactif</a>';
+                    }
+                    return $btn;
+                })
+                ->editColumn('created_at', function ($Object) {
+                    return $Object->created_at->format('d-m-Y H:i:s');
+                })
+                ->rawColumns(['action','status'])
+                ->make(true);
+        }
+
+         return view('component.product.index',compact('Category'));
     }
 
     /**
@@ -357,36 +398,73 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        $Object = Product::findOrFail($id);
-        if($Object->status ==1){
+        $Object = Product::with('saleDetails')->findOrFail($id);
+
+        if($Object->status == 1){
+            $productHasSales = $Object->saleDetails()->exists();
+            // Produit jamais vendu
+            if (!$productHasSales) {
+
+                Action::create([
+                    'user_id' => auth()->user()->id,
+                    'function' => 'SUPPRESSION D\'UN PRODUIT',
+                    'text' => auth()->user()->name." a supprimé le produit : ".$Object->name,
+                ]);
+
+                $productName = $Object->name;
+
+                $Object->delete();
+
+                return response()->json([
+                    "status" => true,
+                    "reload" => true,
+                    "title" => "SUPPRESSION REUSSIE",
+                    "msg" => "Le produit ".$productName." a été supprimé définitivement car aucune vente n'y est associée."
+                ]);
+            }
+
+            // Produit déjà vendu => archivage
             $Object->update([
                 'status' => 0,
             ]);
+
             Action::create([
                 'user_id' => auth()->user()->id,
                 'function' => 'ARCHIVAGE D\'UN PRODUIT',
                 'text' => auth()->user()->name." a désactivé le produit : ".$Object->name,
             ]);
+
             return response()->json([
                 "status" => true,
                 "reload" => true,
-                // "redirect_to" => route('user'),
-                "title" => "ARCHIVAGE REUSSIE",
-                "msg" => "Le produit ".$Object->name." a bien été désactivé"
+                "title" => "ARCHIVAGE REUSSI",
+                "msg" => "Le produit ".$Object->name." a été archivé car il est lié à des ventes."
             ]);
-        }else{
+
+        } else {
+
+            // 🔒 Vérifier la catégorie avant restauration
+            if ($Object->category && $Object->category->status == 0) {
+                return response()->json([
+                    "status" => false,
+                    "title" => "RESTAURATION IMPOSSIBLE",
+                    "msg" => "Ce produit ne peut pas être restauré car sa catégorie est inactive."
+                ]);
+            }
+
             $Object->update([
                 'status' => 1,
             ]);
+
             Action::create([
                 'user_id' => auth()->user()->id,
                 'function' => 'RESTAURER UN PRODUIT',
-                'text' => auth()->user()->name." a restaurer le produit : ".$Object->name,
-            ]); 
+                'text' => auth()->user()->name." a restauré le produit : ".$Object->name,
+            ]);
+
             return response()->json([
                 "status" => true,
                 "reload" => true,
-                // "redirect_to" => route('user'),
                 "title" => "RESTAURATION REUSSIE",
                 "msg" => "Le produit ".$Object->name." a bien été restauré"
             ]);

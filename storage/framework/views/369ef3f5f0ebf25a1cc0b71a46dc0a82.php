@@ -51,6 +51,57 @@
 				height: auto;
 				animation: zoom 0.8s infinite ease-in-out, vibrate 0.5s infinite linear;
 			}
+
+			/* Champ sélectionné */
+			.select2-container--default .select2-selection--single {
+				background-color: #000 !important;
+				color: #fff !important;
+				border: 1px solid #444 !important;
+				height: 45px !important;
+				display: flex;
+				align-items: center;
+			}
+
+			/* Texte sélectionné */
+			.select2-container--default .select2-selection--single .select2-selection__rendered {
+				color: #fff !important;
+				line-height: 45px !important;
+			}
+
+			/* Flèche */
+			.select2-container--default .select2-selection--single .select2-selection__arrow b {
+				border-color: #fff transparent transparent transparent !important;
+			}
+
+			/* Dropdown */
+			.select2-dropdown {
+				background: #000 !important;
+				border: 1px solid #444 !important;
+			}
+
+			/* Options */
+			.select2-results__option {
+				color: #fff !important;
+				background: #000 !important;
+			}
+
+			/* Option survolée */
+			.select2-results__option--highlighted {
+				background: #1e88e5 !important;
+				color: #fff !important;
+			}
+
+			/* Champ de recherche */
+			.select2-search__field {
+				background: #000 !important;
+				color: #fff !important;
+				border: 1px solid #555 !important;
+			}
+
+			/* Placeholder */
+			.select2-selection__placeholder {
+				color: #ccc !important;
+			}
 		</style>
 		<?php echo $__env->yieldPushContent('css-scripts'); ?>
 </head>
@@ -281,6 +332,34 @@
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 		
 		<script>
+			function initSearchableSelects(context) {
+				var $context = context ? $(context) : $(document);
+				$context.find('select.form-select')
+					.not('.no-search')
+					.filter(function() {
+						return !$(this).hasClass('select2-hidden-accessible');
+					})
+					.each(function() {
+						var $select = $(this);
+						var $modal = $select.closest('.modal');
+						var placeholder = $select.data('placeholder') || $select.find('option[value=""]').first().text() || 'Sélectionner';
+						$select.select2({
+							width: '100%',
+							dropdownParent: $modal.length ? $modal : $(document.body),
+							placeholder: placeholder,
+							allowClear: true
+						});
+					});
+			}
+
+			$(document).ready(function() {
+				initSearchableSelects();
+			});
+
+			$(document).on('shown.bs.modal', '.modal', function() {
+				initSearchableSelects(this);
+			});
+
 			const image = document.querySelector("#page-preloader img");
 			let scale = 1; // Échelle initiale
 			let direction = 1; // Indique si on "zoome" ou "dézoome"

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CompanySetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -24,8 +25,19 @@ class SmsService
         $this->responseUrl = config('services.kprimesms.response_url');
     }
 
+    protected function getCompanySetting(): ?CompanySetting
+    {
+        return CompanySetting::first();
+    }
+
     public function sendSms($phoneNumber, $message)
     {
+        $company = $this->getCompanySetting();
+        if (!$company || $company->sms_count <= 0) {
+            Log::warning('SMS non envoyé : quota SMS épuisé.');
+            return ['status' => false, 'message' => 'Quota SMS épuisé'];
+        }
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'token' => $this->token,
@@ -39,11 +51,23 @@ class SmsService
             'response_url' => $this->responseUrl,
         ]);
 
+        if ($response->successful()) {
+            $company->decrement('sms_count');
+        } else {
+            Log::warning('Erreur SMS API: ' . json_encode($response->json()));
+        }
+
         return $response->json();
     }
 
     public function sendWhatsappSms($phoneNumber, $title, $message)
     {
+        $company = $this->getCompanySetting();
+        if (!$company || $company->whatsapp_count <= 0) {
+            Log::warning('WhatsApp non envoyé : quota WhatsApp épuisé.');
+            return ['status' => false, 'message' => 'Quota WhatsApp épuisé'];
+        }
+
         Log::info("Sending WhatsApp message to $phoneNumber: $message");
         try {
             $response = Http::withHeaders([
@@ -51,18 +75,24 @@ class SmsService
                 'token' => $this->token,
                 'key' => $this->key,
             ])->post($this->baseUrl . '/whatsapp/template/text-message', [
-                "country" => "TG",
-                "phone_number" => $phoneNumber,
-                "title" => $title,
-                "content" => $message,
+                'country' => 'TG',
+                'phone_number' => $phoneNumber,
+                'title' => $title,
+                'content' => $message,
             ]);
 
-            Log::info("WhatsApp API response: " . json_encode($response->json()));
+            Log::info('WhatsApp API response: ' . json_encode($response->json()));
+
+            if ($response->successful()) {
+                $company->decrement('whatsapp_count');
+            } else {
+                Log::warning('Erreur WhatsApp API: ' . json_encode($response->json()));
+            }
 
             return $response->json();
         } catch (\Exception $e) {
-            Log::warning("Error sending WhatsApp message: " . $e->getMessage());
-            return null;
+            Log::warning('Error sending WhatsApp message: ' . $e->getMessage());
+            return ['status' => false, 'message' => 'Erreur d envoi WhatsApp'];
         }
     }
 

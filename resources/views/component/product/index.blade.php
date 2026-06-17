@@ -184,7 +184,7 @@
                             </div>
                         </div> --}}
 
-                        <div class="col-xl-12">
+                        <div class="col-xl-12 mb-5">
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
@@ -243,6 +243,54 @@
                                     <hr class="mb-3">
                                     <div class="table-responsive">
                                         <table id="datatable" class="table text-nowrap w-100">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Etat</th>
+                                                    <th>Nom</th>
+                                                    <th>Catégorie</th>
+                                                    <th>Quantité</th>
+                                                    <th>Prix HT</th>
+                                                    <th>Prix TTC</th>
+                                                    <th>Status</th>
+                                                    <!-- <th>Créer par</th> -->
+                                                    <!-- <th>Créer le</th> -->
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-center mt-3">
+                                    
+                                </div>
+
+                                <div class="card-arrow">
+                                    <div class="card-arrow-top-left"></div>
+                                    <div class="card-arrow-top-right"></div>
+                                    <div class="card-arrow-bottom-left"></div>
+                                    <div class="card-arrow-bottom-right"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-12">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex fw-bold small mb-3">
+                                        <span class="flex-grow-1"><h4>Listes des produits inactifs</h4></span>
+                                        <!-- <button type="button" id="exportPdf" class="btn btn-secondary mb-1 me-2 text-right">PDF</button> -->
+                                        <!-- <button type="button" class="btn btn-primary mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button> -->
+                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
+                                    </div>
+                                    <hr class="">
+                                    
+                                    <hr class="mb-3">
+                                    <div class="table-responsive">
+                                        <table id="disabled_datatable" class="table text-nowrap w-100">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
@@ -387,6 +435,77 @@
                 },
             });
 
+            var Disabled_Datatable = $('#disabled_datatable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: "{{ route('product.disabled.listing') }}",
+                    data: function(d){
+                        d.category_id = $('#filter_category').val();
+                        d.qte = $('#filter_qte').val();
+                        d.status = $('#filter_status').val();
+                    }
+                },
+                columns: [
+                    {data: 'id',name: 'id'},
+                    {data: 'margin',name: 'margin'},
+                    {data: 'name',name: 'name'},
+                    {data: 'category_id',name: 'category_id'},
+                    {data: 'qte',name: 'qte'},
+                    {data: 'price',name: 'price'},
+                    {data: 'price_ttc', name: 'price_ttc'},
+                    {data: 'status',name: 'status'},
+                    // {data: 'created_by',name: 'created_by'},
+                    // {data: 'created_at',name: 'created_at'},
+                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                ],
+                responsive: true, 
+                language: {
+                    "lengthMenu": "Afficher _MENU_ entrées",
+                    "zeroRecords": "Aucune donnée disponible",
+                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+                    "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
+                    "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
+                    "search": "Rechercher:",
+                    "paginate": {
+                        "first": "Premier",
+                        "last": "Dernier",
+                        "next": "Suivant",
+                        "previous": "Précédent"
+                    }
+                },
+                
+                drawCallback: function() {
+                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
+                    $('#disabled_datatable').css('width','100%');
+                    $('#disabled_datatable tbody tr').each(function() {
+                        $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
+                        $(this).css('color', 'white');
+                    });
+                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
+                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
+                    $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
+                    $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+
+                    // Appliquer la couleur blanche au texte des labels
+                    $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
+                    $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
+                    
+                    // Appliquer les styles pour le dropdown et le champ de recherche
+                    $('.dataTables_length select').css({
+                        'background-color': 'black', // Fond noir
+                        'color': 'white' // Texte en blanc
+                    });
+
+                    $('.dataTables_filter input').css({
+                        'background-color': 'black', // Fond noir
+                        'color': 'white' // Texte en blanc
+                    });
+                    $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
+                    $('#disabled_datatable').css('width', '100%');
+                },
+            });
+
             window.addEventListener('datatableUpdated', function() {
                 Datatable.ajax.reload(null, false);
             });
@@ -464,6 +583,9 @@
                     success:function(result)
                     {
                         $('#edit_response').html(result);
+                    },
+                    error: function(err) {
+                        console.error('AJAX error:', err);
                     }
                 });
                 $('#editModal').modal('show');
@@ -552,14 +674,32 @@
                 var id = $(this).data("id");   
                 
                 Swal.fire({
-                    icon: "question",
-                    title: "Etes vous sur de vouloir archiver ce produit?",
-                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
+                    icon: "warning",
+                    title: "Confirmer l'opération",
+                    html: `
+                        <div style="
+                            background:#dc3545;
+                            color:white;
+                            padding:15px;
+                            border-radius:8px;
+                            font-size:15px;
+                            font-weight:bold;
+                            text-align:left;
+                        ">
+                            ⚠️ ATTENTION<br><br>
+
+                            Si ce produit n'a jamais été utilisé dans une vente,
+                            il sera <strong>SUPPRIMÉ DÉFINITIVEMENT</strong>.<br><br>
+
+                            S'il est déjà lié à une ou plusieurs ventes,
+                            il sera simplement <strong>ARCHIVÉ</strong>.
+                        </div>
+                    `,
                     confirmButtonText: "Oui",
-                    confirmButtonColor: 'red',
+                    confirmButtonColor: "#dc3545",
                     showCancelButton: true,
                     cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
+                    cancelButtonColor: "#0d6efd",
                 }).then((result) => {
                     if (result.isConfirmed){
                         $.ajax({
@@ -583,6 +723,7 @@
                                         text: data.msg,
                                     });
                                     Datatable.draw();
+                                    Disabled_Datatable.draw();
                                 }else{
                                     Swal.fire({
                                         icon: "error",
@@ -635,6 +776,7 @@
                                         text: data.msg,
                                     });
                                     Datatable.draw();
+                                    Disabled_Datatable.draw();
                                 }else{
                                     Swal.fire({
                                         icon: "error",

@@ -171,6 +171,15 @@
 					</a>
 				</div>
 			@endif
+			@if(auth()->user()->user_type == 1)
+				<div class="menu-header">SUPER UTILISATEUR</div>
+				<div class="menu-item @if(Request::route()->getName() === 'sms-quota.index') active @endif">
+					<a href="{{ route('sms-quota.index') }}" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-chat-left-text"></i></span>
+						<span class="menu-text">Quota SMS</span>
+					</a>
+				</div>
+			@endif
 			<div class="menu-item @if(Request::route()->getName() === 'profil') active @endif">
 				<a href="{{ route('profil') }}" class="menu-link">
 					<span class="menu-icon"><i class="fas fa-id-badge"></i></span>

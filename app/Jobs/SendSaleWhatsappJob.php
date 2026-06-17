@@ -39,8 +39,12 @@ class SendSaleWhatsappJob implements ShouldQueue
 
         foreach ($users as $user) {
             if (!$user->phone) continue;
-            // send whatsapp sms
-            $smsService->sendWhatsappSms($user->phone, "Notification de vente",$message);
+
+            $response = $smsService->sendWhatsappSms($user->phone, "Notification de vente", $message);
+            if (is_array($response) && isset($response['status']) && $response['status'] === false) {
+                Log::warning("Sale WhatsApp message not sent to $user->phone: " . ($response['message'] ?? 'Quota ou erreur')); 
+                continue;
+            }
 
             // send whatsapp document
             // if($mediaId){
