@@ -83,8 +83,8 @@
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="form-group col-6">
-                                                    <label for="product_id">Produit</label>
-                                                    <select name="product_id" id="product_id" class="form-select">
+                                                    <label for="product_id1">Produit</label>
+                                                    <select name="product_id" id="product_id1" class="form-select">
                                                         <option value="">Sélectionner un produit</option>
                                                         @foreach($Product->where('qte', '>', 0) as $item)
                                                             <option value="{{$item->id}}">{{$item->name}} ({{$item->qte}})</option>
@@ -268,7 +268,7 @@
                     }
                 },
                 columns: [
-                    {data: 'id',name: 'id'},
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'type',name: 'type'},
                     {data: 'product_id',name: 'product_id'},
                     {data: 'qte_before',name: 'qte_before'},

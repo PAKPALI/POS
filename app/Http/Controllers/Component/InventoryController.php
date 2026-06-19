@@ -163,8 +163,7 @@ class InventoryController extends Controller
     }
 
     public function remove(Request $request)
-    {
-        
+    { 
         $error_messages = [
             "product_id.required" => "Sélectionnez un produit!",
             "qte_removed.required" => "Remplir le champ Quantité!",
@@ -277,15 +276,13 @@ class InventoryController extends Controller
         $inventories = $query->latest()->get();
 
         $company = CompanySetting::first();
-
         $pdf = Pdf::loadView('component.inventory.pdf', compact('inventories', 'company','start_date','end_date'));
+        Action::create([
+            'user_id' => auth()->user()->id,
+            'function' => 'EXPORTER PDF INVENTAIRE',
+            'text' => auth()->user()->name." a exporté l'inventaire en PDF",
+        ]);
         return $pdf->download('inventaires.pdf-'. strtoupper($company->name ?? config('app.name')) . '.pdf');
-
-        
-
-        $pdf = Pdf::loadView('component.product.pdf',compact('products', 'company'));
-
-        return $pdf->download('liste-produits-' . strtoupper($company->name ?? config('app.name')) . '.pdf');
     }
 
     /**

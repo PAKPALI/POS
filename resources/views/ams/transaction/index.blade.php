@@ -302,7 +302,7 @@
             serverSide: true,
             ajax: "{{ route('transaction.index') }}",
             columns: [
-                {data: 'id'},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                 {data: 'type'},
                 {data: 'from_cash'},
                 {data: 'to_cash'},

@@ -200,7 +200,7 @@
                 serverSide: true,
                 ajax: "{{ route('category.index')}}",
                 columns: [
-                    {data: 'id',name: 'id'},
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'name',name: 'name'},
                     {data: 'created_by',name: 'created_by'},
                     {data: 'created_at',name: 'created_at'},
@@ -257,7 +257,7 @@
                 serverSide: true,
                 ajax: "{{ route('category.disabled.listing')}}",
                 columns: [
-                    {data: 'id',name: 'id'},
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'name',name: 'name'},
                     {data: 'created_by',name: 'created_by'},
                     {data: 'created_at',name: 'created_at'},

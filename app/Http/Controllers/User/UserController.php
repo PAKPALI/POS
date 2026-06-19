@@ -430,15 +430,15 @@ class UserController extends Controller
     {
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
-            "phone.required" => "Remplir le champ Numéro de téléphone!",
-            "phone.numeric" => "Le champ Numéro de téléphone doit être numérique!",
-            "phone.digits" => "Le champ Numéro de téléphone doit comporter exactement 8 chiffres!",
+            // "phone.required" => "Remplir le champ Numéro de téléphone!",
+            // "phone.numeric" => "Le champ Numéro de téléphone doit être numérique!",
+            // "phone.digits" => "Le champ Numéro de téléphone doit comporter exactement 8 chiffres!",
             "user_type.required" => "Veuillez sélectionner un type d'utilisateur!",
         ];
 
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
-            'phone' => ['required', 'numeric', 'digits:8'],
+            // 'phone' => ['numeric', 'digits:8'],
             'user_type' => ['required'],
         ], $error_messages);
 

@@ -369,7 +369,7 @@
                 serverSide: true,
                 ajax: "{{ route('cash-account.index')}}",
                 columns: [
-                    {data: 'id', name: 'id'},
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'code', name: 'code'},
                     {data: 'name', name: 'name'},
                     {data: 'balance', name: 'balance'},

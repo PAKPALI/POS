@@ -136,7 +136,7 @@ class ProductController extends Controller
                 ->make(true);
         }
 
-         return view('component.product.index',compact('Category'));
+        return view('component.product.index',compact('Category'));
     }
 
     /**
@@ -384,11 +384,16 @@ class ProductController extends Controller
             $query->where('qte', '<=', 0);
         }
 
-        $products = $query->latest();
+        $products = $query->latest()->get();
 
         $company = CompanySetting::first();
 
         $pdf = Pdf::loadView('component.product.pdf',compact('products', 'company'));
+        Action::create([
+            'user_id' => auth()->user()->id,
+            'function' => 'EXPORTER PDF PRODUITS',
+            'text' => auth()->user()->name." a exporté la liste des produits en PDF",
+        ]);
 
         return $pdf->download('liste-produits-' . strtoupper($company->name ?? config('app.name')) . '.pdf');
     }

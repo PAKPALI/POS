@@ -70,7 +70,7 @@
     </table>
 
     <div style="text-align: center; margin-top: 50px;">
-        <p style="margin: 0; font-size: 12px; color: #555;"><h3><u>PRO-SELLER</u></h3></p>
+        <p style="margin: 0; font-size: 12px; color: #555;"><h3><u> {{strtoupper(config('app.name'))}}</u></h3></p>
     </div>
 
 </body>

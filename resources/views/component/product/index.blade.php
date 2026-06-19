@@ -282,7 +282,7 @@
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
                                         <span class="flex-grow-1"><h4>Listes des produits inactifs</h4></span>
-                                        <!-- <button type="button" id="exportPdf" class="btn btn-secondary mb-1 me-2 text-right">PDF</button> -->
+                                        <!-- <button type="button" id="" class="btn btn-secondary mb-1 me-2 text-right">PDF</button> -->
                                         <!-- <button type="button" class="btn btn-primary mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button> -->
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
@@ -376,7 +376,7 @@
                     }
                 },
                 columns: [
-                    {data: 'id',name: 'id'},
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'margin',name: 'margin'},
                     {data: 'name',name: 'name'},
                     {data: 'category_id',name: 'category_id'},
@@ -447,7 +447,7 @@
                     }
                 },
                 columns: [
-                    {data: 'id',name: 'id'},
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'margin',name: 'margin'},
                     {data: 'name',name: 'name'},
                     {data: 'category_id',name: 'category_id'},
