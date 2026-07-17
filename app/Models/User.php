@@ -45,4 +45,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function ecommerceCompanies()
+    {
+        return $this->belongsToMany(CompanySetting::class, 'ecommerce_managers', 'user_id', 'company_id');
+    }
 }

@@ -68,6 +68,27 @@
                                                         <input type="text" name="message" class="form-control" id="exampleInputText5" placeholder="Message">
                                                     </div>
                                                 </div>
+
+                                                <div class="row mt-4">
+                                                    <div class="form-group col-6">
+                                                        <label for="add_logo">Logo</label>
+                                                        <input type="file" name="logo" class="form-control" id="add_logo" accept="image/*">
+                                                    </div>
+                                                    <div class="form-group col-6">
+                                                        <label for="add_ecommerce_active" class="d-block">Boutique en ligne</label>
+                                                        <div class="form-check form-switch mt-2">
+                                                            <input type="checkbox" name="ecommerce_active" class="form-check-input" id="add_ecommerce_active" value="1">
+                                                            <label class="form-check-label" for="add_ecommerce_active">Activer</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-4">
+                                                    <div class="form-group col-12">
+                                                        <label for="add_description">Description (pour le site ecommerce)</label>
+                                                        <textarea name="description" class="form-control" id="add_description" rows="3" placeholder="Description de l'entreprise"></textarea>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="card-footer mt-4">
                                                 <button type="submit" class="btn btn-primary">
@@ -256,11 +277,13 @@
                 event.preventDefault();
                 $('#loader').fadeIn();
                 $('#submitText').hide();
+                var formData = new FormData($('#add')[0]);
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('company.store') }}",
-                    //enctype: 'multipart/form-data',
-                    data: $('#add').serialize(),
+                    data: formData,
+                    contentType: false,
+                    processData: false,
                     datatype: 'json',
                     success: function(data) {
                         console.log(data)

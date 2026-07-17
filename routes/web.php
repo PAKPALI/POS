@@ -130,6 +130,29 @@ Route::prefix('ams')->middleware(['auth'])->group(function () {
     Route::post('settings', [SettingController::class, 'store'])->name('ams.settings.store');
 });
 
+/*manage ecommerce admin*/
+Route::prefix('ecommerce')->middleware(['auth'])->group(function () {
+    Route::get('settings', [App\Http\Controllers\Ecommerce\SettingController::class, 'index'])->name('ecommerce.settings');
+    Route::post('settings/update', [App\Http\Controllers\Ecommerce\SettingController::class, 'updateSettings'])->name('ecommerce.settings.update');
+    Route::post('managers/add', [App\Http\Controllers\Ecommerce\SettingController::class, 'addManager'])->name('ecommerce.managers.add');
+    Route::delete('managers/{id}', [App\Http\Controllers\Ecommerce\SettingController::class, 'removeManager'])->name('ecommerce.managers.remove');
+    Route::get('managers/list/{company}', [App\Http\Controllers\Ecommerce\SettingController::class, 'managersList'])->name('ecommerce.managers.list');
+    Route::get('orders', [App\Http\Controllers\Ecommerce\OrderController::class, 'index'])->name('ecommerce.orders.index');
+    Route::get('orders/{id}', [App\Http\Controllers\Ecommerce\OrderController::class, 'show'])->name('ecommerce.orders.show');
+    Route::post('orders/{id}/status', [App\Http\Controllers\Ecommerce\OrderController::class, 'updateStatus'])->name('ecommerce.orders.status');
+});
+
+/*public ecommerce routes*/
+Route::prefix('shop')->controller(App\Http\Controllers\Ecommerce\FrontController::class)->group(function () {
+    Route::get('/', 'index')->name('shop.home');
+    Route::get('/products', 'allProducts')->name('shop.products');
+    Route::get('/category/{id}', 'category')->name('shop.category');
+    Route::get('/product/{id}', 'product')->name('shop.product');
+    Route::get('/checkout', 'checkout')->name('shop.checkout');
+    Route::post('/order/place', 'placeOrder')->name('shop.order.place');
+    Route::get('/success', 'success')->name('shop.success');
+});
+
 Route::prefix('setting')->middleware(['auth'])->group(function () {
     //company
     Route::controller(CompanyController::class)->group(function () {

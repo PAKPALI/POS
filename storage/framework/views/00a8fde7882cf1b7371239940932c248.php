@@ -160,6 +160,39 @@
 				</div>
 			<?php endif; ?>
 
+			<!-- ECOMMERCE -->
+			<?php if(auth()->user()->user_type!=3): ?>
+			<div class="menu-header">ECOMMERCE</div>
+			<div class="menu-item has-sub
+				<?php if(Request::route()->getName() === 'ecommerce.settings' || Request::route()->getName() === 'ecommerce.orders.index' || Request::route()->getName() === 'ecommerce.orders.show'): ?>
+					active
+				<?php endif; ?>">
+				<a href="javascript:;" class="menu-link">
+					<div class="menu-icon">
+						<i class="fas fa-shopping-cart"></i>
+					</div>
+					<div class="menu-text d-flex align-items-center">Ecommerce</div>
+					<span class="menu-caret"><b class="caret"></b></span>
+				</a>
+				<div class="menu-submenu">
+					<div class="menu-item <?php if(Request::route()->getName() === 'ecommerce.settings'): ?> active <?php endif; ?>">
+						<a href="<?php echo e(route('ecommerce.settings')); ?>" class="menu-link">
+							<span class="menu-icon"><i class="fas fa-cog"></i></span>
+							<span class="menu-text">Configuration</span>
+						</a>
+					</div>
+				</div>
+				<div class="menu-submenu">
+					<div class="menu-item <?php if(Request::route()->getName() === 'ecommerce.orders.index' || Request::route()->getName() === 'ecommerce.orders.show'): ?> active <?php endif; ?>">
+						<a href="<?php echo e(route('ecommerce.orders.index')); ?>" class="menu-link">
+							<span class="menu-icon"><i class="fas fa-clipboard-list"></i></span>
+							<span class="menu-text">Commandes</span>
+						</a>
+					</div>
+				</div>
+			</div>
+			<?php endif; ?>
+
 			<!-- UTILISATEURS -->
 			<div class="menu-divider"> </div>
 			<?php if(auth()->user()->user_type!=3): ?>
@@ -219,4 +252,5 @@
 </div>
 
 
-<button class="app-sidebar-mobile-backdrop" data-toggle-target=".app" data-toggle-class="app-sidebar-mobile-toggled"></button><?php /**PATH C:\POS\resources\views/partials/menu.blade.php ENDPATH**/ ?>
+<button class="app-sidebar-mobile-backdrop" data-toggle-target=".app" data-toggle-class="app-sidebar-mobile-toggled"></button>
+<?php /**PATH C:\POS\resources\views/partials/menu.blade.php ENDPATH**/ ?>

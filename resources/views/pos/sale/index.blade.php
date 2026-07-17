@@ -466,15 +466,7 @@
                             <button class="btn btn-danger btn-sm" id="deletpromoinput" type=""><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></button>
                         <!-- </form> -->
                         <div class="mt-3">
-                            <div class="btn-group d-flex">
-                                <!-- <a href="#" class="btn btn-outline-default rounded-0 w-80px">
-                                    <i class="bi bi-bell fa-lg"></i><br>
-                                    <span class="small">Service</span>
-                                </a>
-                                <a href="#" class="btn btn-outline-default rounded-0 w-80px">
-                                    <i class="bi bi-receipt fa-fw fa-lg"></i><br>
-                                    <span class="small">Bill</span>
-                                </a> -->
+                            <div class="btn-group d-flex flex-wrap gap-1">
                                 @if ($company && $company->count() == 1)
                                     @if(!$mainCash)
                                         <div class="alert alert-danger text-center">
@@ -492,7 +484,16 @@
                                             Configurer
                                         </a>
                                     @else
-                                        <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 w-150px">
+                                        <a href="#" id="savePendingOrder" class="btn btn-outline-primary rounded-0 flex-fill">
+                                            <i class="bi bi-save fa-lg"></i><br>
+                                            <span class="small">Sauvegarder</span>
+                                        </a>
+                                        <a href="#" id="showPendingOrders" class="btn btn-outline-info rounded-0 flex-fill position-relative">
+                                            <i class="bi bi-clock-history fa-lg"></i><br>
+                                            <span class="small">En cours</span>
+                                            <span id="pendingBadge" class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="display:none;">0</span>
+                                        </a>
+                                        <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 flex-fill">
                                             <i class="bi bi-send-check fa-lg"></i><br>
                                             <span class="small">Vendre</span>
                                         </a>
@@ -553,6 +554,26 @@
                 </div>
                 <div class="modal-body">
                     <div id="show_response"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Orders Modal -->
+    <div class="modal fade" id="pendingOrdersModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h3 class="modal-title text-dark">Commandes en cours</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="pendingOrdersList">
+                        <div class="text-center text-muted py-4">Aucune commande en cours</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                 </div>
             </div>
         </div>
@@ -1285,6 +1306,259 @@
         $("#deletpromoinput").on("click", function () {
             $("#promoCodeInput").val("").focus(); // Effacer et remettre le focus
         });
+
+        // ============= PENDING ORDERS (localStorage) =============
+
+        function getPendingOrdersKey() {
+            return 'pending_orders_' + ({{ auth()->id() }});
+        }
+
+        function getPendingOrders() {
+            const key = getPendingOrdersKey();
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function savePendingOrdersList(orders) {
+            localStorage.setItem(getPendingOrdersKey(), JSON.stringify(orders));
+        }
+
+        function getNextOrderId(orders) {
+            if (orders.length === 0) return 1;
+            return Math.max(...orders.map(o => o.id)) + 1;
+        }
+
+        function updatePendingBadge() {
+            const orders = getPendingOrders();
+            const badge = $('#pendingBadge');
+            if (orders.length > 0) {
+                badge.text(orders.length).show();
+            } else {
+                badge.hide();
+            }
+        }
+
+        function getOrderFromCart() {
+            const products = [];
+            let hasItems = false;
+
+            $('.pos-order-product').each(function() {
+                hasItems = true;
+                const productId = $(this).data('product-id');
+                const quantity = $(this).find('.quantity-input').val();
+                const priceText = $(this).find('.small').text().replace(' FCFA', '').trim();
+                const price = parseFloat(priceText);
+                const name = $(this).find('.h6.mb-1').text().trim();
+                const imgStyle = $(this).find('.img').attr('style') || '';
+                const imgMatch = imgStyle.match(/url\(['"]?(.*?)['"]?\)/);
+                const image = imgMatch ? imgMatch[1] : '';
+
+                products.push({
+                    product_id: productId,
+                    name: name,
+                    unit_price: price,
+                    quantity: quantity,
+                    total_price: price * parseInt(quantity),
+                    image: image
+                });
+            });
+
+            if (!hasItems) return null;
+
+            const totalAmount = parseFloat($('.total-amount').text().replace(' FCFA', '')) || 0;
+            const codePromo = $('#promoCodeInput').val().trim();
+
+            return { products, total_amount: totalAmount, code_promo: codePromo };
+        }
+
+        function restoreOrderToCart(order) {
+            // Clear current cart
+            $('#newOrderTab .pos-order').remove();
+            selectedProducts.clear();
+
+            if (!order.products || order.products.length === 0) return;
+
+            order.products.forEach(function(p) {
+                const productHtml = `
+                    <div class="pos-order">
+                        <div class="pos-order-product" data-product-id="${p.product_id}">
+                            <div class="img" style="background-image: url(${p.image})"></div>
+                            <div class="flex-1">
+                                <div class="h6 mb-1">${p.name}</div>
+                                <div class="small">${p.unit_price} FCFA</div>
+                                <div class="d-flex">
+                                    <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
+                                    <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${p.quantity}">
+                                    <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
+                                </div>
+                            </div>
+                            <div class="pos-order-price">${p.unit_price * p.quantity} FCFA</div>
+                            <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
+                        </div>
+                    </div>
+                `;
+                $('#newOrderTab').append(productHtml);
+                addProduct(p.product_id);
+            });
+
+            updateTotal();
+            updateOrderCount();
+
+            if (order.code_promo) {
+                $('#promoCodeInput').val(order.code_promo);
+            }
+        }
+
+        function renderPendingOrdersList() {
+            const orders = getPendingOrders();
+            const container = $('#pendingOrdersList');
+
+            if (orders.length === 0) {
+                container.html('<div class="text-center text-muted py-4">Aucune commande en cours</div>');
+                return;
+            }
+
+            let html = '<div class="table-responsive"><table class="table table-dark table-hover">';
+            html += '<thead><tr><th>#</th><th>Libellé</th><th>Date</th><th>Articles</th><th>Total</th><th>Actions</th></tr></thead><tbody>';
+
+            orders.forEach(function(order, index) {
+                const label = order.label || 'Commande #' + order.id;
+                const date = order.date || '';
+                const itemsCount = order.products ? order.products.length : 0;
+                const total = order.total_amount || 0;
+                html += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${label}</td>
+                    <td>${date}</td>
+                    <td>${itemsCount}</td>
+                    <td>${total} FCFA</td>
+                    <td>
+                        <button class="btn btn-success btn-sm load-order" data-id="${order.id}"><i class="fa fa-upload"></i> Charger</button>
+                        <button class="btn btn-danger btn-sm delete-order" data-id="${order.id}"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            container.html(html);
+        }
+
+        // Save current order
+        $('#savePendingOrder').on('click', function(e) {
+            e.preventDefault();
+
+            const orderData = getOrderFromCart();
+            if (!orderData) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Panier vide',
+                    text: 'Ajoutez des produits avant de sauvegarder.',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Sauvegarder la commande',
+                input: 'text',
+                inputLabel: 'Donnez un nom à cette commande',
+                inputValue: 'Commande ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                showCancelButton: true,
+                confirmButtonText: 'Sauvegarder',
+                cancelButtonText: 'Annuler',
+                inputValidator: (value) => {
+                    if (!value) return 'Veuillez entrer un libellé';
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const orders = getPendingOrders();
+                    const newOrder = {
+                        id: getNextOrderId(orders),
+                        label: result.value,
+                        date: new Date().toLocaleString('fr-FR'),
+                        products: orderData.products,
+                        total_amount: orderData.total_amount,
+                        code_promo: orderData.code_promo
+                    };
+                    orders.push(newOrder);
+                    savePendingOrdersList(orders);
+                    updatePendingBadge();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Commande sauvegardée',
+                        toast: true,
+                        position: 'top',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                }
+            });
+        });
+
+        // Show pending orders modal
+        $('#showPendingOrders').on('click', function(e) {
+            e.preventDefault();
+            renderPendingOrdersList();
+            $('#pendingOrdersModal').modal('show');
+        });
+
+        // Load an order (delegated event because buttons are dynamic)
+        $(document).on('click', '.load-order', function() {
+            const id = parseInt($(this).data('id'));
+            let orders = getPendingOrders();
+            const order = orders.find(o => o.id === id);
+            if (!order) {
+                Swal.fire({ icon: 'error', title: 'Commande introuvable', timer: 2000, showConfirmButton: false });
+                return;
+            }
+
+            restoreOrderToCart(order);
+            $('#pendingOrdersModal').modal('hide');
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Commande chargée',
+                text: 'Vous pouvez modifier la commande et la sauvegarder à nouveau.',
+                toast: true,
+                position: 'top',
+                showConfirmButton: false,
+                timer: 2500
+            });
+        });
+
+        // Delete an order (delegated event)
+        $(document).on('click', '.delete-order', function() {
+            const id = parseInt($(this).data('id'));
+            Swal.fire({
+                title: 'Supprimer cette commande ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let orders = getPendingOrders();
+                    orders = orders.filter(o => o.id !== id);
+                    savePendingOrdersList(orders);
+                    updatePendingBadge();
+                    renderPendingOrdersList();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Commande supprimée',
+                        toast: true,
+                        position: 'top',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                }
+            });
+        });
+
+        // Init badge on page load
+        updatePendingBadge();
     });
 </script>
 

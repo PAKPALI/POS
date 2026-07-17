@@ -1,64 +1,118 @@
-[2026-06-17 20:49:57] local.ERROR: Command "optimize:clearf" is not defined.
-
-Did you mean one of these?
-    cache:clear
-    config:clear
-    event:clear
-    optimize
-    optimize:clear
-    queue:clear
-    route:clear
-    view:clear {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"optimize:clearf\" is not defined.
-
-Did you mean one of these?
-    cache:clear
-    config:clear
-    event:clear
-    optimize
-    optimize:clear
-    queue:clear
-    route:clear
-    view:clear at C:\\POS\\vendor\\symfony\\console\\Application.php:737)
+[2026-07-17 16:44:51] local.ERROR: Unable to locate a class or view for component [application-logo]. {"exception":"[object] (InvalidArgumentException(code: 0): Unable to locate a class or view for component [application-logo]. at C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php:311)
 [stacktrace]
-#0 C:\\POS\\vendor\\symfony\\console\\Application.php(266): Symfony\\Component\\Console\\Application->find('optimize:clearf')
-#1 C:\\POS\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#2 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#3 C:\\POS\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#4 {main}
+#0 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(235): Illuminate\\View\\Compilers\\ComponentTagCompiler->componentClass('application-log...')
+#1 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(220): Illuminate\\View\\Compilers\\ComponentTagCompiler->componentString('application-log...', Array)
+#2 [internal function]: Illuminate\\View\\Compilers\\ComponentTagCompiler->Illuminate\\View\\Compilers\\{closure}(Array)
+#3 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(215): preg_replace_callback('/\\n            <...', Object(Closure), '<nav x-data=\"{ ...')
+#4 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(89): Illuminate\\View\\Compilers\\ComponentTagCompiler->compileSelfClosingTags('<nav x-data=\"{ ...')
+#5 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(76): Illuminate\\View\\Compilers\\ComponentTagCompiler->compileTags('<nav x-data=\"{ ...')
+#6 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(438): Illuminate\\View\\Compilers\\ComponentTagCompiler->compile('<nav x-data=\"{ ...')
+#7 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(270): Illuminate\\View\\Compilers\\BladeCompiler->compileComponentTags('<nav x-data=\"{ ...')
+#8 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(184): Illuminate\\View\\Compilers\\BladeCompiler->compileString('<nav x-data=\"{ ...')
+#9 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(64): Illuminate\\View\\Compilers\\BladeCompiler->compile('C:\\\\POS\\\\resource...')
+#10 [internal function]: Illuminate\\Foundation\\Console\\ViewCacheCommand->Illuminate\\Foundation\\Console\\{closure}(Object(Symfony\\Component\\Finder\\SplFileInfo), 'C:\\\\POS\\\\resource...')
+#11 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Arr.php(600): array_map(Object(Closure), Array, Array)
+#12 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Collection.php(778): Illuminate\\Support\\Arr::map(Array, Object(Closure))
+#13 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(61): Illuminate\\Support\\Collection->map(Object(Closure))
+#14 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(43): Illuminate\\Foundation\\Console\\ViewCacheCommand->compileViews(Object(Illuminate\\Support\\Collection))
+#15 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Traits\\EnumeratesValues.php(240): Illuminate\\Foundation\\Console\\ViewCacheCommand->Illuminate\\Foundation\\Console\\{closure}('C:\\\\POS\\\\resource...', 0)
+#16 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(38): Illuminate\\Support\\Collection->each(Object(Closure))
+#17 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Illuminate\\Foundation\\Console\\ViewCacheCommand->handle()
+#18 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(41): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#19 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#20 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#21 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(662): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#22 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
+#23 C:\\POS\\vendor\\symfony\\console\\Command\\Command.php(326): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#24 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#25 C:\\POS\\vendor\\symfony\\console\\Application.php(1096): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#26 C:\\POS\\vendor\\symfony\\console\\Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\ViewCacheCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#27 C:\\POS\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#28 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#29 C:\\POS\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#30 {main}
 "} 
-[2026-06-19 17:53:10] local.INFO: Début nettoyage des actions  
-[2026-06-19 17:53:10] local.INFO: Nombre supprimé : 386  
-[2026-06-19 17:55:44] local.INFO: Début nettoyage des actions  
-[2026-06-19 17:55:44] local.INFO: Nombre supprimé : 0  
-[2026-06-19 18:07:01] local.INFO: Début nettoyage des actions  
-[2026-06-19 18:07:01] local.INFO: Nombre supprimé : 0  
-[2026-06-19 18:08:00] local.INFO: Début nettoyage des actions  
-[2026-06-19 18:08:00] local.INFO: Nombre supprimé : 0  
-[2026-06-19 18:09:01] local.INFO: Début nettoyage des actions  
-[2026-06-19 18:09:01] local.ERROR: Call to undefined method Monolog\Logger::success() {"exception":"[object] (Error(code: 0): Call to undefined method Monolog\\Logger::success() at C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Log\\Logger.php:311)
+[2026-07-17 17:12:08] local.ERROR: Uncaught Error: Call to a member function make() on bool in Command line code:12
+Stack trace:
+#0 {main}
+  thrown {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Uncaught Error: Call to a member function make() on bool in Command line code:12
+Stack trace:
+#0 {main}
+  thrown at Command line code:12)
 [stacktrace]
-#0 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Log\\LogManager.php(759): Illuminate\\Log\\Logger->__call('success', Array)
-#1 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\Facades\\Facade.php(355): Illuminate\\Log\\LogManager->__call('success', Array)
-#2 C:\\POS\\app\\Console\\Commands\\CleanActions.php(29): Illuminate\\Support\\Facades\\Facade::__callStatic('success', Array)
-#3 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): App\\Console\\Commands\\CleanActions->handle()
-#4 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(41): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
-#5 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
-#6 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
-#7 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(662): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
-#8 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
-#9 C:\\POS\\vendor\\symfony\\console\\Command\\Command.php(326): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
-#10 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
-#11 C:\\POS\\vendor\\symfony\\console\\Application.php(1096): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#12 C:\\POS\\vendor\\symfony\\console\\Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(App\\Console\\Commands\\CleanActions), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#13 C:\\POS\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#14 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#15 C:\\POS\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
-#16 {main}
+#0 {main}
 "} 
-[2026-06-19 18:10:00] local.INFO: Début nettoyage des actions  
-[2026-06-19 18:10:00] local.INFO: Nombre supprimé : 0  
-[2026-06-19 18:55:47] local.INFO: Aucun inventaire cette semaine  
-[2026-06-19 19:10:07] local.INFO: Aucun inventaire cette semaine  
-[2026-06-19 19:16:14] local.INFO: Weekly inventory report sent to didierlombardo48@gmail.com  
-[2026-06-19 19:23:57] local.INFO: Weekly inventory report sent to didierlombardo48@gmail.com  
-[2026-06-19 19:24:41] local.INFO: Weekly inventory report sent to didierlombardo48@gmail.com  
+[2026-07-17 17:38:21] local.ERROR: Unable to locate a class or view for component [application-logo]. {"exception":"[object] (InvalidArgumentException(code: 0): Unable to locate a class or view for component [application-logo]. at C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php:311)
+[stacktrace]
+#0 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(235): Illuminate\\View\\Compilers\\ComponentTagCompiler->componentClass('application-log...')
+#1 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(220): Illuminate\\View\\Compilers\\ComponentTagCompiler->componentString('application-log...', Array)
+#2 [internal function]: Illuminate\\View\\Compilers\\ComponentTagCompiler->Illuminate\\View\\Compilers\\{closure}(Array)
+#3 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(215): preg_replace_callback('/\\n            <...', Object(Closure), '<nav x-data=\"{ ...')
+#4 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(89): Illuminate\\View\\Compilers\\ComponentTagCompiler->compileSelfClosingTags('<nav x-data=\"{ ...')
+#5 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(76): Illuminate\\View\\Compilers\\ComponentTagCompiler->compileTags('<nav x-data=\"{ ...')
+#6 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(438): Illuminate\\View\\Compilers\\ComponentTagCompiler->compile('<nav x-data=\"{ ...')
+#7 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(270): Illuminate\\View\\Compilers\\BladeCompiler->compileComponentTags('<nav x-data=\"{ ...')
+#8 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(184): Illuminate\\View\\Compilers\\BladeCompiler->compileString('<nav x-data=\"{ ...')
+#9 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(64): Illuminate\\View\\Compilers\\BladeCompiler->compile('C:\\\\POS\\\\resource...')
+#10 [internal function]: Illuminate\\Foundation\\Console\\ViewCacheCommand->Illuminate\\Foundation\\Console\\{closure}(Object(Symfony\\Component\\Finder\\SplFileInfo), 'C:\\\\POS\\\\resource...')
+#11 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Arr.php(600): array_map(Object(Closure), Array, Array)
+#12 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Collection.php(778): Illuminate\\Support\\Arr::map(Array, Object(Closure))
+#13 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(61): Illuminate\\Support\\Collection->map(Object(Closure))
+#14 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(43): Illuminate\\Foundation\\Console\\ViewCacheCommand->compileViews(Object(Illuminate\\Support\\Collection))
+#15 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Traits\\EnumeratesValues.php(240): Illuminate\\Foundation\\Console\\ViewCacheCommand->Illuminate\\Foundation\\Console\\{closure}('C:\\\\POS\\\\resource...', 0)
+#16 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ViewCacheCommand.php(38): Illuminate\\Support\\Collection->each(Object(Closure))
+#17 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Illuminate\\Foundation\\Console\\ViewCacheCommand->handle()
+#18 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(41): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#19 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#20 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#21 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(662): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#22 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
+#23 C:\\POS\\vendor\\symfony\\console\\Command\\Command.php(326): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#24 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#25 C:\\POS\\vendor\\symfony\\console\\Application.php(1096): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#26 C:\\POS\\vendor\\symfony\\console\\Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\ViewCacheCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#27 C:\\POS\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#28 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#29 C:\\POS\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#30 {main}
+"} 
+[2026-07-17 19:01:56] local.ERROR: The "--columns" option does not exist. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\RuntimeException(code: 0): The \"--columns\" option does not exist. at C:\\POS\\vendor\\symfony\\console\\Input\\ArgvInput.php:223)
+[stacktrace]
+#0 C:\\POS\\vendor\\symfony\\console\\Input\\ArgvInput.php(150): Symfony\\Component\\Console\\Input\\ArgvInput->addLongOption('columns', 'Method,URI,Name')
+#1 C:\\POS\\vendor\\symfony\\console\\Input\\ArgvInput.php(85): Symfony\\Component\\Console\\Input\\ArgvInput->parseLongOption('--columns=Metho...')
+#2 C:\\POS\\vendor\\symfony\\console\\Input\\ArgvInput.php(74): Symfony\\Component\\Console\\Input\\ArgvInput->parseToken('--columns=Metho...', true)
+#3 C:\\POS\\vendor\\symfony\\console\\Input\\Input.php(56): Symfony\\Component\\Console\\Input\\ArgvInput->parse()
+#4 C:\\POS\\vendor\\symfony\\console\\Command\\Command.php(285): Symfony\\Component\\Console\\Input\\Input->bind(Object(Symfony\\Component\\Console\\Input\\InputDefinition))
+#5 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#6 C:\\POS\\vendor\\symfony\\console\\Application.php(1096): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#7 C:\\POS\\vendor\\symfony\\console\\Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\RouteListCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#8 C:\\POS\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#9 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#10 C:\\POS\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#11 {main}
+"} 
+[2026-07-17 19:02:11] local.ERROR: Class "App\Http\Controllers\Api\Sms\SmsController" does not exist {"exception":"[object] (ReflectionException(code: -1): Class \"App\\Http\\Controllers\\Api\\Sms\\SmsController\" does not exist at C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\RouteListCommand.php:225)
+[stacktrace]
+#0 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\RouteListCommand.php(225): ReflectionClass->__construct('App\\\\Http\\\\Contro...')
+#1 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\RouteListCommand.php(147): Illuminate\\Foundation\\Console\\RouteListCommand->isVendorRoute(Object(Illuminate\\Routing\\Route))
+#2 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\RouteListCommand.php(116): Illuminate\\Foundation\\Console\\RouteListCommand->getRouteInformation(Object(Illuminate\\Routing\\Route))
+#3 [internal function]: Illuminate\\Foundation\\Console\\RouteListCommand->Illuminate\\Foundation\\Console\\{closure}(Object(Illuminate\\Routing\\Route), 5)
+#4 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Arr.php(600): array_map(Object(Closure), Array, Array)
+#5 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Collection.php(778): Illuminate\\Support\\Arr::map(Array, Object(Closure))
+#6 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\RouteListCommand.php(115): Illuminate\\Support\\Collection->map(Object(Closure))
+#7 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\RouteListCommand.php(101): Illuminate\\Foundation\\Console\\RouteListCommand->getRoutes()
+#8 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Illuminate\\Foundation\\Console\\RouteListCommand->handle()
+#9 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(41): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#10 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(93): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#11 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#12 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(662): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#13 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
+#14 C:\\POS\\vendor\\symfony\\console\\Command\\Command.php(326): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#15 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#16 C:\\POS\\vendor\\symfony\\console\\Application.php(1096): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 C:\\POS\\vendor\\symfony\\console\\Application.php(324): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\RouteListCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 C:\\POS\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 C:\\POS\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 C:\\POS\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#21 {main}
+"} 

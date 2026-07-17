@@ -160,6 +160,39 @@
 				</div>
 			@endif
 
+			<!-- ECOMMERCE -->
+			@if(auth()->user()->user_type!=3)
+			<div class="menu-header">ECOMMERCE</div>
+			<div class="menu-item has-sub
+				@if(Request::route()->getName() === 'ecommerce.settings' || Request::route()->getName() === 'ecommerce.orders.index' || Request::route()->getName() === 'ecommerce.orders.show')
+					active
+				@endif">
+				<a href="javascript:;" class="menu-link">
+					<div class="menu-icon">
+						<i class="fas fa-shopping-cart"></i>
+					</div>
+					<div class="menu-text d-flex align-items-center">Ecommerce</div>
+					<span class="menu-caret"><b class="caret"></b></span>
+				</a>
+				<div class="menu-submenu">
+					<div class="menu-item @if(Request::route()->getName() === 'ecommerce.settings') active @endif">
+						<a href="{{ route('ecommerce.settings') }}" class="menu-link">
+							<span class="menu-icon"><i class="fas fa-cog"></i></span>
+							<span class="menu-text">Configuration</span>
+						</a>
+					</div>
+				</div>
+				<div class="menu-submenu">
+					<div class="menu-item @if(Request::route()->getName() === 'ecommerce.orders.index' || Request::route()->getName() === 'ecommerce.orders.show') active @endif">
+						<a href="{{ route('ecommerce.orders.index') }}" class="menu-link">
+							<span class="menu-icon"><i class="fas fa-clipboard-list"></i></span>
+							<span class="menu-text">Commandes</span>
+						</a>
+					</div>
+				</div>
+			</div>
+			@endif
+
 			<!-- UTILISATEURS -->
 			<div class="menu-divider"> </div>
 			@if(auth()->user()->user_type!=3)

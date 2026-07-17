@@ -64,22 +64,31 @@ class CompanyController extends Controller
             //     'function' => 'AJOUT CATEGORIE',
             //     'text' => auth()->user()->name." a créer une nouvelle catégorie '".$request->name."'",
             // ]);
-            CompanySetting::create([
-                'name' => $request-> name,
-                'email' => $request-> email,
-                'adress' => $request-> adress,
-                'number1' => $request-> number1,
-                'number2' => $request-> number2,
-                'message' => $request-> message,
-                // 'created_by' => Auth::user()->id,
-            ]);
+            $data = [
+                'name' => $request->name,
+                'email' => $request->email,
+                'adress' => $request->adress,
+                'number1' => $request->number1,
+                'number2' => $request->number2,
+                'message' => $request->message,
+                'description' => $request->description,
+                'ecommerce_active' => $request->boolean('ecommerce_active'),
+            ];
+
+            if ($request->hasFile('logo')) {
+                $file = $request->file('logo');
+                $filename = time().'_'.$file->getClientOriginalName();
+                $file->move(public_path('images'), $filename);
+                $data['logo'] = 'images/'.$filename;
+            }
+
+            CompanySetting::create($data);
 
             return response()->json([
                 "status" => true,
                 "reload" => true,
-                // "redirect_to" => route('user'),
                 "title" => "AJOUT REUSSI",
-                "msg" => "La compagnie au nom de ".$request-> name." a bien été ajoutée"
+                "msg" => "La compagnie au nom de ".$request->name." a bien été ajoutée"
             ]);
     }
 
@@ -118,33 +127,39 @@ class CompanyController extends Controller
             ]);
 
             $Company = CompanySetting::findOrFail($id);
-            if($Company->created_by == NULL){
-                $Company->update([
-                    'name' => $request-> name,
-                    'created_by' => Auth::user()->id,
-                    'email' => $request-> email,
-                    'adress' => $request-> adress,
-                    'number1' => $request-> number1,
-                    'number2' => $request-> number2,
-                    'message' => $request-> message,
-                ]);
-            }else{
-                $Company->update([
-                    'name' => $request-> name,
-                    'email' => $request-> email,
-                    'adress' => $request-> adress,
-                    'number1' => $request-> number1,
-                    'number2' => $request-> number2,
-                    'message' => $request-> message,
-                ]);
+
+            $data = [
+                'name' => $request->name,
+                'email' => $request->email,
+                'adress' => $request->adress,
+                'number1' => $request->number1,
+                'number2' => $request->number2,
+                'message' => $request->message,
+                'description' => $request->description,
+                'ecommerce_active' => $request->boolean('ecommerce_active'),
+            ];
+
+            if ($Company->created_by == NULL) {
+                $data['created_by'] = Auth::user()->id;
             }
+
+            if ($request->hasFile('logo')) {
+                if ($Company->logo && file_exists(public_path($Company->logo))) {
+                    unlink(public_path($Company->logo));
+                }
+                $file = $request->file('logo');
+                $filename = time().'_'.$file->getClientOriginalName();
+                $file->move(public_path('images'), $filename);
+                $data['logo'] = 'images/'.$filename;
+            }
+
+            $Company->update($data);
 
             return response()->json([
                 "status" => true,
                 "reload" => true,
-                // "redirect_to" => route('user'),
                 "title" => "MISE A JOUR REUSSIE",
-                "msg" => "La compagnie au nom de '".$request-> name."' a bien été mise à jour"
+                "msg" => "La compagnie au nom de '".$request->name."' a bien été mise à jour"
             ]);
     }
 }

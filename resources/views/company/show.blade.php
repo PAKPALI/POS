@@ -41,11 +41,25 @@
                         <td>Message: </td>
                         <td>{{$Company->message}}</td>
                     </tr>
-                    {{-- <tr>
-                        <th scope="row">2</th>
-                        <td>Creer par :</td>
-                        <td>{{$Category->user->name}}</td>
-                    </tr> --}}
+                    @if($Company->logo)
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Logo: </td>
+                        <td><img src="{{asset($Company->logo)}}" alt="Logo" style="max-height:50px;"></td>
+                    </tr>
+                    @endif
+                    @if($Company->description)
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Description: </td>
+                        <td>{{$Company->description}}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Boutique en ligne: </td>
+                        <td>{{$Company->ecommerce_active ? 'Activee' : 'Desactivee'}}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

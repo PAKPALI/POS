@@ -33,6 +33,32 @@
                 <input type="text" name="message" value="{{$Company->message}}" class="form-control" id="exampleInputText5" placeholder="Message">
             </div>
         </div>
+
+        <div class="row mt-4">
+            <div class="form-group col-6">
+                <label for="logo">Logo</label>
+                <input type="file" name="logo" class="form-control" id="logo" accept="image/*">
+                @if($Company->logo)
+                    <div class="mt-2">
+                        <img src="{{asset($Company->logo)}}" alt="Logo" style="max-height:60px;">
+                    </div>
+                @endif
+            </div>
+            <div class="form-group col-6">
+                <label for="ecommerce_active" class="d-block">Boutique en ligne</label>
+                <div class="form-check form-switch mt-2">
+                    <input type="checkbox" name="ecommerce_active" class="form-check-input" id="ecommerce_active" value="1" {{$Company->ecommerce_active ? 'checked' : ''}}>
+                    <label class="form-check-label" for="ecommerce_active">Activer</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="form-group col-12">
+                <label for="description">Description (pour le site ecommerce)</label>
+                <textarea name="description" class="form-control" id="description" rows="3" placeholder="Description de l'entreprise">{{$Company->description}}</textarea>
+            </div>
+        </div>
     </div>
     <div class="card-footer mt-4">
         <button id="submit" class="btn btn-warning" type="submit">
@@ -60,11 +86,15 @@
             $('.loader').fadeIn();
             $('#submit_text').hide();
             
+            var formData = new FormData($('#update_form')[0]);
+            formData.append('_method', 'PUT');
             $.ajax({
-                data: $('#update_form').serialize(),
+                data: formData,
                 url: '{{ url('setting/company/' . $Company->id) }}',
-                type: "PUT",
+                type: "POST",
                 dataType: 'json',
+                contentType: false,
+                processData: false,
                 success: function(data) {
                     if (data.status) {
                         console.log(data);
