@@ -647,11 +647,11 @@
             <div class="nav-links" id="navLinks">
                 <a href="{{ url('/shop') }}" class="{{ request()->is('shop') && !request()->is('shop/') ? 'active' : '' }}">Accueil</a>
                 <a href="{{ url('/shop/products') }}" class="{{ request()->is('shop/products*') ? 'active' : '' }}">Produits</a>
-                /* <a href="{{ url('/shop/checkout') }}" class="{{ request()->is('shop/checkout*') ? 'active' : '' }}">
+                {{-- <a href="{{ url('/shop/checkout') }}" class="{{ request()->is('shop/checkout*') ? 'active' : '' }}">
                     <i class="bi bi-cart3"></i>
                     <span class="cart-badge" id="cartCount" style="position:static;display:none;margin-left:4px;">0</span>
                     Panier
-                </a> */
+                </a> --}}
             </div>
             <div class="d-flex align-items-center gap-2">
                 <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activer le mode nuit" title="Changer le thème">
@@ -727,7 +727,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         var CART_KEY = 'ecommerce_cart';
-        var DEFAULT_PRODUCT_IMAGE = @json(asset('images/product-placeholder.svg'));
+        var DEFAULT_PRODUCT_IMAGE = @json(asset('icons/product-placeholder.svg'));
         function getCart() {
             try {
                 var stored = JSON.parse(localStorage.getItem(CART_KEY));

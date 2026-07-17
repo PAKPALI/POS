@@ -81,9 +81,18 @@ class FrontController extends Controller
             return view('ecommerce.public.closed');
         }
         $categories = Category::where('status', 1)->get();
+        $productImages = Product::query()
+            ->pluck('image', 'id')
+            ->map(function ($image) {
+                return $image && $image !== 'null'
+                    ? asset('images/'.$image)
+                    : asset('icons/product-placeholder.svg');
+            });
+
         return view('ecommerce.public.checkout', [
             'company' => $company,
             'categories' => $categories,
+            'productImages' => $productImages,
         ]);
     }
 

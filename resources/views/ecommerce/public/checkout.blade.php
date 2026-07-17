@@ -107,6 +107,14 @@
 
 @push('scripts')
     <script>
+    var CHECKOUT_PRODUCT_IMAGES = @json($productImages ?? []);
+
+    function checkoutProductImage(item) {
+        return CHECKOUT_PRODUCT_IMAGES[String(item.product_id)]
+            || item.image
+            || DEFAULT_PRODUCT_IMAGE;
+    }
+
     function renderCheckoutCart() {
         var cart = getCart(), list = $('#cartItemsList'), empty = $('#emptyCartMessage');
         if (cart.length === 0) { empty.show(); list.empty(); updateSummary(cart); return; }
@@ -116,7 +124,7 @@
             var total = item.price * item.quantity;
             var row = $('<div>', {class:'checkout-cart-item'});
             var visual = $('<div>', {class:'checkout-product-image'});
-            $('<img>', {src:item.image || DEFAULT_PRODUCT_IMAGE, alt:item.name, loading:'lazy'})
+            $('<img>', {src:checkoutProductImage(item), alt:item.name, loading:'lazy'})
                 .on('error', function(){ this.onerror = null; this.src = DEFAULT_PRODUCT_IMAGE; })
                 .appendTo(visual);
             var info = $('<div>');

@@ -8,11 +8,10 @@
     <div class="row g-4">
         <div class="col-lg-6">
             <div style="border-radius:var(--radius);overflow:hidden;background:#f1f5f9;position:relative;">
-                @if($product->image)
-                    <img src="{{ asset('images/'.$product->image) }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';" style="width:100%;max-height:450px;object-fit:cover;display:block;">
+                @if($product->image && $product->image !== 'null')
+                    <img src="{{ asset('images/'.$product->image) }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='{{ asset('icons/product-placeholder.svg') }}';" style="width:100%;max-height:450px;object-fit:cover;display:block;">
                 @else
-                    <img src="{{ asset('images/product-placeholder.svg') }}" alt="Image par défaut pour {{ $product->name }}" style="width:100%;max-height:450px;object-fit:cover;display:block;">
-                @endif
+                    <img src="{{ asset('icons/product-placeholder.svg') }}" alt="Image par défaut pour {{ $product->name }}" loading="lazy">
             </div>
             <div class="mt-3 d-flex gap-2">
                 @if($product->qte > 0)
@@ -38,7 +37,7 @@
                 @if($product->qte > 0)
                     <div class="d-flex gap-3 align-items-center mb-3">
                         <input type="number" id="detailQty" class="qty-input" value="1" min="1" max="{{ $product->qte }}" style="width:80px;padding:.6rem;">
-                        <button class="btn-primary-custom" style="padding:.7rem 2rem;" onclick='addToCart({{ $product->id }}, @json($product->name), {{ $product->price_ttc ?? $product->price }}, parseInt($("#detailQty").val()), @json($product->image ? asset("images/".$product->image) : asset("images/product-placeholder.svg")))'>
+                        <button class="btn-primary-custom" style="padding:.7rem 2rem;" onclick='addToCart({{ $product->id }}, @json($product->name), {{ $product->price_ttc ?? $product->price }}, parseInt($("#detailQty").val()), @json(($product->image && $product->image !== "null") ? asset("images/".$product->image) : asset("icons/product-placeholder.svg")))'>
                             <i class="bi bi-cart-plus"></i> Ajouter au panier
                         </button>
                     </div>
