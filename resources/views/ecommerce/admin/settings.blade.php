@@ -11,10 +11,10 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-xl-12">
-            <ul class="breadcrumb">
+            <!-- <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
                 <li class="breadcrumb-item active">Ecommerce</li>
-            </ul>
+            </ul> -->
             <h1 class="page-header">Configuration Ecommerce</h1>
             <hr class="mb-4">
 
@@ -140,6 +140,35 @@ $(function() {
             infoEmpty: "Affichage de 0 a 0 sur 0 entrees",
             search: "Rechercher:",
             paginate: { first: "Premier", last: "Dernier", next: "Suivant", previous: "Precedent" }
+        },
+        drawCallback: function() {
+            $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
+            $('#managers-table').css('width','100%');
+            $('#managers-table tbody tr').each(function() {
+                $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
+                $(this).css('color', 'white');
+            });
+            $('.dataTables_info, .dataTables_paginate').css('color', 'white');
+            $('.dataTables_paginate .paginate_button a').css('color', 'white');
+            $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
+            $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+
+            // Appliquer la couleur blanche au texte des labels
+            $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
+            $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
+            
+            // Appliquer les styles pour le dropdown et le champ de recherche
+            $('.dataTables_length select').css({
+                'background-color': 'black', // Fond noir
+                'color': 'white' // Texte en blanc
+            });
+
+            $('.dataTables_filter input').css({
+                'background-color': 'black', // Fond noir
+                'color': 'white' // Texte en blanc
+            });
+            $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
+            $('#managers-table').css('width', '100%');
         },
     });
 

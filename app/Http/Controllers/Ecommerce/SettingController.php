@@ -15,7 +15,7 @@ class SettingController extends Controller
     public function index()
     {
         $company = CompanySetting::first();
-        $users = User::whereIn('user_type', [1, 2])->get();
+        $users = User::where('user_type', 2)->get();
         $managers = collect();
         if ($company) {
             $managers = $company->managerUsers;
@@ -30,7 +30,7 @@ class SettingController extends Controller
             return response()->json([
                 'status' => false,
                 'title' => 'ERREUR',
-                'msg' => 'Aucune compagnie trouvee. Configurez d\'abord la compagnie.'
+                'msg' => 'Aucune compagnie trouvée. Configurez d\'abord la compagnie.'
             ]);
         }
 
