@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title description">
+  <title id="title">Image produit par défaut</title>
+  <desc id="description">Illustration abstraite bleue représentant un colis</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eff6ff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="box" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="24" stdDeviation="24" flood-color="#1d4ed8" flood-opacity=".2"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="url(#background)"/>
+  <circle cx="120" cy="130" r="170" fill="#bfdbfe" opacity=".45"/>
+  <circle cx="720" cy="690" r="230" fill="#93c5fd" opacity=".28"/>
+  <g filter="url(#shadow)">
+    <path d="M215 300 400 205l185 95-185 99z" fill="#93c5fd"/>
+    <path d="m215 300 185 99v218L215 513z" fill="url(#box)"/>
+    <path d="m585 300-185 99v218l185-104z" fill="#1d4ed8"/>
+    <path d="m326 243 185 98v89l-48 27v-87l-185-100z" fill="#dbeafe" opacity=".9"/>
+  </g>
+  <path d="M330 680h140" fill="none" stroke="#2563eb" stroke-linecap="round" stroke-width="16" opacity=".25"/>
+</svg>

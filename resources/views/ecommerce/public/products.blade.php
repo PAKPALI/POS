@@ -19,7 +19,7 @@
                             @if($product->image)
                                 <img src="{{ asset('images/'.$product->image) }}" alt="{{ $product->name }}" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';">
                             @else
-                                <img src="{{ asset('images/product-placeholder.svg') }}" alt="Image par défaut pour {{ $product->name }}" loading="lazy">
+                                <img src="{{ asset('icons/product-placeholder.svg') }}" alt="Image par défaut pour {{ $product->name }}" loading="lazy">
                             @endif
                             @if($product->qte <= 5 && $product->qte > 0)
                                 <span class="badge bg-warning text-dark">Plus que {{ $product->qte }}</span>
