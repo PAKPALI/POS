@@ -4,11 +4,11 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-xl-12">
-            <ul class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('ecommerce.orders.index') }}">Commandes</a></li>
-                <li class="breadcrumb-item active">Commande #{{ $order->code }}</li>
-            </ul>
+            <!-- <ul class="breadcrumb">
+                <li class=""><a href="{{ route('dashboard') }}">Accueil</a></li>/
+                <li class=""><a href="{{ route('ecommerce.orders.index') }}">Commandes</a></li>/
+                <li class="active">Commande #{{ $order->code }}</li>
+            </ul> -->
             <h1 class="page-header">Detail commande #{{ $order->code }}</h1>
             <hr class="mb-4">
 
