@@ -111,6 +111,16 @@ class SaleController extends Controller
             // })
             ->get();
 
+        $products->each(function ($product) {
+            $hasImage = $product->image
+                && $product->image !== 'null'
+                && file_exists(public_path('images/'.$product->image));
+
+            $product->image_url = $hasImage
+                ? asset('images/'.$product->image)
+                : asset('icons/product-placeholder.svg');
+        });
+
         return response()->json($products);
     }
     /**
@@ -187,8 +197,13 @@ class SaleController extends Controller
             // comptabilty run code
             $this->handleAmsAccounting($sale);
 
-            // Generate PDF invoice
-            $pdfBase64 = $this->generatePdfInvoice($sale);
+            // Render HTML directly: faster than generating and rasterizing a PDF.
+            $company = CompanySetting::first();
+            $receiptHtml = view('pos.receipt', [
+                'sale' => $sale,
+                'saleDetails' => $sale->saleDetails,
+                'company' => $company,
+            ])->render();
 
             // send sale email notification to users
             // $this->sendSaleEmailNotification($sale);
@@ -213,7 +228,7 @@ class SaleController extends Controller
                 "reload" => true,
                 "title" => "VENTE EFFECTUEE",
                 "msg" => "",
-                'pdfBase64' => $pdfBase64,
+                'receiptHtml' => $receiptHtml,
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -549,6 +564,77 @@ class SaleController extends Controller
         }
         
         return view('pos.sale.history');
+    }
+
+    public function exportHistoryPdf(Request $request)
+    {
+        $daterange = $request->get('daterange');
+        if ($daterange) {
+            [$startDate, $endDate] = explode(' - ', $daterange);
+            $startDate = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay();
+            $endDate = Carbon::createFromFormat('d-m-Y', $endDate)->endOfDay();
+        } else {
+            $startDate = Carbon::today()->startOfDay();
+            $endDate = Carbon::today()->endOfDay();
+        }
+
+        $query = Sale::with('saleDetails.product')
+            ->whereBetween('created_at', [$startDate, $endDate]);
+
+        $search = trim((string) $request->get('search'));
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('code', 'like', "%{$search}%")
+                    ->orWhere('cashier', 'like', "%{$search}%")
+                    ->orWhere('total_amount', 'like', "%{$search}%")
+                    ->orWhere('total_profit', 'like', "%{$search}%");
+            });
+        }
+
+        $sales = $query->latest()->get();
+        $summary = [
+            'sales_count' => $sales->count(),
+            'products_quantity' => $sales->sum(function ($sale) {
+                return $sale->saleDetails->sum('quantity');
+            }),
+            'total_amount' => $sales->sum('total_amount'),
+            'total_received' => $sales->sum('received_amount'),
+            'total_profit' => $sales->sum('total_profit'),
+        ];
+
+        $topProducts = $sales
+            ->flatMap(function ($sale) {
+                return $sale->saleDetails;
+            })
+            ->groupBy(function ($detail) {
+                return $detail->product_id ?: 'deleted';
+            })
+            ->map(function ($details) {
+                $firstDetail = $details->first();
+
+                return [
+                    'name' => $firstDetail->product->name ?? 'Produit supprimé',
+                    'quantity' => $details->sum('quantity'),
+                    'total_amount' => $details->sum('total_price'),
+                ];
+            })
+            ->sortByDesc('quantity')
+            ->values();
+
+        $company = CompanySetting::first();
+        $pdf = Pdf::loadView('pos.sale.history_pdf', compact(
+            'sales',
+            'summary',
+            'topProducts',
+            'company',
+            'startDate',
+            'endDate',
+            'search'
+        ))->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            'historique-ventes-'.$startDate->format('Y-m-d').'-'.$endDate->format('Y-m-d').'.pdf'
+        );
     }
 
     /**

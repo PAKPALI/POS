@@ -2,6 +2,34 @@
 {{-- css --}}
 @push('css-scripts')
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>
+        .quota-status-icon {
+            animation: quotaIconPulse 2.8s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .quota-status-icon.whatsapp {
+            animation-delay: .7s;
+        }
+
+        @keyframes quotaIconPulse {
+            0%, 100% {
+                opacity: .45;
+                transform: scale(.92);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.08);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .quota-status-icon {
+                animation: none;
+                opacity: 1;
+            }
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -144,6 +172,58 @@
         </div>
     </div>
     @endif
+
+    <div class="w-100"></div>
+
+    <div class="col-xl-6 col-lg-6">
+        <div class="card border-color mb-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center fw-bold small mb-3">
+                    <span class="flex-grow-1">SMS CLASSIQUES RESTANTS</span>
+                    <i class="bi bi-chat-text-fill text-info fs-4 quota-status-icon"></i>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <div class="col-8">
+                        <h3 class="mb-0">{{ number_format($company->sms_count ?? 0, 0, ',', ' ') }}</h3>
+                    </div>
+                    <div class="col-4 text-end text-inverse text-opacity-50">
+                        SMS
+                    </div>
+                </div>
+            </div>
+            <div class="card-arrow">
+                <div class="card-arrow-top-left"></div>
+                <div class="card-arrow-top-right"></div>
+                <div class="card-arrow-bottom-left"></div>
+                <div class="card-arrow-bottom-right"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 col-lg-6">
+        <div class="card border-color mb-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center fw-bold small mb-3">
+                    <span class="flex-grow-1">WHATSAPP RESTANTS</span>
+                    <i class="bi bi-whatsapp text-success fs-4 quota-status-icon whatsapp"></i>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <div class="col-8">
+                        <h3 class="mb-0">{{ number_format($company->whatsapp_count ?? 0, 0, ',', ' ') }}</h3>
+                    </div>
+                    <div class="col-4 text-end text-inverse text-opacity-50">
+                        SMS
+                    </div>
+                </div>
+            </div>
+            <div class="card-arrow">
+                <div class="card-arrow-top-left"></div>
+                <div class="card-arrow-top-right"></div>
+                <div class="card-arrow-bottom-left"></div>
+                <div class="card-arrow-bottom-right"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="col-xl-8">
         <div class="card mb-3">

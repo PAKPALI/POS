@@ -104,6 +104,7 @@ Route::prefix('pos')->middleware(['auth'])->group(function () {
         Route::resource('sale', SaleController::class);
         //history
         Route::get('history', 'history')->name('history');
+        Route::get('history/export/pdf', 'exportHistoryPdf')->name('history.export.pdf');
         Route::get('/products/search', 'search')->name('products.search');
         Route::get('sale/invoice/{id}/pdf', 'generatePDF')->name('codePromo.pdf');
     });

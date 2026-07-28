@@ -6,158 +6,175 @@
     <title>Reçu POS</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            font-size: 12px; /* Ajuster la taille de la police pour l'impression */
+            overflow-wrap: break-word;
+            background: #fff;
+            color: #202124;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
         }
 
         .receipt {
-            width: 100%; /* Ajuster pour un format d'impression standard (80mm de large pour les imprimantes thermiques) */
+            box-sizing: border-box;
+            width: 100%;
             margin: 0 auto;
-            padding: 10px;
-            border: 1px solid #ddd;
-            background-color: white;
+            padding: 14px;
+            background: #fff;
+        }
+
+        .header,
+        .footer {
+            text-align: center;
         }
 
         .header {
-            text-align: center;
             margin-bottom: 10px;
         }
 
         .header h1 {
-            font-size: 16px;
-            margin: 0;
+            margin: 4px 0;
+            font-size: 19px;
         }
 
         .header p {
-            font-size: 12px;
-            margin: 3px 0;
-        }
-
-        .receipt-info {
-            font-size: 12px;
-            margin: 0px 0;
+            margin: 2px 0;
+            font-size: 11px;
+            line-height: 1.4;
         }
 
         .items-table {
             width: 100%;
-            font-size: 12px;
             margin-top: 5px;
             border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 12px;
         }
 
-        .items-table th, .items-table td {
-            padding: 6px;
+        .items-table th,
+        .items-table td {
+            padding: 6px 4px;
             text-align: left;
+            vertical-align: top;
+            word-break: break-word;
         }
 
         .items-table th {
             font-weight: bold;
+            border-bottom: 1px solid #aaa;
         }
 
         .total {
+            margin-top: 5px;
+            text-align: right;
             font-size: 14px;
             font-weight: bold;
-            text-align: right;
-            margin-top: 5px;
+        }
+
+        .total p {
+            margin: 4px 0;
         }
 
         .footer {
-            text-align: center;
-            font-size: 12px;
             margin-top: 10px;
+            font-size: 12px;
         }
 
-        /* Styles spécifiques pour l'impression */
+        .footer h2 {
+            margin: 0 0 4px;
+            font-size: 15px;
+        }
+
         @media print {
-            body {
-                font-size: 12px;
+            @page {
+                margin: 0;
             }
+
             .receipt {
                 width: 80mm;
                 margin: 0 auto;
             }
-            .items-table th, .items-table td {
-                font-size: 12px;
-                padding: 6px;
+
+            .items-table th,
+            .items-table td {
+                padding: 5px 3px;
+                font-size: 11px;
             }
         }
     </style>
 </head>
 <body>
-
 <div class="receipt">
     <div class="header">
-        <h1>{{strtoupper($company->name ?? config('app.name'))}}</h1>
-        <p><strong>Email :</strong> {{$company->email}}</p>
-        <p><strong>Adresse :</strong> {{$company->adress}}</p>
-        <p><strong>Tél :</strong> {{ $company->number1 }}{{ $company->number2 ? ' / ' . $company->number2 : '' }}</p>
+        <h1>{{ strtoupper($company->name ?? config('app.name')) }}</h1>
+
+        @if ($company && $company->adress)
+            <p><strong>Adresse :</strong> {{ $company->adress }}</p>
+        @endif
+        @if ($company && ($company->number1 || $company->number2))
+            <p><strong>Tél :</strong> {{ $company->number1 }}{{ $company->number2 ? ' / '.$company->number2 : '' }}</p>
+        @endif
+        @if ($company && $company->email)
+            <p><strong>E-mail :</strong> {{ $company->email }}</p>
+        @endif
     </div>
 
-    <hr />
+    <hr>
 
-    <div class="receipt-info">
-        <table class="items-table">
-            <tbody>
-                <tr>
-                    <td class="item-details"> <strong>Date : {{ $sale->created_at->format('d/m/Y') }}</strong> </td>
-                    <td class="item-details"> <strong>Réf : #{{ $sale->code }}</strong></td>
-                    <td class="item-details"> <strong>Caissier : {{ $sale->cashier ?? 'Nom du Caissier' }}</strong></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <table class="items-table">
+        <tbody>
+            <tr>
+                <td><strong>Date :</strong> {{ $sale->created_at->format('d/m/Y H:i') }}</td>
+                <td><strong>Réf :</strong> #{{ $sale->code }}</td>
+                <td><strong>Caissier :</strong> {{ $sale->cashier ?? 'Non renseigné' }}</td>
+            </tr>
+        </tbody>
+    </table>
 
-    <hr />
+    <hr>
 
     <table class="items-table">
         <thead>
             <tr>
-                <th class="item-details">Nom</th>
-                <th class="item-details">Qté</th>
-                <th class="item-details">P.U (FCFA)</th>
-                <th class="item-details">P.T (FCFA)</th>
+                <th style="width: 37%;">Nom</th>
+                <th style="width: 11%;">Qté</th>
+                <th style="width: 24%;">P.U (FCFA)</th>
+                <th style="width: 28%;">P.T (FCFA)</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($saleDetails as $detail)
                 <tr>
-                    <td class="item-details"> 
-                        {{ $detail->product ? $detail->product->name : 'Produit non disponible' }}
-                    </td>
-                    <td class="item-details">{{ $detail->quantity }}</td>
-                    <td class="item-details">{{ number_format($detail->unit_price, 2) }} </td>
-                    <td class="item-details">{{ number_format($detail->total_price, 2) }} </td>
+                    <td>{{ $detail->product ? $detail->product->name : 'Produit non disponible' }}</td>
+                    <td>{{ $detail->quantity }}</td>
+                    <td>{{ number_format($detail->unit_price, 2) }}</td>
+                    <td>{{ number_format($detail->total_price, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <hr />
+    <hr>
 
     <div class="total">
         @if ($sale->code_promo)
             <p>Montant initial : {{ number_format($sale->amount_init) }} FCFA</p>
             <p>Réduction : {{ number_format($sale->discount) }} FCFA</p>
-            <p>Montant payé : {{ number_format($sale->total_amount) }} FCFA</p>
-            <p>Montant donné : {{ number_format($sale->received_amount) }} FCFA</p>
-            <p>Monnaie rendue : {{ number_format($sale->remaining_amount) }} FCFA</p>
-        @else
-            <p>Montant payé : {{ number_format($sale->total_amount) }} FCFA</p>
-            <p>Montant donné : {{ number_format($sale->received_amount) }} FCFA</p>
-            <p>Monnaie rendue : {{ number_format($sale->remaining_amount) }} FCFA</p>
         @endif
+        <p>Montant payé : {{ number_format($sale->total_amount) }} FCFA</p>
+        <p>Montant donné : {{ number_format($sale->received_amount) }} FCFA</p>
+        <p>Monnaie rendue : {{ number_format($sale->remaining_amount) }} FCFA</p>
     </div>
 
-    <hr />
+    <hr>
 
     <div class="footer">
-        <!-- <h3>Les meilleurs wings de la capitale</h3> -->
-        <h1>{{strtoupper($company->name ?? config('app.name'))}}</h1>
-        <p>{{$company->message??''}}</p>
+        <h2>Merci pour votre achat</h2>
+        @if ($company && $company->message)
+            <p>{{ $company->message }}</p>
+        @endif
+        <p>{{ strtoupper($company->name ?? config('app.name')) }}</p>
     </div>
 </div>
-
 </body>
 </html>

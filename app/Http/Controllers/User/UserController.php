@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Action;
 use App\Models\Category;
+use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
@@ -31,6 +32,7 @@ class UserController extends Controller
         $Category = Category::all();
         $Product = Product::all();
         $Sale = Sale::all();
+        $company = CompanySetting::first();
 
         // calculate total profit on sale
         // $total_amount = 0;
@@ -55,7 +57,15 @@ class UserController extends Controller
             $saleDetail->product = Product::find($saleDetail->product_id);
         });
 
-        return view('dashboard', compact('Action','Category','Product','Sale','sale_total_profit','mostSoldProducts'));
+        return view('dashboard', compact(
+            'Action',
+            'Category',
+            'Product',
+            'Sale',
+            'sale_total_profit',
+            'mostSoldProducts',
+            'company'
+        ));
     }
 
     public function index()

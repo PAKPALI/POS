@@ -192,6 +192,9 @@
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
                                         <span class="flex-grow-1"><h4>Listes des ventes</h4></span>
+                                        <button type="button" id="exportSalesPdf" class="btn btn-primary btn-sm me-3">
+                                            <i class="fas fa-file-pdf me-1"></i> Liste vente PDF
+                                        </button>
                                         <!-- <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button> -->
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
@@ -435,6 +438,27 @@
 
                 // Refresh DataTable
                 Datatable.draw();
+            });
+
+            $('#exportSalesPdf').on('click', function() {
+                const tableInfo = Datatable.page.info();
+                if (!tableInfo || tableInfo.recordsDisplay === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Aucune donnée à exporter',
+                        text: 'Aucune vente ne correspond aux filtres sélectionnés.',
+                        confirmButtonText: "D'accord",
+                        confirmButtonColor: '#0dcaf0'
+                    });
+                    return;
+                }
+
+                const params = new URLSearchParams({
+                    daterange: $('#reportrange').val(),
+                    search: Datatable.search()
+                });
+
+                window.location.href = "{{ route('history.export.pdf') }}?" + params.toString();
             });
 
             var start = moment().subtract(29, 'days');

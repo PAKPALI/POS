@@ -8,7 +8,94 @@
     #datatable tbody tr:hover {
         background-color: #e0e0e0;
     }
-    
+
+    #pdfModal .modal-dialog {
+        max-width: 760px;
+    }
+
+    #pdfModal .modal-content {
+        height: min(92vh, 900px);
+    }
+
+    #pdfModal .modal-body {
+        overflow: auto;
+        padding: 1rem;
+        background: #e9ecef;
+    }
+
+    #pdfModal .modal-body canvas {
+        display: block;
+        width: auto;
+        max-width: 100%;
+        height: auto !important;
+        margin: 0 auto;
+        background: #fff;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
+    }
+
+    @media (max-width: 575.98px) {
+        .pos .pos-content-container {
+            padding: .5rem !important;
+        }
+
+        #product_list {
+            --bs-gutter-x: .5rem;
+        }
+
+        #product_list .product_list,
+        #product_list .search_product_list {
+            padding-bottom: .5rem !important;
+        }
+
+        #product_list .card-body.products {
+            padding: 2px !important;
+        }
+
+        #product_list .pos-product .img {
+            height: 105px !important;
+            min-height: 105px;
+        }
+
+        #product_list .pos-product .info {
+            padding: .45rem .35rem;
+        }
+
+        #product_list .pos-product .info .title,
+        #product_list .pos-product .info .price {
+            font-size: .72rem;
+            line-height: 1.25;
+        }
+
+        #product_list .pos-product:hover,
+        #product_list .pos-product.product-hover {
+            transform: none;
+        }
+
+        #pdfModal .modal-dialog {
+            width: 100%;
+            max-width: none;
+            height: 100%;
+            margin: 0;
+        }
+
+        #pdfModal .modal-content {
+            height: 100%;
+            border: 0;
+            border-radius: 0;
+        }
+
+        #pdfModal .modal-body {
+            padding: .5rem;
+        }
+
+        #pdfModal .modal-footer {
+            flex-wrap: nowrap;
+        }
+
+        #pdfModal .modal-footer .btn {
+            flex: 1;
+        }
+    }
 </style>
 @endpush
 
@@ -263,19 +350,27 @@
                         <!-- product list -->
                         @foreach($Category->where('status',1) as $category)
                             @foreach($category->products->where('status',1)->where('qte', '>', 0) as $product)
-                                <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="{{ $category->name }}">
+                                @php
+                                    $hasProductImage = $product->image
+                                        && $product->image !== 'null'
+                                        && file_exists(public_path('images/'.$product->image));
+                                    $productImageUrl = $hasProductImage
+                                        ? asset('images/'.$product->image)
+                                        : asset('icons/product-placeholder.svg');
+                                @endphp
+                                <div class="col-6 col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="{{ $category->name }}">
                                     <div class="card h-100">
                                         <div class="card-body products h-100 p-1">
                                             <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
                                                 data-id="{{ $product->id }}"
                                                 data-name="{{ $product->name }}"
                                                 data-price="{{ $product->price_ttc ?? $product->price }}"
-                                                data-image="{{ asset('images/' . $product->image) }}"
+                                                data-image="{{ $productImageUrl }}"
                                                 data-qte="{{ $product->qte }}"
                                             >
 
                                                 <!-- 1440 * 1024 -->
-                                                <div class="img" style=" background-image: url('{{ asset('images/' . $product->image) }}');
+                                                <div class="img" style=" background-image: url('{{ $productImageUrl }}');
                                                     background-size: cover;
                                                     background-repeat: no-repeat;
                                                     background-position: center;
@@ -377,12 +472,20 @@
                                                                     $n = 1;
                                                                 @endphp
                                                                 @foreach($mostSoldProducts as $productDetail)
+                                                                    @php
+                                                                        $soldProductImage = $productDetail->product
+                                                                            && $productDetail->product->image
+                                                                            && $productDetail->product->image !== 'null'
+                                                                            && file_exists(public_path('images/'.$productDetail->product->image))
+                                                                                ? asset('images/'.$productDetail->product->image)
+                                                                                : asset('icons/product-placeholder.svg');
+                                                                    @endphp
                                                                     <tr>
                                                                         <td>
                                                                             <div class="d-flex">
                                                                                 <div class="position-relative mb-2">
                                                                                     <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                                                        style="background-image: url({{ asset('images/' . $productDetail->product->image) }});">
+                                                                                        style="background-image: url('{{ $soldProductImage }}');">
                                                                                     </div>
                                                                                     <div class="position-absolute top-0 start-0">
                                                                                         <span
@@ -524,21 +627,22 @@
     </div>
 
     <!-- Modal pour afficher le PDF -->
-    <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg"> <!-- Utilisez modal-xl pour un modal plus large -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="pdfModalLabel">Aperçu du reçu</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close receipt-modal-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <iframe id="pdfIframe" width="100%" height="600px"></iframe>
+                <div class="modal-body" id="receiptPreview">
+                    <div class="py-5 text-muted">Chargement du reçu...</div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="print" class="btn btn-dark">Imprimer</button>
-                    <button type="button" class="btn btn-secondary close" data-dismiss="pdfModalLabel">Fermer</button>
+                    <button type="button" id="print" class="btn btn-success">
+                        <i class="bi bi-printer me-1"></i> Imprimer
+                    </button>
+                    <button type="button" class="btn btn-secondary receipt-modal-close" data-bs-dismiss="modal">Fermer</button>
                 </div>
             </div>
         </div>
@@ -607,6 +711,7 @@
         $('#saleLoader').hide();
         $('#search_loader').hide();
         let originalProducts = $('#product_list').html();
+        const defaultPosProductImage = @json(asset('icons/product-placeholder.svg'));
         bindProductEvents();
 
         // Au clic sur un élément de navigation
@@ -660,16 +765,16 @@
                     } else {
                         products.forEach(product => {
                             container.append(`
-                                <div class="col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 search_product_list">
+                                <div class="col-6 col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 search_product_list">
                                     <div class="card h-100">
                                         <div class="card-body products h-100 p-1">
                                             <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
                                                 data-id="${product.id}"
                                                 data-name="${product.name}"
                                                 data-price="${product.price}"
-                                                data-image="/images/${product.image}"
+                                                data-image="${product.image_url || defaultPosProductImage}"
                                                 data-qte="${product.qte}">
-                                                <div class="img" style="background-image: url(/images/${product.image}); background-size: cover; background-position: center; width: 100%; height: 150px;"></div>
+                                                <div class="img" style="background-image: url('${product.image_url || defaultPosProductImage}'); background-size: cover; background-position: center; width: 100%; height: 150px;"></div>
                                                 <div class="info">
                                                     <div class="title">Nom : ${product.name}&reg;</div>
                                                     <div class="title price">Prix : ${product.price} FCFA</div>
@@ -729,7 +834,7 @@
                 let productId = $(this).data('id');
                 let productName = $(this).data('name');
                 let productPrice = $(this).data('price');
-                let productImage = $(this).data('image');
+                let productImage = $(this).data('image') || defaultPosProductImage;
                 let productQte = 1;
 
                 // Vérifier si le produit existe déjà
@@ -793,7 +898,12 @@
             });
         }
 
-        function openPdfInModal(pdfBase64) {
+        function openReceiptInModal(receiptHtml) {
+            $('#receiptPreview').html(receiptHtml);
+            $('#pdfModal').modal('show');
+            return;
+
+            const pdfBase64 = '';
             const pdfData = atob(pdfBase64); // Décode le base64
             const loadingTask = pdfjsLib.getDocument({ data: pdfData });
 
@@ -831,6 +941,24 @@
 
         // Ajoutez une fonction d'impression pour imprimer le contenu du canvas
         function printPdf() {
+            const receipt = document.querySelector('#receiptPreview');
+            if (!receipt) return;
+
+            const printWindow = window.open('');
+            printWindow.document.write('<!doctype html><html><head><title>Impression du reçu</title>');
+            printWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1">');
+            printWindow.document.write('<style>@page{margin:0}body{margin:0;background:#fff}#receiptPreview .receipt{width:80mm!important}</style>');
+            printWindow.document.write('</head><body><div id="receiptPreview">');
+            printWindow.document.write(receipt.innerHTML);
+            printWindow.document.write('</div></body></html>');
+            printWindow.document.close();
+            printWindow.onload = function() {
+                printWindow.print();
+                printWindow.close();
+            };
+        }
+
+        function printPdfCanvas() {
             const canvas = document.querySelector('#pdfModal .modal-body canvas');
 
             if (!canvas) {
@@ -956,6 +1084,7 @@
                                             },
                                             success: function(data) {
                                                 if (data.status) {
+                                                    removeActivePendingOrder();
                                                     Swal.fire({
                                                         toast: true,
                                                         position: 'top',
@@ -968,7 +1097,7 @@
                                                     });
 
                                                     // Ouvrir le reçu PDF
-                                                    openPdfInModal(data.pdfBase64);
+                                                    openReceiptInModal(data.receiptHtml);
                                                 } else {
                                                     $('#loader').hide();
                                                     $('#saleLoader').hide();
@@ -1045,6 +1174,7 @@
                                     },
                                     success: function(data) {
                                         if (data.status) {
+                                            removeActivePendingOrder();
                                             Swal.fire({
                                                 toast: true,
                                                 position: 'top',
@@ -1057,7 +1187,7 @@
                                             });
 
                                             // Ouvrir le reçu PDF
-                                            openPdfInModal(data.pdfBase64);
+                                            openReceiptInModal(data.receiptHtml);
                                         } else {
                                             $('#loader').hide();
                                             $('#saleLoader').hide();
@@ -1205,6 +1335,7 @@
             removeProduct(productId)
             $(this).closest(".pos-order").remove();
             updateTotal();
+            detachPendingOrderWhenItsProductsAreGone();
         });
 
         var Datatable = $('#datatable').DataTable({
@@ -1309,6 +1440,8 @@
 
         // ============= PENDING ORDERS (localStorage) =============
 
+        let activePendingOrder = null;
+
         function getPendingOrdersKey() {
             return 'pending_orders_' + ({{ auth()->id() }});
         }
@@ -1335,6 +1468,42 @@
                 badge.text(orders.length).show();
             } else {
                 badge.hide();
+            }
+        }
+
+        function clearCurrentOrder() {
+            $('#newOrderTab .pos-order').remove();
+            selectedProducts.clear();
+            $('#promoCodeInput').val('');
+            updateTotal();
+            updateOrderCount();
+        }
+
+        function removeActivePendingOrder() {
+            if (!activePendingOrder) return;
+
+            const orders = getPendingOrders().filter(
+                order => order.id !== activePendingOrder.id
+            );
+            savePendingOrdersList(orders);
+            activePendingOrder = null;
+            updatePendingBadge();
+        }
+
+        function detachPendingOrderWhenItsProductsAreGone() {
+            if (!activePendingOrder || !activePendingOrder.productIds) return;
+
+            const remainingProductIds = new Set(
+                $('#newOrderTab .pos-order-product').map(function() {
+                    return String($(this).data('product-id'));
+                }).get()
+            );
+            const hasLoadedProduct = activePendingOrder.productIds.some(
+                productId => remainingProductIds.has(String(productId))
+            );
+
+            if (!hasLoadedProduct) {
+                activePendingOrder = null;
             }
         }
 
@@ -1382,7 +1551,7 @@
                 const productHtml = `
                     <div class="pos-order">
                         <div class="pos-order-product" data-product-id="${p.product_id}">
-                            <div class="img" style="background-image: url(${p.image})"></div>
+                            <div class="img" style="background-image: url(${p.image || defaultPosProductImage})"></div>
                             <div class="flex-1">
                                 <div class="h6 mb-1">${p.name}</div>
                                 <div class="small">${p.unit_price} FCFA</div>
@@ -1463,7 +1632,9 @@
                 title: 'Sauvegarder la commande',
                 input: 'text',
                 inputLabel: 'Donnez un nom à cette commande',
-                inputValue: 'Commande ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                inputValue: activePendingOrder
+                    ? activePendingOrder.label
+                    : 'Commande ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 showCancelButton: true,
                 confirmButtonText: 'Sauvegarder',
                 cancelButtonText: 'Annuler',
@@ -1473,17 +1644,26 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     const orders = getPendingOrders();
-                    const newOrder = {
-                        id: getNextOrderId(orders),
+                    const savedOrder = {
+                        id: activePendingOrder ? activePendingOrder.id : getNextOrderId(orders),
                         label: result.value,
                         date: new Date().toLocaleString('fr-FR'),
                         products: orderData.products,
                         total_amount: orderData.total_amount,
                         code_promo: orderData.code_promo
                     };
-                    orders.push(newOrder);
+
+                    const existingOrderIndex = orders.findIndex(order => order.id === savedOrder.id);
+                    if (existingOrderIndex !== -1) {
+                        orders[existingOrderIndex] = savedOrder;
+                    } else {
+                        orders.push(savedOrder);
+                    }
+
                     savePendingOrdersList(orders);
                     updatePendingBadge();
+                    clearCurrentOrder();
+                    activePendingOrder = null;
 
                     Swal.fire({
                         icon: 'success',
@@ -1515,6 +1695,11 @@
             }
 
             restoreOrderToCart(order);
+            activePendingOrder = {
+                id: order.id,
+                label: order.label || 'Commande #' + order.id,
+                productIds: (order.products || []).map(product => product.product_id)
+            };
             $('#pendingOrdersModal').modal('hide');
 
             Swal.fire({
@@ -1542,6 +1727,9 @@
                     let orders = getPendingOrders();
                     orders = orders.filter(o => o.id !== id);
                     savePendingOrdersList(orders);
+                    if (activePendingOrder && activePendingOrder.id === id) {
+                        activePendingOrder = null;
+                    }
                     updatePendingBadge();
                     renderPendingOrdersList();
 
@@ -1559,6 +1747,36 @@
 
         // Init badge on page load
         updatePendingBadge();
+
+        function resetSaleInterfaceAfterReceipt() {
+            $('#loader, #saleLoader').stop(true, true).hide();
+            $('#confirmSale').stop(true, true).show();
+            $('.product_list, #product_list').stop(true, true).show();
+            clearCurrentOrder();
+
+            if (typeof Datatable !== 'undefined' && Datatable.ajax) {
+                Datatable.ajax.reload(null, false);
+            }
+        }
+
+        $(document).on('click', '#pdfModal .receipt-modal-close', function() {
+            resetSaleInterfaceAfterReceipt();
+        });
+
+        $('#pdfModal').on('hidden.bs.modal', function() {
+            resetSaleInterfaceAfterReceipt();
+            return;
+
+            $('#loader, #saleLoader').hide();
+            $('#confirmSale').show();
+            $('.product_list').stop(true, true).fadeIn();
+            clearCurrentOrder();
+            $('#receiptPreview').html('<div class="py-5 text-center text-muted">Chargement du reçu...</div>');
+
+            if (typeof Datatable !== 'undefined' && Datatable.ajax) {
+                Datatable.ajax.reload(null, false);
+            }
+        });
     });
 </script>
 
