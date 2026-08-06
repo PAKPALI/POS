@@ -9,6 +9,7 @@ use App\Http\Controllers\CodePromo\CodePromoController;
 use App\Http\Controllers\Company\CompanyController;
 use App\Http\Controllers\SmsQuotaController;
 use App\Http\Controllers\Component\CategoryController;
+use App\Http\Controllers\Component\ClientController;
 use App\Http\Controllers\Component\InventoryController;
 use App\Http\Controllers\Component\MenuController;
 use App\Http\Controllers\Component\ProductController;
@@ -82,6 +83,11 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     Route::controller(ProductController::class)->group(function () {
         Route::resource('product', ProductController::class);
         Route::get('product-disabled', [ProductController::class, 'disabledListing'])->name('product.disabled.listing');
+    });
+    //client
+    Route::controller(ClientController::class)->group(function () {
+        Route::resource('client', ClientController::class);
+        Route::get('client-disabled', [ClientController::class, 'disabledListing'])->name('client.disabled.listing');
     });
     Route::get('product/export/pdf', [ProductController::class, 'exportPdf'])
     ->name('product.export.pdf');

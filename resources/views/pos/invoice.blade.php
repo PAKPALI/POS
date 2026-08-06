@@ -128,6 +128,11 @@
                 <td><strong>Réf :</strong> #{{ $sale->code }}</td>
                 <td><strong>Caissier :</strong> {{ $sale->cashier ?? 'Non renseigné' }}</td>
             </tr>
+            @if ($sale->client)
+                <tr>
+                    <td colspan="3"><strong>Client :</strong> {{ $sale->client->name }}</td>
+                </tr>
+            @endif
         </tbody>
     </table>
 
@@ -157,7 +162,7 @@
     <hr>
 
     <div class="total">
-        @if ($sale->code_promo)
+        @if ($sale->discount)
             <p>Montant initial : {{ number_format($sale->amount_init) }} FCFA</p>
             <p>Réduction : {{ number_format($sale->discount) }} FCFA</p>
         @endif

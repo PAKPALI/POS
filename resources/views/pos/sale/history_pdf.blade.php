@@ -64,6 +64,11 @@
                         <td style="text-align:center;">{{ $sale->created_at->format('d/m/Y H:i') }}</td>
                         <td style="text-align:right;">Caissier : {{ $sale->cashier ?? 'Non renseigné' }}</td>
                     </tr>
+                    @if ($sale->client)
+                        <tr>
+                            <td colspan="3">Client : {{ $sale->client->name }}</td>
+                        </tr>
+                    @endif
                 </table>
             </div>
 

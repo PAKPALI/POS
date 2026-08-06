@@ -85,7 +85,7 @@
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex fw-bold small mb-3">
-                            <span class="flex-grow-0"><h5><strong>Somme totale</strong><h5></span>
+                            <span class="flex-grow-0"><h5><strong>Chiifre d'affaire</strong><h5></span>
                             <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
                                 <i class="bi bi-fullscreen"></i></a> -->
                         </div>
@@ -204,8 +204,10 @@
                                                 <tr>
                                                     <th>#</th>
                                                     <th>Code</th>
-                                                    <th>Somme totale</th>
+                                                    <th>Chiifre d'affaire</th>
+                                                    <th>Remise</th>
                                                     <th>Profit total</th>
+                                                    <th>Client</th>
                                                     <th>Date</th>
                                                     <th>Caissier</th>
                                                     <th>Action</th>
@@ -293,7 +295,9 @@
                     {data: 'id',name: 'id'},
                     {data: 'code',name: 'code'},
                     {data: 'total_amount',name: 'total_amount'},
+                    {data: 'discount',name: 'discount'},
                     {data: 'total_profit',name: 'total_profit'},
+                    {data: 'client',name: 'client'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'cashier',name: 'cashier'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},

@@ -33,6 +33,12 @@
         <div><strong>Caissier :</strong><br>{{ $sale->cashier ?? 'Non renseigné' }}</div>
     </div>
 
+    @if ($sale->client)
+        <div class="sale-client">
+            <strong>Client :</strong> {{ $sale->client->name }}
+        </div>
+    @endif
+
     <table>
         <thead><tr><th style="width:37%">Nom</th><th style="width:11%">Qté</th><th style="width:24%">P.U</th><th style="width:28%">P.T</th></tr></thead>
         <tbody>
@@ -48,7 +54,7 @@
     </table>
 
     <div class="receipt-totals">
-        @if ($sale->code_promo)
+        @if ($sale->discount)
             <p>Montant initial : {{ number_format($sale->amount_init) }} FCFA</p>
             <p>Réduction : {{ number_format($sale->discount) }} FCFA</p>
         @endif

@@ -100,6 +100,7 @@
 @endpush
 
 @section('content')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <div id="content" class="app-content p-1 ps-xl-4 pe-xl-4 pt-xl-3 pb-xl-3">
 
     <div class="pos card" id="pos">
@@ -320,6 +321,8 @@
                                             <th>Monnaie rendue</th>
                                             <th>Profit total</th>
                                             <th>Code promo</th>
+                                            <th>Remise</th>
+                                            <th>Client</th>
                                             <th>Caissier</th>
                                             <th>Action</th>
                                         </tr>
@@ -429,7 +432,12 @@
                     <div class="pos-sidebar-body tab-content" data-scrollbar="true" data-height="100%">
                         <div class="tab-pane fade h-100 show active" id="newOrderTab">
                             <div class="pos-order">
-                                <marquee class="bg-dark"><h2>{{Auth::user()->name}}</h2></marquee >
+                                <select id="clientSelect" class="form-control mb-2">
+                                    <option value="">Client de la vente (aucun)</option>
+                                    @foreach($Clients as $client)
+                                        <option value="{{ $client->id }}">{{ $client->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <!-- <div class="pos-order">
@@ -565,8 +573,15 @@
                         <!-- <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div> -->
                         
                         <!-- <form action=""> -->
-                            <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
-                            <button class="btn btn-danger btn-sm" id="deletpromoinput" type=""><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></button>
+                            
+                            {{--<div class="d-flex gap-1 mb-2">
+                                <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
+                                <button class="btn btn-danger btn-sm" id="deletpromoinput" type=""><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></button>
+                            </div>--}}
+                            <div class="d-flex gap-1 mb-2">
+                                <input type="number" id="remiseInput" class="form-control" placeholder="Montant de la remise (FCFA)" min="0">
+                                <button class="btn btn-danger btn-sm" id="deletremiseinput" type=""><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></button>
+                            </div>
                         <!-- </form> -->
                         <div class="mt-3">
                             <div class="btn-group d-flex flex-wrap gap-1">
@@ -703,6 +718,7 @@
 <script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
 <script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
 <script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     $(function() {
@@ -713,6 +729,13 @@
         let originalProducts = $('#product_list').html();
         const defaultPosProductImage = @json(asset('icons/product-placeholder.svg'));
         bindProductEvents();
+
+        $('#clientSelect').select2({
+            width: '100%',
+            placeholder: "<strong style=\"font-size: 1.4em;\">Choisir un client (aucun)</strong>",
+            allowClear: true,
+            escapeMarkup: function(markup) { return markup; }
+        });
 
         // Au clic sur un élément de navigation
         $('.nav-link').on('click', function(e) {
@@ -1007,18 +1030,30 @@
             });
             console.log(products);
 
+            let remiseMontant = parseFloat($('#remiseInput').val()) || 0;
+            if (remiseMontant >= totalAmount) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Remise invalide",
+                    text: "La remise doit être inférieure au total de la vente.",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
             Swal.fire({
                 title: "Saisissez le montant donné par le client",
                 input: "number",
                 inputAttributes: {
-                    min: totalAmount, // Empêcher une saisie inférieure au total
+                    min: totalAmount - remiseMontant, // Empêcher une saisie inférieure au total après remise
                     step: "1"
                 },
                 showCancelButton: true,
                 confirmButtonText: "Calculer la monnaie",
                 cancelButtonText: "Annuler",
                 inputValidator: (value) => {
-                    if (!value || value < totalAmount) {
+                    if (!value || value < totalAmount - remiseMontant) {
                         return "Le montant doit être supérieur ou égal au total de la vente.";
                     }
                 }
@@ -1039,12 +1074,12 @@
                             dataType: "json",
                             success: function(response) {
                                 let discount = 0;
-                                let finalAmount = totalAmount;
+                                let finalAmount = totalAmount - remiseMontant;
 
                                 if (response.valid) {
                                     let percent = response.percent; // Récupérer le pourcentage
                                     discount = (totalAmount * percent) / 100;
-                                    finalAmount = totalAmount - discount;
+                                    finalAmount = totalAmount - discount - remiseMontant;
                                 }
 
                                 let monnaie = received_amount - finalAmount;
@@ -1053,6 +1088,7 @@
                                 Swal.fire({
                                     title: "Confirmation de la vente avec code promo",
                                     html: `<p>Montant initial : <b>${totalAmount.toFixed(2)}</b></p>
+                                        <p>Remise : <b style="color:red">-${remiseMontant.toFixed(2)}</b></p>
                                         <p>Réduction appliquée (${response.valid ? response.percent : 0}%) : <b style="color:red">-${discount.toFixed(2)}</b></p>
                                         <p><b>Total à payer après réduction : ${finalAmount.toFixed(2)}</b></p>
                                         <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
@@ -1079,8 +1115,9 @@
                                                 products: products,
                                                 received_amount: received_amount,
                                                 total_amount: finalAmount,
-                                                discount: discount, // Ajout de la réduction
-                                                code_promo: codePromo
+                                                discount: discount + remiseMontant, // Ajout de la réduction (promo + remise)
+                                                code_promo: codePromo,
+                                                client_id: $('#clientSelect').val()
                                             },
                                             success: function(data) {
                                                 if (data.status) {
@@ -1140,11 +1177,14 @@
                         });
                     } else {
                         // Aucun code promo, traitement direct
-                        let monnaie = received_amount - totalAmount;
+                        let finalAmount = totalAmount - remiseMontant;
+                        let monnaie = received_amount - finalAmount;
 
                         Swal.fire({
                             title: "Confirmation de la vente",
-                            html: `<p>Total à payer : <b>${totalAmount.toFixed(2)}</b></p>
+                            html: `<p>Total initial : <b>${totalAmount.toFixed(2)}</b></p>
+                                <p>Remise : <b style="color:red">-${remiseMontant.toFixed(2)}</b></p>
+                                <p><b>Total à payer : ${finalAmount.toFixed(2)}</b></p>
                                 <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
                                 <p>Monnaie à rendre : <b style="color:green">${monnaie.toFixed(2)}</b></p>`,
                             icon: "question",
@@ -1168,9 +1208,10 @@
                                         _token: '{{ csrf_token() }}',
                                         products: products,
                                         received_amount: received_amount,
-                                        total_amount: totalAmount,
-                                        discount: 0, // Pas de réduction
-                                        code_promo: codePromo
+                                        total_amount: finalAmount,
+                                        discount: remiseMontant, // Remise manuelle
+                                        code_promo: codePromo,
+                                        client_id: $('#clientSelect').val()
                                     },
                                     success: function(data) {
                                         if (data.status) {
@@ -1299,7 +1340,8 @@
                 let productTotal = parseFloat($(this).find('.pos-order-price').text());
                 total += productTotal;
             });
-            $('.total-amount').text(total + ' FCFA');
+            let remiseMontant = parseFloat($('#remiseInput').val()) || 0;
+            $('.total-amount').text((total - remiseMontant) + ' FCFA');
         }
 
         $(document).on('click', '.btn-plus', function(e) {
@@ -1350,6 +1392,8 @@
                 {data: 'remaining_amount',name: 'remaining_amount'},
                 {data: 'total_profit',name: 'total_profit'},
                 {data: 'code_promo',name: 'code_promo'},
+                {data: 'discount',name: 'discount'},
+                {data: 'client',name: 'client'},
                 {data: 'cashier',name: 'cashier'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ],
@@ -1438,6 +1482,15 @@
             $("#promoCodeInput").val("").focus(); // Effacer et remettre le focus
         });
 
+        $("#deletremiseinput").on("click", function () {
+            $("#remiseInput").val("").focus(); // Effacer et remettre le focus
+            updateTotal();
+        });
+
+        $('#remiseInput').on('input', function() {
+            updateTotal();
+        });
+
         // ============= PENDING ORDERS (localStorage) =============
 
         let activePendingOrder = null;
@@ -1475,6 +1528,8 @@
             $('#newOrderTab .pos-order').remove();
             selectedProducts.clear();
             $('#promoCodeInput').val('');
+            $('#remiseInput').val('');
+            $('#clientSelect').val('').trigger('change');
             updateTotal();
             updateOrderCount();
         }
@@ -1536,8 +1591,10 @@
 
             const totalAmount = parseFloat($('.total-amount').text().replace(' FCFA', '')) || 0;
             const codePromo = $('#promoCodeInput').val().trim();
+            const remise = parseFloat($('#remiseInput').val()) || 0;
+            const client_id = $('#clientSelect').val();
 
-            return { products, total_amount: totalAmount, code_promo: codePromo };
+            return { products, total_amount: totalAmount, code_promo: codePromo, remise: remise, client_id: client_id };
         }
 
         function restoreOrderToCart(order) {
@@ -1570,12 +1627,18 @@
                 addProduct(p.product_id);
             });
 
-            updateTotal();
             updateOrderCount();
 
             if (order.code_promo) {
                 $('#promoCodeInput').val(order.code_promo);
             }
+            if (order.remise) {
+                $('#remiseInput').val(order.remise);
+            }
+            if (order.client_id) {
+                $('#clientSelect').val(order.client_id).trigger('change');
+            }
+            updateTotal();
         }
 
         function renderPendingOrdersList() {
@@ -1650,7 +1713,9 @@
                         date: new Date().toLocaleString('fr-FR'),
                         products: orderData.products,
                         total_amount: orderData.total_amount,
-                        code_promo: orderData.code_promo
+                        code_promo: orderData.code_promo,
+                        remise: orderData.remise,
+                        client_id: orderData.client_id
                     };
 
                     const existingOrderIndex = orders.findIndex(order => order.id === savedOrder.id);

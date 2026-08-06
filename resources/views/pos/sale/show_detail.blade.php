@@ -35,6 +35,36 @@
                 </tbody>
             </table>
         </div>
+        <div class="card-body text-center">
+            <table class="table table-striped border mb-0 text-center">
+                <tbody>
+                    <tr>
+                        <th>Client</th>
+                        <td>{{ $Sale->client->name ?? 'Aucun' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Montant initial</th>
+                        <td>{{ $Sale->amount_init }} FCFA</td>
+                    </tr>
+                    <tr>
+                        <th>Remise</th>
+                        <td>{{ $Sale->discount }} FCFA</td>
+                    </tr>
+                    <tr>
+                        <th>Montant payé</th>
+                        <td>{{ $Sale->total_amount }} FCFA</td>
+                    </tr>
+                    <tr>
+                        <th>Montant reçu</th>
+                        <td>{{ $Sale->received_amount }} FCFA</td>
+                    </tr>
+                    <tr>
+                        <th>Monnaie rendue</th>
+                        <td>{{ $Sale->remaining_amount }} FCFA</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <div class="card-arrow">
             <div class="card-arrow-top-left"></div>
             <div class="card-arrow-top-right"></div>

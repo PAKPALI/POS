@@ -10,6 +10,7 @@ use App\Models\AMS\CashAccount;
 use App\Models\AMS\Setting;
 use App\Models\AMS\Transaction;
 use App\Models\Category;
+use App\Models\Client;
 use App\Models\CodePromo;
 use App\Models\CompanySetting;
 use App\Models\Product;
@@ -39,6 +40,7 @@ class SaleController extends Controller
         // get all categories with their associated products
         $Category = Category::with('products')->get();
         $Product = Product::where('status', 1)->where('qte', '>', 0)->get();
+        $Clients = Client::where('status', 1)->get();
         $company = CompanySetting::first();
 
         $mainCash = CashAccount::where('is_default', 1)->first();
@@ -46,7 +48,7 @@ class SaleController extends Controller
         $setting  = Setting::first();
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Sale::with('saleDetails.product')->whereDate('created_at', $today)->latest()->get();
+        $Object = Sale::with('saleDetails.product','client')->whereDate('created_at', $today)->latest()->get();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()
@@ -56,6 +58,9 @@ class SaleController extends Controller
                 })
                 ->editColumn('cashier', function ($Object) {
                     return $Object->cashier;
+                })
+                ->editColumn('client', function ($Object) {
+                    return $Object->client->name ?? 'Aucun';
                 })
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');
@@ -93,7 +98,7 @@ class SaleController extends Controller
         return view('pos.sale.index',
             compact(
                 'Category','Product','mostSoldProducts','Object','sale_total_profit',
-                'product_count','total_amount','company','mainCash','taxCash','setting'
+                'product_count','total_amount','company','mainCash','taxCash','setting','Clients'
             ));
     }
 
@@ -156,7 +161,8 @@ class SaleController extends Controller
         $validator = Validator::make($request->all(), [
             'products' => 'required|array',
             'products.*.quantity' => 'required|integer|min:1',
-            'total_amount' => 'required|numeric'
+            'total_amount' => 'required|numeric',
+            'client_id' => 'nullable|exists:clients,id'
         ], $error_messages);
         
         if ($validator->fails()) {
@@ -185,11 +191,17 @@ class SaleController extends Controller
                 'code_promo' => $percent,
                 'discount' => $request->discount,
                 'amount_init' => $request->discount+$request->total_amount,
+                'client_id' => $request->client_id ?: null,
                 'cashier' => auth()->user()->name,
             ]);
 
             // Process products and store sale details
             $totalProfit = $this->processProducts($sale, $request->products);
+
+            // subtract remise to profit if remise exist
+            if ($request->discount) {
+                $totalProfit = $totalProfit - $request->discount;
+            }
 
             // Update the total profit in the sale table
             $sale->update(['total_profit' => $totalProfit]);
@@ -509,7 +521,7 @@ class SaleController extends Controller
                 $endDate = Carbon::today()->format('Y-m-d 23:59:59');
             }
         
-            $Object = Sale::with('saleDetails.product')->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+            $Object = Sale::with('saleDetails.product','client')->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
 
             // somme calcul on sale
             $total_sale = $Object->count();
@@ -552,6 +564,9 @@ class SaleController extends Controller
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');
                 })
+                ->editColumn('client', function ($Object) {
+                    return $Object->client->name ?? 'Aucun';
+                })
                 ->with([
                     'totalSale' => $total_sale,
                     'totalAmount' => $total_amount,
@@ -578,7 +593,7 @@ class SaleController extends Controller
             $endDate = Carbon::today()->endOfDay();
         }
 
-        $query = Sale::with('saleDetails.product')
+        $query = Sale::with('saleDetails.product','client')
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         $search = trim((string) $request->get('search'));

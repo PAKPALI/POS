@@ -82,28 +82,29 @@
 						</a>
 					</div>
 
-					<div class="menu-item <?php if(Request::route()->getName() === 'history'): ?> active <?php endif; ?>">
-						<a href="<?php echo e(route('history')); ?>" class="menu-link">
-							<div class="menu-text">Historique de ventes</div>
-						</a>
-					</div>
-					<!-- <div class="menu-item">
-						<a href="pos_kitchen_order.html" target="_blank" class="menu-link">
-							<div class="menu-text">Kitchen Order</div>
-						</a>
-					</div> -->
+<div class="menu-item <?php if(Request::route()->getName() === 'history'): ?> active <?php endif; ?>">
+					<a href="<?php echo e(route('history')); ?>" class="menu-link">
+						<div class="menu-text">Historique de ventes</div>
+					</a>
 				</div>
+				<!-- <div class="menu-item">
+					<a href="pos_kitchen_order.html" target="_blank" class="menu-link">
+						<div class="menu-text">Kitchen Order</div>
+					</a>
+				</div> -->
+			</div>
+		</div>
+
+			<div class="menu-item <?php if(Request::route()->getName() === 'client.index'): ?> active <?php endif; ?>">
+				<a href="<?php echo e(route('client.index')); ?>" class="menu-link">
+					<span class="menu-icon"><i class="fas fa-user-friends"></i></span>
+					<span class="menu-text">Clients</span>
+				</a>
 			</div>
 
 			<!-- PROMO CODE -->
 			<?php if(auth()->user()->user_type!=3): ?>
-				<div class="menu-header">CODE PROMO</div>
-				<div class="menu-item <?php if(Request::route()->getName() === 'code.index'): ?> active <?php endif; ?>">
-					<a href="<?php echo e(route('code.index')); ?>" class="menu-link">
-						<span class="menu-icon"><i class="fas fa-barcode"></i></span>
-						<span class="menu-text">Code promo</span>
-					</a>
-				</div>
+				
 			<?php endif; ?>
 
 			<!-- AMS -->

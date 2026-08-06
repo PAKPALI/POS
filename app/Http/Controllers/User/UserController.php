@@ -57,12 +57,15 @@ class UserController extends Controller
             $saleDetail->product = Product::find($saleDetail->product_id);
         });
 
+        $sale_total_revenue = $Sale->sum('total_amount');
+
         return view('dashboard', compact(
             'Action',
             'Category',
             'Product',
             'Sale',
             'sale_total_profit',
+            'sale_total_revenue',
             'mostSoldProducts',
             'company'
         ));

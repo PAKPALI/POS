@@ -9,10 +9,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Sale extends Model
 {
     use HasFactory;
-    protected $fillable = ['code','received_amount','total_amount', 'remaining_amount', 'total_profit','cashier','code_promo','discount','tax_amount','amount_init'];
+    protected $fillable = ['code','received_amount','total_amount', 'remaining_amount', 'total_profit','cashier','code_promo','discount','tax_amount','amount_init','client_id'];
 
     public function saleDetails()
     {
         return $this->hasMany(SaleDetail::class);
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

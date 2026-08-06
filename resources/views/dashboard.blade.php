@@ -35,7 +35,7 @@
 @section('content')
 <div class="row">
 
-    <div class="col-xl-3 col-lg-6">
+    <div class="col-xl-4 col-lg-6">
         <a href="{{ route('category.index') }}">
             <div class="card border-color mb-3">
                 <div class="card-body">
@@ -69,8 +69,7 @@
         </a>
     </div>
 
-
-    <div class="col-xl-3 col-lg-6">
+    <div class="col-xl-4 col-lg-6">
         <a href="{{ route('product.index') }}">
             <div class="card border-color mb-3">
                 <div class="card-body">
@@ -105,7 +104,7 @@
         </a>
     </div>
 
-    <div class="col-xl-3 col-lg-6">
+    <div class="col-xl-4 col-lg-6">
         <div class="card border-color mb-3">
             <div class="card-body">
                 <div class="d-flex fw-bold small mb-3">
@@ -138,12 +137,38 @@
         </div>
     </div>
 
+    <div class="col-xl-6 col-lg-6">
+        <div class="card border-color mb-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center fw-bold small mb-3">
+                    <span class="flex-grow-1">CHIFFRE D'AFFAIRES</span>
+                    <i class="bi bi-file-text-fill text-success fs-4 quota-status-icon"></i>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <div class="col-8">
+                        <h3 class="mb-0">{{$sale_total_revenue}} FCFA</h3>
+                    </div>
+                    <div class="col-4 text-end text-inverse text-opacity-50">
+                        Revenue
+                    </div>
+                </div>
+            </div>
+            <div class="card-arrow">
+                <div class="card-arrow-top-left"></div>
+                <div class="card-arrow-top-right"></div>
+                <div class="card-arrow-bottom-left"></div>
+                <div class="card-arrow-bottom-right"></div>
+            </div>
+        </div>
+    </div>
+
     @if (auth()->user()->user_type!=3)
-    <div class="col-xl-3 col-lg-6">
+    <div class="col-xl-6 col-lg-6">
         <div class="card border-color mb-3">
             <div class="card-body">
                 <div class="d-flex fw-bold small mb-3">
                     <span class="flex-grow-1">BENEFICES</span>
+                    <i class="bi bi-file-text-fill text-success fs-4 quota-status-icon"></i>
                     <a href="#" data-toggle="card-expand"
                         class="text-inverse text-opacity-50 text-decoration-none"><i
                             class="bi bi-fullscreen"></i></a>
@@ -152,10 +177,10 @@
                     <div class="col-7">
                         <h3 class="mb-0">{{$sale_total_profit}} FCFA</h3>
                     </div>
-                    <div class="col-5">
+                    <!-- <div class="col-5">
                         <div class="mt-n3 mb-n2" data-render="apexchart" data-type="bar"
                             data-title="Visitors" data-height="45"></div>
-                    </div>
+                    </div> -->
                 </div>
                 <div class="small text-inverse text-opacity-50 text-truncate">
                     <!-- <i class="fa fa-chevron-up fa-fw me-1"></i> 5.3% more than last week<br>
@@ -180,7 +205,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center fw-bold small mb-3">
                     <span class="flex-grow-1">SMS CLASSIQUES RESTANTS</span>
-                    <i class="bi bi-chat-text-fill text-info fs-4 quota-status-icon"></i>
+                    <i class="bi bi-chat-text-fill text-secondary fs-4 quota-status-icon"></i>
                 </div>
                 <div class="row align-items-center mb-2">
                     <div class="col-8">
