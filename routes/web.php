@@ -13,6 +13,7 @@ use App\Http\Controllers\Component\ClientController;
 use App\Http\Controllers\Component\InventoryController;
 use App\Http\Controllers\Component\MenuController;
 use App\Http\Controllers\Component\ProductController;
+use App\Http\Controllers\Component\SupplierController;
 use App\Http\Controllers\Sale\SaleController;
 use App\Http\Controllers\User\UserController;
 use App\Models\User;
@@ -88,6 +89,11 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     Route::controller(ClientController::class)->group(function () {
         Route::resource('client', ClientController::class);
         Route::get('client-disabled', [ClientController::class, 'disabledListing'])->name('client.disabled.listing');
+    });
+    //supplier
+    Route::controller(SupplierController::class)->group(function () {
+        Route::resource('supplier', SupplierController::class);
+        Route::get('supplier-disabled', [SupplierController::class, 'disabledListing'])->name('supplier.disabled.listing');
     });
     Route::get('product/export/pdf', [ProductController::class, 'exportPdf'])
     ->name('product.export.pdf');

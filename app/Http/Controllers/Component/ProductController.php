@@ -8,6 +8,7 @@ use App\Models\AMS\Setting;
 use App\Models\Category;
 use App\Models\CompanySetting;
 use App\Models\Product;
+use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,6 +72,9 @@ class ProductController extends Controller
                 ->editColumn('category_id', function ($Object) {
                     return $Object->category->name;
                 })
+                ->editColumn('supplier_id', function ($Object) {
+                    return $Object->supplier ? $Object->supplier->name : '-';
+                })
                 ->editColumn('price', function ($Object) {
                     return $Object->price? number_format($Object->price, 0, ',', ' ') . ' FCFA' : '-';
                 })
@@ -95,7 +99,8 @@ class ProductController extends Controller
                 ->make(true);
         }
         $Category = Category::where('status','1')->orderBy('name', 'asc')->get();
-        return view('component.product.index',compact('Category'));
+        $Supplier = Supplier::where('status','1')->orderBy('name', 'asc')->get();
+        return view('component.product.index',compact('Category','Supplier'));
     }
 
     public function disabledListing(Request $request)
@@ -114,6 +119,9 @@ class ProductController extends Controller
                 })
                 ->editColumn('category_id', function ($Object) {
                     return $Object->category->name;
+                })
+                ->editColumn('supplier_id', function ($Object) {
+                    return $Object->supplier ? $Object->supplier->name : '-';
                 })
                 ->editColumn('price', function ($Object) {
                     return $Object->price? number_format($Object->price, 0, ',', ' ') . ' FCFA' : '-';
@@ -136,7 +144,9 @@ class ProductController extends Controller
                 ->make(true);
         }
 
-        return view('component.product.index',compact('Category'));
+        $Category = Category::where('status','1')->orderBy('name', 'asc')->get();
+        $Supplier = Supplier::where('status','1')->orderBy('name', 'asc')->get();
+        return view('component.product.index',compact('Category','Supplier'));
     }
 
     /**
@@ -201,6 +211,7 @@ class ProductController extends Controller
 
             $data = [
                 'category_id' => $request-> category,
+                'supplier_id' => $request->supplier_id ?: null,
                 'name' => $request-> name,
                 'qte' => $request-> qte??0,
                 'price' => $request-> price,
@@ -253,7 +264,8 @@ class ProductController extends Controller
     {
         $Product = Product::findOrFail($id);
         $Category = Category::where('status','1')->latest()->get();
-        return view('component.product.edit', compact('Product','Category'));
+        $Supplier = Supplier::where('status','1')->latest()->get();
+        return view('component.product.edit', compact('Product','Category','Supplier'));
     }
 
     /**
@@ -306,6 +318,7 @@ class ProductController extends Controller
             $Product = Product::findOrFail($id);
             $data = [
                 'category_id' => $request-> category,
+                'supplier_id' => $request->supplier_id ?: null,
                 'name' => $request-> name,
                 // 'qte' => $request-> qte??0,
                 'price' => $request-> price,

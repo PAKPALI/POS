@@ -8,6 +8,7 @@ use App\Models\Action;
 use App\Models\CompanySetting;
 use App\Models\Inventory;
 use App\Models\Product;
+use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,10 @@ class InventoryController extends Controller
 
         if($request->product_id){
             $Object->where('product_id', $request->product_id);
+        }
+
+        if($request->supplier_id){
+            $Object->where('supplier_id', $request->supplier_id);
         }
 
         if($request->start_date && $request->end_date){
@@ -56,6 +61,9 @@ class InventoryController extends Controller
                 ->editColumn('product_id', function ($Object) {
                     return $Object->product->name;
                 })
+                ->editColumn('supplier_id', function ($Object) {
+                    return $Object->supplier ? $Object->supplier->name : '-';
+                })
                 ->editColumn('created_by', function ($Object) {
                     return $Object->user->name;
                 })
@@ -66,7 +74,8 @@ class InventoryController extends Controller
                 ->make(true);
         }
         $Product = Product::where('status',1)->orderBy('name', 'asc')->get();
-        return view('component.inventory.index',compact('Product'));
+        $Supplier = Supplier::where('status',1)->orderBy('name', 'asc')->get();
+        return view('component.inventory.index',compact('Product','Supplier'));
     }
 
     /**
@@ -125,6 +134,7 @@ class InventoryController extends Controller
             // save historique
             $inventory = Inventory::create([
                 'type' => 1,
+                'supplier_id' => $request->supplier_id ?: null,
                 'product_id' => $Product->id,
                 'qte_before' => $before,
                 'qte_added' => $added,
@@ -264,6 +274,10 @@ class InventoryController extends Controller
 
         if ($request->product_id) {
             $query->where('product_id', $request->product_id);
+        }
+
+        if ($request->supplier_id) {
+            $query->where('supplier_id', $request->supplier_id);
         }
 
         if ($start_date && $end_date) {

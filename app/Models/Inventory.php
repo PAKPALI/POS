@@ -11,6 +11,7 @@ class Inventory extends Model
 
     protected $fillable = [
         'type',
+        'supplier_id',
         'product_id',
         'qte_before',
         'qte_added',
@@ -22,6 +23,11 @@ class Inventory extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function user()

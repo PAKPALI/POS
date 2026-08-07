@@ -29,6 +29,11 @@
                     </tr>
                     <tr>
                         <th scope="row">3</th>
+                        <td>Fournisseur : </td>
+                        <td>{{$Product->supplier ? $Product->supplier->name : '-'}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">3</th>
                         <td>Quantité : </td>
                         <td>{{$Product->qte}}</td>
                     </tr>

@@ -9,11 +9,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Product extends Model
 {
     use HasFactory;
-    protected $fillable = ['category_id','name','created_by','qte','price','purchase_price','price_ttc','margin','profit','image','status','email','type'];
+    protected $fillable = ['category_id','supplier_id','name','created_by','qte','price','purchase_price','price_ttc','margin','profit','image','status','email','type'];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function user()

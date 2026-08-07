@@ -75,6 +75,15 @@
                                                     </select>
                                                 </div>
                                                 <div class="form-group col-6 mb-3">
+                                                    <label for="exampleInputText0">Fournisseur</label>
+                                                    <select class="form-select mb-3" name="supplier_id">
+                                                        <option value="">Aucun fournisseur</option>
+                                                        @foreach ($Supplier as $sup)
+                                                            <option value="{{$sup->id}}">{{$sup->name}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="form-group col-6 mb-3">
                                                     <label for="exampleInputText0">Nom</label>
                                                     <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
                                                 </div>
@@ -168,6 +177,7 @@
                                                 <th>Etat</th>
                                                 <th>Nom</th>
                                                 <th>Catégorie</th>
+                                                    <th>Fournisseur</th>
                                                 <th>Quantité</th>
                                                 <th>Prix</th>
                                                 <th>Status</th>
@@ -249,6 +259,7 @@
                                                     <th>Etat</th>
                                                     <th>Nom</th>
                                                     <th>Catégorie</th>
+                                                    <th>Fournisseur</th>
                                                     <th>Quantité</th>
                                                     <th>Prix HT</th>
                                                     <th>Prix TTC</th>
@@ -297,6 +308,7 @@
                                                     <th>Etat</th>
                                                     <th>Nom</th>
                                                     <th>Catégorie</th>
+                                                    <th>Fournisseur</th>
                                                     <th>Quantité</th>
                                                     <th>Prix HT</th>
                                                     <th>Prix TTC</th>
@@ -380,6 +392,7 @@
                     {data: 'margin',name: 'margin'},
                     {data: 'name',name: 'name'},
                     {data: 'category_id',name: 'category_id'},
+                    {data: 'supplier_id',name: 'supplier_id'},
                     {data: 'qte',name: 'qte'},
                     {data: 'price',name: 'price'},
                     {data: 'price_ttc', name: 'price_ttc'},
@@ -451,6 +464,7 @@
                     {data: 'margin',name: 'margin'},
                     {data: 'name',name: 'name'},
                     {data: 'category_id',name: 'category_id'},
+                    {data: 'supplier_id',name: 'supplier_id'},
                     {data: 'qte',name: 'qte'},
                     {data: 'price',name: 'price'},
                     {data: 'price_ttc', name: 'price_ttc'},

@@ -58,6 +58,7 @@ class UserController extends Controller
         });
 
         $sale_total_revenue = $Sale->sum('total_amount');
+        $sale_total_discount = $Sale->sum('discount');
 
         return view('dashboard', compact(
             'Action',
@@ -66,6 +67,7 @@ class UserController extends Controller
             'Sale',
             'sale_total_profit',
             'sale_total_revenue',
+            'sale_total_discount',
             'mostSoldProducts',
             'company'
         ));

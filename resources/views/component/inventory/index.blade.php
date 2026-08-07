@@ -48,6 +48,15 @@
                                                     </select>
                                                 </div>
                                                 <div class="form-group col-6">
+                                                    <label for="supplier_id">Fournisseur</label>
+                                                    <select name="supplier_id" id="supplier_id" class="form-select">
+                                                        <option value="">Aucun fournisseur</option>
+                                                        @foreach($Supplier as $item)
+                                                            <option value="{{$item->id}}">{{$item->name}}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="form-group col-6">
                                                     <label for="qte_added">Quantité ajoutée</label>
                                                     <input type="number" name="qte_added" id="qte_added" class="form-control" placeholder="Quantité ajoutée">
                                                 </div>
@@ -173,6 +182,19 @@
                                                         </div>
 
                                                         <div class="col-md-3 mb-2">
+                                                            <label>Fournisseur</label>
+                                                            <select class="form-select" id="filter_supplier">
+                                                                <option value="">Tous les fournisseurs</option>
+
+                                                                @foreach($Supplier as $sup)
+                                                                    <option value="{{ $sup->id }}">
+                                                                        {{ $sup->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-3 mb-2">
                                                             <label>Date début</label>
                                                             <input type="date" class="form-control" id="start_date">
                                                         </div>
@@ -195,6 +217,7 @@
                                                     <th>#</th>
                                                     <th>Type</th>
                                                     <th>Produit</th>
+                                                    <th>Fournisseur</th>
                                                     <th>Qté avant</th>
                                                     <th>Qté saisie</th>
                                                     <th>Qté après</th>
@@ -263,6 +286,7 @@
                     data: function (d) {
                         d.type = $('#type').val();
                         d.product_id = $('#filter_product').val();
+                        d.supplier_id = $('#filter_supplier').val();
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
                     }
@@ -271,6 +295,7 @@
                     {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'type',name: 'type'},
                     {data: 'product_id',name: 'product_id'},
+                    {data: 'supplier_id',name: 'supplier_id'},
                     {data: 'qte_before',name: 'qte_before'},
                     {data: 'qte_added',name: 'qte_added'},
                     {data: 'qte_after',name: 'qte_after'},
@@ -325,7 +350,7 @@
                 },
             });
 
-            $('#filter_product, #start_date, #end_date, #type').on('change', function(){
+            $('#filter_product, #filter_supplier, #start_date, #end_date, #type').on('change', function(){
                 Datatable.draw();
             });
 
@@ -471,6 +496,7 @@
                 let params = $.param({
                     type: $('#type').val(),
                     product_id: $('#filter_product').val(),
+                    supplier_id: $('#filter_supplier').val(),
                     start_date: $('#start_date').val(),
                     end_date: $('#end_date').val()
                 });

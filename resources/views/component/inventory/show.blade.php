@@ -37,24 +37,30 @@
 
                     <tr>
                         <th scope="row">5</th>
+                        <td>Fournisseur :</td>
+                        <td>{{$Inventory->supplier ? $Inventory->supplier->name : '-'}}</td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">6</th>
                         <td>Quantité après :</td>
                         <td>{{$Inventory->qte_after}}</td>
                     </tr>
 
                     <tr>
-                        <th scope="row">6</th>
+                        <th scope="row">7</th>
                         <td>Note :</td>
                         <td>{{$Inventory->note}}</td>
                     </tr>
 
                     <tr>
-                        <th scope="row">7</th>
+                        <th scope="row">8</th>
                         <td>Créé par :</td>
                         <td>{{$Inventory->user->name}}</td>
                     </tr>
 
                     <tr>
-                        <th scope="row">8</th>
+                        <th scope="row">9</th>
                         <td>Créé le :</td>
                         <td>{{$Inventory->created_at}}</td>
                 </tbody>

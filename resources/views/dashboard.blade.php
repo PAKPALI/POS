@@ -147,6 +147,9 @@
                 <div class="row align-items-center mb-2">
                     <div class="col-8">
                         <h3 class="mb-0">{{$sale_total_revenue}} FCFA</h3>
+                        <div class="small text-inverse text-opacity-50">
+                            Remise : <span class="text-danger">{{$sale_total_discount}} FCFA</span>
+                        </div>
                     </div>
                     <div class="col-4 text-end text-inverse text-opacity-50">
                         Revenue

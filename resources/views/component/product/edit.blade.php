@@ -23,6 +23,17 @@
                 </select>
             </div>
             <div class="form-group col-6 mb-3">
+                <label for="supplier_id">Fournisseur</label>
+                <select class="form-select mb-3" name="supplier_id">
+                    <option value="">Aucun fournisseur</option>
+                    @foreach ($Supplier as $sup)
+                        <option value="{{ $sup->id }}" {{ $sup->id == $Product->supplier_id ? 'selected' : '' }}>
+                            {{ $sup->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group col-6 mb-3">
                 <label for="exampleInputText0">Nom</label>
                 <input type="text" name="name" value="{{$Product->name}}" class="form-control" id="exampleInputText0" placeholder="Nom">
             </div>

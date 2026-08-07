@@ -45,16 +45,11 @@
 								<div class="menu-text">Liste Produits</div>
 							</a>
 						</div>
-					</div>
-					<div class="menu-submenu">
 						<div class="menu-item @if(Request::route()->getName() === 'menu.index') active @endif">
 							<a href="{{ route('menu.index') }}" class="menu-link">
 								<div class="menu-text">Liste menu</div>
 							</a>
 						</div>
-					</div>
-
-					<div class="menu-submenu">
 						<div class="menu-item @if(Request::route()->getName() === 'inventory.index') active @endif">
 							<a href="{{ route('inventory.index') }}" class="menu-link">
 								<div class="menu-text">Inventaires</div>
@@ -102,6 +97,15 @@
 				</a>
 			</div>
 
+			@if(auth()->user()->user_type!=3)
+				<div class="menu-item @if(Request::route()->getName() === 'supplier.index') active @endif">
+					<a href="{{ route('supplier.index') }}" class="menu-link">
+						<span class="menu-icon"><i class="fas fa-truck"></i></span>
+						<span class="menu-text">Fournisseurs</span>
+					</a>
+				</div>
+			@endif
+
 			<!-- PROMO CODE -->
 			@if(auth()->user()->user_type!=3)
 				{{--<div class="menu-header">CODE PROMO</div>
@@ -136,27 +140,21 @@
 								<span class="menu-text">Tableau de bord</span>
 							</a>
 						</div>
-					</div>
-					<!--cash-->
-					<div class="menu-submenu">
+						<!--cash-->
 						<div class="menu-item @if(Request::route()->getName() === 'cash-account.index') active @endif">
 							<a href="{{ route('cash-account.index') }}" class="menu-link">
 								<span class="menu-icon"><i class="fas fa-wallet"></i></span>
 								<span class="menu-text">Caisse</span>
 							</a>
 						</div>
-					</div>
-					<!--operations-->
-					<div class="menu-submenu">
+						<!--operations-->
 						<div class="menu-item @if(Request::route()->getName() === 'transaction.index') active @endif">
 							<a href="{{ route('transaction.index') }}" class="menu-link">
 								<span class="menu-icon"><i class="fas fa-exchange-alt"></i></span>
 								<span class="menu-text">Opérations</span>
 							</a>
 						</div>
-					</div>
-					<!--setting-->
-					<div class="menu-submenu">
+						<!--setting-->
 						<div class="menu-item @if(Request::route()->getName() === 'ams.settings') active @endif">
 							<a href="{{ route('ams.settings') }}" class="menu-link">
 								<span class="menu-icon"><i class="fas fa-tools"></i></span>
@@ -188,8 +186,6 @@
 							<span class="menu-text">Configuration</span>
 						</a>
 					</div>
-				</div>
-				<div class="menu-submenu">
 					<div class="menu-item @if(Request::route()->getName() === 'ecommerce.orders.index' || Request::route()->getName() === 'ecommerce.orders.show') active @endif">
 						<a href="{{ route('ecommerce.orders.index') }}" class="menu-link">
 							<span class="menu-icon"><i class="fas fa-clipboard-list"></i></span>
