@@ -101,6 +101,27 @@
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+<style>
+    /* Liste déroulante des clients : fond blanc, nom en noir,
+       survol bleu avec texte blanc */
+    .select2-dropdown {
+        background-color: #ffffff !important;
+        border: 1px solid #ced4da !important;
+    }
+    .select2-container--default .select2-results__option {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #1e88e5 !important;
+        color: #ffffff !important;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #ced4da !important;
+    }
+</style>
 <div id="content" class="app-content p-1 ps-xl-4 pe-xl-4 pt-xl-3 pb-xl-3">
 
     <div class="pos card" id="pos">
@@ -730,12 +751,39 @@
         const defaultPosProductImage = @json(asset('icons/product-placeholder.svg'));
         bindProductEvents();
 
-        $('#clientSelect').select2({
-            width: '100%',
-            placeholder: "<strong style=\"font-size: 1.4em;\">Choisir un client (aucun)</strong>",
-            allowClear: true,
-            escapeMarkup: function(markup) { return markup; }
-        });
+        // Référence stable de la copie jQuery qui a initialisé Select2
+        // (hub/assets/js/vendor.min.js charge une autre copie de jQuery qui écrase window.jQuery → window.$)
+        const clientSelect = $('#clientSelect');
+
+        function initClientSelect() {
+            if (typeof clientSelect.select2 !== 'function') return;
+            try {
+                clientSelect.select2({
+                    width: '100%',
+                    placeholder: "<strong style=\"font-size: 1.4em;\">Choisir un client (aucun)</strong>",
+                    allowClear: true,
+                    escapeMarkup: function(markup) { return markup; }
+                });
+            } catch (e) {}
+        }
+
+        // Force l'affichage du client dans le widget select2 de façon fiable :
+        // on pose la valeur sur le <select> puis on recrée le widget si besoin,
+        // sans dépendre d'un événement 'change' qui peut ne pas atteindre select2
+        // à cause des deux copies de jQuery chargées sur la page.
+        function syncClientSelection(value) {
+            const id = value === null || value === undefined ? '' : String(value);
+            clientSelect.val(id);
+            if (typeof clientSelect.select2 !== 'function') return;
+            try {
+                if (clientSelect.hasClass('select2-hidden-accessible')) {
+                    clientSelect.select2('destroy');
+                }
+                initClientSelect();
+            } catch (e) {}
+        }
+
+        initClientSelect();
 
         // Au clic sur un élément de navigation
         $('.nav-link').on('click', function(e) {
@@ -1060,7 +1108,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     let received_amount = parseFloat(result.value);
-                    let codePromo = $('#promoCodeInput').val();
+                    let codePromo = $('#promoCodeInput').val() || '';
 
                     // Vérifier s'il y a un code promo
                     if (codePromo.trim() !== "") {
@@ -1117,7 +1165,7 @@
                                                 total_amount: finalAmount,
                                                 discount: discount + remiseMontant, // Ajout de la réduction (promo + remise)
                                                 code_promo: codePromo,
-                                                client_id: $('#clientSelect').val()
+                                                client_id: clientSelect.val()
                                             },
                                             success: function(data) {
                                                 if (data.status) {
@@ -1211,7 +1259,7 @@
                                         total_amount: finalAmount,
                                         discount: remiseMontant, // Remise manuelle
                                         code_promo: codePromo,
-                                        client_id: $('#clientSelect').val()
+                                        client_id: clientSelect.val()
                                     },
                                     success: function(data) {
                                         if (data.status) {
@@ -1525,11 +1573,11 @@
         }
 
         function clearCurrentOrder() {
-            $('#newOrderTab .pos-order').remove();
+            $('#newOrderTab .pos-order-product').closest('.pos-order').remove();
             selectedProducts.clear();
             $('#promoCodeInput').val('');
             $('#remiseInput').val('');
-            $('#clientSelect').val('').trigger('change');
+            syncClientSelection('');
             updateTotal();
             updateOrderCount();
         }
@@ -1590,16 +1638,16 @@
             if (!hasItems) return null;
 
             const totalAmount = parseFloat($('.total-amount').text().replace(' FCFA', '')) || 0;
-            const codePromo = $('#promoCodeInput').val().trim();
+            const codePromo = ($('#promoCodeInput').val() || '').trim();
             const remise = parseFloat($('#remiseInput').val()) || 0;
-            const client_id = $('#clientSelect').val();
+            const client_id = clientSelect.val();
 
             return { products, total_amount: totalAmount, code_promo: codePromo, remise: remise, client_id: client_id };
         }
 
         function restoreOrderToCart(order) {
             // Clear current cart
-            $('#newOrderTab .pos-order').remove();
+            $('#newOrderTab .pos-order-product').closest('.pos-order').remove();
             selectedProducts.clear();
 
             if (!order.products || order.products.length === 0) return;
@@ -1636,7 +1684,7 @@
                 $('#remiseInput').val(order.remise);
             }
             if (order.client_id) {
-                $('#clientSelect').val(order.client_id).trigger('change');
+                syncClientSelection(order.client_id);
             }
             updateTotal();
         }
@@ -1691,13 +1739,18 @@
                 return;
             }
 
+            const clientName = clientSelect.val()
+                ? clientSelect.find('option:selected').text().trim()
+                : '';
+            const timeLabel = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
             Swal.fire({
                 title: 'Sauvegarder la commande',
                 input: 'text',
                 inputLabel: 'Donnez un nom à cette commande',
                 inputValue: activePendingOrder
                     ? activePendingOrder.label
-                    : 'Commande ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    : (clientName ? clientName + ' ' + timeLabel : 'Commande ' + timeLabel),
                 showCancelButton: true,
                 confirmButtonText: 'Sauvegarder',
                 cancelButtonText: 'Annuler',
