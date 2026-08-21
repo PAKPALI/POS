@@ -1,16 +1,17 @@
 <?php
 
 namespace App\Models;
+use App\Traits\BelongsToCompany;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     protected $fillable = [
-        'order_id', 'product_id', 'product_name',
+        'company_id', 'order_id', 'product_id', 'product_name',
         'quantity', 'unit_price', 'total_price'
     ];
 

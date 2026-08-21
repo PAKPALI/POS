@@ -9,6 +9,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <h2>{{ $company->name ?? config('app.name') }}</h2>
             <h1>Bonjour {{$name}}</h1>
         </div>
         <div class="content text-center">

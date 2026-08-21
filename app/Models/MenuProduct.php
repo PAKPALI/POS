@@ -1,14 +1,15 @@
 <?php
 
 namespace App\Models;
+use App\Traits\BelongsToCompany;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MenuProduct extends Model
 {
-    use HasFactory;
-    protected $fillable = ['menu_id','product_id','quantity'];
+    use BelongsToCompany, HasFactory;
+    protected $fillable = ['company_id','menu_id','product_id','quantity'];
 
     public function product()
     {

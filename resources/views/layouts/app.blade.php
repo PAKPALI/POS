@@ -76,5 +76,6 @@
             @yield('content')
         </main>
     </div>
+    <script src="{{ asset('hub/assets/js/server-button-loader.js') }}"></script>
 </body>
 </html>

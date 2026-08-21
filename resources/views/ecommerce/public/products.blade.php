@@ -39,7 +39,7 @@
                                     <i class="bi bi-cart-plus"></i> Ajouter
                                 </button>
                             </div>
-                            <a href="{{ url('/shop/product/'.$product->id) }}" class="btn-outline-custom w-100 mt-2 justify-content-center" style="font-size:.78rem;padding:.4rem .8rem;">Detail <i class="bi bi-chevron-right ms-1"></i></a>
+                            <a href="{{ route('storefront.product', [$company, $product->id]) }}" class="btn-outline-custom w-100 mt-2 justify-content-center" style="font-size:.78rem;padding:.4rem .8rem;">Detail <i class="bi bi-chevron-right ms-1"></i></a>
                         </div>
                     </div>
                 </div>

@@ -16,7 +16,7 @@
                 <label class="form-label">Caisse principale</label>
                 <div class="d-flex justify-content-center align-items-center">
                     <div class="form-check form-switch">
-                        <input class="form-check-input"
+                        <input class="form-check-input cash-role-toggle"
                             type="checkbox"
                             name="is_default"
                             value="1"
@@ -33,7 +33,7 @@
                 <label class="form-label">Caisse de taxe</label>
                 <div class="d-flex justify-content-center align-items-center">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="is_tax" value="1"
+                        <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1"
                             {{ isset($cashAccount) && $cashAccount->is_tax ? 'checked' : '' }}>
                     </div>
                 </div>

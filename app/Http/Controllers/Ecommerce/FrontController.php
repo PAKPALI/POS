@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Ecommerce;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\CompanySetting;
+use App\Models\Company;
+use App\Services\CompanyContext;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\EcommerceManager;
@@ -14,9 +15,27 @@ use Illuminate\Support\Facades\Mail;
 
 class FrontController extends Controller
 {
+    public function __construct(private CompanyContext $context) {}
+
     protected function getCompany()
     {
-        return CompanySetting::where('ecommerce_active', true)->first();
+        $routeCompany = request()->route('company');
+        if ($routeCompany instanceof Company) {
+            $company = $routeCompany;
+        } elseif (is_string($routeCompany) && $routeCompany !== '') {
+            $company = Company::where('slug', $routeCompany)->first();
+        } else {
+            $company = Company::where('ecommerce_active', true)->active()->orderBy('id')->first();
+        }
+
+        if ($company && (!$company->ecommerce_active || !$company->isActive())) {
+            $company = null;
+        }
+        if ($company) {
+            $this->context->setPublicCompany($company);
+        }
+
+        return $company;
     }
 
     public function index()
@@ -41,6 +60,7 @@ class FrontController extends Controller
 
     public function category($id)
     {
+        $id = request()->route('id', $id);
         $company = $this->getCompany();
         if (!$company) {
             return view('ecommerce.public.closed');
@@ -61,6 +81,7 @@ class FrontController extends Controller
 
     public function product($id)
     {
+        $id = request()->route('id', $id);
         $company = $this->getCompany();
         if (!$company) {
             return view('ecommerce.public.closed');
@@ -220,6 +241,7 @@ class FrontController extends Controller
             if ($user && $user->email) {
                 try {
                     \Illuminate\Support\Facades\Mail::raw(
+                        "Entreprise : {$company->name}\n".
                         "Nouvelle commande #{$order->code}\n\n".
                         "Client: {$order->customer_name}\n".
                         "Tel: {$order->customer_phone}\n\n".
@@ -228,9 +250,9 @@ class FrontController extends Controller
                             return "- {$i['product_name']} x{$i['quantity']} = ".number_format($i['total_price'], 0, ',', ' ')." FCFA";
                         })->implode("\n").
                         "\n\nTotal: ".number_format($order->total, 0, ',', ' ')." FCFA",
-                        function ($message) use ($user, $order) {
+                        function ($message) use ($user, $order, $company) {
                             $message->to($user->email)
-                                ->subject("Nouvelle commande #{$order->code}");
+                                ->subject("{$company->name} — Nouvelle commande #{$order->code}");
                         }
                     );
                 } catch (\Exception $e) {

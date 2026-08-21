@@ -27,12 +27,14 @@
                         <label class="form-check-label" for="customCheck1">Remember me</label>
                     </div>
                 </div> -->
-                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mb-3 mt-5">
-                    <div id="loader" class="spinner-grow"></div>
-                    <div id="submitText">Se connecter</div>
+                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mb-3 mt-5" data-loading-text="Connexion…">
+                    Se connecter
                 </button>
-                <div class="text-center text-inverse text-opacity-50">
-                    <!-- Don't have an account yet? <a href="page_register.html">Sign up</a>. -->
+                <div class="text-center text-inverse text-opacity-75 mt-4">
+                    Vous n'avez pas encore de compte ?
+                    <a href="{{ route('register') }}" class="text-theme fw-semibold text-decoration-none">
+                        Créer votre compte SaaS
+                    </a>
                 </div>
             </form>
         </div>
@@ -40,13 +42,9 @@
 
     <script>
         $(function() {
-            $('#loader').hide();
-
             //ajax pour se connecter
-            $('#form_login').submit(function(){
+            $('#form_login').submit(function(event){
                 event.preventDefault();
-                $('#submitText').hide();
-                $('#loader').fadeIn();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('login') }}",
@@ -80,8 +78,6 @@
                                 }
                             });
                         } else {
-                            $('#loader').hide();
-                            $('#submitText').show();
                             Swal.fire({
                                 title: data.title,
                                 text:data.msg,
@@ -92,8 +88,6 @@
                         }
                     },
                     error: function (data){
-                        $('#loader').hide();
-                        $('#submitText').show();
                         Swal.fire({
                             icon: "error",
                             title: "Erreur",

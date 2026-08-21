@@ -62,6 +62,13 @@
                                         {{ __('Forgot Your Password?') }}
                                     </a>
                                 @endif
+
+                                @if (Route::has('register'))
+                                    <div class="mt-3">
+                                        Vous n'avez pas encore de compte ?
+                                        <a href="{{ route('register') }}">Créer un compte</a>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </form>

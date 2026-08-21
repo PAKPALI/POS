@@ -14,8 +14,8 @@
             </div>
         @endif
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
-            <a href="{{ url('/shop') }}" class="btn-primary-custom"><i class="bi bi-house"></i> Accueil</a>
-            <a href="{{ url('/shop/products') }}" class="btn-outline-custom"><i class="bi bi-grid"></i> Continuer</a>
+            <a href="{{ route('storefront.home', $company) }}" class="btn-primary-custom"><i class="bi bi-house"></i> Accueil</a>
+            <a href="{{ route('storefront.products', $company) }}" class="btn-outline-custom"><i class="bi bi-grid"></i> Continuer</a>
         </div>
     </div>
 @endsection

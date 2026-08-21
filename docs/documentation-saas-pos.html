@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Migration du POS vers une plateforme SaaS multi-entreprises</title>
+<style>
+@page { margin: 22mm 17mm 20mm; }
+* { box-sizing: border-box; }
+body { font-family: "DejaVu Sans", sans-serif; color:#172033; font-size:10.2pt; line-height:1.48; margin:0; }
+h1,h2,h3 { color:#112d4e; page-break-after:avoid; }
+h1 { font-size:25pt; line-height:1.12; margin:0 0 8mm; }
+h2 { font-size:17pt; margin:10mm 0 4mm; border-bottom:2px solid #2f80ed; padding-bottom:2mm; }
+h3 { font-size:12.5pt; margin:6mm 0 2mm; }
+p { margin:0 0 3mm; }
+ul,ol { margin:2mm 0 4mm 6mm; padding-left:5mm; }
+li { margin-bottom:1.3mm; }
+table { width:100%; border-collapse:collapse; margin:3mm 0 6mm; font-size:8.5pt; page-break-inside:auto; }
+tr { page-break-inside:avoid; }
+th { background:#173f6b; color:white; text-align:left; padding:2.3mm; }
+td { border:1px solid #ccd6e0; padding:2.2mm; vertical-align:top; }
+tr:nth-child(even) td { background:#f5f8fb; }
+code { font-family:"DejaVu Sans Mono", monospace; font-size:8.6pt; color:#8a2454; background:#f4f1f5; padding:.3mm 1mm; }
+.cover { padding:20mm 14mm 25mm; background:#102a43; color:white; page-break-after:always; }
+.cover h1 { color:white; font-size:30pt; margin-top:25mm; }
+.cover .eyebrow { color:#74b9ff; font-size:11pt; text-transform:uppercase; letter-spacing:1.4px; }
+.cover .subtitle { font-size:15pt; color:#d9eaf7; max-width:145mm; }
+.cover .meta { margin-top:25mm; border-left:4px solid #2f80ed; padding-left:5mm; color:#bcd0df; }
+.badge { display:inline-block; background:#2f80ed; color:white; padding:1.2mm 3mm; border-radius:8mm; font-size:8pt; }
+.callout { border-left:4px solid #2f80ed; background:#eef6ff; padding:4mm 5mm; margin:4mm 0 6mm; page-break-inside:avoid; }
+.warning { border-left-color:#e67e22; background:#fff6e9; }
+.critical { border-left-color:#c0392b; background:#fff0ee; }
+.success { border-left-color:#238b57; background:#edf9f2; }
+.small { font-size:8.4pt; color:#536171; }
+.page-break { page-break-before:always; }
+.diagram { text-align:center; font-family:"DejaVu Sans Mono", monospace; font-size:8.5pt; white-space:pre; background:#132238; color:#e9f2fb; padding:5mm 2mm; margin:4mm 0 6mm; border-radius:3px; }
+.toc td { border:none; border-bottom:1px dotted #bdc8d3; background:white !important; padding:1.6mm 0; }
+.check { color:#238b57; font-weight:bold; }
+.no { color:#c0392b; font-weight:bold; }
+.partial { color:#b26a00; font-weight:bold; }
+.progress-track { height:5mm; background:#dce5ee; border-radius:3mm; overflow:hidden; margin:2mm 0; }
+.progress-value { height:100%; background:#238b57; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="eyebrow">Dossier d’architecture et feuille de route</div>
+  <h1>Migration du POS vers une plateforme SaaS multi-entreprises</h1>
+  <p class="subtitle">Conception du tenant, changement de compagnie, isolation des données, permissions par entreprise, prérequis techniques et plan de mise en œuvre.</p>
+  <div class="meta">
+    <p><strong>Périmètre audité :</strong> dépôt POS Laravel situé dans <code>C:\POS</code></p>
+    <p><strong>État observé :</strong> Laravel 10.48.20 · PHP 8.2.24 · application Blade/Vite · MySQL</p>
+    <p><strong>Mise à jour :</strong> 18 août 2026</p>
+    <p><strong>Statut :</strong> architecture et rapport d’avancement — migration fonctionnelle estimée à 74 %, préparation production à 55 %</p>
+  </div>
+</section>
+
+<h2>Sommaire</h2>
+<table class="toc">
+<tr><td>1. Résumé exécutif</td><td>2. Diagnostic du POS actuel</td></tr>
+<tr><td>3. Architecture SaaS cible</td><td>4. Modèle de données multi-entreprises</td></tr>
+<tr><td>5. Connexion et changement de compagnie</td><td>6. Rôles et permissions par compagnie</td></tr>
+<tr><td>7. Isolation et sécurité</td><td>8. Changements par module</td></tr>
+<tr><td>9. Préparation aux abonnements</td><td>10. Mises à niveau préalables</td></tr>
+<tr><td>11. Migration des données</td><td>12. Tests et critères d’acceptation</td></tr>
+<tr><td>13. Exploitation et déploiement</td><td>14. Feuille de route</td></tr>
+<tr><td>15. Risques</td><td>16. Backlog technique</td></tr>
+<tr><td>17. Définition de “prêt SaaS”</td><td>18. Références</td></tr>
+</table>
+
+<h2>1. Résumé exécutif</h2>
+<div class="callout success"><strong>État au 21 août 2026 :</strong> le noyau multi-compagnies, le changement de compagnie, l’inscription propriétaire, les rôles/permissions, le storefront et les principaux jobs de notification tenantés sont implémentés. Le flux d’invitation est complet et les écrans Connexion/Inscription possèdent une navigation réciproque. La vue <code>auth/register</code> reprend l’interface SaaS complète de <code>admin/register</code> et son template POS. Une redirection intelligente conduit désormais chaque utilisateur vers sa première fonctionnalité autorisée après connexion, changement de compagnie ou acceptation d’invitation ; un membre de plusieurs entreprises passe par le sélecteur. La désactivation du cache des pages d’authentification évite aussi l’affichage d’un ancien écran après un retour navigateur. Deux lots de défense par ressource sécurisent désormais Produits, Catégories, Clients et Fournisseurs avec Policies, autorisations explicites et tests IDOR. Les relations Produit→Catégorie/Fournisseur, Vente→Client et Inventaire→Fournisseur sont contrôlées dans la compagnie active. Les bénéfices sont retirés des écrans, DataTables et PDF lorsque le rôle ne possède pas <code>reports.view_margin</code>. La suite automatisée compte <strong>72 tests et 360 assertions réussis</strong>.</div>
+<div class="callout warning"><strong>Prochaine reprise convenue :</strong> commencer par un audit strictement non destructif de l’isolation en base de données : valeurs <code>company_id</code> nulles, relations croisées possibles, clés uniques globales, règles de suppression et index manquants. Présenter le rapport avant tout backfill ou migration vers des contraintes <code>NOT NULL</code>.</div>
+<div class="callout success"><strong>Convention d’attente serveur :</strong> les layouts principaux chargent un composant commun qui affiche un loader dans le bouton déclencheur, désactive les doubles clics et restaure l’état en cas d’erreur. Les nouveaux flux AJAX, Fetch ou SweetAlert doivent respecter la convention décrite dans <code>docs/UI_CONVENTIONS.md</code>.</div>
+
+<h3>1.1 Tableau d’avancement actuel</h3>
+<table>
+<tr><th>Chantier</th><th>Avancement estimé</th><th>État vérifié</th></tr>
+<tr><td>Noyau multi-compagnies</td><td>92 %</td><td>Compagnies, adhésions, contexte, création, sélection, switch et invitations sécurisées opérationnels.</td></tr>
+<tr><td>Isolation des données métier</td><td>80 %</td><td>Scopes et <code>company_id</code> sur les principaux domaines. Policies et tests IDOR terminés pour Produits, Catégories, Clients et Fournisseurs.</td></tr>
+<tr><td>Rôles et permissions</td><td>78 %</td><td>RBAC par compagnie et interface terminés. La permission dédiée Clients est cohérente entre menu, routes et Policy ; autres Policies encore nécessaires.</td></tr>
+<tr><td>POS, stock et caisse</td><td>78 %</td><td>Flux principaux testés, relations Vente→Client et Inventaire→Fournisseur sécurisées. Policies complètes Ventes/Inventaires/Caisses restantes.</td></tr>
+<tr><td>E-commerce tenanté</td><td>70 %</td><td>URL <code>/boutique/{slug}</code>, catalogue, catégories, panier et commande tenantés. Notifications et sécurité avancée à renforcer.</td></tr>
+<tr><td>Industrialisation production</td><td>25 %</td><td>Tests fonctionnels présents ; Redis, stockage privé, MFA, sauvegardes testées, supervision et charge restent à réaliser.</td></tr>
+<tr><td>Abonnements</td><td>0 %</td><td>Reporté volontairement jusqu’à la définition des plans ; créer d’abord <code>EntitlementService</code>.</td></tr>
+</table>
+<p><strong>Estimation globale :</strong> migration fonctionnelle SaaS à environ <strong>74 %</strong> ; aptitude à une mise en production SaaS à environ <strong>55 %</strong>.</p>
+
+<h3>1.2 Fonctions désormais disponibles</h3>
+<ul>
+  <li>Inscription créant le compte propriétaire et sa compagnie minimale dans une transaction.</li>
+  <li>Navigation claire entre les écrans de connexion et d’inscription, dans les deux sens.</li>
+  <li>Compte utilisateur rattachable à plusieurs compagnies avec rôle propre à chaque adhésion.</li>
+  <li>Gestion centralisée dans Paramètres : cartes de compagnies, création, confirmation avant bascule et modification de la compagnie active.</li>
+  <li>Écran de rôles et permissions avec modules français en accordéons et attribution aux utilisateurs.</li>
+  <li>Parcours public d’invitation responsive et contrasté : compte, rôle, expiration, création d’accès et états de sécurité clairement séparés.</li>
+  <li>Isolation des principaux modèles métier et protection des routes par contexte et permission.</li>
+  <li>Policies Produits/Catégories, validation anti-référence croisée et tests IDOR sur le catalogue.</li>
+  <li>Policies Clients/Fournisseurs, permission Clients dédiée et contrôles tenant sur les ventes et entrées de stock.</li>
+  <li>Boutique publique propre à chaque compagnie avec lien copiable et navigation tenantée par slug.</li>
+  <li>Tests automatisés couvrant création/switch, isolation, rôles, ventes, stock, caisse et storefront.</li>
+</ul>
+
+<h3>1.3 Diagnostic initial conservé</h3>
+<p>Le POS actuel est une application essentiellement <strong>mono-entreprise</strong>. La connexion identifie un utilisateur global, mais l’application ne transporte pas systématiquement de contexte d’entreprise. Les produits, catégories, ventes, inventaires, clients, fournisseurs, comptes de caisse et paramètres sont lus sans filtre de compagnie. Plusieurs contrôleurs choisissent même la première entreprise par <code>CompanySetting::first()</code>.</p>
+<div class="callout critical"><strong>Conclusion :</strong> ajouter uniquement une liste “Changer d’entreprise” créerait un risque majeur de fuite ou de modification croisée des données. Le passage SaaS exige d’abord un tenant explicite, des clés <code>company_id</code>, une portée de requête obligatoire et une autorisation calculée dans le contexte de la compagnie active.</div>
+<p>L’architecture recommandée est une <strong>base partagée avec schéma partagé</strong> : chaque ligne métier porte <code>company_id</code>. Ce choix convient à l’état actuel du produit, facilite les rapports et réduit le coût opérationnel. La séparation physique par base pourra être envisagée plus tard pour de grands comptes, sans être nécessaire au premier lancement.</p>
+<p>L’utilisateur reste global et peut appartenir à plusieurs compagnies grâce à une table d’adhésion. Son rôle, son statut et ses permissions sont rattachés à cette adhésion, pas directement au compte utilisateur. Une session contient l’identifiant de la compagnie active, validé à chaque requête.</p>
+
+<h3>Décisions structurantes</h3>
+<table>
+<tr><th>Sujet</th><th>Décision recommandée</th><th>Pourquoi</th></tr>
+<tr><td>Tenant</td><td><code>companies</code> + <code>company_user</code></td><td>Relation plusieurs-à-plusieurs utilisateur/compagnie.</td></tr>
+<tr><td>Isolation</td><td><code>company_id</code> obligatoire sur toutes les données métier</td><td>Filtrage, indexation et contraintes vérifiables.</td></tr>
+<tr><td>Contexte actif</td><td>Session serveur + middleware <code>ResolveCompany</code></td><td>Compatible avec l’application Blade actuelle.</td></tr>
+<tr><td>Autorisation</td><td>RBAC par adhésion + Policies Laravel</td><td>Permissions différentes pour un même utilisateur selon la compagnie.</td></tr>
+<tr><td>Abonnement</td><td>Tables et service d’entitlements préparés, paiement différé</td><td>Évite de coupler la migration tenant à un tarif encore inconnu.</td></tr>
+<tr><td>Socle</td><td>Laravel 13 + PHP 8.4/8.5, après tests de compatibilité</td><td>Laravel 10 et PHP 8.2 ne constituent plus un horizon sûr.</td></tr>
+</table>
+
+<h2>2. Diagnostic du POS actuel</h2>
+<h3>2.1 Éléments favorables</h3>
+<ul>
+  <li>Application Laravel structurée avec modèles Eloquent, contrôleurs, migrations, middleware et jobs.</li>
+  <li>Authentification par session déjà présente et Sanctum installé pour de futurs clients API.</li>
+  <li>Une entité <code>company_settings</code> existe déjà et une relation multi-entreprises partielle existe pour les gestionnaires e-commerce (<code>ecommerce_managers</code>).</li>
+  <li>Les traitements longs disposent déjà de jobs et la queue est configurée sur la base de données.</li>
+  <li>Le rendu PDF existe via <code>barryvdh/laravel-dompdf</code>.</li>
+</ul>
+
+<h3>2.2 Écarts bloquants</h3>
+<table>
+<tr><th>Constat vérifié dans le dépôt</th><th>Impact SaaS</th><th>Priorité</th></tr>
+<tr><td><code>CompanySetting::first()</code> dans ventes, inventaire, SMS, e-commerce, jobs et tableaux de bord</td><td>La compagnie affichée ou notifiée peut être la mauvaise.</td><td>P0</td></tr>
+<tr><td>Tables métier sans <code>company_id</code> : produits, catégories, ventes, détails, clients, fournisseurs, inventaires, caisses, transactions, promotions, actions…</td><td>Aucune frontière de données fiable.</td><td>P0</td></tr>
+<tr><td>Routes protégées seulement par <code>auth</code></td><td>Un utilisateur authentifié peut atteindre une fonctionnalité non autorisée.</td><td>P0</td></tr>
+<tr><td><code>user_type</code> global (1/2/3) et <code>status</code> global</td><td>Impossible d’être administrateur dans A et caissier dans B.</td><td>P0</td></tr>
+<tr><td>Requêtes <code>findOrFail($id)</code> sans tenant</td><td>Risque IDOR : accès à une ligne d’une autre entreprise via son ID.</td><td>P0</td></tr>
+<tr><td>Codes uniques globaux (ex. code caisse) et numéros de vente non composés</td><td>Collisions entre compagnies et contraintes trop larges.</td><td>P1</td></tr>
+<tr><td>Fichiers de session et cache locaux</td><td>Ne fonctionne pas correctement avec plusieurs instances web.</td><td>P1</td></tr>
+<tr><td>Très peu de tests métier (tests d’exemple)</td><td>Migration risquée, régressions et fuites difficiles à détecter.</td><td>P0</td></tr>
+<tr><td>Laravel 10.48.20 et PHP 8.2.24</td><td>Framework hors support sécurité ; PHP 8.2 en fin de support sécurité le 31/12/2026.</td><td>P0</td></tr>
+</table>
+
+<h3>2.3 Dette à corriger pendant la migration</h3>
+<ul>
+  <li>Ne plus utiliser <code>created_by</code> comme substitut de propriétaire d’entreprise : le créateur est un audit, pas une frontière tenant.</li>
+  <li>Remplacer les identifiants faibles et champs métier ambigus : <code>adress</code>, prix parfois entiers, statuts en chaînes, caisse identifiée par un code global.</li>
+  <li>Corriger les migrations non idempotentes ou suspectes (par exemple le <code>down()</code> de l’ajout <code>price_ttc</code> semble recréer la colonne).</li>
+  <li>Retirer les fichiers de diagnostic/miroirs web du document root s’ils ne servent pas en production (<code>php_error.log</code>, pages HTML capturées, contenu <code>public/hub</code> inutile).</li>
+</ul>
+
+<h2>3. Architecture SaaS cible</h2>
+<div class="diagram">Navigateur / PWA
+        |
+ Authentification globale (User)
+        |
+ ResolveCompany -- vérifie company_user actif
+        |
+ CompanyContext (company_id immuable pour la requête)
+        |
+ EnsurePermission -- rôle + permissions de l’adhésion active
+        |
+ Contrôleurs / Services / Jobs
+        |
+ Modèles tenantés -- company_id + scopes + Policies
+        |
+ MySQL partagé | Redis (session/cache/queue) | Stockage objet</div>
+
+<h3>3.1 Composants applicatifs à créer</h3>
+<ul>
+  <li><code>CompanyContext</code> : objet request-scoped qui expose la compagnie active ; aucune lecture directe de la session dans les services métier.</li>
+  <li><code>ResolveCompany</code> : middleware qui charge la compagnie depuis la session, vérifie l’adhésion active et la place dans le contexte.</li>
+  <li><code>EnsureCompanySelected</code> : redirige vers le sélecteur si l’utilisateur a plusieurs compagnies ou n’a pas encore de contexte.</li>
+  <li><code>EnsurePermission:{permission}</code> et Policies : contrôle de fonctionnalité et contrôle de ressource.</li>
+  <li><code>BelongsToCompany</code> : trait de modèle pour remplir <code>company_id</code> à la création et appliquer une portée tenant. Prévoir une API explicite pour les tâches super-admin.</li>
+  <li><code>SwitchCompanyController</code> : changement de contexte uniquement vers une adhésion autorisée, régénération de session, purge des caches contextuels et journalisation.</li>
+  <li><code>EntitlementService</code> : interface préparatoire qui répond “cette compagnie a-t-elle accès à cette capacité ?”. Au départ, elle peut retourner les capacités par défaut.</li>
+</ul>
+
+<h3>3.2 Règle de sécurité fondamentale</h3>
+<div class="callout"><strong>Toute requête métier doit satisfaire simultanément :</strong> utilisateur authentifié + adhésion active à la compagnie courante + permission requise + ressource portant le même <code>company_id</code>. Le sélecteur visuel ne constitue jamais une protection.</div>
+
+<h2>4. Modèle de données multi-entreprises</h2>
+<h3>4.1 Noyau identité/tenant</h3>
+<table>
+<tr><th>Table</th><th>Champs essentiels</th><th>Contraintes</th></tr>
+<tr><td><code>companies</code> (renommage conseillé de <code>company_settings</code>)</td><td>id, uuid/public_id, name, slug, status, timezone, currency, locale, coordonnées, logo_path, timestamps</td><td>slug unique ; status indexé ; aucune donnée d’abonnement obligatoire au départ.</td></tr>
+<tr><td><code>company_user</code></td><td>id, company_id, user_id, role_id, status, invited_by, joined_at, last_accessed_at</td><td>unique(company_id,user_id) ; FK en cascade contrôlée.</td></tr>
+<tr><td><code>roles</code></td><td>id, company_id nullable, name, key, is_system</td><td>unique(company_id,key). Rôles système réutilisables ou clonés à l’onboarding.</td></tr>
+<tr><td><code>permissions</code></td><td>id, key, module, description</td><td>key globalement unique et stable dans le code.</td></tr>
+<tr><td><code>permission_role</code></td><td>role_id, permission_id</td><td>clé unique composée.</td></tr>
+<tr><td><code>company_invitations</code></td><td>company_id, email, role_id, invited_by, token_hash, expires_at, last_sent_at, accepted_at, declined_at, revoked_at</td><td>Jeton seulement sous forme hachée ; cycle de vie complet.</td></tr>
+</table>
+
+<p>Alternative si des exceptions individuelles sont nécessaires : ajouter <code>company_user_permission</code> avec un champ <code>effect = allow|deny</code>. Ne l’ajouter qu’après besoin confirmé, car cela complexifie l’explication des droits.</p>
+
+<h3>4.2 Tables à tenanter</h3>
+<table>
+<tr><th>Domaine</th><th>Tables actuelles</th><th>Action</th></tr>
+<tr><td>Catalogue</td><td>categories, products, menu_products, suppliers</td><td>Ajouter <code>company_id</code>. Vérifier que produits référencés dans les menus appartiennent à la même compagnie.</td></tr>
+<tr><td>Vente</td><td>sales, sale_details, clients, code_promos</td><td>Ajouter <code>company_id</code> au parent et aux référentiels ; garder aussi sur les détails si utile à l’audit/performance.</td></tr>
+<tr><td>Stock</td><td>inventories</td><td>Ajouter <code>company_id</code>, contraintes et index (company_id, product_id, created_at).</td></tr>
+<tr><td>Finance AMS</td><td>cash_accounts, transactions, settings</td><td>Ajouter <code>company_id</code> et rendre les codes/valeurs par défaut uniques par compagnie.</td></tr>
+<tr><td>E-commerce</td><td>orders, order_items, ecommerce_managers</td><td><code>orders</code> est déjà lié à la compagnie ; généraliser et remplacer progressivement <code>ecommerce_managers</code> par adhésions/permissions.</td></tr>
+<tr><td>Audit et quotas</td><td>actions, SMS/WhatsApp counts</td><td>Ajouter <code>company_id</code>, actor_id, event, subject type/id, metadata JSON ; séparer les compteurs d’usage des paramètres.</td></tr>
+</table>
+
+<h3>4.3 Index et contraintes indispensables</h3>
+<ul>
+  <li>Indexer toutes les colonnes <code>company_id</code> et les chemins usuels : <code>(company_id,status)</code>, <code>(company_id,created_at)</code>.</li>
+  <li>Transformer les uniques globaux en uniques composés : <code>unique(company_id, code)</code>, <code>unique(company_id, slug)</code>, etc.</li>
+  <li>Utiliser des clés étrangères composites lorsque possible, ou valider côté service que parent et enfant partagent le tenant.</li>
+  <li>Conserver les utilisateurs globaux avec email unique. L’adhésion porte le rôle et l’état dans la compagnie.</li>
+  <li>Ajouter un <code>public_id</code> UUID/ULID pour les URL publiques ; cela ne remplace pas l’autorisation.</li>
+</ul>
+
+<h2>5. Connexion et changement de compagnie</h2>
+<h3>5.1 Parcours attendu</h3>
+<ol>
+  <li>L’utilisateur se connecte une seule fois avec son compte global.</li>
+  <li>Le serveur récupère ses adhésions <code>company_user</code> actives.</li>
+  <li>Zéro compagnie : écran “aucun accès” / accepter une invitation / créer une compagnie selon la politique commerciale.</li>
+  <li>Une compagnie : sélection automatique et enregistrement de <code>active_company_id</code> en session.</li>
+  <li>Plusieurs compagnies : affichage du sélecteur, avec dernière compagnie utilisée proposée.</li>
+  <li>Chaque requête suivante repasse par <code>ResolveCompany</code>. Si l’adhésion est révoquée, la session active est supprimée immédiatement.</li>
+</ol>
+
+<h3>5.2 Endpoint de switch</h3>
+<p><code>POST /companies/{company}/switch</code>, protégé par <code>auth</code>, CSRF et limitation de débit. Le contrôleur ne doit jamais accepter une compagnie sur la seule base de son ID : il recherche <code>$user-&gt;companies()-&gt;active()-&gt;findOrFail($id)</code>, met à jour la session, régénère son identifiant, journalise l’événement et redirige vers le tableau de bord.</p>
+<div class="callout warning"><strong>Concurrence multi-onglets :</strong> une session partagée signifie qu’un changement dans un onglet affecte les autres. Afficher clairement la compagnie dans l’en-tête, et inclure le tenant attendu dans les formulaires sensibles. Si l’entreprise de la session a changé avant soumission, refuser avec un message demandant de recharger.</div>
+
+<h3>5.3 Interface</h3>
+<ul>
+  <li>Sélecteur permanent dans la barre de navigation : logo, nom, rôle courant.</li>
+  <li>Après switch, recharger toutes les données ; ne conserver aucun panier, filtre, cache ou brouillon provenant de l’entreprise précédente sans validation.</li>
+  <li>Masquer les menus non autorisés pour l’ergonomie, mais protéger aussi toutes les routes et actions serveur.</li>
+  <li>Afficher une bannière distincte pour le super-admin en mode support/impersonation, avec durée limitée et journalisation.</li>
+</ul>
+
+<h2>6. Rôles et permissions par compagnie</h2>
+<h3>6.1 Modèle recommandé</h3>
+<p>Le rôle n’appartient plus à <code>users.user_type</code>. Il appartient à <code>company_user.role_id</code>. Ainsi, Alice peut être <em>Propriétaire</em> dans Compagnie A, <em>Gestionnaire</em> dans B et <em>Caissière</em> dans C.</p>
+
+<table>
+<tr><th>Rôle initial</th><th>Exemples de droits</th></tr>
+<tr><td>Propriétaire</td><td>Tous les droits, gestion des membres, sécurité, future facturation ; transfert de propriété protégé.</td></tr>
+<tr><td>Administrateur</td><td>Configuration opérationnelle, utilisateurs, catalogue, stock, ventes, rapports ; pas forcément facturation.</td></tr>
+<tr><td>Gestionnaire</td><td>Catalogue, stock, achats, rapports selon besoin.</td></tr>
+<tr><td>Caissier</td><td>Créer une vente, consulter ses opérations, imprimer un reçu ; remises/annulations limitées.</td></tr>
+<tr><td>Comptable / Lecture</td><td>Consultation/export finance et ventes, sans mutation.</td></tr>
+</table>
+
+<h3>6.2 Catalogue de permissions</h3>
+<p>Adopter des clés explicites et stables, par exemple : <code>dashboard.view</code>, <code>products.view</code>, <code>products.create</code>, <code>products.update</code>, <code>products.delete</code>, <code>inventory.adjust</code>, <code>sales.create</code>, <code>sales.refund</code>, <code>sales.export</code>, <code>cash.manage</code>, <code>reports.view_margin</code>, <code>members.manage</code>, <code>company.update</code>, <code>ecommerce.manage</code>.</p>
+<p>Les Policies doivent vérifier le tenant de la ressource en plus de la permission. Pour une vente : <code>membership.company_id === sale.company_id</code> puis <code>sales.view</code>.</p>
+
+<h3>6.3 Ordre d’évaluation</h3>
+<ol>
+  <li>Compte utilisateur actif.</li>
+  <li>Compagnie active et non suspendue.</li>
+  <li>Adhésion active.</li>
+  <li>Capacité autorisée par le futur plan d’abonnement.</li>
+  <li>Permission fonctionnelle accordée par le rôle.</li>
+  <li>Ressource appartenant à la compagnie active et règles métier satisfaites.</li>
+</ol>
+
+<h2>7. Isolation et sécurité</h2>
+<h3>7.1 Défense en profondeur</h3>
+<ul>
+  <li><strong>Écriture :</strong> ne jamais accepter <code>company_id</code> depuis un formulaire. Le remplir depuis <code>CompanyContext</code>.</li>
+  <li><strong>Lecture :</strong> portée tenant obligatoire ; utiliser le route model binding tenanté.</li>
+  <li><strong>Relations :</strong> ne sélectionner les IDs associés que dans la compagnie active (produit, client, fournisseur, caisse, promotion).</li>
+  <li><strong>Jobs :</strong> sérialiser explicitement <code>company_id</code>, restaurer le contexte au début du job, vérifier la ressource, puis nettoyer le contexte.</li>
+  <li><strong>Cache :</strong> préfixer toutes les clés par <code>company:{id}:</code>. Même règle pour verrous, exports et statistiques.</li>
+  <li><strong>Fichiers :</strong> chemins <code>companies/{company_uuid}/...</code>, URL signées et contrôle d’accès avant téléchargement.</li>
+  <li><strong>Logs :</strong> inclure company_id, user_id, request_id ; ne jamais enregistrer mots de passe, jetons ou données de carte.</li>
+</ul>
+
+<h3>7.2 Menaces à tester</h3>
+<table>
+<tr><th>Scénario</th><th>Résultat attendu</th></tr>
+<tr><td>Modifier l’ID d’un produit dans l’URL vers celui d’une autre compagnie</td><td>404 ou 403, aucune information révélée.</td></tr>
+<tr><td>Soumettre une vente avec un produit d’une autre compagnie</td><td>Validation refusée et transaction annulée.</td></tr>
+<tr><td>Réutiliser un export après révocation de l’adhésion</td><td>Lien expiré/refusé ; fichier non public.</td></tr>
+<tr><td>Switch pendant qu’un panier est ouvert</td><td>Panier vidé ou invalidé ; aucun stock de l’ancien tenant modifié.</td></tr>
+<tr><td>Employé sans <code>reports.view_margin</code></td><td>Marge absente des pages, API, exports PDF et notifications.</td></tr>
+</table>
+
+<h3>7.3 Authentification à renforcer</h3>
+<ul>
+  <li>Utiliser le mécanisme Laravel standard avec throttling ; éviter le flux manuel actuel basé sur <code>User::where</code> et <code>Hash::check</code>.</li>
+  <li>Vérification email, réinitialisation fiable du mot de passe, confirmation du mot de passe pour actions sensibles.</li>
+  <li>MFA obligatoire pour propriétaires/super-admins, recommandé pour administrateurs.</li>
+  <li>Cookies <code>Secure</code>, <code>HttpOnly</code>, SameSite approprié ; rotation de session à la connexion et au switch.</li>
+  <li>Journaliser connexion, échec, invitation, changement de rôle, switch, export, remboursement et modification de caisse.</li>
+</ul>
+
+<h2>8. Changements par module</h2>
+<table>
+<tr><th>Module</th><th>Changements nécessaires</th></tr>
+<tr><td>Dashboard</td><td>Statistiques filtrées par compagnie ; caches tenantés ; permissions séparées pour CA, profit et marge.</td></tr>
+<tr><td>Utilisateurs</td><td>Le CRUD gère des membres/adhésions de la compagnie, pas les comptes globaux. Invitation plutôt que création arbitraire d’un mot de passe.</td></tr>
+<tr><td>Catalogue / menus</td><td><span class="check">Réalisé pour Produits/Catégories/Fournisseurs :</span> Policies, autorisations explicites, relations limitées à la compagnie active et filtres d’export sécurisés. Étendre ce niveau aux menus.</td></tr>
+<tr><td>Inventaire</td><td>Transactions atomiques et verrouillage des produits ; historique tenanté ; permission distincte pour ajout/retrait.</td></tr>
+<tr><td>POS / ventes</td><td>Numéro de vente unique par compagnie ; vendeur par <code>user_id</code> en plus du libellé figé ; tous les calculs et caisses dans une transaction DB.</td></tr>
+<tr><td>Clients</td><td><span class="check">Réalisé :</span> ClientPolicy, permission <code>clients.manage</code> cohérente dans menu/routes/Policy, IDOR testés et ventes limitées aux clients actifs de la compagnie.</td></tr>
+<tr><td>Promotions</td><td>Code unique par compagnie ; vérification de dates, limites et tenant.</td></tr>
+<tr><td>AMS / caisse</td><td>Comptes, réglages et transactions tenantés ; écritures immuables ou compensées, journal d’audit.</td></tr>
+<tr><td>E-commerce</td><td><span class="check">Réalisé :</span> storefront par slug, commandes et catalogue résolus depuis le tenant public. À poursuivre : notifications tenantées, domaines personnalisés et tests de sécurité complets.</td></tr>
+<tr><td>SMS / WhatsApp / e-mail</td><td>Quotas et consommation par compagnie ; jobs transportant company_id ; destinataires autorisés dans l’adhésion.</td></tr>
+<tr><td>PDF / exports</td><td>Logo, devise, données et nom de fichier issus de la compagnie active ; génération asynchrone et stockage privé.</td></tr>
+<tr><td>PWA</td><td>Clés IndexedDB/cache incluant company_id ; purge au switch ; stratégie hors-ligne tenant-aware.</td></tr>
+</table>
+
+<h2>9. Préparation aux abonnements (tarifs définis plus tard)</h2>
+<p>Ne pas coder maintenant des prix ni un fournisseur de paiement. Créer une frontière fonctionnelle afin que le tenant et les permissions ne dépendent pas de Stripe ou d’un plan encore inconnu.</p>
+<table>
+<tr><th>Objet préparatoire</th><th>Rôle</th><th>À faire maintenant ?</th></tr>
+<tr><td><code>plans</code></td><td>code, nom, statut, métadonnées ; aucun prix obligatoire.</td><td>Schéma minimal facultatif.</td></tr>
+<tr><td><code>features</code></td><td>Clés de capacité : ecommerce, multi_location, exports, SMS, nombre d’utilisateurs…</td><td>Oui, au moins le catalogue de clés.</td></tr>
+<tr><td><code>plan_features</code></td><td>Valeur booléenne ou limite quantitative.</td><td>Peut attendre les offres.</td></tr>
+<tr><td><code>subscriptions</code></td><td>company_id, plan_id, status, trial_ends_at, provider refs.</td><td>Migration nullable possible ; logique plus tard.</td></tr>
+<tr><td><code>usage_counters</code></td><td>Période, compagnie, métrique, valeur.</td><td>Oui pour SMS/WhatsApp et futures limites.</td></tr>
+<tr><td><code>EntitlementService</code></td><td>API unique <code>allows()</code>/<code>limit()</code>.</td><td>Oui ; implémentation “capacités par défaut”.</td></tr>
+</table>
+<div class="callout"><strong>Ne pas confondre :</strong> le plan dit ce que la compagnie a acheté ; la permission dit ce qu’un membre peut faire. Une fonctionnalité est accessible seulement si les deux l’autorisent.</div>
+
+<h2>10. Mises à niveau préalables</h2>
+<h3>10.1 Versions recommandées au 12 août 2026</h3>
+<table>
+<tr><th>Élément</th><th>Actuel audité</th><th>Cible</th><th>Approche</th></tr>
+<tr><td>Laravel</td><td>10.48.20, support sécurité terminé le 04/02/2025</td><td>Laravel 13 si toutes les dépendances le supportent</td><td>Faire 10→11→12→13 par branches/commits séparés, en suivant chaque guide d’upgrade. Laravel 12 peut servir de palier, pas de cible longue durée.</td></tr>
+<tr><td>PHP</td><td>8.2.24 ; sécurité jusqu’au 31/12/2026</td><td>PHP 8.4 ou 8.5</td><td>Choisir la version supportée par l’hébergeur et les extensions ; tester Dompdf, DataTables et barcode.</td></tr>
+<tr><td>Sanctum</td><td>3.3.3</td><td>Version compatible avec Laravel cible</td><td>Utile pour API/PWA ; invalider ou tenanter les abilities si elles portent un contexte.</td></tr>
+<tr><td>Frontend</td><td>Vite 5, Bootstrap 5.2, Axios 1.6, Sass 1.56</td><td>Versions majeures maintenues compatibles</td><td>Lancer audit NPM et tests UI ; ne pas mélanger l’upgrade frontend au cœur tenant si évitable.</td></tr>
+<tr><td>Dépendances Composer</td><td>Contraintes parfois trop larges (<code>yajra/*</code>)</td><td>Contraintes majeures explicites</td><td>Supprimer <code>*</code>, exécuter audit de sécurité et tests de compatibilité.</td></tr>
+</table>
+
+<h3>10.2 Ordre recommandé</h3>
+<ol>
+  <li>Créer une suite de tests de caractérisation sur les flux actuels.</li>
+  <li>Sauvegarder et tester la restauration de la base.</li>
+  <li>Mettre à jour PHP/framework et dépendances sans changement fonctionnel tenant.</li>
+  <li>Corriger dépréciations, migrations et erreurs d’encodage visibles.</li>
+  <li>Stabiliser CI/CD, analyse statique, formatage et audit de dépendances.</li>
+  <li>Commencer ensuite la migration multi-entreprises.</li>
+</ol>
+
+<h3>10.3 Contrôles avant toute ouverture Internet</h3>
+<ul>
+  <li><code>APP_ENV=production</code>, <code>APP_DEBUG=false</code>, secrets hors Git, rotation de toute clé déjà exposée.</li>
+  <li>HTTPS forcé, en-têtes de sécurité, CORS limité, protection CSRF, limitation de débit.</li>
+  <li>Base gérée, chiffrement au repos/en transit, sauvegardes automatiques et restauration testée.</li>
+  <li>Redis ou service partagé pour sessions/cache/queue en environnement multi-instance.</li>
+  <li>Stockage objet privé pour logos, exports et pièces jointes ; ne pas dépendre du disque éphémère du conteneur.</li>
+</ul>
+
+<h2>11. Stratégie de migration des données</h2>
+<div class="callout success"><strong>Stratégie “expand → backfill → enforce → contract” :</strong> ajouter d’abord des colonnes nullables, remplir les données, faire lire/écrire le nouveau modèle, imposer les contraintes, puis retirer l’ancien comportement. Cela réduit l’arrêt de service et permet le retour arrière applicatif.</div>
+
+<ol>
+  <li><strong>Inventaire et sauvegarde :</strong> compter les lignes, détecter orphelins/doublons, produire un dump et restaurer dans un environnement de répétition.</li>
+  <li><strong>Créer le tenant initial :</strong> convertir la ligne actuelle de <code>company_settings</code> en première compagnie.</li>
+  <li><strong>Créer les adhésions :</strong> associer les utilisateurs existants à cette compagnie et mapper <code>user_type</code> vers les rôles initiaux.</li>
+  <li><strong>Ajouter <code>company_id</code> nullable :</strong> sur chaque table métier, avec index temporaire.</li>
+  <li><strong>Backfill :</strong> affecter toutes les données existantes au tenant initial ; propager par relations (sale_details depuis sales, order_items depuis orders).</li>
+  <li><strong>Double protection applicative :</strong> middleware, contexte, scopes, policies et validation des relations.</li>
+  <li><strong>Vérification :</strong> zéro ligne sans tenant, zéro relation croisée, totaux financiers et stock identiques avant/après.</li>
+  <li><strong>Contraintes :</strong> rendre <code>company_id</code> non nullable, ajouter FK et uniques composés.</li>
+  <li><strong>Nettoyage :</strong> supprimer progressivement <code>CompanySetting::first()</code>, <code>user_type</code> métier et l’ancien pivot e-commerce redondant.</li>
+</ol>
+
+<h3>11.1 Retour arrière</h3>
+<p>Avant l’étape des contraintes, conserver une version applicative compatible et une sauvegarde cohérente. Après mise en production, préférer un correctif en avant. Un rollback de schéma destructif ne doit jamais être automatique. Définir une fenêtre de gel des écritures pour le backfill final si le volume ne permet pas une migration en ligne sûre.</p>
+
+<h2>12. Tests et critères d’acceptation</h2>
+<h3>12.1 Matrice minimale automatisée</h3>
+<table>
+<tr><th>Niveau</th><th>Tests exigés</th></tr>
+<tr><td>Unitaires</td><td>CompanyContext, calcul des permissions, EntitlementService, génération des numéros par tenant.</td></tr>
+<tr><td>Feature</td><td>Login à 0/1/N compagnies, switch autorisé/interdit, révocation d’adhésion, middleware sans contexte.</td></tr>
+<tr><td>Isolation</td><td>Pour chaque ressource : index/show/create/update/delete/export refusent le tenant B depuis A.</td></tr>
+<tr><td>Permissions</td><td>Chaque route et bouton critique testé avec allow/deny et rôles différents selon deux compagnies.</td></tr>
+<tr><td>Transactions</td><td>Vente, stock et caisse rollbackent ensemble en cas d’erreur ; tests concurrents sur quantité.</td></tr>
+<tr><td>Jobs</td><td>Le job restaure le bon tenant ; email/PDF/logo/destinataire appartiennent à cette compagnie.</td></tr>
+<tr><td>E2E</td><td>Connexion → A → vente → switch B → données distinctes → retour A ; multi-onglets et panier.</td></tr>
+</table>
+
+<h3>12.2 Critères de recette obligatoires</h3>
+<ul>
+  <li><span class="check">✓</span> Un utilisateur peut avoir des rôles différents dans au moins deux compagnies.</li>
+  <li><span class="check">✓</span> Après switch, toutes les pages, recherches, exports, jobs et notifications reflètent la compagnie choisie.</li>
+  <li><span class="check">✓</span> Aucun ID d’une autre compagnie ne peut être lu ou modifié, même envoyé manuellement.</li>
+  <li><span class="check">✓</span> La révocation d’une adhésion prend effet à la requête suivante.</li>
+  <li><span class="check">✓</span> Les totaux vente/stock/caisse de la compagnie historique sont inchangés après migration.</li>
+  <li><span class="check">✓</span> Deux compagnies peuvent utiliser le même code métier quand la règle le permet.</li>
+  <li><span class="check">✓</span> Les tests d’isolation sont obligatoires dans la CI avant déploiement.</li>
+</ul>
+
+<h2>13. Exploitation, performance et déploiement</h2>
+<h3>13.1 Production SaaS</h3>
+<ul>
+  <li>Instances web stateless derrière un load balancer ; sessions et cache partagés.</li>
+  <li>Workers de queue séparés, avec redémarrage contrôlé lors des déploiements et métriques de jobs échoués.</li>
+  <li>Migrations compatibles avec déploiement progressif ; pas de renommage/suppression dans le même déploiement que le nouveau code.</li>
+  <li>Health checks distincts : application, base, cache, queue et stockage.</li>
+  <li>Observabilité : taux d’erreur, latence p95/p99, requêtes lentes, saturation DB, jobs en attente, échecs par compagnie.</li>
+</ul>
+
+<h3>13.2 Sauvegarde et continuité</h3>
+<p>Définir RPO/RTO avant lancement. Recommandation initiale : sauvegardes quotidiennes complètes + journaux/point-in-time recovery si offerts, réplication hors zone, exercice de restauration trimestriel. Prévoir un export logique par compagnie pour portabilité et support, sans promettre une restauration unitaire tant qu’elle n’est pas automatisée et testée.</p>
+
+<h3>13.3 Protection des données</h3>
+<p>Documenter les données personnelles, durées de conservation, suppression/anonymisation, accès support et localisation. Les obligations juridiques dépendent des pays servis : une validation juridique locale sera nécessaire avant commercialisation. Ne pas stocker de données de carte bancaire ; déléguer le paiement futur à un prestataire certifié.</p>
+
+<h2>14. Feuille de route recommandée</h2>
+<table>
+<tr><th>Phase</th><th>Livrables</th><th>Sortie attendue</th></tr>
+<tr><td>0 — Stabilisation</td><td>Tests de caractérisation, sauvegarde/restauration, CI, audit secrets/dépendances, correction migrations.</td><td>Base reproductible et mesurable.</td></tr>
+<tr><td>1 — Modernisation</td><td>PHP 8.4/8.5, Laravel 11→12→13, packages compatibles, tests verts.</td><td>Socle maintenu avant modification structurelle.</td></tr>
+<tr><td>2 — Noyau tenant</td><td>companies, company_user, CompanyContext, middlewares, switch UI, invitations.</td><td>Utilisateur multi-compagnies sans encore exposer toutes les fonctions.</td></tr>
+<tr><td>3 — Données tenantées</td><td>company_id, backfill, scopes, bindings, contraintes et index, suppression des <code>first()</code>.</td><td>Isolation complète vérifiée.</td></tr>
+<tr><td>4 — Autorisation</td><td>Rôles, permissions, Policies, protection routes/menus/exports/jobs.</td><td>Droits propres à chaque compagnie.</td></tr>
+<tr><td>5 — Industrialisation</td><td>Redis, stockage objet, monitoring, backups, rate limits, MFA, audit.</td><td>Exploitation multi-instance sécurisée.</td></tr>
+<tr><td>6 — Pilote</td><td>Deux compagnies de test, pentest ciblé tenant, charge, runbooks support.</td><td>Go/no-go SaaS.</td></tr>
+<tr><td>7 — Monétisation ultérieure</td><td>Plans, prix, essais, factures, webhook provider, dunning, portail client.</td><td>À démarrer lorsque l’offre commerciale est définie.</td></tr>
+</table>
+<div class="callout"><strong>Position actuelle dans la feuille de route :</strong> la phase 2 est largement opérationnelle, les phases 3 et 4 sont avancées mais incomplètes, et la phase 5 doit encore être menée avant un pilote. La modernisation du framework reste à isoler sur une branche dédiée.</div>
+<p class="small">Les durées ne sont volontairement pas figées sans connaître l’équipe, le volume de données, les intégrations et le niveau de couverture attendu. Estimer chaque phase après inventaire détaillé et découpage en tickets.</p>
+
+<h2>15. Principaux risques et traitements</h2>
+<table>
+<tr><th>Risque</th><th>Probabilité / impact</th><th>Traitement</th></tr>
+<tr><td>Fuite inter-tenant par une requête oubliée</td><td>Élevé / critique</td><td>Scope + Policy + tests systématiques + revue de code dédiée.</td></tr>
+<tr><td>Backfill incorrect</td><td>Moyen / critique</td><td>Répétition sur copie, checksums/totaux, sauvegarde et rapport d’anomalies.</td></tr>
+<tr><td>Upgrade framework et tenant simultanés</td><td>Élevé / élevé</td><td>Phases et commits séparés ; tests à chaque major.</td></tr>
+<tr><td>Référence croisée entre tenants</td><td>Moyen / critique</td><td>Validation des IDs, relations tenantées, contraintes DB quand possibles.</td></tr>
+<tr><td>Session active après révocation</td><td>Moyen / élevé</td><td>Revérifier l’adhésion à chaque requête ; cache d’autorisation très court et invalidable.</td></tr>
+<tr><td>Épuisement de ressources par un tenant</td><td>Moyen / élevé</td><td>Rate limits, quotas, queues, index, limites d’exports et métriques par compagnie.</td></tr>
+<tr><td>Échec du switch multi-onglets</td><td>Élevé / moyen</td><td>Tenant visible, token de contexte sur mutations sensibles, invalidation des brouillons.</td></tr>
+</table>
+
+<h2>16. Backlog technique priorisé</h2>
+<h3>P0 — avant tout pilote SaaS</h3>
+<ul>
+  <li><span class="check">✓</span> Créer compagnies, adhésions, contexte et switch sécurisé.</li>
+  <li><span class="check">✓</span> Mettre en place le RBAC par compagnie et son interface.</li>
+  <li><span class="partial">Partiel :</span> ajouter et remplir <code>company_id</code> sur tout le domaine métier, puis rendre les colonnes obligatoires.</li>
+  <li>Éliminer les lectures <code>first()</code> et tous les <code>find*</code> non tenantés.</li>
+  <li><span class="partial">Partiel :</span> Policies et tests IDOR Produits/Catégories/Clients/Fournisseurs terminés ; poursuivre Ventes, Inventaires, Caisses et Commandes.</li>
+  <li>Faire transporter <code>company_id</code> par tous les jobs, exports et notifications.</li>
+  <li>Tester restauration DB et sécuriser sessions, cookies, uploads et exports.</li>
+  <li>Mettre à niveau Laravel/PHP sur une branche séparée et sécuriser la chaîne de dépendances.</li>
+</ul>
+<h3>P1 — avant lancement public</h3>
+<ul>
+  <li>Redis/session/cache/queue partagés, stockage objet, monitoring et alertes.</li>
+  <li>Invitations, vérification email, MFA administrateurs, audit enrichi.</li>
+  <li>Transactions/verrous sur ventes, stock et caisse ; idempotence des requêtes critiques.</li>
+  <li><span class="check">✓</span> Slug e-commerce par compagnie ; terminer les notifications tenantées et prévoir les domaines personnalisés.</li>
+  <li>EntitlementService et compteurs d’usage indépendants du futur tarif.</li>
+</ul>
+<h3>P2 — après validation commerciale</h3>
+<ul>
+  <li>Plans, tarifs, essais, coupons, taxes, factures, webhooks et gestion des impayés.</li>
+  <li>SSO, multi-sites, analytics avancées, limites personnalisées et éventuelle base dédiée.</li>
+</ul>
+
+<h2>17. Définition de “prêt SaaS”</h2>
+<p>Le projet pourra être considéré prêt à entrer en pilote lorsque toutes les réponses suivantes sont “oui” :</p>
+<table>
+<tr><th>Question</th><th>État actuel audité</th></tr>
+<tr><td>Chaque donnée métier a-t-elle un tenant explicite et contraint ?</td><td class="partial">Partiel — principaux modèles tenantés, contraintes finales à terminer</td></tr>
+<tr><td>Chaque requête, export et job est-il tenant-aware ?</td><td class="partial">Partiel — HTTP principal couvert, jobs et exports à auditer</td></tr>
+<tr><td>Un utilisateur peut-il avoir un rôle différent par compagnie ?</td><td class="check">Oui</td></tr>
+<tr><td>Le switch vérifie-t-il l’adhésion et invalide-t-il le contexte précédent ?</td><td class="check">Oui</td></tr>
+<tr><td>Existe-t-il une suite de tests anti-fuite inter-tenant ?</td><td class="partial">Oui, couverture encore incomplète — 72 tests / 360 assertions ; Produits, Catégories, Clients, Fournisseurs et bénéfices des ventes couverts</td></tr>
+<tr><td>Le framework et PHP sont-ils sur des branches maintenues assez longtemps ?</td><td class="no">Non</td></tr>
+<tr><td>Les sauvegardes et restaurations sont-elles automatisées et testées ?</td><td>À confirmer</td></tr>
+<tr><td>Sessions, cache, queue et fichiers supportent-ils plusieurs instances ?</td><td class="no">Pas avec les réglages locaux observés</td></tr>
+</table>
+
+<div class="callout success"><strong>Prochaine action concrète :</strong> ne pas reconstruire le noyau, les invitations ni les Policies Produits/Catégories/Clients/Fournisseurs. Appliquer le prochain lot Policy + autorisations show/history/export + tests IDOR aux Ventes et Inventaires, puis aux Caisses et Commandes. Continuer l’audit des appels à <code>CompanySetting::first()</code> avant l’industrialisation Redis, stockage privé, sauvegardes et supervision.</div>
+
+<h2>18. Références et périmètre de l’audit</h2>
+<h3>Fichiers du dépôt examinés</h3>
+<p><code>composer.json</code>, <code>composer.lock</code>, <code>package.json</code>, routes web/API, modèles, contrôleurs, jobs, services, middleware, migrations, configuration session/cache/queue/base, Docker et Render. Exemples déterminants : <code>app/Models/User.php</code>, <code>app/Models/CompanySetting.php</code>, <code>app/Http/Controllers/Auth/LoginController.php</code>, <code>routes/web.php</code> et les migrations métier.</p>
+
+<h3>Sources officielles consultées (état au 12 août 2026)</h3>
+<ul>
+  <li>Laravel — politique de support et versions : <span class="small">https://laravel.com/docs/12.x/releases</span></li>
+  <li>Laravel — authentification : <span class="small">https://laravel.com/docs/12.x/authentication</span></li>
+  <li>Laravel — autorisation, Gates et Policies : <span class="small">https://laravel.com/docs/12.x/authorization</span></li>
+  <li>Laravel — sessions, cache, queues et base de données : <span class="small">https://laravel.com/docs/12.x/session · /cache · /queues · /database</span></li>
+  <li>PHP — versions maintenues et fins de vie : <span class="small">https://www.php.net/supported-versions.php · https://www.php.net/eol.php</span></li>
+</ul>
+<p class="small">Ce document est une architecture et un plan d’exécution fondés sur une analyse statique du dépôt et des versions locales. Il ne remplace pas une revue de production, un test d’intrusion, une validation juridique/fiscale ni une analyse des données réelles et de leur volumétrie.</p>
+
+</body>
+</html>
+

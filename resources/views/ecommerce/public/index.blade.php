@@ -28,8 +28,8 @@
                 <h1>Bienvenue chez {{ $company->name }}</h1>
                 <p>{{ $company->description }}</p>
                 <div class="hero-actions">
-                    <a href="{{ url('/shop/products') }}" class="hero-btn-primary">Decouvrir nos produits</a>
-                    <a href="{{ url('/shop/checkout') }}" class="hero-btn-outline">Voir le panier</a>
+                    <a href="{{ route('storefront.products', $company) }}" class="hero-btn-primary">Decouvrir nos produits</a>
+                    <a href="{{ route('storefront.checkout', $company) }}" class="hero-btn-outline">Voir le panier</a>
                 </div>
                 <div class="hero-stats">
                     <div class="stat-item">
@@ -50,7 +50,7 @@
             <h2 class="section-title">Nos produits</h2>
             <p class="section-subtitle mb-0">Les derniers produits ajoutes</p>
         </div>
-        <a href="{{ url('/shop/products') }}" class="btn-outline-custom" style="font-size:.82rem;padding:.45rem 1rem;">
+        <a href="{{ route('storefront.products', $company) }}" class="btn-outline-custom" style="font-size:.82rem;padding:.45rem 1rem;">
             Voir tout <i class="bi bi-arrow-right ms-1"></i>
         </a>
     </div>
@@ -86,7 +86,7 @@
                                     <i class="bi bi-cart-plus"></i> Ajouter
                                 </button>
                             </div>
-                            <a href="{{ url('/shop/product/'.$product->id) }}" class="btn-outline-custom w-100 mt-2 justify-content-center" style="font-size:.78rem;padding:.4rem .8rem;">Detail <i class="bi bi-chevron-right ms-1"></i></a>
+                            <a href="{{ route('storefront.product', [$company, $product->id]) }}" class="btn-outline-custom w-100 mt-2 justify-content-center" style="font-size:.78rem;padding:.4rem .8rem;">Detail <i class="bi bi-chevron-right ms-1"></i></a>
                         </div>
                     </div>
                 </div>

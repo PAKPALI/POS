@@ -51,7 +51,9 @@
             <td><strong>{{ $summary['products_quantity'] }}</strong>Produits vendus</td>
             <td><strong>{{ number_format($summary['total_amount'], 0, ',', ' ') }}</strong>Total FCFA</td>
             <td><strong>{{ number_format($summary['total_received'], 0, ',', ' ') }}</strong>Reçu FCFA</td>
-            <td><strong>{{ number_format($summary['total_profit'], 0, ',', ' ') }}</strong>Bénéfice FCFA</td>
+            @if ($canViewFinancials)
+                <td><strong>{{ number_format($summary['total_profit'], 0, ',', ' ') }}</strong>Bénéfice FCFA</td>
+            @endif
         </tr>
     </table>
 
@@ -103,8 +105,10 @@
                 <tr>
                     <td class="label">Monnaie rendue :</td>
                     <td class="number">{{ number_format($sale->remaining_amount, 0, ',', ' ') }} FCFA</td>
-                    <td class="label">Bénéfice :</td>
-                    <td class="number">{{ number_format($sale->total_profit, 0, ',', ' ') }} FCFA</td>
+                    @if ($canViewFinancials)
+                        <td class="label">Bénéfice :</td>
+                        <td class="number">{{ number_format($sale->total_profit, 0, ',', ' ') }} FCFA</td>
+                    @endif
                 </tr>
             </table>
         </div>

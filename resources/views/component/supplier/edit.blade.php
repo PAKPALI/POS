@@ -21,30 +21,22 @@
         </div>
     </div>
     <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning" type="submit">
-            <div class="loader spinner-grow" style="display: none;"></div>
-            <span id="submit_text">Modifier</span>
+        <button id="submit" class="btn btn-warning" type="submit" data-loading-text="Modification…">
+            Modifier
         </button>
     </div>
 </form>
 
 <script>
     $(function() {
-        // Cache le loader au chargement de la page
-        $('.loader').hide();
-
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        $('#submit').click(function(e) {
-            e.preventDefault();
-
-            // Affiche le loader et remplace le texte du bouton
-            $('.loader').fadeIn();
-            $('#submit_text').hide();
+        $('#update_form').submit(function(event) {
+            event.preventDefault();
             
             $.ajax({
                 data: $('#update_form').serialize(),
@@ -53,11 +45,6 @@
                 dataType: 'json',
                 success: function(data) {
                     if (data.status) {
-                        console.log(data);
-                        // Cache le loader et remet le texte "Modifier"
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -72,9 +59,6 @@
                         $('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
                     } else {
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -85,14 +69,12 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        $('#submit').html('Modifier');
                     }
                 },
-                error: function(data) {
-                    console.log('Error:', data);
-                    $('.loader').fadeOut();
-                    $('#submit_text').fadeIn();
-
+                error: function(xhr) {
+                    const message = xhr.responseJSON
+                        ? (xhr.responseJSON.msg || xhr.responseJSON.message)
+                        : null;
                     Swal.fire({
                         toast: true,
                         position: 'top',
@@ -101,9 +83,8 @@
                         showConfirmButton: false,
                         timer: 3000,
                         timerProgressBar: true,
-                        text: 'Une erreur est survenue, veuillez réessayer.',
+                        text: message || 'Une erreur est survenue, veuillez réessayer.',
                     });
-                    $('#submit').html('Modifier');
                 }
             });
         });

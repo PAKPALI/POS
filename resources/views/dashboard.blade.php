@@ -137,6 +137,48 @@
         </div>
     </div>
 
+    <div class="col-xl-4 col-lg-6">
+        <a href="{{ route('client.index') }}" class="text-decoration-none">
+            <div class="card border-color mb-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center fw-bold small mb-3">
+                        <span class="flex-grow-1">CLIENTS</span>
+                        <i class="bi bi-people-fill text-info fs-4"></i>
+                    </div>
+                    <div class="row align-items-center mb-2">
+                        <div class="col-8"><h3 class="mb-0">{{ number_format($clientCount, 0, ',', ' ') }}</h3></div>
+                        <div class="col-4 text-end text-inverse text-opacity-50">Enregistrés</div>
+                    </div>
+                </div>
+                <div class="card-arrow">
+                    <div class="card-arrow-top-left"></div><div class="card-arrow-top-right"></div>
+                    <div class="card-arrow-bottom-left"></div><div class="card-arrow-bottom-right"></div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-4 col-lg-6">
+        <a href="{{ route('supplier.index') }}" class="text-decoration-none">
+            <div class="card border-color mb-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center fw-bold small mb-3">
+                        <span class="flex-grow-1">FOURNISSEURS</span>
+                        <i class="bi bi-truck text-warning fs-4"></i>
+                    </div>
+                    <div class="row align-items-center mb-2">
+                        <div class="col-8"><h3 class="mb-0">{{ number_format($supplierCount, 0, ',', ' ') }}</h3></div>
+                        <div class="col-4 text-end text-inverse text-opacity-50">Enregistrés</div>
+                    </div>
+                </div>
+                <div class="card-arrow">
+                    <div class="card-arrow-top-left"></div><div class="card-arrow-top-right"></div>
+                    <div class="card-arrow-bottom-left"></div><div class="card-arrow-bottom-right"></div>
+                </div>
+            </div>
+        </a>
+    </div>
+
     <div class="col-xl-6 col-lg-6">
         <div class="card border-color mb-3">
             <div class="card-body">
@@ -151,9 +193,9 @@
                             Remise : <span class="text-danger">{{$sale_total_discount}} FCFA</span>
                         </div>
                     </div>
-                    <div class="col-4 text-end text-inverse text-opacity-50">
+                    <!-- <div class="col-4 text-end text-inverse text-opacity-50">
                         Revenue
-                    </div>
+                    </div> -->
                 </div>
             </div>
             <div class="card-arrow">
@@ -165,25 +207,24 @@
         </div>
     </div>
 
-    @if (auth()->user()->user_type!=3)
+    @if ($canViewFinancials)
     <div class="col-xl-6 col-lg-6">
         <div class="card border-color mb-3">
             <div class="card-body">
                 <div class="d-flex fw-bold small mb-3">
                     <span class="flex-grow-1">BENEFICES</span>
                     <i class="bi bi-file-text-fill text-success fs-4 quota-status-icon"></i>
-                    <a href="#" data-toggle="card-expand"
+                    <!-- <a href="#" data-toggle="card-expand"
                         class="text-inverse text-opacity-50 text-decoration-none"><i
-                            class="bi bi-fullscreen"></i></a>
+                            class="bi bi-fullscreen"></i></a> -->
                 </div>
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
                         <h3 class="mb-0">{{$sale_total_profit}} FCFA</h3>
                     </div>
-                    <!-- <div class="col-5">
-                        <div class="mt-n3 mb-n2" data-render="apexchart" data-type="bar"
-                            data-title="Visitors" data-height="45"></div>
-                    </div> -->
+                    <div class="small text-inverse text-opacity-0">
+                        0
+                    </div>
                 </div>
                 <div class="small text-inverse text-opacity-50 text-truncate">
                     <!-- <i class="fa fa-chevron-up fa-fw me-1"></i> 5.3% more than last week<br>

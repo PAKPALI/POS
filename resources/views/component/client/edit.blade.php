@@ -9,47 +9,29 @@
         </div>
     </div>
     <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning" type="submit">
-            <div class="loader spinner-grow" style="display: none;"></div>
-            <span id="submit_text">Modifier</span>
+        <button class="btn btn-warning" type="submit" data-loading-text="Modification en cours…">
+            Modifier
         </button>
     </div>
 </form>
 
 <script>
     $(function() {
-        // Cache le loader au chargement de la page
-        $('.loader').hide();
+        $('#update_form').submit(function(event) {
+            event.preventDefault();
+            const form = this;
 
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-
-        $('#submit').click(function(e) {
-            e.preventDefault();
-
-            // Affiche le loader et remplace le texte du bouton
-            $('.loader').fadeIn();
-            $('#submit_text').hide();
-            
             $.ajax({
-                data: $('#update_form').serialize(),
+                data: $(form).serialize(),
                 url: '{{ url('component/client/' . $Client->id) }}',
-                type: "PUT",
+                type: 'PUT',
                 dataType: 'json',
                 success: function(data) {
                     if (data.status) {
-                        console.log(data);
-                        // Cache le loader et remet le texte "Modifier"
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
-                            icon: "success",
+                            icon: 'success',
                             title: data.title,
                             showConfirmButton: false,
                             timer: 3000,
@@ -60,38 +42,36 @@
                         $('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
                     } else {
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
-                            icon: "error",
+                            icon: 'error',
                             title: data.title,
                             showConfirmButton: false,
                             timer: 3000,
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        $('#submit').html('Modifier');
                     }
                 },
-                error: function(data) {
-                    console.log('Error:', data);
-                    $('.loader').fadeOut();
-                    $('#submit_text').fadeIn();
+                error: function(xhr) {
+                    const response = xhr.responseJSON || {};
+                    const validationErrors = response.errors ? Object.values(response.errors) : [];
+                    const firstValidationError = validationErrors.length
+                        ? (Array.isArray(validationErrors[0]) ? validationErrors[0][0] : validationErrors[0])
+                        : null;
 
                     Swal.fire({
                         toast: true,
                         position: 'top',
-                        icon: "error",
-                        title: 'Erreur',
+                        icon: 'error',
+                        title: 'Modification impossible',
                         showConfirmButton: false,
                         timer: 3000,
                         timerProgressBar: true,
-                        text: 'Une erreur est survenue, veuillez réessayer.',
+                        text: response.msg || response.message || firstValidationError
+                            || 'Une erreur est survenue, veuillez réessayer.',
                     });
-                    $('#submit').html('Modifier');
                 }
             });
         });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sale;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendMarginEmailJob;
+use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
 use App\Models\Action;
 use App\Models\AMS\CashAccount;
@@ -17,6 +18,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
 use App\Services\SmsService;
+use App\Services\CompanyContext;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -25,6 +27,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class SaleController extends Controller
@@ -34,6 +37,7 @@ class SaleController extends Controller
      */
     public function index()
     {
+        $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         // today date
         $today = Carbon::today();
 
@@ -49,6 +53,9 @@ class SaleController extends Controller
 
         // composer require yajra/laravel-datatables-oracle
         $Object = Sale::with('saleDetails.product','client')->whereDate('created_at', $today)->latest()->get();
+        if (!$canViewFinancials) {
+            $this->hideFinancialFields($Object);
+        }
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()
@@ -75,13 +82,14 @@ class SaleController extends Controller
         $product_count = 0 ;
         foreach ($Object as $sale) {
             $total_amount += $sale->total_amount;
-            $sale_total_profit += $sale->total_profit;
+            $sale_total_profit += $canViewFinancials ? $sale->total_profit : 0;
             $product_count += $sale->saleDetails->count();
         }
 
         // calculate top-selling product 
         $mostSoldProducts = DB::table('sale_details')
             ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->where('company_id', app(CompanyContext::class)->getCompanyId())
             ->whereDate('created_at', $today) // Filtrer pour les ventes d'aujourd'hui
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
@@ -98,7 +106,8 @@ class SaleController extends Controller
         return view('pos.sale.index',
             compact(
                 'Category','Product','mostSoldProducts','Object','sale_total_profit',
-                'product_count','total_amount','company','mainCash','taxCash','setting','Clients'
+                'product_count','total_amount','company','mainCash','taxCash','setting','Clients',
+                'canViewFinancials'
             ));
     }
 
@@ -156,13 +165,22 @@ class SaleController extends Controller
             'products.required' => "Choisir un produit",
             'products.*.quantity.min' => "La quantité doit être supérieure à 0 pour chaque produit",
             'total_amount.required' => "Remplir le total",
+            'client_id.exists' => "Le client sélectionné n'est pas disponible dans la compagnie active.",
         ];
         
         $validator = Validator::make($request->all(), [
             'products' => 'required|array',
             'products.*.quantity' => 'required|integer|min:1',
             'total_amount' => 'required|numeric',
-            'client_id' => 'nullable|exists:clients,id'
+            'client_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('clients', 'id')->where(
+                    fn ($query) => $query
+                        ->where('company_id', app(CompanyContext::class)->getCompanyId())
+                        ->where('status', 1)
+                ),
+            ],
         ], $error_messages);
         
         if ($validator->fails()) {
@@ -219,13 +237,13 @@ class SaleController extends Controller
 
             // send sale email notification to users
             // $this->sendSaleEmailNotification($sale);
-            dispatch(new \App\Jobs\SendSaleEmailJob($sale->id));
+            SendSaleEmailJob::dispatch($sale->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
 
             // send sms to client
             $number = '90859488';
-            $message = 'Vous venez de faire un achat au total de '.$request->total_amount.' FCFA au niveau de LUX-GRILL et nous vous remercions.';
+            $message = 'Vous venez de faire un achat au total de '.$request->total_amount.' FCFA auprès de '.($company->name ?? config('app.name')).' et nous vous remercions.';
             // $this->sendSms($number, $message);
-            dispatch(new SendSaleWhatsappJob($sale->id));
+            SendSaleWhatsappJob::dispatch($sale->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
 
             // Log action
             Action::create([
@@ -257,16 +275,7 @@ class SaleController extends Controller
 
         foreach ($products as $product) {
             // search product
-            $Product = Product::findOrFail($product['product_id']);
-            if (!$Product) {
-                DB::rollBack();
-                return response()->json([
-                    "status" => false,
-                    "reload" => false,
-                    "title" => "VENTE ECHOUEE",
-                    "msg" => "Le produit avec l'ID ". $product['product_id'] . " est introuvable."
-                ]);
-            }
+            $Product = Product::whereKey($product['product_id'])->lockForUpdate()->firstOrFail();
 
             // calculate profit and store it in sale detail
             $profit = $Product->profit*$product['quantity'];
@@ -305,12 +314,17 @@ class SaleController extends Controller
             // check if security margin is affected
             // if($product->email == 0){
                 if ($newQte <= $product->margin) {
-                    dispatch(new SendMarginEmailJob($product->name,$product->margin,$newQte));
+                    SendMarginEmailJob::dispatch(
+                        $product->name,
+                        $product->margin,
+                        $newQte,
+                        app(CompanyContext::class)->getCompanyId()
+                    )->afterCommit();
                 }
                 // $product->update(['email' => 1]);
             // }
         }else {
-            DB::rollBack();
+            throw new \RuntimeException("Stock insuffisant pour le produit {$product->name}.");
             return response()->json([
                 "status" => false,
                 "reload" => false,
@@ -406,7 +420,13 @@ class SaleController extends Controller
     private function sendSaleEmailNotification($sale)
     {
         $company = CompanySetting::first();
-        $users = User::where('status', 1)->where('user_type','!=', 1)->get();
+        $companyId = app(CompanyContext::class)->getCompanyId();
+        $users = User::where('status', 1)
+            ->whereHas('memberships', function ($query) use ($companyId) {
+                $query->where('company_id', $companyId)
+                    ->where('status', 'active')
+                    ->whereHas('role', fn ($role) => $role->whereIn('key', ['owner', 'admin']));
+            })->get();
 
         foreach ($users as $user) {
             Mail::send('emails.sale.saleNotification', [
@@ -414,7 +434,7 @@ class SaleController extends Controller
                 'company' => $company,
             ], function ($message) use ($user, $sale, $company) {
                 $message->to($user->email);
-                $message->subject("Nouvelle vente #" . $sale->code . " - " . $company->name ?? config('app.name'));
+                $message->subject(($company->name ?? config('app.name')).' — Nouvelle vente #'.$sale->code);
             });
         }
     }
@@ -508,6 +528,7 @@ class SaleController extends Controller
 
     public function history(Request $request)
     {
+        $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         if ($request->ajax()) {
             $daterange = $request->daterange; // Exemple : "01/10/2024 - 31/10/2024"
         
@@ -530,13 +551,14 @@ class SaleController extends Controller
             $product_count = 0 ;
             foreach ($Object as $sale) {
                 $total_amount += $sale->total_amount;
-                $total_profit += $sale->total_profit;
+                $total_profit += $canViewFinancials ? $sale->total_profit : 0;
                 $product_count += $sale->saleDetails->count();
             }
 
             //top-selling product 
             $mostSoldProducts = DB::table('sale_details')
             ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->where('company_id', app(CompanyContext::class)->getCompanyId())
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
@@ -547,6 +569,10 @@ class SaleController extends Controller
                 $saleDetail->product = Product::find($saleDetail->product_id);
                 return $saleDetail;
             });
+
+            if (!$canViewFinancials) {
+                $this->hideFinancialFields($Object);
+            }
 
             return DataTables::of($Object)
                 ->addIndexColumn()
@@ -570,7 +596,7 @@ class SaleController extends Controller
                 ->with([
                     'totalSale' => $total_sale,
                     'totalAmount' => $total_amount,
-                    'totalProfit' => $total_profit,
+                    'totalProfit' => $canViewFinancials ? $total_profit : null,
                     'productCount' => $product_count,
                     'mostSoldProducts' => $mostSoldProducts,
                 ])
@@ -578,11 +604,12 @@ class SaleController extends Controller
                 ->make(true);
         }
         
-        return view('pos.sale.history');
+        return view('pos.sale.history', compact('canViewFinancials'));
     }
 
     public function exportHistoryPdf(Request $request)
     {
+        $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         $daterange = $request->get('daterange');
         if ($daterange) {
             [$startDate, $endDate] = explode(' - ', $daterange);
@@ -598,11 +625,14 @@ class SaleController extends Controller
 
         $search = trim((string) $request->get('search'));
         if ($search !== '') {
-            $query->where(function ($query) use ($search) {
+            $query->where(function ($query) use ($search, $canViewFinancials) {
                 $query->where('code', 'like', "%{$search}%")
                     ->orWhere('cashier', 'like', "%{$search}%")
-                    ->orWhere('total_amount', 'like', "%{$search}%")
-                    ->orWhere('total_profit', 'like', "%{$search}%");
+                    ->orWhere('total_amount', 'like', "%{$search}%");
+
+                if ($canViewFinancials) {
+                    $query->orWhere('total_profit', 'like', "%{$search}%");
+                }
             });
         }
 
@@ -614,7 +644,7 @@ class SaleController extends Controller
             }),
             'total_amount' => $sales->sum('total_amount'),
             'total_received' => $sales->sum('received_amount'),
-            'total_profit' => $sales->sum('total_profit'),
+            'total_profit' => $canViewFinancials ? $sales->sum('total_profit') : null,
         ];
 
         $topProducts = $sales
@@ -644,7 +674,8 @@ class SaleController extends Controller
             'company',
             'startDate',
             'endDate',
-            'search'
+            'search',
+            'canViewFinancials'
         ))->setPaper('a4', 'portrait');
 
         return $pdf->download(
@@ -673,5 +704,16 @@ class SaleController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    private function hideFinancialFields($sales): void
+    {
+        $sales->each(function (Sale $sale) {
+            $sale->makeHidden(['total_profit']);
+            $sale->saleDetails->each(function ($detail) {
+                $detail->makeHidden(['profit']);
+                $detail->product?->makeHidden(['purchase_price', 'profit']);
+            });
+        });
     }
 }

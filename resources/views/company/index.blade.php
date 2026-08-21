@@ -7,6 +7,13 @@
     #datatable tbody tr:hover {
         background-color: #e0e0e0;
     }
+    .company-switch-card { height: 100%; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; background: rgba(255,255,255,.025); transition: .2s ease; }
+    .company-switch-card:hover { transform: translateY(-3px); border-color: rgba(25,195,125,.55); }
+    .company-switch-card.is-active { border-color: #19c37d; box-shadow: 0 0 0 1px rgba(25,195,125,.15); }
+    .company-switch-logo { width: 52px; height: 52px; border-radius: 14px; flex: 0 0 52px; display: grid; place-items: center; overflow: hidden; background: linear-gradient(135deg,#20cf8b,#117a58); color: #fff; font-weight: 800; }
+    .company-switch-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .company-switch-name { color: #fff !important; overflow-wrap: anywhere; line-height: 1.3; }
+    .company-role { display: inline-block; padding: .3rem .6rem; border-radius: 999px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); font-size: .75rem; }
 </style>
 @endpush
 
@@ -24,6 +31,55 @@
                             PARAMETRES
                         </h1>
                         <hr class="mb-4">
+
+                        <section class="mb-5">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h3 class="h5 mb-1">Mes compagnies</h3>
+                                    <p class="text-muted mb-0">Sélectionnez une compagnie ou créez un nouvel espace.</p>
+                                </div>
+                                @if($currentMembership?->role?->key === 'owner')
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+                                        <i class="bi bi-plus-lg me-1"></i> Ajouter une compagnie
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="row g-3">
+                                @foreach($memberships as $membership)
+                                    @php $isActiveCompany = (int) $activeCompanyId === (int) $membership->company_id; @endphp
+                                    <div class="col-xl-4 col-md-6">
+                                        <div class="company-switch-card {{ $isActiveCompany ? 'is-active' : '' }} p-3 d-flex flex-column">
+                                            <div class="d-flex gap-3 align-items-start mb-3">
+                                                <div class="company-switch-logo">
+                                                    @if($membership->company->logo)
+                                                        <img src="{{ asset($membership->company->logo) }}" alt="Logo {{ $membership->company->name }}">
+                                                    @else
+                                                        {{ mb_strtoupper(mb_substr($membership->company->name, 0, 2)) }}
+                                                    @endif
+                                                </div>
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <h4 class="h6 company-switch-name mb-1">{{ $membership->company->name }}</h4>
+                                                    <div class="small text-muted" style="overflow-wrap:anywhere">{{ $membership->company->email ?: 'Aucun e-mail' }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                                <span class="company-role">{{ $membership->role->name ?? 'Sans rôle' }}</span>
+                                                @if($isActiveCompany)<span class="badge bg-success">Compagnie active</span>@endif
+                                            </div>
+                                            @if($isActiveCompany)
+                                                <button type="button" class="btn btn-outline-success btn-sm mt-auto" disabled>Actuellement ouverte</button>
+                                            @else
+                                                <form method="POST" action="{{ route('companies.switch', $membership->company_id) }}" class="mt-auto">
+                                                    @csrf
+                                                    <button class="btn btn-theme btn-sm w-100">Ouvrir cette compagnie</button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </section>
+
                         <!-- add modal -->
                         <div class="modal modal fade" id="addModal">
                             <div class="modal-dialog modal-xl">
@@ -136,10 +192,7 @@
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des compagnies</h4></span>
-                                        @if ($Object->count() < 1)
-                                            <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
-                                        @endif
+                                        <span class="flex-grow-1"><h4>Informations de la compagnie active</h4></span>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
                                     <div class="table-responsive">
@@ -290,19 +343,22 @@
                         if (data.status) {
                             $('#loader').hide();
                             $('#submitText').fadeIn();
-                            Swal.fire({
-                                toast: true,
-                                position: 'top',
-                                icon: "success",
-                                title: data.title,
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                text: data.msg,
-                            });
-                            
                             $('#addModal').modal('hide');
-                            Datatable.draw();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Compagnie créée',
+                                text: 'Voulez-vous basculer vers « ' + data.company_name + ' » maintenant ?',
+                                confirmButtonText: 'Oui, basculer',
+                                cancelButtonText: 'Non, rester ici',
+                                showCancelButton: true,
+                                confirmButtonColor: '#16a34a'
+                            }).then(function(result) {
+                                if (result.isConfirmed) {
+                                    submitCompanySwitch(data.switch_url);
+                                } else {
+                                    window.location.reload();
+                                }
+                            });
                         } else {
                             $('#loader').hide();
                             $('#submitText').fadeIn();
@@ -332,6 +388,15 @@
                 });
                 return false;
             });
+
+            function submitCompanySwitch(url) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}">';
+                document.body.appendChild(form);
+                form.submit();
+            }
 
             $('body').on('click', '.editModal', function () {
                 var id = $(this).data("id");

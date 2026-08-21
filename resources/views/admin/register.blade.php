@@ -7,10 +7,20 @@
                 @csrf
                 <h1 class="text-center">INSCRIPTION</h1>
                 <p class="text-inverse text-opacity-50 text-center">{{ config('app.name') }}</p>
+                <div class="mb-3">
+                    <label class="form-label">Nom de l’entreprise <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" name="company_name" placeholder="Ex. Boutique Horizon" required autofocus>
+                    <div class="form-text text-inverse text-opacity-50">Vous pourrez ajouter le logo, l’adresse et les paramètres plus tard.</div>
+                </div>
                 <!-- <p class="text-inverse text-opacity-50 text-center">PRO-SELLER</p> -->
                 <div class="mb-3">
-                    <label class="form-label">Nom <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" placeholder="nom" name="name" value>
+                    <label class="form-label">Votre nom <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" placeholder="Votre nom complet" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Taxe sur les ventes (%) <span class="text-inverse text-opacity-50">— facultatif</span></label>
+                    <input type="number" min="0" max="100" step="0.01" class="form-control form-control-lg bg-inverse bg-opacity-5" name="default_tax" placeholder="Ex. 18">
+                    <div class="form-text text-inverse text-opacity-50">Les caisses principale et taxe seront créées automatiquement.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email <span class="text-danger">*</span></label>
@@ -42,21 +52,22 @@
                     </div>
                 </div> -->
                 <div class="mt-5">
-                    <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100">S'inscrire</button>
+                    <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100" data-loading-text="Création du compte…">S'inscrire</button>
                 </div>
-                <!-- <div class="text-inverse text-opacity-50 text-center">Already have an Admin ID? <a href="page_login.html">Sign In</a> -->
+                <div class="text-center text-inverse text-opacity-75 mt-4">
+                    Vous avez déjà un compte ?
+                    <a href="{{ route('user_login') }}" class="text-theme fw-semibold text-decoration-none">
+                        Se connecter
+                    </a>
                 </div>
             </form>
         </div>
     </div>
     <script>
         $(function() {
-            $('#loader').hide();
-            //ajax pour se connecter
-            $('#form').submit(function(){
+            // Inscription SaaS
+            $('#form').submit(function(event){
                 event.preventDefault();
-                $('#submit').hide();
-                $('#loader').fadeIn();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('admin_register') }}",
@@ -75,8 +86,6 @@
                                 }
                             });
                         } else {
-                            $('#loader').hide();
-                            $('#submit').show();
                             Swal.fire({
                                 title: data.title,
                                 text:data.msg,
@@ -87,8 +96,6 @@
                         }
                     },
                     error: function (data){
-                        $('#loader').hide();
-                        $('#submit').show();
                         Swal.fire({
                             icon: "error",
                             title: "Erreur",

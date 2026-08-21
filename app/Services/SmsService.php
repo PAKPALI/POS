@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CompanySetting;
+use App\Services\CompanyContext;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -27,22 +28,29 @@ class SmsService
 
     protected function getCompanySetting(): ?CompanySetting
     {
-        return CompanySetting::first();
+        $context = app(CompanyContext::class);
+        if (!$context->isResolved()) {
+            Log::error('SMS impossible : aucun contexte de compagnie résolu.');
+            return null;
+        }
+
+        return CompanySetting::find($context->getCompanyId());
     }
 
     public function sendSms($phoneNumber, $message)
-    {
+    {     
         $company = $this->getCompanySetting();
         if (!$company || $company->sms_count <= 0) {
             Log::warning('SMS non envoyé : quota SMS épuisé.');
             return ['status' => false, 'message' => 'Quota SMS épuisé'];
         }
 
+        $message = '['.$company->name.'] '.$message;
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'token' => $this->token,
             'key' => $this->key,
-        ])->post($this->baseUrl, [
+        ])->post($this->baseUrl.'/sms/push', [
             'sender' => $this->sender,
             'sender_id' => $this->sender_id,
             'country' => 'TG',
@@ -51,13 +59,22 @@ class SmsService
             'response_url' => $this->responseUrl,
         ]);
 
-        if ($response->successful()) {
+        $payload = $response->json();
+        $accepted = $response->successful() && is_array($payload) && ($payload['status'] ?? false) === true;
+        if ($accepted) {
             $company->decrement('sms_count');
         } else {
-            Log::warning('Erreur SMS API: ' . json_encode($response->json()));
+            Log::warning('Erreur SMS API', [
+                'http_status' => $response->status(),
+                'response' => $payload ?? $response->body(),
+                'company_id' => $company->id,
+                'phone' => $phoneNumber,
+            ]);
         }
 
-        return $response->json();
+        return is_array($payload)
+            ? $payload
+            : ['status' => false, 'message' => 'Réponse SMS invalide', 'http_status' => $response->status()];
     }
 
     public function sendWhatsappSms($phoneNumber, $title, $message)
@@ -68,6 +85,8 @@ class SmsService
             return ['status' => false, 'message' => 'Quota WhatsApp épuisé'];
         }
 
+        $title = $company->name.' — '.$title;
+        $message = '['.$company->name.'] '.$message;
         Log::info("Sending WhatsApp message to $phoneNumber: $message");
         try {
             $response = Http::withHeaders([
@@ -83,13 +102,22 @@ class SmsService
 
             Log::info('WhatsApp API response: ' . json_encode($response->json()));
 
-            if ($response->successful()) {
+            $payload = $response->json();
+            $accepted = $response->successful() && is_array($payload) && ($payload['status'] ?? false) === true;
+            if ($accepted) {
                 $company->decrement('whatsapp_count');
             } else {
-                Log::warning('Erreur WhatsApp API: ' . json_encode($response->json()));
+                Log::warning('Erreur WhatsApp API', [
+                    'http_status' => $response->status(),
+                    'response' => $payload ?? $response->body(),
+                    'company_id' => $company->id,
+                    'phone' => $phoneNumber,
+                ]);
             }
 
-            return $response->json();
+            return is_array($payload)
+                ? $payload
+                : ['status' => false, 'message' => 'Réponse WhatsApp invalide', 'http_status' => $response->status()];
         } catch (\Exception $e) {
             Log::warning('Error sending WhatsApp message: ' . $e->getMessage());
             return ['status' => false, 'message' => 'Erreur d envoi WhatsApp'];
@@ -128,6 +156,9 @@ class SmsService
     public function sendWhatsappDocument(string $phoneNumber, string $mediaId, string $message)
     {
         try {
+            $company = $this->getCompanySetting();
+            if (!$company) return ['status' => false, 'message' => 'Compagnie introuvable'];
+            $message = '['.$company->name.'] '.$message;
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',

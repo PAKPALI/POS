@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Action;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Services\AuthorizedLandingPage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -31,7 +32,15 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/dashboard';
+
+    public function __construct(private AuthorizedLandingPage $landingPage) {}
+
+    /** Keep every login entry point on the styled POS authentication page. */
+    public function showLoginForm()
+    {
+        return redirect()->route('user_login');
+    }
 
     /**
      * Create a new controller instance.
@@ -49,11 +58,22 @@ class LoginController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        $memberships = $user->activeMemberships()->with('company')->get();
+        $redirect = route('companies.select');
+
+        if ($memberships->count() === 1 && $memberships->first()->company?->isActive()) {
+            $membership = $memberships->first();
+            $request->session()->put('active_company_id', $membership->company_id);
+            $request->session()->put('active_company_name', $membership->company->name);
+            $membership->update(['last_accessed_at' => now()]);
+            $redirect = $this->landingPage->forMembership($membership);
+        }
+
         if($user->user_type == 1){
             return response()->json([
                 "status" => true,
                 "reload" => true,
-                "redirect_to" => route('dashboard'),
+                "redirect_to" => $redirect,
                 "title" => "CONNEXION REUSSIE",
                 'check' => Auth::check(),
                 "msg" => "connexion réussie"
@@ -69,7 +89,7 @@ class LoginController extends Controller
         return response()->json([
             "status" => true,
             "reload" => true,
-            "redirect_to" => route('dashboard'),
+            "redirect_to" => $redirect,
             "title" => "CONNEXION REUSSIE",
             'check' => Auth::check(),
             "msg" => "connexion réussie"

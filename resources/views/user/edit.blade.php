@@ -11,11 +11,12 @@
                 <input type="number" name="phone" class="form-control" id="phone" value="{{$User->phone}}" placeholder="ex: 90859488">
             </div>
             <div class="form-group col-12 mt-3">
-                <label for="user_type">Type d'utilisateur</label>
-                <select class="form-select " name="user_type">
-                    <option value="">selectionnez le type d'utilisateur</option>
-                    <option value="2" {{$User->user_type == 2 ? 'selected' : ''}}>ADMIN</option>
-                    <option value="3" {{$User->user_type == 3 ? 'selected' : ''}}>EMPLOYE</option>
+                <label for="edit_role_id">Rôle dans cette compagnie</label>
+                <select class="form-select" name="role_id" id="edit_role_id" data-placeholder="Rechercher un rôle" required>
+                    <option value="">Sélectionnez un rôle</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->id }}" @selected($membership->role_id === $role->id)>{{ $role->name }}</option>
+                    @endforeach
                 </select>
             </div>
         </div>

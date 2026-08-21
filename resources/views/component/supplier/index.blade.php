@@ -60,10 +60,9 @@
                                             </div>
                                         </div>
                                         <div class="card-footer mt-4">
-                                            <button type="submit" class="btn btn-primary">
-                                                <div id="loader" class="spinner-grow"></div>
-                                                <div id="submitText">Valider</div>
-                                            </button> 
+                                            <button type="submit" class="btn btn-primary" data-loading-text="Enregistrement…">
+                                                Valider
+                                            </button>
                                         </div>
                                     </form>
                                     </div>
@@ -203,8 +202,63 @@
 
     <script>
         $(function() {
-            // hide loader
-            $('#loader').hide();
+            function ajaxErrorMessage(xhr, fallback) {
+                if (xhr && xhr.responseJSON) {
+                    return xhr.responseJSON.msg || xhr.responseJSON.message || fallback;
+                }
+
+                return fallback;
+            }
+
+            function showSupplierSuccess(data) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top',
+                    icon: 'success',
+                    title: data.title,
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    text: data.msg,
+                });
+            }
+
+            function requestSupplierStatus(id, fallbackMessage) {
+                const cancelButton = Swal.getCancelButton();
+                if (cancelButton) {
+                    cancelButton.disabled = true;
+                }
+
+                return new Promise(function(resolve) {
+                    $.ajax({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        type: 'DELETE',
+                        url: '{{url('component/supplier')}}/' + id,
+                        dataType: 'json'
+                    })
+                        .done(function(data) {
+                            if (!data || !data.status) {
+                                if (cancelButton) {
+                                    cancelButton.disabled = false;
+                                }
+                                Swal.showValidationMessage((data && data.msg) || fallbackMessage);
+                                resolve(false);
+                                return;
+                            }
+
+                            resolve(data);
+                        })
+                        .fail(function(xhr) {
+                            if (cancelButton) {
+                                cancelButton.disabled = false;
+                            }
+                            Swal.showValidationMessage(ajaxErrorMessage(xhr, fallbackMessage));
+                            resolve(false);
+                        });
+                });
+            }
 
             var DatatableActive = $('#datatable').DataTable({
                 processing: true,
@@ -332,10 +386,8 @@
             });
 
             //Add supplier
-            $('#add').submit(function() {
+            $('#add').submit(function(event) {
                 event.preventDefault();
-                $('#loader').fadeIn();
-                $('#submitText').hide();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('supplier.store') }}",
@@ -343,10 +395,7 @@
                     data: $('#add').serialize(),
                     datatype: 'json',
                     success: function(data) {
-                        console.log(data)
                         if (data.status) {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -361,8 +410,6 @@
                             $('#addModal').modal('hide');
                             DatatableActive.draw();
                         } else {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -375,14 +422,11 @@
                             });
                         }
                     },
-                    error: function(data) {
-                        console.log(data)
-                        $('#loader').hide();
-                        $('#submitText').fadeIn();
+                    error: function(xhr) {
                         Swal.fire({
                             icon: "error",
                             title: "erreur",
-                            text: "Impossible de communiquer avec le serveur.",
+                            text: ajaxErrorMessage(xhr, "Impossible de communiquer avec le serveur."),
                             timer: 3600,
                         })
                     }
@@ -391,35 +435,76 @@
             });
 
             $('body').on('click', '.editModal', function () {
+                const trigger = this;
                 var id = $(this).data("id");
+                if (window.ServerButtonLoader) {
+                    window.ServerButtonLoader.start(trigger, 'Chargement…');
+                }
+                $('#edit_response').empty();
+                $('#editModal').modal('show');
+
                 $.ajax({
                     url:'{{url('component/supplier')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {
                         $('#edit_response').html(result);
+                    },
+                    error:function(xhr)
+                    {
+                        $('#editModal').modal('hide');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Chargement impossible',
+                            text: ajaxErrorMessage(xhr, 'Impossible de charger ce fournisseur.'),
+                        });
+                    },
+                    complete:function()
+                    {
+                        if (window.ServerButtonLoader) {
+                            window.ServerButtonLoader.stop(trigger);
+                        }
                     }
                 });
-                $('#editModal').modal('show');
             });
 
             $('body').on('click', '.view', function () {
+                const trigger = this;
                 var id = $(this).data("id");
+                if (window.ServerButtonLoader) {
+                    window.ServerButtonLoader.start(trigger, 'Chargement…');
+                }
+                $('#show_response').empty();
+                $('#showModal').modal('show');
+
                 $.ajax({
                     url:'{{url('component/supplier')}}/'+id,
                     dataType: 'html',
                     success:function(result)
                     {
                         $('#show_response').html(result);
+                    },
+                    error:function(xhr)
+                    {
+                        $('#showModal').modal('hide');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Chargement impossible',
+                            text: ajaxErrorMessage(xhr, 'Impossible de charger ce fournisseur.'),
+                        });
+                    },
+                    complete:function()
+                    {
+                        if (window.ServerButtonLoader) {
+                            window.ServerButtonLoader.stop(trigger);
+                        }
                     }
                 });
-                $('#showModal').modal('show');
             });
 
             // archive object
             $('body').on('click', '.archive', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data("id");   
+                var id = $(this).data("id");
                 
                 Swal.fire({
                     icon: "warning",
@@ -443,48 +528,25 @@
                     showCancelButton: true,
                     cancelButtonText: "Non",
                     cancelButtonColor: "#0d6efd",
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "DELETE",
-                            url: '{{url('component/supplier')}}/'+id,
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    DatatableActive.draw();
-                                    DatatableInactive.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
-                                }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
-                        });
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        return requestSupplierStatus(id, "Impossible d'archiver ce fournisseur.");
                     }
-                })
+                }).then(function(result) {
+                    if (!result.isConfirmed || !result.value) {
+                        return;
+                    }
+
+                    showSupplierSuccess(result.value);
+                    DatatableActive.draw();
+                    DatatableInactive.draw();
+                });
             });
 
             // restore object
             $('body').on('click', '.restore', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
                 var id = $(this).data("id");
                 
                 Swal.fire({
@@ -495,43 +557,21 @@
                     showCancelButton: true,
                     cancelButtonText: "Non",
                     cancelButtonColor: 'blue',
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "DELETE",
-                            url: '{{url('component/supplier')}}/'+id,
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    DatatableActive.draw();
-                                    DatatableInactive.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
-                                }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
-                        });
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        return requestSupplierStatus(id, "Impossible de restaurer ce fournisseur.");
                     }
-                })
+                }).then(function(result) {
+                    if (!result.isConfirmed || !result.value) {
+                        return;
+                    }
+
+                    showSupplierSuccess(result.value);
+                    DatatableActive.draw();
+                    DatatableInactive.draw();
+                });
             });
         }); 
     </script>

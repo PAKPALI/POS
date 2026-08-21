@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Sms\SmsController;
+use App\Http\Controllers\Api\SmsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,4 +19,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/sms/callback', [App\Http\Controllers\Api\Sms\SmsController::class, 'handleCallback']);
+Route::post('/sms/callback', [SmsController::class, 'handleCallback']);

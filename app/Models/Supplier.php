@@ -1,15 +1,16 @@
 <?php
 
 namespace App\Models;
+use App\Traits\BelongsToCompany;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Supplier extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
-    protected $fillable = ['name','contact','phone','whatsapp','created_by','status'];
+    protected $fillable = ['company_id','name','contact','phone','whatsapp','created_by','status'];
 
     public function user()
     {

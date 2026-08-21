@@ -2,16 +2,18 @@
 	<div class="app-sidebar-content" data-scrollbar="true" data-height="100%">
 
 		<div class="menu">
-			<div class="menu-header">Accueil</div>
-			<div class="menu-item @if(Request::route()->getName() === 'dashboard') active @endif">
-				<a href="{{ route('dashboard') }}"class="menu-link">
-					<span class="menu-icon"><i class="bi bi-cpu"></i></span>
-					<span class="menu-text">Tableau de bord</span>
-				</a>
-			</div>
+			@if($currentMembership?->hasPermission('dashboard.view'))
+				<div class="menu-header">Accueil</div>
+				<div class="menu-item @if(Request::route()->getName() === 'dashboard') active @endif">
+					<a href="{{ route('dashboard') }}" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-cpu"></i></span>
+						<span class="menu-text">Tableau de bord</span>
+					</a>
+				</div>
+			@endif
 
 			<!-- COMPOSANTS -->
-			@if(auth()->user()->user_type!=3)
+			@if($currentMembership?->hasPermission('catalog.manage'))
 				<div class="menu-header">COMPOSANTS</div>
 				<div class="menu-item has-sub @if(Request::route()->getName() === 'category.index') active @endif">
 					<a href="javascript:;" class="menu-link">
@@ -50,15 +52,21 @@
 								<div class="menu-text">Liste menu</div>
 							</a>
 						</div>
-						<div class="menu-item @if(Request::route()->getName() === 'inventory.index') active @endif">
-							<a href="{{ route('inventory.index') }}" class="menu-link">
-								<div class="menu-text">Inventaires</div>
-							</a>
-						</div>
 					</div>
 				</div>
 			@endif
 
+			@if($currentMembership?->hasPermission('inventory.manage'))
+				<div class="menu-header">INVENTAIRE</div>
+				<div class="menu-item @if(Request::route()->getName() === 'inventory.index') active @endif">
+					<a href="{{ route('inventory.index') }}" class="menu-link">
+						<span class="menu-icon"><i class="fas fa-boxes"></i></span>
+						<span class="menu-text">Inventaires</span>
+					</a>
+				</div>
+			@endif
+
+			@if($currentMembership?->hasPermission('sales.manage'))
 			<!-- POS -->
 			<div class="menu-header">POS</div>
 			<div class="menu-item has-sub @if(Request::route()->getName() === 'history') active @endif">
@@ -89,15 +97,18 @@
 				</div> -->
 			</div>
 		</div>
+			@endif
 
-			<div class="menu-item @if(Request::route()->getName() === 'client.index') active @endif">
-				<a href="{{ route('client.index') }}" class="menu-link">
-					<span class="menu-icon"><i class="fas fa-user-friends"></i></span>
-					<span class="menu-text">Clients</span>
-				</a>
-			</div>
+			@if($currentMembership?->hasPermission('clients.manage'))
+				<div class="menu-item @if(Request::route()->getName() === 'client.index') active @endif">
+					<a href="{{ route('client.index') }}" class="menu-link">
+						<span class="menu-icon"><i class="fas fa-user-friends"></i></span>
+						<span class="menu-text">Clients</span>
+					</a>
+				</div>
+			@endif
 
-			@if(auth()->user()->user_type!=3)
+			@if($currentMembership?->hasPermission('catalog.manage'))
 				<div class="menu-item @if(Request::route()->getName() === 'supplier.index') active @endif">
 					<a href="{{ route('supplier.index') }}" class="menu-link">
 						<span class="menu-icon"><i class="fas fa-truck"></i></span>
@@ -107,7 +118,7 @@
 			@endif
 
 			<!-- PROMO CODE -->
-			@if(auth()->user()->user_type!=3)
+			@if($currentMembership?->hasPermission('catalog.manage'))
 				{{--<div class="menu-header">CODE PROMO</div>
 				<div class="menu-item @if(Request::route()->getName() === 'code.index') active @endif">
 					<a href="{{ route('code.index') }}" class="menu-link">
@@ -118,7 +129,7 @@
 			@endif
 
 			<!-- AMS -->
-			@if(auth()->user()->user_type!=3)
+			@if($currentMembership?->hasPermission('cash.manage'))
 				<div class="menu-header">COMPTABILITE</div>
 				<div class="menu-item has-sub 
 					@if(Request::route()->getName() === 'cash-account.index' || Request::route()->getName() === 'transaction.index' 
@@ -166,7 +177,7 @@
 			@endif
 
 			<!-- ECOMMERCE -->
-			@if(auth()->user()->user_type!=3)
+			@if($currentMembership?->hasPermission('ecommerce.manage'))
 			<div class="menu-header">ECOMMERCE</div>
 			<div class="menu-item has-sub
 				@if(Request::route()->getName() === 'ecommerce.settings' || Request::route()->getName() === 'ecommerce.orders.index' || Request::route()->getName() === 'ecommerce.orders.show')
@@ -198,7 +209,7 @@
 
 			<!-- UTILISATEURS -->
 			<div class="menu-divider"> </div>
-			@if(auth()->user()->user_type!=3)
+			@if($currentMembership?->hasPermission('members.manage'))
 				<div class="menu-header">UTILISATEURS</div>
 				<div class="menu-item @if(Request::route()->getName() === 'user.index') active @endif">
 					<a href="{{ route('user.index') }}" class="menu-link">
@@ -206,8 +217,14 @@
 						<span class="menu-text">Utilisateurs</span>
 					</a>
 				</div>
+				<div class="menu-item @if(Request::routeIs('roles.*')) active @endif">
+					<a href="{{ route('roles.index') }}" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-shield-lock"></i></span>
+						<span class="menu-text">Rôles et permissions</span>
+					</a>
+				</div>
 			@endif
-			@if(auth()->user()->user_type == 1)
+			@if($currentMembership?->role?->key === 'owner')
 				<div class="menu-header">SUPER UTILISATEUR</div>
 				<div class="menu-item @if(Request::route()->getName() === 'sms-quota.index') active @endif">
 					<a href="{{ route('sms-quota.index') }}" class="menu-link">
@@ -222,9 +239,9 @@
 					<span class="menu-text">Profil</span>
 				</a>
 			</div>
-			@if(auth()->user()->user_type!=3)
+			@if($currentMembership?->hasPermission('company.manage') || $currentMembership?->hasPermission('notifications.manage'))
 			<div class="menu-header">PARAMETRES</div>
-			<div class="menu-item has-sub @if(Request::route()->getName() === 'company.index') active @endif">
+			<div class="menu-item has-sub @if(Request::route()->getName() === 'company.index' || Request::routeIs('notifications.*')) active @endif">
 				<a href="javascript:;" class="menu-link">
 					<div class="menu-icon">
 						<i class="bi bi-gear"></i>
@@ -233,11 +250,20 @@
 					<span class="menu-caret"><b class="caret"></b></span>
 				</a>
 				<div class="menu-submenu">
+					@if($currentMembership?->hasPermission('company.manage'))
 					<div class="menu-item @if(Request::route()->getName() === 'company.index') active @endif">
 						<a href="{{ route('company.index') }}" class="menu-link">
 							<div class="menu-text">Compagnie</div>
 						</a>
 					</div>
+					@endif
+					@if($currentMembership?->hasPermission('notifications.manage'))
+					<div class="menu-item @if(Request::routeIs('notifications.*')) active @endif">
+						<a href="{{ route('notifications.index') }}" class="menu-link">
+							<div class="menu-text">Notifications</div>
+						</a>
+					</div>
+					@endif
 				</div>
 			</div>
 			@endif

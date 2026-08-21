@@ -17,6 +17,8 @@ class SupplierController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Supplier::class);
+
         $Object = Supplier::where('status', 1)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
@@ -61,6 +63,8 @@ class SupplierController extends Controller
 
     public function disabledListing()
     {
+        $this->authorize('viewAny', Supplier::class);
+
         $Object = Supplier::where('status', 0)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
@@ -108,7 +112,7 @@ class SupplierController extends Controller
      */
     public function create()
     {
-        //
+        $this->authorize('create', Supplier::class);
     }
 
     /**
@@ -116,12 +120,19 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Supplier::class);
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "name.string" => "Le nom du fournisseur doit être un texte!",
+            "name.max" => "Le nom du fournisseur ne doit pas dépasser 255 caractères!",
         ];
 
         $validator = Validator::make($request->all(),[
-            'name' => ['required'],
+            'name' => ['required', 'string', 'max:255'],
+            'contact' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'whatsapp' => ['nullable', 'string', 'max:50'],
         ], $error_messages);
 
         if($validator->fails())
@@ -158,6 +169,8 @@ class SupplierController extends Controller
     public function show(string $id)
     {
         $Supplier = Supplier::with('products')->findOrFail($id);
+        $this->authorize('view', $Supplier);
+
         return view('component.supplier.show', compact('Supplier'));
     }
 
@@ -167,6 +180,8 @@ class SupplierController extends Controller
     public function edit($id)
     {
         $Supplier = Supplier::findOrFail($id);
+        $this->authorize('update', $Supplier);
+
         return view('component.supplier.edit', compact('Supplier'));
     }
 
@@ -175,12 +190,20 @@ class SupplierController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $Supplier = Supplier::findOrFail($id);
+        $this->authorize('update', $Supplier);
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "name.string" => "Le nom du fournisseur doit être un texte!",
+            "name.max" => "Le nom du fournisseur ne doit pas dépasser 255 caractères!",
         ];
 
         $validator = Validator::make($request->all(),[
-            'name' => ['required'],
+            'name' => ['required', 'string', 'max:255'],
+            'contact' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'whatsapp' => ['nullable', 'string', 'max:50'],
         ], $error_messages);
 
         if($validator->fails())
@@ -191,7 +214,6 @@ class SupplierController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            $Supplier = Supplier::findOrFail($id);
             $Supplier->update([
                 'name' => $request->name,
                 'contact' => $request->contact,
@@ -213,6 +235,7 @@ class SupplierController extends Controller
     public function destroy(string $id)
     {
         $Object = Supplier::findOrFail($id);
+        $this->authorize($Object->status == 1 ? 'delete' : 'restore', $Object);
 
         // Supplier actif => archivage
         if ($Object->status == 1) {

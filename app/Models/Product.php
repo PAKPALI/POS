@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\MenuProduct;
+use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Product extends Model
 {
-    use HasFactory;
-    protected $fillable = ['category_id','supplier_id','name','created_by','qte','price','purchase_price','price_ttc','margin','profit','image','status','email','type'];
+    use BelongsToCompany, HasFactory;
+    protected $fillable = ['company_id','category_id','supplier_id','name','created_by','qte','price','purchase_price','price_ttc','margin','profit','image','status','email','type'];
 
     public function category()
     {

@@ -1,7 +1,7 @@
 @extends('ecommerce.public.layout')
 @section('title', $product->name.' - '.($company->name ?? 'Boutique'))
 @section('content')
-    <a href="{{ url()->previous() }}" class="btn-outline-custom mb-4" style="font-size:.82rem;padding:.45rem 1rem;">
+    <a href="{{ route('storefront.products', $company) }}" class="btn-outline-custom mb-4" style="font-size:.82rem;padding:.45rem 1rem;">
         <i class="bi bi-arrow-left me-1"></i> Retour
     </a>
 
@@ -12,6 +12,7 @@
                     <img src="{{ asset('images/'.$product->image) }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='{{ asset('icons/product-placeholder.svg') }}';" style="width:100%;max-height:450px;object-fit:cover;display:block;">
                 @else
                     <img src="{{ asset('icons/product-placeholder.svg') }}" alt="Image par défaut pour {{ $product->name }}" loading="lazy">
+                @endif
             </div>
             <div class="mt-3 d-flex gap-2">
                 @if($product->qte > 0)
@@ -42,7 +43,7 @@
                         </button>
                     </div>
                 @endif
-                <a href="{{ url('/shop/checkout') }}" class="btn-outline-custom" style="padding:.65rem 1.5rem;">
+                <a href="{{ route('storefront.checkout', $company) }}" class="btn-outline-custom" style="padding:.65rem 1.5rem;">
                     <i class="bi bi-bag-check"></i> Commander directement
                 </a>
             </div>

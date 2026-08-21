@@ -9,6 +9,7 @@ use App\Models\AMS\Transaction;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Services\CompanyContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -16,6 +17,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         $Category = Category::where('status',1)->orderBy('name', 'asc')->get();
         $Product =  $Product = Product::where('status',1)->orderBy('name', 'asc')->get();
 
@@ -27,9 +29,9 @@ class DashboardController extends Controller
         $latestTransactions = Transaction::latest()->take(20)->get();
 
         $sales = Sale::all();
-        $totalProfit = Sale::sum('total_profit');
+        $totalProfit = $canViewFinancials ? Sale::sum('total_profit') : 0;
         $totalSalesAmount = Sale::sum('total_amount');
-        $sale_total_profit = Sale::sum('total_profit');
+        $sale_total_profit = $totalProfit;
         
         $settings = Setting::first();
 
@@ -45,7 +47,8 @@ class DashboardController extends Controller
             'transactions',
             'sales',
             'totalProfit',
-            'latestTransactions'
+            'latestTransactions',
+            'canViewFinancials'
         ));
     }
 

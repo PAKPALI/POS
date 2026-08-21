@@ -2,6 +2,7 @@
 
 namespace App\Models\AMS;
 
+use App\Traits\BelongsToCompany;
 use App\Models\AMS\Setting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,11 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class CashAccount extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     protected $table = 'cash_accounts';
 
     protected $fillable = [
+        'company_id',
         'name',
         'code',
         'balance',
@@ -32,20 +34,24 @@ class CashAccount extends Model
     
     public static function setDefaultCash($cashId)
     {
-        // desactivate all cashes
+        // Une seule caisse principale par entreprise.
         CashAccount::where('is_default', 1)->update([
             'is_default' => 0
         ]);
 
-        // Activate the selected cash
+        // Une même caisse ne peut jamais être principale et caisse de taxe.
         CashAccount::where('id', $cashId)->update([
-            'is_default' => 1
+            'is_default' => 1,
+            'is_tax' => 0,
         ]);
 
-        //sync with settings
+        $setting = Setting::first();
         Setting::updateOrCreate(
-            ['id' => 1],
-            ['default_cash_id' => $cashId]
+            $setting ? ['id' => $setting->id] : [],
+            [
+                'default_cash_id' => $cashId,
+                'tax_cash_id' => $setting?->tax_cash_id == $cashId ? null : $setting?->tax_cash_id,
+            ]
         );
     }
 
@@ -56,13 +62,17 @@ class CashAccount extends Model
         ]);
 
         CashAccount::where('id', $cashId)->update([
-            'is_tax' => 1
+            'is_tax' => 1,
+            'is_default' => 0,
         ]);
 
-        // sync avec settings
+        $setting = Setting::first();
         Setting::updateOrCreate(
-            ['id' => 1],
-            ['tax_cash_id' => $cashId]
+            $setting ? ['id' => $setting->id] : [],
+            [
+                'tax_cash_id' => $cashId,
+                'default_cash_id' => $setting?->default_cash_id == $cashId ? null : $setting?->default_cash_id,
+            ]
         );
     }
 }

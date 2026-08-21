@@ -42,7 +42,7 @@
                 </div>
                 <div class="card-body" style="padding:20px;">
                     <div id="emptyCartMessage" class="empty-state" style="display:none;">
-                        <i class="bi bi-cart-x"></i><h5>Panier vide</h5><a href="{{ url('/shop') }}" class="btn-primary-custom mt-2">Decouvrir nos produits</a>
+                        <i class="bi bi-cart-x"></i><h5>Panier vide</h5><a href="{{ route('storefront.home', $company) }}" class="btn-primary-custom mt-2">Decouvrir nos produits</a>
                     </div>
                     <div id="cartItemsList"></div>
                 </div>
@@ -167,10 +167,10 @@
         $('#cartInput').val(JSON.stringify(cart));
         $('#orderBtnText').hide(); $('#orderBtnLoader').show(); $('#submitOrderBtn').prop('disabled',true);
         $.ajax({
-            type: 'POST', url: '{{ url("/shop/order/place") }}', data: $(this).serialize(),
+            type: 'POST', url: '{{ route("storefront.order.place", $company) }}', data: $(this).serialize(),
             success: function(data) {
                 $('#orderBtnText').show(); $('#orderBtnLoader').hide(); $('#submitOrderBtn').prop('disabled',false);
-                if (data.status) { localStorage.removeItem(CART_KEY); window.location.href = '{{ url("/shop/success") }}?code=' + data.code; }
+                if (data.status) { localStorage.removeItem(CART_KEY); window.location.href = '{{ route("storefront.success", $company) }}?code=' + data.code; }
                 else { alert(data.msg || 'Erreur'); }
             },
             error: function() { $('#orderBtnText').show(); $('#orderBtnLoader').hide(); $('#submitOrderBtn').prop('disabled',false); alert('Erreur serveur'); }

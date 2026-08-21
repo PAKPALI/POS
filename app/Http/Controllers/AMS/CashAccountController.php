@@ -5,6 +5,7 @@ namespace App\Http\Controllers\AMS;
 use App\Http\Controllers\Controller;
 use App\Models\Action;
 use App\Models\AMS\CashAccount;
+use App\Services\CompanyContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -123,14 +124,21 @@ class CashAccountController extends Controller
         DB::beginTransaction();
 
         try {
-            $nextId = CashAccount::max('id') + 1;
-            $code = 'CASH-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+            $companyId = app(CompanyContext::class)->getCompanyId();
+            $sequence = CashAccount::where('company_id', $companyId)->count() + 1;
+            do {
+                $code = 'CASH-'.$companyId.'-'.str_pad($sequence++, 4, '0', STR_PAD_LEFT);
+            } while (CashAccount::withoutCompanyScope()->where('code', $code)->exists());
+
+            $isDefault = $request->boolean('is_default');
+            $isTax = $request->boolean('is_tax') && !$isDefault;
 
             $data = [
+                'company_id' => $companyId,
                 'name' => $request->name,
                 'code' => $code,
-                'is_default' => $request->is_default ? 1 : 0,
-                'is_tax' => $request->is_tax ? 1 : 0,
+                'is_default' => $isDefault,
+                'is_tax' => $isTax,
                 'status' => $request->status ? 1 : 0,
                 'description' => $request->description,
                 'created_by' => auth()->user()->id,
@@ -138,11 +146,11 @@ class CashAccountController extends Controller
 
             $newCash = CashAccount::create($data);
 
-            if ($request->is_default) {
+            if ($isDefault) {
                 CashAccount::setDefaultCash($newCash->id);
             }
 
-            if ($request->is_tax) {
+            if ($isTax) {
                 CashAccount::setTaxCash($newCash->id);
             }
 
@@ -220,19 +228,22 @@ class CashAccountController extends Controller
         DB::beginTransaction();
 
         try {
+            $isDefault = $request->boolean('is_default');
+            $isTax = $request->boolean('is_tax') && !$isDefault;
+
             $cashAccount->update([
                 'name' => $request->name,
-                'is_default' => $request->is_default ? 1 : 0,
-                'is_tax' => $request->is_tax ? 1 : 0,
+                'is_default' => $isDefault,
+                'is_tax' => $isTax,
                 'status' => $request->status ? 1 : 0,
                 'description' => $request->description,
             ]);
 
             //cash manage by default, only one cash can be default
-            if ($request->is_default) {
+            if ($isDefault) {
                 CashAccount::setDefaultCash($cashAccount->id);
             }
-            if ($request->is_tax) {
+            if ($isTax) {
                 CashAccount::setTaxCash($cashAccount->id); // 👈 NEW
             }
 

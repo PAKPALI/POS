@@ -5,8 +5,11 @@ use App\Http\Controllers\AMS\DashboardController;
 use App\Http\Controllers\AMS\SettingController;
 use App\Http\Controllers\AMS\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\CodePromo\CodePromoController;
 use App\Http\Controllers\Company\CompanyController;
+use App\Http\Controllers\Company\SwitchCompanyController;
+use App\Http\Controllers\Company\NotificationSettingController;
 use App\Http\Controllers\SmsQuotaController;
 use App\Http\Controllers\Component\CategoryController;
 use App\Http\Controllers\Component\ClientController;
@@ -16,6 +19,8 @@ use App\Http\Controllers\Component\ProductController;
 use App\Http\Controllers\Component\SupplierController;
 use App\Http\Controllers\Sale\SaleController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\User\RoleController;
+use App\Http\Controllers\User\CompanyInvitationController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -46,22 +51,66 @@ Route::get('', function () {
 // manage user before auth-login
 Route::get('user_login', function () {
     if(Auth::user()){
-        return redirect()->route('dashboard');
+        return redirect(app(\App\Services\AuthorizedLandingPage::class)->forUser(
+            Auth::user(),
+            session('active_company_id')
+        ));
     }else{
-        return view('admin/login');
+        return response()->view('admin/login')->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 })->name('user_login');
 
 Route::post('admin_register', [UserController::class, "register"])->name('admin_register');
+Route::get('signup', fn () => response()->view('admin.register')->withHeaders([
+    'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma' => 'no-cache',
+    'Expires' => '0',
+]))->middleware('guest')->name('signup');
+Route::get('invitations/{token}', [InvitationAcceptanceController::class, 'show'])
+    ->middleware('throttle:30,1')->name('invitations.show');
+Route::post('invitations/{token}/accept', [InvitationAcceptanceController::class, 'accept'])
+    ->middleware('throttle:10,1')->name('invitations.accept');
+Route::post('invitations/{token}/decline', [InvitationAcceptanceController::class, 'decline'])
+    ->middleware('throttle:10,1')->name('invitations.decline');
+
+Route::middleware('auth')->prefix('companies')->name('companies.')->group(function () {
+    Route::get('select', [SwitchCompanyController::class, 'select'])->name('select');
+    Route::get('create', [CompanyController::class, 'create'])->name('create');
+    Route::post('', [CompanyController::class, 'store'])->name('store');
+    Route::post('{companyId}/switch', [SwitchCompanyController::class, 'switch'])
+        ->middleware('throttle:20,1')
+        ->name('switch');
+    Route::post('leave', [SwitchCompanyController::class, 'leave'])->name('leave');
+});
 
 /*manage user after auth-login*/
-Route::prefix('')->middleware(['auth'])->controller(UserController::class)->group(function () {
+Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->controller(UserController::class)->group(function () {
     //dashboard
-    Route::get('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', 'dashboard')->middleware('permission:dashboard.view')->name('dashboard');
     //profil
     Route::get('profil', function () {return view('user/profile');})->name('profil');
     // user
-    Route::resource('user', UserController::class);
+    Route::post('user/attach-existing', 'attachExisting')
+        ->middleware('permission:members.manage')
+        ->name('user.attach-existing');
+    Route::post('user/invitations', [CompanyInvitationController::class, 'store'])
+        ->middleware('permission:members.manage')->name('user.invitations.store');
+    Route::post('user/invitations/{invitation}/resend', [CompanyInvitationController::class, 'resend'])
+        ->middleware('permission:members.manage')->name('user.invitations.resend');
+    Route::delete('user/invitations/{invitation}', [CompanyInvitationController::class, 'destroy'])
+        ->middleware('permission:members.manage')->name('user.invitations.destroy');
+    Route::get('user/{user}/transfer-options', 'transferOptions')
+        ->middleware('permission:members.manage')->name('user.transfer-options');
+    Route::post('user/{user}/transfer-company', 'transferToCompany')
+        ->middleware('permission:members.manage')->name('user.transfer-company');
+    Route::resource('user', UserController::class)->middleware('permission:members.manage');
+    Route::resource('roles', RoleController::class)
+        ->only(['index', 'store', 'update', 'destroy'])
+        ->middleware('permission:members.manage');
     // Route::get('getEmployeList', 'getEmployeList')->name('getEmployeList');
     // update email
     Route::post('updateEmail', 'updateEmail');
@@ -69,12 +118,14 @@ Route::prefix('')->middleware(['auth'])->controller(UserController::class)->grou
     Route::post('updatePassword', 'updatePassword');
 
     // chart
-    Route::post('/statistics/top-products', [UserController::class, 'topSellingProducts'])->name('statistics.topProducts');
+    Route::post('/statistics/top-products', [UserController::class, 'topSellingProducts'])
+        ->middleware('permission:dashboard.view')
+        ->name('statistics.topProducts');
 
 });
 
 /*manage component*/
-Route::prefix('component')->middleware(['auth'])->group(function () {
+Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage'])->group(function () {
     //category
     Route::controller(CategoryController::class)->group(function () {
         Route::resource('category', CategoryController::class);
@@ -84,11 +135,6 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     Route::controller(ProductController::class)->group(function () {
         Route::resource('product', ProductController::class);
         Route::get('product-disabled', [ProductController::class, 'disabledListing'])->name('product.disabled.listing');
-    });
-    //client
-    Route::controller(ClientController::class)->group(function () {
-        Route::resource('client', ClientController::class);
-        Route::get('client-disabled', [ClientController::class, 'disabledListing'])->name('client.disabled.listing');
     });
     //supplier
     Route::controller(SupplierController::class)->group(function () {
@@ -102,6 +148,9 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
         Route::resource('menu', MenuController::class);
     });
     // inventory
+});
+
+Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:inventory.manage'])->group(function () {
     Route::controller(InventoryController::class)->group(function () {
         Route::resource('inventory', InventoryController::class);
         Route::post('inventory-remove', 'remove')->name('inventory.remove');
@@ -109,8 +158,13 @@ Route::prefix('component')->middleware(['auth'])->group(function () {
     });
 });
 
+Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:clients.manage'])->group(function () {
+    Route::resource('client', ClientController::class);
+    Route::get('client-disabled', [ClientController::class, 'disabledListing'])->name('client.disabled.listing');
+});
+
 /*manage POS*/
-Route::prefix('pos')->middleware(['auth'])->group(function () {
+Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:sales.manage'])->group(function () {
     //sale
     Route::controller(SaleController::class)->group(function () {
         Route::resource('sale', SaleController::class);
@@ -122,7 +176,7 @@ Route::prefix('pos')->middleware(['auth'])->group(function () {
     });
 });
 
-Route::prefix('code')->middleware(['auth'])->group(function () {
+Route::prefix('code')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage'])->group(function () {
     //sale
     Route::controller(CodePromoController::class)->group(function () {
         Route::resource('code', CodePromoController::class);
@@ -131,7 +185,7 @@ Route::prefix('code')->middleware(['auth'])->group(function () {
     });
 });
 
-Route::prefix('ams')->middleware(['auth'])->group(function () {
+Route::prefix('ams')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:cash.manage'])->group(function () {
     //dashboard
     Route::get('/dashboard-ams', [DashboardController::class, 'index'])->name('ams.dashboard');
     Route::post('/dashboard-ams/stats', [DashboardController::class, 'transactionStats'])->name('ams.stats');
@@ -144,7 +198,7 @@ Route::prefix('ams')->middleware(['auth'])->group(function () {
 });
 
 /*manage ecommerce admin*/
-Route::prefix('ecommerce')->middleware(['auth'])->group(function () {
+Route::prefix('ecommerce')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:ecommerce.manage'])->group(function () {
     Route::get('settings', [App\Http\Controllers\Ecommerce\SettingController::class, 'index'])->name('ecommerce.settings');
     Route::post('settings/update', [App\Http\Controllers\Ecommerce\SettingController::class, 'updateSettings'])->name('ecommerce.settings.update');
     Route::post('managers/add', [App\Http\Controllers\Ecommerce\SettingController::class, 'addManager'])->name('ecommerce.managers.add');
@@ -156,6 +210,16 @@ Route::prefix('ecommerce')->middleware(['auth'])->group(function () {
 });
 
 /*public ecommerce routes*/
+Route::prefix('boutique/{company:slug}')->controller(App\Http\Controllers\Ecommerce\FrontController::class)->group(function () {
+    Route::get('/', 'index')->name('storefront.home');
+    Route::get('/products', 'allProducts')->name('storefront.products');
+    Route::get('/category/{id}', 'category')->name('storefront.category');
+    Route::get('/product/{id}', 'product')->name('storefront.product');
+    Route::get('/checkout', 'checkout')->name('storefront.checkout');
+    Route::post('/order/place', 'placeOrder')->name('storefront.order.place');
+    Route::get('/success', 'success')->name('storefront.success');
+});
+
 Route::prefix('shop')->controller(App\Http\Controllers\Ecommerce\FrontController::class)->group(function () {
     Route::get('/', 'index')->name('shop.home');
     Route::get('/products', 'allProducts')->name('shop.products');
@@ -166,7 +230,7 @@ Route::prefix('shop')->controller(App\Http\Controllers\Ecommerce\FrontController
     Route::get('/success', 'success')->name('shop.success');
 });
 
-Route::prefix('setting')->middleware(['auth'])->group(function () {
+Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:company.manage'])->group(function () {
     //company
     Route::controller(CompanyController::class)->group(function () {
         Route::resource('company', CompanyController::class);
@@ -176,7 +240,15 @@ Route::prefix('setting')->middleware(['auth'])->group(function () {
     Route::post('sms-quota', [SmsQuotaController::class, 'update'])->name('sms-quota.update');
 });
 
+Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:notifications.manage'])->group(function () {
+    Route::get('notifications', [NotificationSettingController::class, 'index'])->name('notifications.index');
+    Route::put('notifications', [NotificationSettingController::class, 'update'])->name('notifications.update');
+});
+
 Auth::routes();
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', fn () => redirect(app(\App\Services\AuthorizedLandingPage::class)->forUser(
+    Auth::user(),
+    session('active_company_id')
+)))->middleware('auth')->name('home');
 Route::post('outUser', [UserController::class, 'outUser'])->name('outUser');
 Route::post('/login', [LoginController::class, 'login'])->name('login');

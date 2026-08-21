@@ -45,10 +45,9 @@
                                             </div>
                                         </div>
                                         <div class="card-footer mt-4">
-                                            <button type="submit" class="btn btn-primary">
-                                                <div id="loader" class="spinner-grow"></div>
-                                                <div id="submitText">Valider</div>
-                                            </button> 
+                                            <button type="submit" class="btn btn-primary" data-loading-text="Ajout en cours…">
+                                                Valider
+                                            </button>
                                         </div>
                                     </form>
                                     </div>
@@ -182,8 +181,25 @@
 
     <script>
         $(function() {
-            // hide loader
-            $('#loader').hide();
+            function clientRequestError(xhr, fallback) {
+                const response = xhr && xhr.responseJSON ? xhr.responseJSON : {};
+                const validationErrors = response.errors ? Object.values(response.errors) : [];
+                const firstValidationError = validationErrors.length
+                    ? (Array.isArray(validationErrors[0]) ? validationErrors[0][0] : validationErrors[0])
+                    : null;
+
+                return response.msg || response.message || firstValidationError || fallback;
+            }
+
+            function trackClientRequest(button, request, loadingText) {
+                if (window.ServerButtonLoader) {
+                    window.ServerButtonLoader.withLoader(button, request, loadingText).catch(function() {
+                        // L'erreur est déjà présentée par le gestionnaire AJAX de l'action.
+                    });
+                }
+
+                return request;
+            }
 
             var DatatableActive = $('#datatable').DataTable({
                 processing: true,
@@ -305,21 +321,16 @@
             });
 
             //Add client
-            $('#add').submit(function() {
+            $('#add').submit(function(event) {
                 event.preventDefault();
-                $('#loader').fadeIn();
-                $('#submitText').hide();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('client.store') }}",
                     //enctype: 'multipart/form-data',
                     data: $('#add').serialize(),
-                    datatype: 'json',
+                    dataType: 'json',
                     success: function(data) {
-                        console.log(data)
                         if (data.status) {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -334,8 +345,6 @@
                             $('#addModal').modal('hide');
                             DatatableActive.draw();
                         } else {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
                             Swal.fire({
                                 toast: true,
                                 position: 'top',
@@ -348,14 +357,11 @@
                             });
                         }
                     },
-                    error: function(data) {
-                        console.log(data)
-                        $('#loader').hide();
-                        $('#submitText').fadeIn();
+                    error: function(xhr) {
                         Swal.fire({
                             icon: "error",
-                            title: "erreur",
-                            text: "Impossible de communiquer avec le serveur.",
+                            title: "Ajout impossible",
+                            text: clientRequestError(xhr, "Impossible de communiquer avec le serveur."),
                             timer: 3600,
                         })
                     }
@@ -363,39 +369,109 @@
                 return false;
             });
 
-            $('body').on('click', '.editModal', function () {
-                var id = $(this).data("id");
-                $.ajax({
+            $('body').on('click', '.editModal', function (event) {
+                event.preventDefault();
+                const button = event.currentTarget;
+                const id = $(button).data("id");
+                const request = $.ajax({
                     url:'{{url('component/client')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {
                         $('#edit_response').html(result);
+                        $('#editModal').modal('show');
+                    },
+                    error:function(xhr)
+                    {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Chargement impossible',
+                            text: clientRequestError(xhr, "Impossible de charger le formulaire de modification."),
+                        });
                     }
                 });
-                $('#editModal').modal('show');
+
+                trackClientRequest(button, request, 'Chargement…');
             });
 
-            $('body').on('click', '.view', function () {
-                var id = $(this).data("id");
-                $.ajax({
+            $('body').on('click', '.view', function (event) {
+                event.preventDefault();
+                const button = event.currentTarget;
+                const id = $(button).data("id");
+                const request = $.ajax({
                     url:'{{url('component/client')}}/'+id,
                     dataType: 'html',
                     success:function(result)
                     {
                         $('#show_response').html(result);
+                        $('#showModal').modal('show');
+                    },
+                    error:function(xhr)
+                    {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Chargement impossible',
+                            text: clientRequestError(xhr, "Impossible de consulter ce client."),
+                        });
                     }
                 });
-                $('#showModal').modal('show');
+
+                trackClientRequest(button, request, 'Chargement…');
             });
+
+            function submitClientStatusChange(id, csrfToken, fallbackMessage) {
+                const cancelButton = Swal.getCancelButton();
+                if (cancelButton) cancelButton.disabled = true;
+
+                return new Promise(function(resolve) {
+                    $.ajax({
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        type: 'DELETE',
+                        url: '{{url('component/client')}}/' + id,
+                        dataType: 'json',
+                    })
+                        .done(function(data) {
+                            if (!data || !data.status) {
+                                if (cancelButton) cancelButton.disabled = false;
+                                Swal.showValidationMessage((data && data.msg) || fallbackMessage);
+                                resolve(false);
+                                return;
+                            }
+
+                            resolve(data);
+                        })
+                        .fail(function(xhr) {
+                            if (cancelButton) cancelButton.disabled = false;
+                            Swal.showValidationMessage(clientRequestError(xhr, fallbackMessage));
+                            resolve(false);
+                        });
+                });
+            }
+
+            function showClientStatusSuccess(data) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top',
+                    icon: 'success',
+                    title: data.title,
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    text: data.msg,
+                });
+                DatatableActive.draw();
+                DatatableInactive.draw();
+            }
 
             // archive object
             $('body').on('click', '.archive', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data("id");   
-                
+                const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                const id = $(this).data('id');
+
                 Swal.fire({
-                    icon: "warning",
+                    icon: 'warning',
                     title: "Confirmer l'opération",
                     html: `
                         <div style="
@@ -411,100 +487,54 @@
                             Ce client sera <strong>ARCHIVÉ</strong>.
                         </div>
                     `,
-                    confirmButtonText: "Oui",
-                    confirmButtonColor: "#dc3545",
+                    confirmButtonText: 'Oui',
+                    confirmButtonColor: '#dc3545',
                     showCancelButton: true,
-                    cancelButtonText: "Non",
-                    cancelButtonColor: "#0d6efd",
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "DELETE",
-                            url: '{{url('component/client')}}/'+id,
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    DatatableActive.draw();
-                                    DatatableInactive.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
-                                }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
-                        });
-                    }
-                })
+                    cancelButtonText: 'Non',
+                    cancelButtonColor: '#0d6efd',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        return submitClientStatusChange(
+                            id,
+                            csrfToken,
+                            "Impossible d'archiver ce client."
+                        );
+                    },
+                }).then(function(result) {
+                    if (!result.isConfirmed || !result.value) return;
+                    showClientStatusSuccess(result.value);
+                });
             });
 
             // restore object
             $('body').on('click', '.restore', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data("id");
-                
+                const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                const id = $(this).data('id');
+
                 Swal.fire({
-                    icon: "question",
-                    title: "Etes vous sur de vouloir restaurer ce client?",
-                    confirmButtonText: "Oui",
+                    icon: 'question',
+                    title: 'Êtes-vous sûr de vouloir restaurer ce client ?',
+                    confirmButtonText: 'Oui',
                     confirmButtonColor: 'green',
                     showCancelButton: true,
-                    cancelButtonText: "Non",
+                    cancelButtonText: 'Non',
                     cancelButtonColor: 'blue',
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "DELETE",
-                            url: '{{url('component/client')}}/'+id,
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    DatatableActive.draw();
-                                    DatatableInactive.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
-                                }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
-                        });
-                    }
-                })
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        return submitClientStatusChange(
+                            id,
+                            csrfToken,
+                            'Impossible de restaurer ce client.'
+                        );
+                    },
+                }).then(function(result) {
+                    if (!result.isConfirmed || !result.value) return;
+                    showClientStatusSuccess(result.value);
+                });
             });
         }); 
     </script>

@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Models\Sale;
 use App\Models\Product;
+use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SaleDetail extends Model
 {
-    use HasFactory;
-    protected $fillable = ['sale_id', 'product_id', 'quantity', 'unit_price', 'total_price', 'profit'];
+    use BelongsToCompany, HasFactory;
+    protected $fillable = ['company_id', 'sale_id', 'product_id', 'quantity', 'unit_price', 'total_price', 'profit'];
 
     public function sale()
     {

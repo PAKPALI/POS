@@ -4,6 +4,8 @@
     #managers-table tbody tr { background-color: #f0f0f0; }
     #managers-table tbody tr:hover { background-color: #e0e0e0; }
     .current-logo { max-height: 80px; border-radius: 8px; }
+    .storefront-access { border: 1px solid rgba(25,195,125,.35); background: rgba(25,195,125,.07); border-radius: 14px; }
+    .storefront-url { overflow-wrap: anywhere; color: #55dca4; }
 </style>
 @endpush
 
@@ -57,12 +59,30 @@
                                         <input type="checkbox" name="ecommerce_active" class="form-check-input" id="ecommerce_active" value="1" {{ $company->ecommerce_active ? 'checked' : '' }}>
                                         <label class="form-check-label" for="ecommerce_active">Boutique en ligne active</label>
                                     </div>
-                                    @if($company->ecommerce_active)
-                                        <small class="text-muted">
-                                            Votre boutique est accessible sur :
-                                            <a href="{{ url('/shop') }}" target="_blank">{{ url('/shop') }}</a>
-                                        </small>
-                                    @endif
+                                </div>
+
+                                @php $storefrontUrl = route('storefront.home', $company); @endphp
+                                <div class="storefront-access p-3 mb-4">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                        <div>
+                                            <div class="fw-bold"><i class="bi bi-globe2 me-2"></i>Lien d’accès à la boutique</div>
+                                            <div class="small text-muted mt-1">
+                                                {{ $company->ecommerce_active ? 'La boutique est actuellement accessible au public.' : 'Activez la boutique pour rendre ce lien accessible au public.' }}
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-{{ $company->ecommerce_active ? 'success' : 'secondary' }}">
+                                            {{ $company->ecommerce_active ? 'En ligne' : 'Hors ligne' }}
+                                        </span>
+                                    </div>
+                                    <a id="storefrontUrl" class="storefront-url d-block mb-3" href="{{ $storefrontUrl }}" target="_blank" rel="noopener">{{ $storefrontUrl }}</a>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="{{ $storefrontUrl }}" target="_blank" rel="noopener" class="btn btn-success btn-sm">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Ouvrir la boutique
+                                        </a>
+                                        <button type="button" id="copyStorefrontUrl" class="btn btn-outline-light btn-sm" data-url="{{ $storefrontUrl }}">
+                                            <i class="bi bi-copy me-1"></i> Copier le lien
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">
@@ -121,6 +141,12 @@
 <script>
 $(function() {
     $('#settingsLoader').hide();
+
+    $('#copyStorefrontUrl').on('click', function() {
+        navigator.clipboard.writeText($(this).data('url')).then(function() {
+            Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'Lien copié', showConfirmButton: false, timer: 1800 });
+        });
+    });
 
     @if($company)
     var managersTable = $('#managers-table').DataTable({

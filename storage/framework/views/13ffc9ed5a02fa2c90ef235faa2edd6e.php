@@ -29,6 +29,20 @@
     </div>
 
     <div class="menu">
+        <?php if(isset($activeCompany)): ?>
+            <div class="menu-item dropdown dropdown-mobile-full">
+                <a href="#" data-bs-toggle="dropdown" class="menu-link" title="Changer d'entreprise">
+                    <div class="menu-icon"><i class="bi bi-buildings"></i></div>
+                    <div class="menu-text d-sm-block d-none"><?php echo e($activeCompany->name); ?></div>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end me-lg-3 mt-1">
+                    <div class="dropdown-header">Entreprise active</div>
+                    <div class="dropdown-item-text fw-bold"><?php echo e($activeCompany->name); ?></div>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="<?php echo e(route('companies.select')); ?>">Changer d'entreprise</a>
+                </div>
+            </div>
+        <?php endif; ?>
         <!-- <div class="menu-item dropdown">
             <a href="#" data-toggle-class="app-header-menu-search-toggled" data-toggle-target=".app"
                 class="menu-link">
@@ -45,7 +59,7 @@
                         <a href="pos_customer_order.html" target="_blank"
                             class="dropdown-item text-decoration-none p-3 bg-none">
                             <div><i class="bi bi-hdd-network h2 opacity-5 d-block my-1"></i></div>
-                            <div class="fw-500 fs-10px text-inverse">POS</div>
+                            <div class="fw-500 fs-10px text-inverse">Point de vente</div>
                         </a>
                     </div>
                 </div>
@@ -62,12 +76,12 @@
                 </div> -->
             </div>
         </div>
-        <div class="menu-item dropdown dropdown-mobile-full">
+        <!--<div class="menu-item dropdown dropdown-mobile-full">
             <a href="#" data-bs-toggle="dropdown" data-bs-display="static" class="menu-link">
                 <div class="menu-icon"><i class="bi bi-bell nav-icon"></i></div>
                 <div class="menu-badge bg-theme"></div>
             </a>
-            <!-- <div class="dropdown-menu dropdown-menu-end mt-1 w-300px fs-11px pt-1">
+            <div class="dropdown-menu dropdown-menu-end mt-1 w-300px fs-11px pt-1">
                 <h6 class="dropdown-header fs-10px mb-1">NOTIFICATIONS</h6>
                 <div class="dropdown-divider mt-1"></div>
                 <a href="#" class="d-flex align-items-center py-10px dropdown-item text-wrap fw-semibold">
@@ -87,8 +101,8 @@
                 <div class="py-10px mb-n2 text-center">
                     <a href="#" class="text-decoration-none fw-bold">Voir tout</a>
                 </div>
-            </div> -->
-        </div>
+            </div>
+        </div>-->
         <div class="menu-item dropdown dropdown-mobile-full">
             <a href="#" data-bs-toggle="dropdown" data-bs-display="static" class="menu-link">
                 <div class="menu-img online">
@@ -133,4 +147,5 @@
     </form>
 
 </div>
-<!--end header--><?php /**PATH C:\POS\resources\views/partials/navbar.blade.php ENDPATH**/ ?>
+<!--end header-->
+<?php /**PATH C:\POS\resources\views/partials/navbar.blade.php ENDPATH**/ ?>

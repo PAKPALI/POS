@@ -6,24 +6,31 @@ use App\Http\Controllers\Controller;
 use App\Models\Action;
 use App\Models\AMS\Setting;
 use App\Models\Category;
-use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Services\CompanyContext;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private CompanyContext $companyContext,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Product::class);
+        $this->ensureCategoryFilterBelongsToActiveCompany($request);
+
         // composer require yajra/laravel-datatables-oracle
         $query = Product::where('type',1)->where('status', 1);
 
@@ -105,6 +112,8 @@ class ProductController extends Controller
 
     public function disabledListing(Request $request)
     {
+        $this->authorize('viewAny', Product::class);
+
         $query = Product::where('type',1)->where('status', 0);
 
         $Object = $query->latest();
@@ -154,7 +163,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        //
+        $this->authorize('create', Product::class);
     }
 
     /**
@@ -162,10 +171,15 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Product::class);
+
         $error_messages = [
             "type.required" => "Sélectionnez un type!",
             "type.numeric" => "Sélectionnez un type qui doit être un nombre!",
+            "type.in" => "Le type de produit sélectionné est invalide!",
             "category.required" => "Sélectionnez une Catégorie!",
+            "category.exists" => "La catégorie sélectionnée n'appartient pas à la compagnie active!",
+            "supplier_id.exists" => "Le fournisseur sélectionné n'appartient pas à la compagnie active!",
             "name.required" => "Remplir le champ Nom!",
             // "qte.required" => "Remplir le champ Quantité!",
             // "qte.numeric" => "Le champ Quantité doit être un nombre!",
@@ -184,8 +198,9 @@ class ProductController extends Controller
         ];
         
         $validator = Validator::make($request->all(), [
-            'type' => ['required', 'numeric'],
-            'category' => ['required'],
+            'type' => ['required', Rule::in([1, '1'])],
+            'category' => ['required', 'integer', $this->companyExistsRule('categories')],
+            'supplier_id' => ['nullable', 'integer', $this->companyExistsRule('suppliers')],
             'name' => ['required'],
             // 'qte' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -254,6 +269,8 @@ class ProductController extends Controller
     public function show(string $id)
     {
         $Product = Product::findOrFail($id);
+        $this->authorize('view', $Product);
+
         return view('component.product.show', compact('Product'));
     }
 
@@ -263,6 +280,8 @@ class ProductController extends Controller
     public function edit(string $id)
     {
         $Product = Product::findOrFail($id);
+        $this->authorize('update', $Product);
+
         $Category = Category::where('status','1')->latest()->get();
         $Supplier = Supplier::where('status','1')->latest()->get();
         return view('component.product.edit', compact('Product','Category','Supplier'));
@@ -273,8 +292,13 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $Product = Product::findOrFail($id);
+        $this->authorize('update', $Product);
+
         $error_messages = [
             "category.required" => "Sélectionnez une Catégorie!",
+            "category.exists" => "La catégorie sélectionnée n'appartient pas à la compagnie active!",
+            "supplier_id.exists" => "Le fournisseur sélectionné n'appartient pas à la compagnie active!",
             "name.required" => "Remplir le champ Nom!",
             "qte.required" => "Remplir le champ Quantité!",
             "qte.numeric" => "Le champ Quantité doit être un nombre!",
@@ -293,7 +317,8 @@ class ProductController extends Controller
         ];
         
         $validator = Validator::make($request->all(), [
-            'category' => ['required'],
+            'category' => ['required', 'integer', $this->companyExistsRule('categories')],
+            'supplier_id' => ['nullable', 'integer', $this->companyExistsRule('suppliers')],
             'name' => ['required'],
             // 'qte' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -315,7 +340,6 @@ class ProductController extends Controller
 
             $price_ttc = $request->price + ($request->price * $tax / 100);
 
-            $Product = Product::findOrFail($id);
             $data = [
                 'category_id' => $request-> category,
                 'supplier_id' => $request->supplier_id ?: null,
@@ -379,6 +403,9 @@ class ProductController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $this->authorize('export', Product::class);
+        $this->ensureCategoryFilterBelongsToActiveCompany($request);
+
         $query = Product::where('type', 1);
 
         if($request->category_id){
@@ -399,7 +426,7 @@ class ProductController extends Controller
 
         $products = $query->latest()->get();
 
-        $company = CompanySetting::first();
+        $company = $this->companyContext->getCompany();
 
         $pdf = Pdf::loadView('component.product.pdf',compact('products', 'company'));
         Action::create([
@@ -417,6 +444,7 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $Object = Product::with('saleDetails')->findOrFail($id);
+        $this->authorize($Object->status == 1 ? 'delete' : 'restore', $Object);
 
         if($Object->status == 1){
             $productHasSales = $Object->saleDetails()->exists();
@@ -487,5 +515,21 @@ class ProductController extends Controller
                 "msg" => "Le produit ".$Object->name." a bien été restauré"
             ]);
         }
+    }
+
+    private function companyExistsRule(string $table)
+    {
+        return Rule::exists($table, 'id')->where(
+            fn ($query) => $query->where('company_id', $this->companyContext->getCompanyId())
+        );
+    }
+
+    private function ensureCategoryFilterBelongsToActiveCompany(Request $request): void
+    {
+        if (!$request->filled('category_id')) {
+            return;
+        }
+
+        abort_unless(Category::whereKey($request->input('category_id'))->exists(), 404);
     }
 }

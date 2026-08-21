@@ -2,78 +2,77 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Company;
 use App\Models\Inventory;
 use App\Models\User;
-use App\Models\CompanySetting;
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
+use App\Services\CompanyContext;
+use App\Services\NotificationRecipientService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SendWeeklyInventoryReport extends Command
 {
     protected $signature = 'inventory:weekly-report';
-    protected $description = 'Envoi du rapport hebdomadaire des inventaires';
+    protected $description = 'Envoi du rapport hebdomadaire des inventaires, compagnie par compagnie';
 
-    public function handle()
+    public function handle(): int
     {
-        // 📅 Semaine en cours (lundi -> dimanche)
         $startOfWeek = Carbon::now()->startOfWeek(Carbon::MONDAY);
         $endOfWeek = Carbon::now()->endOfWeek(Carbon::SUNDAY);
+        $sentReports = 0;
 
-        // 📦 Inventaires semaine
-        $inventories = Inventory::with('product', 'user')
-            ->whereBetween('created_at', [
-                $startOfWeek->format('Y-m-d 00:00:00'),
-                $endOfWeek->format('Y-m-d 23:59:59')
-            ])->latest()->get();
+        Company::active()->each(function (Company $company) use ($startOfWeek, $endOfWeek, &$sentReports) {
+            app(CompanyContext::class)->setPublicCompany($company);
 
-        if ($inventories->isEmpty()) {
-            Log::info("Aucun inventaire cette semaine");
-            return Command::SUCCESS;
-        }
+            $inventories = Inventory::with('product', 'user')
+                ->whereBetween('created_at', [$startOfWeek->copy()->startOfDay(), $endOfWeek->copy()->endOfDay()])
+                ->latest()
+                ->get();
 
-        $company = CompanySetting::first();
+            if ($inventories->isEmpty()) {
+                Log::info('Aucun inventaire cette semaine', ['company_id' => $company->id]);
+                return;
+            }
 
-        // 📄 Génération PDF
-        $pdf = Pdf::loadView('component.inventory.pdf', [
-            'inventories' => $inventories,
-            'company' => $company,
-            'start_date' => $startOfWeek,
-            'end_date' => $endOfWeek
-        ]);
-
-        $pdfContent = $pdf->output();
-
-        // 👥 utilisateurs ciblés
-        $users = User::where('status', 1)
-            ->where('user_type', '!=', 1)
-            ->get();
-
-        foreach ($users as $user) {
-
-            Mail::send('emails.inventory.weeklyReport', [
-                'user' => $user,
+            $pdfContent = Pdf::loadView('component.inventory.pdf', [
+                'inventories' => $inventories,
                 'company' => $company,
                 'start_date' => $startOfWeek,
                 'end_date' => $endOfWeek,
-            ], function ($message) use ($user, $pdfContent, $company) {
+            ])->output();
 
-                $message->to($user->email)
-                    ->subject("Rapport hebdomadaire inventaire - " . ($company->name ?? config('app.name')));
+            $users = app(NotificationRecipientService::class)->users($company->id, 'inventory', 'email');
 
-                $message->attachData(
-                    $pdfContent,
-                    'rapport-inventaire.pdf',
-                    ['mime' => 'application/pdf']
-                );
-            });
+            foreach ($users as $user) {
+                Mail::send('emails.inventory.weeklyReport', [
+                    'user' => $user,
+                    'company' => $company,
+                    'start_date' => $startOfWeek,
+                    'end_date' => $endOfWeek,
+                ], function ($message) use ($user, $pdfContent, $company) {
+                    $message->to($user->email)
+                        ->subject('Rapport hebdomadaire inventaire - '.$company->name)
+                        ->attachData(
+                            $pdfContent,
+                            'rapport-inventaire-'.$company->slug.'.pdf',
+                            ['mime' => 'application/pdf']
+                        );
+                });
 
-            Log::info("Weekly inventory report sent to {$user->email}");
-        }
+                Log::info('Weekly inventory report sent', [
+                    'company_id' => $company->id,
+                    'user_id' => $user->id,
+                ]);
+            }
 
-        $this->info("Rapport envoyé avec succès");
+            $sentReports++;
+        });
+
+        app(CompanyContext::class)->clear();
+        $this->info("{$sentReports} rapport(s) compagnie traité(s)");
 
         return Command::SUCCESS;
     }

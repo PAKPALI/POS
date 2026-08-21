@@ -5,13 +5,13 @@
             <h2 class="section-title">{{ $category->name }}</h2>
             <p class="section-subtitle mb-0">{{ $products->count() }} produit(s)</p>
         </div>
-        <a href="{{ url('/shop') }}" class="btn-outline-custom" style="font-size:.82rem;padding:.45rem 1rem;">
+        <a href="{{ route('storefront.home', $company) }}" class="btn-outline-custom" style="font-size:.82rem;padding:.45rem 1rem;">
             <i class="bi bi-arrow-left me-1"></i> Retour
         </a>
     </div>
 
     @if($products->isEmpty())
-        <div class="empty-state"><i class="bi bi-inbox"></i><h5>Aucun produit dans cette categorie</h5><a href="{{ url('/shop') }}" class="btn-primary-custom mt-3">Decouvrir tous les produits</a></div>
+        <div class="empty-state"><i class="bi bi-inbox"></i><h5>Aucun produit dans cette categorie</h5><a href="{{ route('storefront.home', $company) }}" class="btn-primary-custom mt-3">Decouvrir tous les produits</a></div>
     @else
         <div class="row g-3 product-grid-row">
             @foreach($products as $product)
@@ -41,7 +41,7 @@
                                     <i class="bi bi-cart-plus"></i> Ajouter
                                 </button>
                             </div>
-                            <a href="{{ url('/shop/product/'.$product->id) }}" class="btn-outline-custom w-100 mt-2 justify-content-center" style="font-size:.78rem;padding:.4rem .8rem;">Detail <i class="bi bi-chevron-right ms-1"></i></a>
+                            <a href="{{ route('storefront.product', [$company, $product->id]) }}" class="btn-outline-custom w-100 mt-2 justify-content-center" style="font-size:.78rem;padding:.4rem .8rem;">Detail <i class="bi bi-chevron-right ms-1"></i></a>
                         </div>
                     </div>
                 </div>

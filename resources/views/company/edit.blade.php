@@ -59,6 +59,7 @@
                 <textarea name="description" class="form-control" id="description" rows="3" placeholder="Description de l'entreprise">{{$Company->description}}</textarea>
             </div>
         </div>
+
     </div>
     <div class="card-footer mt-4">
         <button id="submit" class="btn btn-warning" type="submit">
@@ -114,7 +115,9 @@
                         });
 
                         $('#editModal').modal('hide');
-                        window.dispatchEvent(new Event('datatableUpdated'));
+                        // Le nom, l'e-mail et le logo sont aussi affichés dans les cartes du haut.
+                        // Recharger garantit que les deux représentations restent synchronisées.
+                        setTimeout(function() { window.location.reload(); }, 500);
                     } else {
                         $('.loader').fadeOut();
                         $('#submit_text').fadeIn();

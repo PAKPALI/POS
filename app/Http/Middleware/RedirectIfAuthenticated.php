@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Providers\RouteServiceProvider;
+use App\Services\AuthorizedLandingPage;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RedirectIfAuthenticated
 {
+    public function __construct(private AuthorizedLandingPage $landingPage) {}
+
     /**
      * Handle an incoming request.
      *
@@ -21,7 +23,10 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                return redirect($this->landingPage->forUser(
+                    Auth::guard($guard)->user(),
+                    $request->session()->get('active_company_id')
+                ));
             }
         }
 

@@ -114,6 +114,7 @@
             </div>
 
             <!-- total day profit daily-->
+            @if ($canViewFinancials)
             <div class="col-xl-3 col-lg-3 ">
                 <div class="card mb-3">
                     <div class="card-body">
@@ -145,6 +146,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <div class="col-12">
                 <div class="row">
@@ -206,7 +208,7 @@
                                                     <th>Code</th>
                                                     <th>Chiifre d'affaire</th>
                                                     <th>Remise</th>
-                                                    <th>Profit total</th>
+                                                    @if ($canViewFinancials)<th>Profit total</th>@endif
                                                     <th>Client</th>
                                                     <th>Date</th>
                                                     <th>Caissier</th>
@@ -296,7 +298,9 @@
                     {data: 'code',name: 'code'},
                     {data: 'total_amount',name: 'total_amount'},
                     {data: 'discount',name: 'discount'},
+                    @if ($canViewFinancials)
                     {data: 'total_profit',name: 'total_profit'},
+                    @endif
                     {data: 'client',name: 'client'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'cashier',name: 'cashier'},
@@ -324,7 +328,9 @@
                     $('#totalSale').text(json.totalSale);
                     $('#totalProduct').text(json.productCount);
                     $('#totalAmount').text(json.totalAmount);
+                    @if ($canViewFinancials)
                     $('#totalProfit').text(json.totalProfit);
+                    @endif
 
                     // Update top-selling product 
                     if (json.mostSoldProducts !== undefined) {

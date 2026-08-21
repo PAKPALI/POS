@@ -17,6 +17,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Category::class);
+
         // composer require yajra/laravel-datatables-oracle
         $Object = Category::where('status', 1)->latest();
         if(request()->ajax()){
@@ -57,6 +59,8 @@ class CategoryController extends Controller
 
     public function disabledListing()
     {
+        $this->authorize('viewAny', Category::class);
+
         // composer require yajra/laravel-datatables-oracle
         $Object = Category::where('status', 0)->latest();
         if(request()->ajax()){
@@ -100,7 +104,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        $this->authorize('create', Category::class);
     }
 
     /**
@@ -108,6 +112,8 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Category::class);
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
         ];
@@ -148,6 +154,8 @@ class CategoryController extends Controller
     public function show(string $id)
     {
         $Category = Category::findOrFail($id);
+        $this->authorize('view', $Category);
+
         return view('component.category.show', compact('Category'));
     }
 
@@ -157,6 +165,8 @@ class CategoryController extends Controller
     public function edit($id)
     {
         $Category = Category::findOrFail($id);
+        $this->authorize('update', $Category);
+
         return view('component.category.edit', compact('Category'));
     }
 
@@ -165,6 +175,9 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $Category = Category::findOrFail($id);
+        $this->authorize('update', $Category);
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
         ];
@@ -181,7 +194,6 @@ class CategoryController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            $Category = Category::findOrFail($id);
             $Category->update([
                 'name' => $request->name,
             ]);
@@ -201,6 +213,7 @@ class CategoryController extends Controller
     public function destroy(string $id)
     {
         $Object = Category::with('products')->findOrFail($id);
+        $this->authorize($Object->status == 1 ? 'delete' : 'restore', $Object);
 
         // Catégorie active
         if ($Object->status == 1) {

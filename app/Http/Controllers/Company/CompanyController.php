@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Company;
 
 use Illuminate\Http\Request;
-use App\Models\CompanySetting;
+use App\Models\Company;
+use App\Models\CompanyUser;
+use App\Services\CompanyContext;
+use App\Services\CompanyProvisioner;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -11,10 +14,22 @@ use Illuminate\Support\Facades\Validator;
 
 class CompanyController extends Controller
 {
+    public function __construct(
+        private CompanyContext $context,
+        private CompanyProvisioner $provisioner,
+    ) {}
+
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = CompanySetting::latest()->get();
+        $Object = Company::whereKey($this->context->getCompanyId())->get();
+        $memberships = CompanyUser::where('user_id', Auth::id())
+            ->where('status', 'active')
+            ->whereHas('company', fn ($query) => $query->where('status', 'active'))
+            ->with('company', 'role')
+            ->orderByDesc('last_accessed_at')
+            ->get();
+        $activeCompanyId = $this->context->getCompanyId();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -33,7 +48,12 @@ class CompanyController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        return view('company.index', compact('Object'));
+        return view('company.index', compact('Object', 'memberships', 'activeCompanyId'));
+    }
+
+    public function create()
+    {
+        return view('company.create');
     }
 
     public function store(Request $request)
@@ -50,6 +70,7 @@ class CompanyController extends Controller
             'email' => ['required'],
             'adress' => ['required'],
             'number1' => ['required'],
+            'default_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ], $error_messages);
 
         if($validator->fails())
@@ -82,11 +103,21 @@ class CompanyController extends Controller
                 $data['logo'] = 'images/'.$filename;
             }
 
-            CompanySetting::create($data);
+            $data['created_by'] = Auth::id();
+            $company = Company::create($data);
+            $this->provisioner->provision(
+                $company,
+                Auth::user(),
+                $request->filled('default_tax') ? (float) $request->default_tax : null
+            );
 
             return response()->json([
                 "status" => true,
                 "reload" => true,
+                "company_id" => $company->id,
+                "company_name" => $company->name,
+                "switch_url" => route('companies.switch', $company->id),
+                "selection_url" => route('companies.select'),
                 "title" => "AJOUT REUSSI",
                 "msg" => "La compagnie au nom de ".$request->name." a bien été ajoutée"
             ]);
@@ -94,13 +125,13 @@ class CompanyController extends Controller
 
     public function show(string $id)
     {
-        $Company = CompanySetting::findOrFail($id);
+        $Company = Company::whereKey($this->context->getCompanyId())->findOrFail($id);
         return view('company.show', compact('Company'));
     }
 
     public function edit($id)
     {
-        $Company = CompanySetting::findOrFail($id);
+        $Company = Company::whereKey($this->context->getCompanyId())->findOrFail($id);
         return view('company.edit', compact('Company'));
     }
 
@@ -126,7 +157,7 @@ class CompanyController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            $Company = CompanySetting::findOrFail($id);
+            $Company = Company::whereKey($this->context->getCompanyId())->findOrFail($id);
 
             $data = [
                 'name' => $request->name,

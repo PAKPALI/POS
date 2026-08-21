@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Component;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendInventoryWhatsappJob;
 use App\Models\Action;
-use App\Models\CompanySetting;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Services\CompanyContext;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class InventoryController extends Controller
@@ -22,6 +23,8 @@ class InventoryController extends Controller
      */
     public function index( Request $request )
     {
+        $this->ensureFiltersBelongToActiveCompany($request);
+
         // composer require yajra/laravel-datatables-oracle
         $Object = Inventory::with('product', 'user');
 
@@ -93,13 +96,32 @@ class InventoryController extends Controller
     {
         $error_messages = [
             "product_id.required" => "Sélectionnez un produit!",
+            "product_id.exists" => "Le produit sélectionné n'est pas disponible dans la compagnie active!",
+            "supplier_id.exists" => "Le fournisseur sélectionné n'est pas disponible dans la compagnie active!",
             "qte_added.required" => "Remplir le champ Quantité!",
             "qte_added.numeric" => "Le champ Quantité doit être un nombre!",
             "qte_added.min" => "La quantité ne doit pas être nulle ou négative!",
         ];
         
         $validator = Validator::make($request->all(), [
-            'product_id' => ['required'],
+            'product_id' => [
+                'required',
+                'integer',
+                Rule::exists('products', 'id')->where(
+                    fn ($query) => $query
+                        ->where('company_id', app(CompanyContext::class)->getCompanyId())
+                        ->where('status', 1)
+                ),
+            ],
+            'supplier_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('suppliers', 'id')->where(
+                    fn ($query) => $query
+                        ->where('company_id', app(CompanyContext::class)->getCompanyId())
+                        ->where('status', 1)
+                ),
+            ],
             'qte_added' => ['required','numeric','min:1'],
         ], $error_messages);
 
@@ -150,7 +172,7 @@ class InventoryController extends Controller
             ]);
 
             // dispatch notification WhatsApp
-            SendInventoryWhatsappJob::dispatch($inventory->id);
+            SendInventoryWhatsappJob::dispatch($inventory->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
 
             DB::commit();
 
@@ -194,16 +216,25 @@ class InventoryController extends Controller
             ]);
         }
 
-        DB::beginTransaction();
-        $Product = Product::findOrFail($request->product_id);
-
         try {
+            DB::beginTransaction();
+            $Product = Product::whereKey($request->product_id)->lockForUpdate()->firstOrFail();
 
             // quantité avant
             $before = $Product->qte;
 
             // quantité retirée
             $removed = $request->qte_removed;
+
+            if ($removed > $before) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => false,
+                    'title' => 'STOCK INSUFFISANT',
+                    'msg' => "La quantité demandée dépasse le stock disponible ({$before}).",
+                ], 422);
+            }
 
             // nouvelle quantité
             $after = $before - $removed;
@@ -231,7 +262,7 @@ class InventoryController extends Controller
             ]);
 
             // dispatch notification WhatsApp
-            SendInventoryWhatsappJob::dispatch($inventory->id);
+            SendInventoryWhatsappJob::dispatch($inventory->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
 
             DB::commit();
 
@@ -264,6 +295,8 @@ class InventoryController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $this->ensureFiltersBelongToActiveCompany($request);
+
         $query = Inventory::with('product', 'user');
         $start_date = $request->start_date;
         $end_date = $request->end_date;
@@ -289,7 +322,7 @@ class InventoryController extends Controller
 
         $inventories = $query->latest()->get();
 
-        $company = CompanySetting::first();
+        $company = app(CompanyContext::class)->getCompany();
         $pdf = Pdf::loadView('component.inventory.pdf', compact('inventories', 'company','start_date','end_date'));
         Action::create([
             'user_id' => auth()->user()->id,
@@ -321,5 +354,16 @@ class InventoryController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    private function ensureFiltersBelongToActiveCompany(Request $request): void
+    {
+        if ($request->filled('product_id')) {
+            abort_unless(Product::whereKey($request->input('product_id'))->exists(), 404);
+        }
+
+        if ($request->filled('supplier_id')) {
+            abort_unless(Supplier::whereKey($request->input('supplier_id'))->exists(), 404);
+        }
     }
 }

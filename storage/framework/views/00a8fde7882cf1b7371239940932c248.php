@@ -2,16 +2,18 @@
 	<div class="app-sidebar-content" data-scrollbar="true" data-height="100%">
 
 		<div class="menu">
-			<div class="menu-header">Accueil</div>
-			<div class="menu-item <?php if(Request::route()->getName() === 'dashboard'): ?> active <?php endif; ?>">
-				<a href="<?php echo e(route('dashboard')); ?>"class="menu-link">
-					<span class="menu-icon"><i class="bi bi-cpu"></i></span>
-					<span class="menu-text">Tableau de bord</span>
-				</a>
-			</div>
+			<?php if($currentMembership?->hasPermission('dashboard.view')): ?>
+				<div class="menu-header">Accueil</div>
+				<div class="menu-item <?php if(Request::route()->getName() === 'dashboard'): ?> active <?php endif; ?>">
+					<a href="<?php echo e(route('dashboard')); ?>" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-cpu"></i></span>
+						<span class="menu-text">Tableau de bord</span>
+					</a>
+				</div>
+			<?php endif; ?>
 
 			<!-- COMPOSANTS -->
-			<?php if(auth()->user()->user_type!=3): ?>
+			<?php if($currentMembership?->hasPermission('catalog.manage')): ?>
 				<div class="menu-header">COMPOSANTS</div>
 				<div class="menu-item has-sub <?php if(Request::route()->getName() === 'category.index'): ?> active <?php endif; ?>">
 					<a href="javascript:;" class="menu-link">
@@ -50,15 +52,21 @@
 								<div class="menu-text">Liste menu</div>
 							</a>
 						</div>
-						<div class="menu-item <?php if(Request::route()->getName() === 'inventory.index'): ?> active <?php endif; ?>">
-							<a href="<?php echo e(route('inventory.index')); ?>" class="menu-link">
-								<div class="menu-text">Inventaires</div>
-							</a>
-						</div>
 					</div>
 				</div>
 			<?php endif; ?>
 
+			<?php if($currentMembership?->hasPermission('inventory.manage')): ?>
+				<div class="menu-header">INVENTAIRE</div>
+				<div class="menu-item <?php if(Request::route()->getName() === 'inventory.index'): ?> active <?php endif; ?>">
+					<a href="<?php echo e(route('inventory.index')); ?>" class="menu-link">
+						<span class="menu-icon"><i class="fas fa-boxes"></i></span>
+						<span class="menu-text">Inventaires</span>
+					</a>
+				</div>
+			<?php endif; ?>
+
+			<?php if($currentMembership?->hasPermission('sales.manage')): ?>
 			<!-- POS -->
 			<div class="menu-header">POS</div>
 			<div class="menu-item has-sub <?php if(Request::route()->getName() === 'history'): ?> active <?php endif; ?>">
@@ -89,15 +97,18 @@
 				</div> -->
 			</div>
 		</div>
+			<?php endif; ?>
 
-			<div class="menu-item <?php if(Request::route()->getName() === 'client.index'): ?> active <?php endif; ?>">
-				<a href="<?php echo e(route('client.index')); ?>" class="menu-link">
-					<span class="menu-icon"><i class="fas fa-user-friends"></i></span>
-					<span class="menu-text">Clients</span>
-				</a>
-			</div>
+			<?php if($currentMembership?->hasPermission('clients.manage')): ?>
+				<div class="menu-item <?php if(Request::route()->getName() === 'client.index'): ?> active <?php endif; ?>">
+					<a href="<?php echo e(route('client.index')); ?>" class="menu-link">
+						<span class="menu-icon"><i class="fas fa-user-friends"></i></span>
+						<span class="menu-text">Clients</span>
+					</a>
+				</div>
+			<?php endif; ?>
 
-			<?php if(auth()->user()->user_type!=3): ?>
+			<?php if($currentMembership?->hasPermission('catalog.manage')): ?>
 				<div class="menu-item <?php if(Request::route()->getName() === 'supplier.index'): ?> active <?php endif; ?>">
 					<a href="<?php echo e(route('supplier.index')); ?>" class="menu-link">
 						<span class="menu-icon"><i class="fas fa-truck"></i></span>
@@ -107,12 +118,12 @@
 			<?php endif; ?>
 
 			<!-- PROMO CODE -->
-			<?php if(auth()->user()->user_type!=3): ?>
+			<?php if($currentMembership?->hasPermission('catalog.manage')): ?>
 				
 			<?php endif; ?>
 
 			<!-- AMS -->
-			<?php if(auth()->user()->user_type!=3): ?>
+			<?php if($currentMembership?->hasPermission('cash.manage')): ?>
 				<div class="menu-header">COMPTABILITE</div>
 				<div class="menu-item has-sub 
 					<?php if(Request::route()->getName() === 'cash-account.index' || Request::route()->getName() === 'transaction.index' 
@@ -160,7 +171,7 @@
 			<?php endif; ?>
 
 			<!-- ECOMMERCE -->
-			<?php if(auth()->user()->user_type!=3): ?>
+			<?php if($currentMembership?->hasPermission('ecommerce.manage')): ?>
 			<div class="menu-header">ECOMMERCE</div>
 			<div class="menu-item has-sub
 				<?php if(Request::route()->getName() === 'ecommerce.settings' || Request::route()->getName() === 'ecommerce.orders.index' || Request::route()->getName() === 'ecommerce.orders.show'): ?>
@@ -192,7 +203,7 @@
 
 			<!-- UTILISATEURS -->
 			<div class="menu-divider"> </div>
-			<?php if(auth()->user()->user_type!=3): ?>
+			<?php if($currentMembership?->hasPermission('members.manage')): ?>
 				<div class="menu-header">UTILISATEURS</div>
 				<div class="menu-item <?php if(Request::route()->getName() === 'user.index'): ?> active <?php endif; ?>">
 					<a href="<?php echo e(route('user.index')); ?>" class="menu-link">
@@ -200,8 +211,14 @@
 						<span class="menu-text">Utilisateurs</span>
 					</a>
 				</div>
+				<div class="menu-item <?php if(Request::routeIs('roles.*')): ?> active <?php endif; ?>">
+					<a href="<?php echo e(route('roles.index')); ?>" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-shield-lock"></i></span>
+						<span class="menu-text">Rôles et permissions</span>
+					</a>
+				</div>
 			<?php endif; ?>
-			<?php if(auth()->user()->user_type == 1): ?>
+			<?php if($currentMembership?->role?->key === 'owner'): ?>
 				<div class="menu-header">SUPER UTILISATEUR</div>
 				<div class="menu-item <?php if(Request::route()->getName() === 'sms-quota.index'): ?> active <?php endif; ?>">
 					<a href="<?php echo e(route('sms-quota.index')); ?>" class="menu-link">
@@ -216,9 +233,9 @@
 					<span class="menu-text">Profil</span>
 				</a>
 			</div>
-			<?php if(auth()->user()->user_type!=3): ?>
+			<?php if($currentMembership?->hasPermission('company.manage') || $currentMembership?->hasPermission('notifications.manage')): ?>
 			<div class="menu-header">PARAMETRES</div>
-			<div class="menu-item has-sub <?php if(Request::route()->getName() === 'company.index'): ?> active <?php endif; ?>">
+			<div class="menu-item has-sub <?php if(Request::route()->getName() === 'company.index' || Request::routeIs('notifications.*')): ?> active <?php endif; ?>">
 				<a href="javascript:;" class="menu-link">
 					<div class="menu-icon">
 						<i class="bi bi-gear"></i>
@@ -227,11 +244,20 @@
 					<span class="menu-caret"><b class="caret"></b></span>
 				</a>
 				<div class="menu-submenu">
+					<?php if($currentMembership?->hasPermission('company.manage')): ?>
 					<div class="menu-item <?php if(Request::route()->getName() === 'company.index'): ?> active <?php endif; ?>">
 						<a href="<?php echo e(route('company.index')); ?>" class="menu-link">
 							<div class="menu-text">Compagnie</div>
 						</a>
 					</div>
+					<?php endif; ?>
+					<?php if($currentMembership?->hasPermission('notifications.manage')): ?>
+					<div class="menu-item <?php if(Request::routeIs('notifications.*')): ?> active <?php endif; ?>">
+						<a href="<?php echo e(route('notifications.index')); ?>" class="menu-link">
+							<div class="menu-text">Notifications</div>
+						</a>
+					</div>
+					<?php endif; ?>
 				</div>
 			</div>
 			<?php endif; ?>

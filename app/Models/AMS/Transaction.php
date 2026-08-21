@@ -2,6 +2,7 @@
 
 namespace App\Models\AMS;
 
+use App\Traits\BelongsToCompany;
 use App\Models\AMS\CashAccount;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
+        'company_id',
         'from_cash_id',
         'to_cash_id',
         'type',

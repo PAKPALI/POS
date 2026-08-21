@@ -214,7 +214,7 @@
                                                         <label class="form-label">Caisse principale</label>
                                                         <div class="d-flex justify-content-center align-items-center">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox" name="is_default" value="1">
+                                                                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_default" value="1">
                                                                 <!-- <label class="form-check-label">Activer comme caisse par défaut</label> -->
                                                             </div>
                                                         </div>
@@ -225,7 +225,7 @@
                                                         <label class="form-label">Caisse de taxe</label>
                                                         <div class="d-flex justify-content-center align-items-center">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox" name="is_tax" value="1">
+                                                                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -361,6 +361,12 @@
 
     <script>
         $(function() {
+            $(document).on('change', '.cash-role-toggle', function () {
+                if (this.checked) {
+                    const otherName = this.name === 'is_default' ? 'is_tax' : 'is_default';
+                    $(this).closest('form').find(`input[name="${otherName}"]`).prop('checked', false);
+                }
+            });
             // hide loader
             $('#loader').hide();
 
@@ -448,6 +454,14 @@
                     success: function(data) {
                         $('#loader').hide();
                         $('#submitText').fadeIn();
+                        if (!data.status) {
+                            Swal.fire({
+                                icon: "error",
+                                title: data.title || "Erreur",
+                                text: data.msg || "Impossible d'enregistrer la caisse",
+                            });
+                            return;
+                        }
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -459,7 +473,7 @@
                         });
                         $('#addModal').modal('hide');
                         $('#add')[0].reset();
-                        Datatable.draw();
+                        Datatable.ajax.reload(null, false);
                     },
 
                     error: function() {

@@ -102,6 +102,7 @@
     </div>
 
     {{-- PROFIT --}}
+    @if ($canViewFinancials)
     <div class="col-xl-3 col-lg-6">
         <div class="card border-color mb-3">
             <div class="card-body">
@@ -125,6 +126,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="col-xl-12">
         <div class="card mb-3">

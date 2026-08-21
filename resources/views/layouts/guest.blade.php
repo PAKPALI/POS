@@ -20,5 +20,6 @@
         <div class="font-sans text-gray-900 antialiased">
             {{ $slot }}
         </div>
+        <script src="{{ asset('hub/assets/js/server-button-loader.js') }}"></script>
     </body>
 </html>

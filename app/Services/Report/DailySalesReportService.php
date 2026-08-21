@@ -6,12 +6,15 @@ use App\Models\Sale;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use App\Models\CompanySetting;
+use App\Models\Company;
+use App\Services\CompanyContext;
 
 class DailySalesReportService
 {
-    public function generateDailySalesPdf(): string
+    public function generateDailySalesPdf(int $companyId): string
     {
-        $company = CompanySetting::first();
+        $company = Company::findOrFail($companyId);
+        app(CompanyContext::class)->setPublicCompany($company);
 
         $sales = Sale::with('saleDetails.product')
             ->whereDate('created_at', now()->toDateString())

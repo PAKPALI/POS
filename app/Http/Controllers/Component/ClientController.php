@@ -17,6 +17,8 @@ class ClientController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Client::class);
+
         // composer require yajra/laravel-datatables-oracle
         $Object = Client::where('status', 1)->latest();
         if(request()->ajax()){
@@ -56,6 +58,8 @@ class ClientController extends Controller
 
     public function disabledListing()
     {
+        $this->authorize('viewAny', Client::class);
+
         // composer require yajra/laravel-datatables-oracle
         $Object = Client::where('status', 0)->latest();
         if(request()->ajax()){
@@ -98,7 +102,7 @@ class ClientController extends Controller
      */
     public function create()
     {
-        //
+        $this->authorize('create', Client::class);
     }
 
     /**
@@ -106,12 +110,16 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Client::class);
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "name.string" => "Le nom du client doit être un texte!",
+            "name.max" => "Le nom du client ne doit pas dépasser 255 caractères!",
         ];
 
         $validator = Validator::make($request->all(),[
-            'name' => ['required'],
+            'name' => ['required', 'string', 'max:255'],
         ], $error_messages);
 
         if($validator->fails())
@@ -146,6 +154,8 @@ class ClientController extends Controller
     public function show(string $id)
     {
         $Client = Client::findOrFail($id);
+        $this->authorize('view', $Client);
+
         return view('component.client.show', compact('Client'));
     }
 
@@ -155,6 +165,8 @@ class ClientController extends Controller
     public function edit($id)
     {
         $Client = Client::findOrFail($id);
+        $this->authorize('update', $Client);
+
         return view('component.client.edit', compact('Client'));
     }
 
@@ -163,12 +175,17 @@ class ClientController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $Client = Client::findOrFail($id);
+        $this->authorize('update', $Client);
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "name.string" => "Le nom du client doit être un texte!",
+            "name.max" => "Le nom du client ne doit pas dépasser 255 caractères!",
         ];
 
         $validator = Validator::make($request->all(),[
-            'name' => ['required'],
+            'name' => ['required', 'string', 'max:255'],
         ], $error_messages);
 
         if($validator->fails())
@@ -179,7 +196,6 @@ class ClientController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            $Client = Client::findOrFail($id);
             $Client->update([
                 'name' => $request->name,
             ]);
@@ -199,6 +215,7 @@ class ClientController extends Controller
     public function destroy(string $id)
     {
         $Object = Client::findOrFail($id);
+        $this->authorize($Object->status == 1 ? 'delete' : 'restore', $Object);
 
         // Client actif => archivage
         if ($Object->status == 1) {

@@ -634,7 +634,7 @@
 <body>
     <nav class="shop-nav" id="shopNav">
         <div class="container nav-inner">
-            <a class="nav-brand" href="{{ url('/shop') }}">
+            <a class="nav-brand" href="{{ route('storefront.home', $company) }}">
                 @if($company->logo)
                     <img src="{{ asset($company->logo) }}" alt="{{ $company->name }}">
                 @else
@@ -645,19 +645,15 @@
                 <i class="bi bi-list"></i>
             </button>
             <div class="nav-links" id="navLinks">
-                <a href="{{ url('/shop') }}" class="{{ request()->is('shop') && !request()->is('shop/') ? 'active' : '' }}">Accueil</a>
-                <a href="{{ url('/shop/products') }}" class="{{ request()->is('shop/products*') ? 'active' : '' }}">Produits</a>
-                {{-- <a href="{{ url('/shop/checkout') }}" class="{{ request()->is('shop/checkout*') ? 'active' : '' }}">
-                    <i class="bi bi-cart3"></i>
-                    <span class="cart-badge" id="cartCount" style="position:static;display:none;margin-left:4px;">0</span>
-                    Panier
-                </a> --}}
+                <a href="{{ route('storefront.home', $company) }}" class="{{ request()->routeIs('storefront.home') ? 'active' : '' }}">Accueil</a>
+                <a href="{{ route('storefront.products', $company) }}" class="{{ request()->routeIs('storefront.products') ? 'active' : '' }}">Produits</a>
+                {{-- Le panier principal reste accessible depuis l'icône à droite. --}}
             </div>
             <div class="d-flex align-items-center gap-2">
                 <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activer le mode nuit" title="Changer le thème">
                     <i class="bi bi-moon-stars"></i>
                 </button>
-                <a class="cart-wrap" href="{{ url('/shop/checkout') }}">
+                <a class="cart-wrap" href="{{ route('storefront.checkout', $company) }}">
                     <i class="bi bi-bag"></i>
                     <span class="cart-badge" id="cartCountDesktop">0</span>
                 </a>
@@ -672,13 +668,13 @@
                     <div class="sidebar-card card">
                         <div class="card-header"><i class="bi bi-grid"></i> Categories</div>
                         <div class="list-group list-group-flush cat-list">
-                            <a href="{{ url('/shop') }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between {{ request()->is('shop') && !request()->is('shop/category/*') ? 'active' : '' }}">
+                            <a href="{{ route('storefront.home', $company) }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between {{ request()->routeIs('storefront.home') ? 'active' : '' }}">
                                 Tous les produits
                                 <span class="count">{{ \App\Models\Product::where('status',1)->where('type',1)->where('qte','>',0)->count() }}</span>
                             </a>
                             @foreach($categories as $cat)
                                 @php $catCount = $cat->products()->where('status',1)->where('type',1)->where('qte','>',0)->count(); @endphp
-                                <a href="{{ url('/shop/category/'.$cat->id) }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between {{ request()->is('shop/category/'.$cat->id) ? 'active' : '' }}">
+                                <a href="{{ route('storefront.category', [$company, $cat->id]) }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between {{ request()->routeIs('storefront.category') && (int) request()->route('id') === (int) $cat->id ? 'active' : '' }}">
                                     {{ $cat->name }}
                                     <span class="count">{{ $catCount }}</span>
                                 </a>
@@ -702,9 +698,9 @@
                 </div>
                 <div class="col-md-3">
                     <h6>Liens</h6>
-                    <a href="{{ url('/shop') }}">Accueil</a>
-                    <a href="{{ url('/shop/products') }}">Produits</a>
-                    <a href="{{ url('/shop/checkout') }}">Panier</a>
+                    <a href="{{ route('storefront.home', $company) }}">Accueil</a>
+                    <a href="{{ route('storefront.products', $company) }}">Produits</a>
+                    <a href="{{ route('storefront.checkout', $company) }}">Panier</a>
                 </div>
                 <div class="col-md-3">
                     <h6>Contact</h6>
@@ -810,5 +806,6 @@
         });
     </script>
     @stack('scripts')
+    <script src="{{ asset('hub/assets/js/server-button-loader.js') }}"></script>
 </body>
 </html>

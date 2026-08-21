@@ -293,8 +293,8 @@
                                 </div>
                             </div>
                             <!-- total day profit daily-->
-                             @if (auth()->user()->user_type!=3)
-                                 <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
+                             @if ($canViewFinancials)
+                                 <div class="col-xl-3 col-lg-6">
                                     <div class="card mb-3">
                                         <div class="card-body">
                                             <div class="d-flex fw-bold small mb-3">
@@ -340,7 +340,7 @@
                                             <th>Montant reçu</th>
                                             <th>Montant payé</th>
                                             <th>Monnaie rendue</th>
-                                            <th>Profit total</th>
+                                            @if ($canViewFinancials)<th>Profit total</th>@endif
                                             <th>Code promo</th>
                                             <th>Remise</th>
                                             <th>Client</th>
@@ -1438,7 +1438,9 @@
                 {data: 'received_amount',name: 'received_amount'},
                 {data: 'total_amount',name: 'total_amount'},
                 {data: 'remaining_amount',name: 'remaining_amount'},
+                @if ($canViewFinancials)
                 {data: 'total_profit',name: 'total_profit'},
+                @endif
                 {data: 'code_promo',name: 'code_promo'},
                 {data: 'discount',name: 'discount'},
                 {data: 'client',name: 'client'},
@@ -1866,6 +1868,64 @@
         // Init badge on page load
         updatePendingBadge();
 
+        let stockRefreshRequest = null;
+
+        function refreshProductStocks() {
+            if (stockRefreshRequest) {
+                return stockRefreshRequest;
+            }
+
+            stockRefreshRequest = $.ajax({
+                url: "{{ route('products.search') }}",
+                type: 'GET',
+                data: { q: '' }
+            }).done(function(products) {
+                const stocks = new Map(
+                    products.map(product => [String(product.id), Number(product.qte)])
+                );
+
+                function synchronizeCards(container) {
+                    container.find('.pos-product').each(function() {
+                        const card = $(this);
+                        const productId = String(card.data('id'));
+
+                        if (!stocks.has(productId)) {
+                            card.closest('.product_list, .search_product_list').remove();
+                            return;
+                        }
+
+                        const quantity = stocks.get(productId);
+                        card.attr('data-qte', quantity).data('qte', quantity);
+                        card.find('.qte').text('Quantité : ' + quantity);
+                    });
+                }
+
+                // Met à jour la liste visible (y compris un résultat de recherche).
+                synchronizeCards($('#product_list'));
+
+                // Met aussi à jour la copie restaurée lors d'un changement de catégorie.
+                const originalContainer = $('<div>').html(originalProducts);
+                synchronizeCards(originalContainer);
+                originalProducts = originalContainer.html();
+
+                bindProductEvents();
+            }).fail(function() {
+                Swal.fire({
+                    toast: true,
+                    position: 'top',
+                    icon: 'warning',
+                    title: 'Stock non actualisé',
+                    text: 'Rechargez la page pour voir les nouvelles quantités.',
+                    showConfirmButton: false,
+                    timer: 4000
+                });
+            }).always(function() {
+                stockRefreshRequest = null;
+            });
+
+            return stockRefreshRequest;
+        }
+
         function resetSaleInterfaceAfterReceipt() {
             $('#loader, #saleLoader').stop(true, true).hide();
             $('#confirmSale').stop(true, true).show();
@@ -1879,21 +1939,13 @@
 
         $(document).on('click', '#pdfModal .receipt-modal-close', function() {
             resetSaleInterfaceAfterReceipt();
+            refreshProductStocks();
         });
 
         $('#pdfModal').on('hidden.bs.modal', function() {
             resetSaleInterfaceAfterReceipt();
-            return;
-
-            $('#loader, #saleLoader').hide();
-            $('#confirmSale').show();
-            $('.product_list').stop(true, true).fadeIn();
-            clearCurrentOrder();
             $('#receiptPreview').html('<div class="py-5 text-center text-muted">Chargement du reçu...</div>');
-
-            if (typeof Datatable !== 'undefined' && Datatable.ajax) {
-                Datatable.ajax.reload(null, false);
-            }
+            refreshProductStocks();
         });
     });
 </script>

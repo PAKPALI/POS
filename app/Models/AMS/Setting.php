@@ -2,12 +2,16 @@
 
 namespace App\Models\AMS;
 
+use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
+        'company_id',
         'default_cash_id',
         'tax_cash_id',
         'default_tax'

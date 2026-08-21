@@ -50,11 +50,12 @@
                                                     <input type="number" name="phone" class="form-control" id="phone" value="" placeholder="ex: 90859488">
                                                 </div>
                                                 <div class="form-group col-6 mt-3">
-                                                    <label for="user_type">Type d'utilisateur</label>
-                                                    <select class="form-select " name="user_type">
-                                                        <option value="">selectionnez le type d'utilisateur</option>
-                                                        <option value="2">ADMIN</option>
-                                                        <option value="3">EMPLOYE</option>
+                                                    <label for="role_id">Rôle dans cette compagnie</label>
+                                                    <select class="form-select" name="role_id" id="role_id" required>
+                                                        <option value="">Sélectionnez un rôle</option>
+                                                        @foreach($roles as $role)
+                                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                                        @endforeach
                                                     </select>
                                                 </div>
                                             </div>
@@ -67,6 +68,100 @@
                                         </div>
                                     </form>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="inviteUserModal">
+                            <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+                                <div class="modal-header bg-primary"><h3 class="modal-title"><i class="bi bi-envelope-plus me-2"></i>Inviter par e-mail</h3><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                <form id="inviteUserForm">@csrf<div class="modal-body">
+                                    <div class="alert alert-info">L’accès ne sera créé qu’après acceptation. Le lien sécurisé est valable 48 heures et ne peut être utilisé qu’une fois.</div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><label class="form-label">Adresse e-mail</label><input type="email" name="email" class="form-control" required></div>
+                                        <div class="col-md-6"><label class="form-label">Rôle proposé</label><select name="role_id" id="invitation_role" class="form-select" required><option value="">Sélectionnez un rôle</option>@foreach($roles as $role)<option value="{{ $role->id }}">{{ $role->name }}</option>@endforeach</select></div>
+                                    </div>
+                                </div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-primary"><span id="inviteUserLoader" class="spinner-border spinner-border-sm me-1 d-none"></span>Envoyer l’invitation</button></div></form>
+                            </div></div>
+                        </div>
+
+                        <!-- rattacher un compte déjà existant -->
+                        <div class="modal fade" id="attachExistingModal">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success">
+                                        <h3 class="modal-title">Ajouter un utilisateur existant</h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-info">
+                                            Utilisez l’e-mail exact du compte. L’utilisateur conservera ses accès dans ses autres compagnies et pourra basculer entre elles.
+                                        </div>
+                                        <form id="attachExistingForm">
+                                            @csrf
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label for="existing_user_email" class="form-label">E-mail du compte existant</label>
+                                                    <input type="email" name="email" id="existing_user_email" class="form-control" required placeholder="utilisateur@exemple.com">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="existing_user_role" class="form-label">Rôle dans cette compagnie</label>
+                                                    <select name="role_id" id="existing_user_role" class="form-select" data-placeholder="Rechercher un rôle" required>
+                                                        <option value="">Sélectionnez un rôle</option>
+                                                        @foreach($roles as $role)
+                                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-success">
+                                                    <span id="attachExistingLoader" class="spinner-border spinner-border-sm me-1" style="display:none"></span>
+                                                    Rattacher à cette compagnie
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- update modal -->
+                        <div class="modal fade" id="cloneUserModal" tabindex="-1">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-info text-dark">
+                                        <h3 class="modal-title"><i class="fas fa-clone me-2"></i>Intégrer dans une compagnie</h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form id="cloneUserForm">
+                                        @csrf
+                                        <div class="modal-body">
+                                            <div class="alert alert-info">
+                                                Vous allez donner à <strong id="cloneUserName"></strong> un accès supplémentaire. Son accès actuel sera conservé.
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="cloneCompany" class="form-label">Compagnie cible</label>
+                                                <select id="cloneCompany" name="company_id" class="form-select" required></select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="cloneRole" class="form-label">Rôle dans cette compagnie</label>
+                                                <select id="cloneRole" name="role_id" class="form-select" required disabled></select>
+                                                <div class="form-text">Le rôle ne prendra effet qu’après votre confirmation.</div>
+                                            </div>
+                                            <div id="cloneNoCompany" class="alert alert-warning d-none">
+                                                Aucune autre compagnie dans laquelle vous pouvez gérer les utilisateurs n’est disponible.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" id="cloneSubmit" class="btn btn-info" disabled>
+                                                <span id="cloneLoader" class="spinner-border spinner-border-sm me-1 d-none"></span>
+                                                Vérifier et approuver
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -92,7 +187,8 @@
                                 <div class="card-body">
                                     <div class="d-flex fw-bold small mb-3">
                                         <span class="flex-grow-1"><h4>Listes des utilisateurs</h4></span>
-                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
+                                        <button type="button" class="btn btn-outline-primary mb-1 me-2" data-bs-toggle="modal" data-bs-target="#inviteUserModal"><i class="bi bi-envelope-plus me-1"></i>Inviter par e-mail</button>
+                                        <button type="button" class="btn btn-success mb-1 me-3" data-bs-toggle="modal" data-bs-target="#attachExistingModal">Ajouter un utilisateur existant</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
                                     <div class="table-responsive">
@@ -103,7 +199,7 @@
                                                     <th>Nom</th>
                                                     <th>Email</th>
                                                     <th>Numéro</th>
-                                                    <th>Type</th>
+                                                    <th>Rôle</th>
                                                     <th>Statut</th>
                                                     <th>Créer le</th>
                                                     <th>Action</th>
@@ -125,6 +221,21 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-xl-12"><div class="card mb-3"><div class="card-body">
+                            <h4>Invitations</h4><p class="text-muted">Suivez les invitations, renvoyez un lien ou révoquez un accès en attente.</p>
+                            <div class="table-responsive"><table class="table table-striped align-middle">
+                                <thead><tr><th>E-mail</th><th>Rôle</th><th>Statut</th><th>Expiration</th><th>Invité par</th><th>Actions</th></tr></thead><tbody>
+                                @forelse($invitations as $invitation)
+                                <tr><td>{{ $invitation->email }}</td><td>{{ $invitation->role?->name ?? 'Rôle supprimé' }}</td>
+                                    <td><span class="badge bg-{{ $invitation->status_badge_class }}">{{ $invitation->status_label }}</span></td>
+                                    <td>{{ $invitation->expires_at->format('d/m/Y H:i') }}</td><td>{{ $invitation->inviter?->name ?? 'Système' }}</td><td>
+                                    @if(!$invitation->accepted_at && !$invitation->declined_at && !$invitation->revoked_at)
+                                        <button class="btn btn-info btn-sm resendInvitation" data-id="{{ $invitation->id }}" data-email="{{ $invitation->email }}" title="Renvoyer"><i class="bi bi-send"></i></button>
+                                        <button class="btn btn-danger btn-sm revokeInvitation" data-id="{{ $invitation->id }}" data-email="{{ $invitation->email }}" title="Révoquer"><i class="bi bi-x-circle"></i></button>
+                                    @else — @endif</td></tr>
+                                @empty<tr><td colspan="6" class="text-center text-muted">Aucune invitation envoyée.</td></tr>@endforelse
+                                </tbody></table></div>
+                        </div></div></div>
                         <!-- employe list -->
                         <!-- <div class="col-xl-12">
                             <div class="card mb-3">
@@ -258,6 +369,79 @@
                 },
             });
 
+            let cloneCompanies = [];
+            let clonedUserId = null;
+
+            $(document).on('click', '.cloneUser', function() {
+                clonedUserId = $(this).data('id');
+                $('#cloneUserName').text($(this).data('name'));
+                $('#cloneCompany').html('<option value="">Chargement...</option>');
+                $('#cloneRole').html('<option value="">Sélectionnez d’abord une compagnie</option>').prop('disabled', true);
+                $('#cloneSubmit').prop('disabled', true);
+                $('#cloneNoCompany').addClass('d-none');
+                $('#cloneUserModal').modal('show');
+
+                $.get("{{ url('user') }}/" + clonedUserId + '/transfer-options')
+                    .done(function(data) {
+                        cloneCompanies = data.companies || [];
+                        let options = '<option value="">Sélectionnez une compagnie</option>';
+                        cloneCompanies.forEach(function(company) {
+                            options += '<option value="' + company.id + '" ' + (company.already_member ? 'disabled' : '') + '>' +
+                                $('<div>').text(company.name).html() + (company.already_member ? ' — déjà membre' : '') + '</option>';
+                        });
+                        $('#cloneCompany').html(options);
+                        $('#cloneNoCompany').toggleClass('d-none', cloneCompanies.length > 0);
+                    })
+                    .fail(function(xhr) {
+                        $('#cloneUserModal').modal('hide');
+                        Swal.fire({icon: 'error', title: 'Erreur', text: xhr.responseJSON?.message || 'Impossible de charger les compagnies.'});
+                    });
+            });
+
+            $('#cloneCompany').on('change', function() {
+                const company = cloneCompanies.find(item => String(item.id) === String(this.value));
+                let options = '<option value="">Sélectionnez un rôle</option>';
+                (company?.roles || []).forEach(function(role) {
+                    options += '<option value="' + role.id + '">' + $('<div>').text(role.name).html() + '</option>';
+                });
+                $('#cloneRole').html(options).prop('disabled', !company || company.already_member);
+                $('#cloneSubmit').prop('disabled', true);
+            });
+
+            $('#cloneRole').on('change', function() {
+                $('#cloneSubmit').prop('disabled', !this.value);
+            });
+
+            $('#cloneUserForm').on('submit', function(event) {
+                event.preventDefault();
+                const companyName = $('#cloneCompany option:selected').text();
+                const roleName = $('#cloneRole option:selected').text();
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Approuver cette intégration ?',
+                    html: 'Compagnie : <strong>' + $('<div>').text(companyName).html() + '</strong><br>Rôle : <strong>' + $('<div>').text(roleName).html() + '</strong>',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, intégrer',
+                    cancelButtonText: 'Annuler'
+                }).then(function(result) {
+                    if (!result.isConfirmed) return;
+                    $('#cloneLoader').removeClass('d-none');
+                    $('#cloneSubmit').prop('disabled', true);
+                    $.post("{{ url('user') }}/" + clonedUserId + '/transfer-company', $('#cloneUserForm').serialize())
+                        .done(function(data) {
+                            if (data.status) $('#cloneUserModal').modal('hide');
+                            Swal.fire({icon: data.status ? 'success' : 'warning', title: data.title, text: data.msg});
+                        })
+                        .fail(function(xhr) {
+                            Swal.fire({icon: 'error', title: 'Erreur', text: xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Intégration impossible.'});
+                        })
+                        .always(function() {
+                            $('#cloneLoader').addClass('d-none');
+                            $('#cloneSubmit').prop('disabled', !$('#cloneRole').val());
+                        });
+                });
+            });
+
             // employe datatable
             // var employeDatatable = $('#employeDatatable').DataTable({
             //     processing: true,
@@ -321,6 +505,142 @@
             //     Datatable.ajax.reload(null, false);
             //     employeDatatable.ajax.reload(null, false);
             // });
+
+            $('#inviteUserForm').on('submit', function(event) {
+                event.preventDefault();
+                const form = this;
+                const email = $(form).find('[name="email"]').val().trim();
+                const role = $('#invitation_role option:selected').text();
+                const safeEmail = $('<div>').text(email).html();
+                const safeRole = $('<div>').text(role).html();
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Envoyer cette invitation ?',
+                    html: 'Adresse : <strong>' + safeEmail + '</strong><br>Rôle : <strong>' + safeRole + '</strong>',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, envoyer',
+                    cancelButtonText: 'Vérifier l’adresse'
+                }).then(function(result) {
+                    if (!result.isConfirmed) return;
+
+                    $('#inviteUserLoader').removeClass('d-none');
+                    $.post("{{ route('user.invitations.store') }}", $(form).serialize())
+                        .done(function(data) {
+                            Swal.fire({icon: 'success', title: data.title, text: data.msg}).then(function() { window.location.reload(); });
+                        })
+                        .fail(function(xhr) {
+                            Swal.fire({icon: 'error', title: 'Invitation impossible', text: xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Une erreur est survenue.'});
+                        })
+                        .always(function() { $('#inviteUserLoader').addClass('d-none'); });
+                });
+            });
+
+            $(document).on('click', '.resendInvitation', function() {
+                const id = $(this).data('id');
+                const email = $(this).data('email');
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Renvoyer cette invitation ?',
+                    text: 'Un nouveau lien sera envoyé à ' + email + ' et l’ancien lien sera invalidé.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, renvoyer',
+                    cancelButtonText: 'Annuler',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        const cancelButton = Swal.getCancelButton();
+                        if (cancelButton) cancelButton.disabled = true;
+
+                        return new Promise(function(resolve) {
+                            $.post("{{ url('user/invitations') }}/" + id + '/resend', {_token: "{{ csrf_token() }}"})
+                                .done(function(data) { resolve(data); })
+                                .fail(function(xhr) {
+                                    if (cancelButton) cancelButton.disabled = false;
+                                    Swal.showValidationMessage(xhr.responseJSON?.message || 'Renvoi impossible.');
+                                    resolve(false);
+                                });
+                        });
+                    }
+                })
+                    .then(function(result) {
+                        if (!result.isConfirmed || !result.value) return;
+                        const data = result.value;
+                        Swal.fire({icon:'success', title:data.title, text:data.msg}).then(function(){ window.location.reload(); });
+                    });
+            });
+
+            $(document).on('click', '.revokeInvitation', function() {
+                const id = $(this).data('id');
+                const email = $(this).data('email');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Révoquer cette invitation ?',
+                    text: 'Le lien envoyé à ' + email + ' deviendra définitivement inutilisable.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, révoquer',
+                    cancelButtonText: 'Annuler',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        const cancelButton = Swal.getCancelButton();
+                        if (cancelButton) cancelButton.disabled = true;
+
+                        return new Promise(function(resolve) {
+                            $.ajax({
+                                url: "{{ url('user/invitations') }}/" + id,
+                                type: 'DELETE',
+                                data: {_token: "{{ csrf_token() }}"}
+                            })
+                                .done(function(data) { resolve(data); })
+                                .fail(function(xhr) {
+                                    if (cancelButton) cancelButton.disabled = false;
+                                    Swal.showValidationMessage(xhr.responseJSON?.message || 'Révocation impossible.');
+                                    resolve(false);
+                                });
+                        });
+                    }
+                })
+                    .then(function(result) {
+                        if (!result.isConfirmed || !result.value) return;
+                        const data = result.value;
+                        Swal.fire({icon:'success', title:data.title, text:data.msg}).then(function(){ window.location.reload(); });
+                    });
+            });
+
+            $('#attachExistingForm').submit(function(event) {
+                event.preventDefault();
+                $('#attachExistingLoader').show();
+
+                $.ajax({
+                    type: 'POST',
+                    url: "{{ route('user.attach-existing') }}",
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#attachExistingLoader').hide();
+                        if (data.status) {
+                            $('#attachExistingModal').modal('hide');
+                            $('#attachExistingForm')[0].reset();
+                            $('#existing_user_role').val(null).trigger('change');
+                            Datatable.ajax.reload(null, false);
+                        }
+                        Swal.fire({
+                            icon: data.status ? 'success' : 'warning',
+                            title: data.title,
+                            text: data.msg,
+                            confirmButtonText: "D'accord"
+                        });
+                    },
+                    error: function(xhr) {
+                        $('#attachExistingLoader').hide();
+                        const message = xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Impossible de rattacher cet utilisateur.';
+                        Swal.fire({ icon: 'error', title: 'Erreur', text: message });
+                    }
+                });
+            });
 
             //Add user
             $('#add').submit(function() {
@@ -386,6 +706,10 @@
                     success:function(result)
                     {
                         $('#edit_response').html(result);
+                        // Le formulaire arrive par AJAX après l'ouverture du modal.
+                        if (typeof initSearchableSelects === 'function') {
+                            initSearchableSelects(document.getElementById('edit_response'));
+                        }
                     }
                 });
                 $('#editModal').modal('show');
