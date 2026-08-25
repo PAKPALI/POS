@@ -113,9 +113,9 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
         ->middleware('permission:members.manage');
     // Route::get('getEmployeList', 'getEmployeList')->name('getEmployeList');
     // update email
-    Route::post('updateEmail', 'updateEmail');
+    Route::post('updateEmail', 'updateEmail')->middleware('throttle:10,1')->name('profile.email.update');
     // update password
-    Route::post('updatePassword', 'updatePassword');
+    Route::post('updatePassword', 'updatePassword')->middleware('throttle:10,1')->name('profile.password.update');
 
     // chart
     Route::post('/statistics/top-products', [UserController::class, 'topSellingProducts'])
@@ -171,6 +171,7 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
         //history
         Route::get('history', 'history')->name('history');
         Route::get('history/export/pdf', 'exportHistoryPdf')->name('history.export.pdf');
+        Route::get('/clients/search', 'searchClients')->name('clients.search');
         Route::get('/products/search', 'search')->name('products.search');
         Route::get('sale/invoice/{id}/pdf', 'generatePDF')->name('codePromo.pdf');
     });
@@ -200,13 +201,16 @@ Route::prefix('ams')->middleware(['auth', 'company.resolve', 'company.selected',
 /*manage ecommerce admin*/
 Route::prefix('ecommerce')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:ecommerce.manage'])->group(function () {
     Route::get('settings', [App\Http\Controllers\Ecommerce\SettingController::class, 'index'])->name('ecommerce.settings');
+    Route::get('slug/check', [App\Http\Controllers\Ecommerce\SettingController::class, 'checkSlug'])->name('ecommerce.slug.check');
     Route::post('settings/update', [App\Http\Controllers\Ecommerce\SettingController::class, 'updateSettings'])->name('ecommerce.settings.update');
     Route::post('managers/add', [App\Http\Controllers\Ecommerce\SettingController::class, 'addManager'])->name('ecommerce.managers.add');
     Route::delete('managers/{id}', [App\Http\Controllers\Ecommerce\SettingController::class, 'removeManager'])->name('ecommerce.managers.remove');
-    Route::get('managers/list/{company}', [App\Http\Controllers\Ecommerce\SettingController::class, 'managersList'])->name('ecommerce.managers.list');
+    Route::get('managers/list', [App\Http\Controllers\Ecommerce\SettingController::class, 'managersList'])->name('ecommerce.managers.list');
     Route::get('orders', [App\Http\Controllers\Ecommerce\OrderController::class, 'index'])->name('ecommerce.orders.index');
     Route::get('orders/{id}', [App\Http\Controllers\Ecommerce\OrderController::class, 'show'])->name('ecommerce.orders.show');
-    Route::post('orders/{id}/status', [App\Http\Controllers\Ecommerce\OrderController::class, 'updateStatus'])->name('ecommerce.orders.status');
+    Route::post('orders/{id}/execute', [App\Http\Controllers\Ecommerce\OrderController::class, 'execute'])
+        ->middleware('permission:sales.manage')->name('ecommerce.orders.execute');
+    Route::post('orders/{id}/cancel', [App\Http\Controllers\Ecommerce\OrderController::class, 'cancel'])->name('ecommerce.orders.cancel');
 });
 
 /*public ecommerce routes*/
@@ -216,7 +220,7 @@ Route::prefix('boutique/{company:slug}')->controller(App\Http\Controllers\Ecomme
     Route::get('/category/{id}', 'category')->name('storefront.category');
     Route::get('/product/{id}', 'product')->name('storefront.product');
     Route::get('/checkout', 'checkout')->name('storefront.checkout');
-    Route::post('/order/place', 'placeOrder')->name('storefront.order.place');
+    Route::post('/order/place', 'placeOrder')->middleware('throttle:10,1')->name('storefront.order.place');
     Route::get('/success', 'success')->name('storefront.success');
 });
 
@@ -226,7 +230,7 @@ Route::prefix('shop')->controller(App\Http\Controllers\Ecommerce\FrontController
     Route::get('/category/{id}', 'category')->name('shop.category');
     Route::get('/product/{id}', 'product')->name('shop.product');
     Route::get('/checkout', 'checkout')->name('shop.checkout');
-    Route::post('/order/place', 'placeOrder')->name('shop.order.place');
+    Route::post('/order/place', 'placeOrder')->middleware('throttle:10,1')->name('shop.order.place');
     Route::get('/success', 'success')->name('shop.success');
 });
 

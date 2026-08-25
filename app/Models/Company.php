@@ -30,8 +30,10 @@ class Company extends Model
         'ecommerce_active',
         'sms_count',
         'whatsapp_count',
+        'sale_email_enabled',
         'sale_whatsapp_enabled',
         'sale_sms_enabled',
+        'inventory_email_enabled',
         'inventory_whatsapp_enabled',
         'inventory_sms_enabled',
         'created_by',
@@ -39,8 +41,10 @@ class Company extends Model
 
     protected $casts = [
         'ecommerce_active' => 'boolean',
+        'sale_email_enabled' => 'boolean',
         'sale_whatsapp_enabled' => 'boolean',
         'sale_sms_enabled' => 'boolean',
+        'inventory_email_enabled' => 'boolean',
         'inventory_whatsapp_enabled' => 'boolean',
         'inventory_sms_enabled' => 'boolean',
     ];
@@ -48,13 +52,27 @@ class Company extends Model
     protected static function booted(): void
     {
         static::creating(function (Company $company) {
-            if (empty($company->slug)) {
-                $company->slug = Str::slug($company->name);
-            }
             if (empty($company->public_id)) {
-                $company->public_id = Str::uuid();
+                $company->public_id = (string) Str::uuid();
             }
+
+            $company->slug = static::generateUniqueSlug($company->slug ?: $company->name);
         });
+    }
+
+    public static function generateUniqueSlug(string $value): string
+    {
+        $base = Str::limit(Str::slug($value), 220, '');
+        $base = $base !== '' ? $base : 'entreprise';
+        $slug = $base;
+        $suffix = 2;
+
+        while (static::query()->where('slug', $slug)->exists()) {
+            $slug = $base.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 
     // ─── Relations ───────────────────────────────────────

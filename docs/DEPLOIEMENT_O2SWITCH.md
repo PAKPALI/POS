@@ -1,0 +1,251 @@
+# Déploiement de PRO-SELLER sur O2switch
+
+Ce guide prépare un premier déploiement SaaS avec **Laravel 10**, **PHP 8.2**, **MySQL**, une queue en base de données et sans Redis.
+
+> **Statut au 25 août 2026 : préparation documentaire uniquement.** Le propriétaire n’est pas encore en phase de déploiement. Ne lancer aucune opération sur O2switch, ne transférer aucun fichier et ne configurer aucun service tant qu’il n’a pas donné son accord explicite. Ce document reste une procédure anticipée à compléter localement.
+
+> Ne jamais envoyer le fichier `.env` réel sur Git et ne jamais copier les mots de passe dans une documentation. Remplacer tous les exemples avant le déploiement.
+
+## 1. Architecture retenue
+
+- Code Laravel : `/home/UTILISATEUR_CPANEL/proseller`
+- Racine publique du domaine : `/home/UTILISATEUR_CPANEL/proseller/public`
+- Base durable : MySQL, administrable avec phpMyAdmin
+- Cache : fichiers
+- Sessions : fichiers
+- Queue : table MySQL `jobs`
+- HTTPS : certificat SSL O2switch obligatoire
+- Redis : non utilisé pour ce premier lancement
+
+Dans **cPanel > Domaines**, faire pointer le domaine ou sous-domaine vers le dossier `proseller/public`. Ne jamais faire pointer le domaine vers la racine du projet : `.env`, `vendor`, `storage` et le code PHP ne doivent pas être publiquement accessibles.
+
+## 2. Préparer O2switch
+
+1. Dans cPanel, sélectionner PHP **8.2** pour le domaine.
+2. Créer une base MySQL, un utilisateur MySQL et lui attribuer tous les privilèges sur cette base.
+3. Activer le certificat SSL du domaine et vérifier que `https://votre-domaine.com` répond.
+4. Ouvrir le Terminal cPanel ou établir une connexion SSH.
+5. Repérer les commandes installées :
+
+```bash
+which php
+php -v
+which composer
+```
+
+Conserver le chemin retourné par `which php` : il sera utilisé dans les tâches cron.
+
+## 3. Transférer le projet
+
+Transférer le projet dans `/home/UTILISATEUR_CPANEL/proseller`, en excluant au minimum :
+
+- `.env` local ;
+- `.git` si Git n'est pas utilisé sur le serveur ;
+- `node_modules` ;
+- `storage/logs/*.log` ;
+- les fichiers de test locaux inutiles en production.
+
+Le fichier `public/hot` est un marqueur du serveur de développement : il doit être absent en production.
+
+## 4. Installer les dépendances
+
+Depuis le Terminal cPanel :
+
+```bash
+cd /home/UTILISATEUR_CPANEL/proseller
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+```
+
+Si Composer refuse la version PHP, vérifier que le terminal utilise bien PHP 8.2 et demander au support O2switch le chemin Composer/PHP correspondant au domaine.
+
+## 5. Créer le `.env` de production
+
+Copier le modèle fourni :
+
+```bash
+cp .env.production.example .env
+```
+
+Modifier `.env` avec les informations réelles du domaine, de MySQL, de la boîte e-mail SMTP et du service SMS. Les valeurs essentielles sont :
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://votre-domaine.com
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=database
+```
+
+Générer la clé une seule fois lors de la première installation :
+
+```bash
+php artisan key:generate
+```
+
+Ne jamais régénérer `APP_KEY` après la mise en service : cela invaliderait les données chiffrées et les sessions existantes.
+
+## 6. Permissions et stockage
+
+```bash
+chmod -R 775 storage bootstrap/cache
+php artisan storage:link
+```
+
+Ne pas utiliser `chmod -R 777`. Vérifier ensuite que PHP peut écrire dans `storage/logs`, `storage/framework` et `bootstrap/cache`.
+
+## 7. Base de données
+
+Avant toute migration sur une base existante, créer une sauvegarde depuis cPanel/phpMyAdmin.
+
+Pour une première installation vide :
+
+```bash
+php artisan migrate --force
+```
+
+Ne jamais exécuter `migrate:fresh`, `db:wipe` ou une commande de suppression sur le serveur de production.
+
+## 8. Nettoyer et optimiser Laravel
+
+```bash
+rm -f public/hot
+php artisan optimize:clear
+php artisan config:cache
+php artisan queue:restart
+```
+
+La mise en cache globale des vues et routes n'est pas imposée dans ce premier déploiement. Elle sera activée seulement après validation de toutes les anciennes vues et routes du projet.
+
+## 9. Configurer les tâches cron
+
+Dans **cPanel > Tâches cron**, créer deux tâches exécutées chaque minute. Remplacer les chemins et le chemin PHP par ceux retournés par `which php`.
+
+### Planificateur Laravel
+
+```bash
+* * * * * flock -n /home/UTILISATEUR_CPANEL/.proseller-schedule.lock -c 'cd /home/UTILISATEUR_CPANEL/proseller && /CHEMIN/PHP artisan schedule:run' >> /home/UTILISATEUR_CPANEL/proseller/storage/logs/scheduler.log 2>&1
+```
+
+Il exécute notamment le nettoyage tenanté du journal, le rapport hebdomadaire d'inventaire et la rétention à 180 jours du registre idempotent des livraisons de notifications (`notifications:clean-deliveries`).
+
+### E-mails et notifications en attente
+
+```bash
+* * * * * flock -n /home/UTILISATEUR_CPANEL/.proseller-queue.lock -c 'cd /home/UTILISATEUR_CPANEL/proseller && /CHEMIN/PHP artisan queue:work database --stop-when-empty --sleep=3 --tries=3 --timeout=120' >> /home/UTILISATEUR_CPANEL/proseller/storage/logs/queue.log 2>&1
+```
+
+Cette solution convient à l'hébergement mutualisé : `flock` empêche les doubles workers et `--stop-when-empty` termine le processus lorsqu'il n'y a plus de travail. Une notification peut attendre jusqu'à environ une minute avant son traitement.
+
+Vérifications utiles :
+
+```bash
+php artisan schedule:list
+php artisan queue:failed
+```
+
+## 10. Sauvegardes minimales
+
+Configurer dans cPanel :
+
+- une sauvegarde régulière de la base MySQL ;
+- une sauvegarde de `storage/app` et des fichiers téléversés ;
+- une conservation hors de l'hébergement pour au moins une copie récente ;
+- un test réel de restauration avant le lancement commercial.
+
+Une sauvegarde non restaurée au moins une fois n'est pas encore une sauvegarde validée.
+
+## 11. Vérifications après déploiement
+
+Exécuter :
+
+```bash
+php artisan about
+php artisan migrate:status
+php artisan schedule:list
+php artisan queue:failed
+```
+
+Puis tester manuellement :
+
+- inscription d'un propriétaire et création de sa compagnie ;
+- connexion et déconnexion ;
+- changement entre deux compagnies ;
+- isolation des produits, utilisateurs, rôles et caisses ;
+- vente, diminution du stock, caisse principale et taxe ;
+- commande e-commerce, e-mail manager et conversion en vente ;
+- invitations et réinitialisation du mot de passe ;
+- e-mails, SMS et WhatsApp selon les autorisations ;
+- installation PWA depuis Android et Safari/iPhone ;
+- page 403 et menus selon les permissions ;
+- page hors connexion de la PWA.
+
+Consulter également `storage/logs/laravel.log`, `scheduler.log`, `queue.log`, `slow-queries-AAAA-MM-JJ.log` et les tâches présentes dans la table `failed_jobs`.
+
+### Surveiller les requêtes lentes
+
+Le modèle `.env.production.example` active un journal séparé pour les requêtes dépassant 300 ms :
+
+```dotenv
+PERFORMANCE_SLOW_QUERY_LOG=true
+PERFORMANCE_SLOW_QUERY_MS=300
+PERFORMANCE_LOG_CHANNEL=performance
+PERFORMANCE_LOG_SQL=true
+```
+
+Les événements sont écrits dans `storage/logs/slow-queries-AAAA-MM-JJ.log` et conservés 14 jours. Chaque entrée indique la durée, la route, le chemin, la connexion, la compagnie et l’utilisateur lorsque ces contextes existent. La structure SQL est enregistrée avec ses marqueurs ; les valeurs liées et les saisies utilisateur ne sont jamais ajoutées par le moniteur.
+
+Pendant le pilote, contrôler ce fichier chaque jour. Une même requête dépassant régulièrement 300 ms doit être analysée avec `EXPLAIN` dans phpMyAdmin avant d’ajouter un index. Ne jamais copier une requête de production contenant des données métier dans un outil public.
+
+Après toute modification de ces variables, appliquer :
+
+```bash
+php artisan config:cache
+```
+
+## 12. Procédure de mise à jour ultérieure
+
+1. Sauvegarder la base et les fichiers.
+2. Activer le mode maintenance.
+3. Transférer la nouvelle version.
+4. Installer les dépendances.
+5. Exécuter les migrations non destructives.
+6. Nettoyer/reconstruire la configuration.
+7. Redémarrer la queue.
+8. Désactiver le mode maintenance et effectuer les tests rapides.
+
+```bash
+cd /home/UTILISATEUR_CPANEL/proseller
+php artisan down
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+php artisan migrate --force
+rm -f public/hot
+php artisan optimize:clear
+php artisan config:cache
+php artisan queue:restart
+php artisan up
+```
+
+Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode maintenance, lire le message et restaurer la sauvegarde si nécessaire.
+
+## 13. Checklist avant ouverture aux clients
+
+- [ ] Domaine et certificat HTTPS actifs
+- [ ] `APP_DEBUG=false`
+- [ ] `.env` inaccessible depuis le Web
+- [ ] Racine du domaine configurée sur `/public`
+- [ ] Base MySQL sauvegardée
+- [ ] Migrations terminées
+- [ ] Liens de stockage fonctionnels
+- [ ] SMTP vérifié avec un vrai destinataire
+- [ ] Cron du scheduler actif
+- [ ] Cron de queue actif
+- [ ] Aucun job dans `failed_jobs`
+- [ ] Test avec au moins deux compagnies
+- [ ] Test des permissions avec un utilisateur non administrateur
+- [ ] PWA installée et testée sous HTTPS
+- [ ] Sauvegarde restaurée sur un environnement de test
+
+## Valeurs à demander au moment du déploiement
+
+Pour produire les commandes finales prêtes à copier, relever uniquement : le nom du domaine, le chemin `/home/...`, le résultat de `which php`, les noms MySQL (sans publier les mots de passe) et les paramètres SMTP fournis par O2switch.

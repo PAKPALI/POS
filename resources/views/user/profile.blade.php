@@ -62,12 +62,11 @@
                                     <div class="tab-pane fade show active" id="pills-home">
                                         <form  id="updateEmail" class="p-3">
                                             @csrf
-                                            <input type="hidden" name="user_id" value="{{auth()->user()->id}}">
                                             <h1 class="text-center">Modifier Email</h1>
                                             <p class="text-inverse text-opacity-50 text-center"></p>
                                             <div class="mb-3">
                                                 <label class="form-label">Ancien Email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" name="AE" placeholder="email" value="{{auth()->user()->email}}">
+                                                <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" value="{{auth()->user()->email}}" readonly>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Nouveau email <span class="text-danger">*</span></label>
@@ -77,8 +76,12 @@
                                                 <label class="form-label">Confirmer email <span class="text-danger">*</span></label>
                                                 <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" name="CE" placeholder="confirmer email" value>
                                             </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Mot de passe actuel <span class="text-danger">*</span></label>
+                                                <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" name="current_password" autocomplete="current-password" placeholder="Votre mot de passe actuel" required>
+                                            </div>
                                             <div class="mt-5">
-                                                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100">Modifier</button>
+                                                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100" data-loading-text="Modification…">Modifier</button>
                                             </div>
                                             <!-- <div class="text-inverse text-opacity-50 text-center">Already have an Admin ID? <a href="page_login.html">Sign In</a> -->
                                             </div>
@@ -87,38 +90,37 @@
                                     <div class="tab-pane fade" id="pills-profile">
                                         <form  id="updatePassword" class="p-3">
                                             @csrf
-                                            <input type="hidden" name="user_id" value="{{auth()->user()->id}}">
                                             <h1 class="text-center">Modifier Mot de passe</h1>
                                             <p class="text-inverse text-opacity-50 text-center"></p>
                                             <div class="mb-3">
                                                 <label class="form-label">Ancien Mot de passe <span class="text-danger">*</span></label>
                                                 <div class="input-group">
-                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="AM" placeholder="mot de passe">
-                                                    <span class="input-group-text" id="togglePassword2" style="cursor: pointer;">
-                                                        <i class="bi bi-eye" id="togglePasswordIcon2"></i>
+                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="currentPassword" name="AM" autocomplete="current-password" placeholder="mot de passe" required>
+                                                    <span class="input-group-text password-toggle" data-target="currentPassword" style="cursor: pointer;">
+                                                        <i class="bi bi-eye"></i>
                                                     </span>
                                                 </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Nouveau Mot de passe <span class="text-danger">*</span></label>
                                                 <div class="input-group">
-                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="NM" placeholder="nouveau mot de passe">
-                                                    <span class="input-group-text" id="togglePassword2" style="cursor: pointer;">
-                                                        <i class="bi bi-eye" id="togglePasswordIcon2"></i>
+                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="newPassword" name="NM" autocomplete="new-password" placeholder="nouveau mot de passe" required minlength="8">
+                                                    <span class="input-group-text password-toggle" data-target="newPassword" style="cursor: pointer;">
+                                                        <i class="bi bi-eye"></i>
                                                     </span>
                                                 </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Confirmez Mot de passe <span class="text-danger">*</span></label>
                                                 <div class="input-group">
-                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="CM" placeholder=" confirmez mot de passe">
-                                                    <span class="input-group-text" id="togglePassword2" style="cursor: pointer;">
-                                                        <i class="bi bi-eye" id="togglePasswordIcon2"></i>
+                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="confirmPassword" name="CM" autocomplete="new-password" placeholder="confirmez mot de passe" required minlength="8">
+                                                    <span class="input-group-text password-toggle" data-target="confirmPassword" style="cursor: pointer;">
+                                                        <i class="bi bi-eye"></i>
                                                     </span>
                                                 </div>
                                             </div>
                                             <div class="mt-5">
-                                                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100">Modifier</button>
+                                                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100" data-loading-text="Modification…">Modifier</button>
                                             </div>
                                             <!-- <div class="text-inverse text-opacity-50 text-center">Already have an Admin ID? <a href="page_login.html">Sign In</a> -->
                                             </div>
@@ -181,104 +183,52 @@
 
     <script>
         $(function() {
-            // hide loader
-            $('.loader').hide();
-            $('.pre_loader').hide();
-
-            //update password
-            $('#updateEmail').submit(function(){ event.preventDefault();
-                $('#load').fadeIn();
-                $.ajax({
-                    type: 'POST',
-                    url: 'updateEmail',
-                    //enctype: 'multipart/form-data',
-                    data: $('#updateEmail').serialize(),
-                    datatype: 'json',
-                    success: function (data){
-                        console.log(data)
-                        if (data.status)
-                        {
-                            Swal.fire({
-                                icon: "success",
-                                title: data.title,
-                                text: data.msg,
-                            }).then(() => {
-                                if (data.redirect_to == "1") {
-                                    window.location.assign(data.redirect_to)
-                                } else {
-                                    window.location.reload()
-                                }
-                                //window.location.reload();
-                            })
-                        }else{
-                            Swal.fire({
-                                title: data.title,
-                                text:data.msg,
-                                icon: 'error',
-                                confirmButtonText: "D'accord",
-                                confirmButtonColor: '#A40000',
-                            })
-                        }
-                    },
-                    error: function (data){
-                        console.log(data)
-                        Swal.fire({
-                            icon: "error",
-                            title: "erreur",
-                            text: "Impossible de communiquer avec le serveur.",
-                            timer: 3600,
-                        })
-                    }
-                });
-                $('#load').hide();
+            $('.password-toggle').on('click', function() {
+                const input = document.getElementById($(this).data('target'));
+                const icon = $(this).find('i');
+                input.type = input.type === 'password' ? 'text' : 'password';
+                icon.toggleClass('bi-eye bi-eye-slash');
             });
 
-            //update password
-            $('#updatePassword').submit(function(){ event.preventDefault();
-                $('#load').fadeIn();
+            function showRequestError(xhr) {
+                const data = xhr.responseJSON || {};
+                Swal.fire({
+                    icon: 'error',
+                    title: data.title || 'Modification impossible',
+                    text: data.msg || 'Impossible de communiquer avec le serveur.',
+                    confirmButtonText: "D'accord",
+                    confirmButtonColor: '#A40000',
+                });
+            }
+
+            $('#updateEmail').submit(function(event) {
+                event.preventDefault();
                 $.ajax({
                     type: 'POST',
-                    url: 'updatePassword',
-                    //enctype: 'multipart/form-data',
-                    data: $('#updatePassword').serialize(),
-                    datatype: 'json',
-                    success: function (data){
-                        console.log(data)
-                        if (data.status)
-                        {
-                            Swal.fire({
-                                icon: "success",
-                                title: data.title,
-                                text: data.msg,
-                            }).then(() => {
-                                if (data.redirect_to == "1") {
-                                    window.location.assign(data.redirect_to)
-                                } else {
-                                    window.location.reload()
-                                }
-                                //window.location.reload();
-                            })
-                        }else{
-                            Swal.fire({
-                                title: data.title,
-                                text:data.msg,
-                                icon: 'error',
-                                confirmButtonText: "D'accord",
-                                confirmButtonColor: '#A40000',
-                            })
-                        }
+                    url: "{{ route('profile.email.update') }}",
+                    data: $('#updateEmail').serialize(),
+                    dataType: 'json',
+                    success: function(data) {
+                        Swal.fire({ icon: 'success', title: data.title, text: data.msg })
+                            .then(() => window.location.reload());
                     },
-                    error: function (data){
-                        console.log(data)
-                        Swal.fire({
-                            icon: "error",
-                            title: "erreur",
-                            text: "Impossible de communiquer avec le serveur.",
-                            timer: 3600,
-                        })
-                    }
+                    error: showRequestError,
                 });
-                $('#load').hide();
+            });
+
+            $('#updatePassword').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: "{{ route('profile.password.update') }}",
+                    data: $('#updatePassword').serialize(),
+                    dataType: 'json',
+                    success: function(data) {
+                        Swal.fire({ icon: 'success', title: data.title, text: data.msg })
+                            .then(() => window.location.reload());
+                    },
+                    error: showRequestError,
+                });
             });
         });
     </script>

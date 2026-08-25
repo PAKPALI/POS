@@ -452,10 +452,6 @@
 				return false;
 			});
 
-			if ('serviceWorker' in navigator) {
-				navigator.serviceWorker.register('/sw.js').then(() => console.log('SW enregistré')).catch(err => console.log('SW erreur', err));
-			}
-
 			// $('.menu-item').on('click', function() {
 			// 	// Supprimer la classe 'active' de tous les menus
 			// 	$('.menu-item').removeClass('active');
@@ -464,6 +460,7 @@
 			// 	$(this).addClass('active');
 			// });
 		</script>
+		<script src="<?php echo e(asset('pwa-register.js')); ?>" defer></script>
 	</body>
 </html>
 <?php /**PATH C:\POS\resources\views/layouts/layout.blade.php ENDPATH**/ ?>

@@ -16,9 +16,11 @@ use App\Models\CodePromo;
 use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleDetail;
 use App\Models\User;
 use App\Services\SmsService;
 use App\Services\CompanyContext;
+use App\Services\SaleCreationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -32,100 +34,144 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SaleController extends Controller
 {
+    public function __construct(private SaleCreationService $saleCreationService) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $this->authorize('viewAny', Sale::class);
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
-        // today date
         $today = Carbon::today();
 
-        // get all categories with their associated products
-        $Category = Category::with('products')->get();
-        $Product = Product::where('status', 1)->where('qte', '>', 0)->get();
-        $Clients = Client::where('status', 1)->get();
+        if (request()->ajax()) {
+            $columns = [
+                'id', 'company_id', 'code', 'received_amount', 'total_amount',
+                'remaining_amount', 'code_promo', 'discount', 'client_id',
+                'cashier', 'created_at',
+            ];
+            if ($canViewFinancials) {
+                $columns[] = 'total_profit';
+            }
+
+            $sales = Sale::query()
+                ->select($columns)
+                ->with('client:id,name')
+                ->whereDate('created_at', $today)
+                ->latest();
+
+            return DataTables::of($sales)
+                ->addIndexColumn()
+                ->filterColumn('client', function ($query, $keyword) {
+                    $query->whereHas('client', fn ($client) => $client->where('name', 'like', "%{$keyword}%"));
+                })
+                ->addColumn('action', function($row){
+                    return ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
+                })
+                ->editColumn('client', fn ($sale) => $sale->client->name ?? 'Aucun')
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+        $Category = Category::query()
+            ->where('status', 1)
+            ->withCount(['products as available_products_count' => fn ($products) => $products
+                ->where('status', 1)
+                ->where('qte', '>', 0)])
+            ->orderBy('name')
+            ->get();
+        $productCount = Product::where('status', 1)->where('qte', '>', 0)->count();
         $company = CompanySetting::first();
 
         $mainCash = CashAccount::where('is_default', 1)->first();
         $taxCash = CashAccount::where('is_tax', 1)->first();
         $setting  = Setting::first();
 
-        // composer require yajra/laravel-datatables-oracle
-        $Object = Sale::with('saleDetails.product','client')->whereDate('created_at', $today)->latest()->get();
-        if (!$canViewFinancials) {
-            $this->hideFinancialFields($Object);
-        }
-        if(request()->ajax()){
-            return DataTables::of($Object)
-                ->addIndexColumn()
-                ->addColumn('action', function($row){
-                    $btn = ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
-                    return $btn;
-                })
-                ->editColumn('cashier', function ($Object) {
-                    return $Object->cashier;
-                })
-                ->editColumn('client', function ($Object) {
-                    return $Object->client->name ?? 'Aucun';
-                })
-                ->editColumn('created_at', function ($Object) {
-                    return $Object->created_at->format('d-m-Y H:i:s');
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
+        $salesSummary = Sale::query()
+            ->whereDate('created_at', $today)
+            ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
+            ->first();
+        $saleCount = (int) $salesSummary->sale_count;
+        $total_amount = (float) $salesSummary->total_amount;
+        $sale_total_profit = $canViewFinancials
+            ? (float) Sale::whereDate('created_at', $today)->sum('total_profit')
+            : 0;
+        $product_count = SaleDetail::whereDate('created_at', $today)->count();
 
-        // calculate total profit on sale
-        $total_amount = 0;
-        $sale_total_profit = 0;
-        $product_count = 0 ;
-        foreach ($Object as $sale) {
-            $total_amount += $sale->total_amount;
-            $sale_total_profit += $canViewFinancials ? $sale->total_profit : 0;
-            $product_count += $sale->saleDetails->count();
-        }
-
-        // calculate top-selling product 
-        $mostSoldProducts = DB::table('sale_details')
-            ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
-            ->where('company_id', app(CompanyContext::class)->getCompanyId())
-            ->whereDate('created_at', $today) // Filtrer pour les ventes d'aujourd'hui
+        $mostSoldProducts = SaleDetail::query()
+            ->select('product_id')
+            ->selectRaw('SUM(quantity) as total_quantity')
+            ->with('product:id,name,image,price')
+            ->whereDate('created_at', $today)
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
-            ->take(10) // Limit to 10 top-selling product 
+            ->take(10)
             ->get();
-
-        // Add information about each product
-        $mostSoldProducts = $mostSoldProducts->map(function ($saleDetail) {
-            $saleDetail->product = Product::find($saleDetail->product_id);
-            return $saleDetail;
-        });
 
         // Send data to view
         return view('pos.sale.index',
             compact(
-                'Category','Product','mostSoldProducts','Object','sale_total_profit',
-                'product_count','total_amount','company','mainCash','taxCash','setting','Clients',
+                'Category','productCount','mostSoldProducts','saleCount','sale_total_profit',
+                'product_count','total_amount','company','mainCash','taxCash','setting',
                 'canViewFinancials'
             ));
     }
 
+    public function searchClients(Request $request)
+    {
+        $this->authorize('viewAny', Sale::class);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'client_id' => ['nullable', 'integer', 'min:1'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $search = trim((string) ($validated['q'] ?? ''));
+        $clients = Client::query()
+            ->select(['id', 'name'])
+            ->where('status', 1)
+            ->when($validated['client_id'] ?? null, fn ($query, $clientId) => $query->whereKey($clientId))
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->orderBy('name')
+            ->paginate(20);
+
+        return response()->json([
+            'results' => $clients->getCollection()
+                ->map(fn (Client $client) => ['id' => $client->id, 'text' => $client->name])
+                ->values(),
+            'pagination' => ['more' => $clients->hasMorePages()],
+        ]);
+    }
+
     public function search(Request $request)
     {
-        $query = $request->get('q');
-        // $category = $request->get('category'); // id ou nom selon ton choix
+        $this->authorize('viewAny', Product::class);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'category_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('categories', 'id')->where(
+                    fn ($query) => $query
+                        ->where('company_id', app(CompanyContext::class)->getCompanyId())
+                        ->where('status', 1)
+                ),
+            ],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
 
-        $products = Product::where('status', 1)->where('qte', '>', 0)->where('name', 'like', "%{$query}%")
-            // ->when($category && $category !== 'all', function ($q) use ($category) {
-            //     $q->where('category_id', $category); // si tu as category_id dans Product
-            // })
-            // ->when(strlen($query) >= 2, function ($q) use ($query) {
-            //     $q->where('name', 'like', "%{$query}%");
-            // })
-            ->get();
+        $search = trim((string) ($validated['q'] ?? ''));
+        $products = Product::query()
+            ->select(['id', 'category_id', 'name', 'qte', 'price', 'price_ttc', 'image'])
+            ->where('status', 1)
+            ->where('qte', '>', 0)
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->when($validated['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
+            ->orderBy('name')
+            ->paginate(24);
 
-        $products->each(function ($product) {
+        $products->getCollection()->transform(function (Product $product) {
             $hasImage = $product->image
                 && $product->image !== 'null'
                 && file_exists(public_path('images/'.$product->image));
@@ -133,6 +179,9 @@ class SaleController extends Controller
             $product->image_url = $hasImage
                 ? asset('images/'.$product->image)
                 : asset('icons/product-placeholder.svg');
+            $product->sale_price = $product->price_ttc ?: $product->price;
+
+            return $product;
         });
 
         return response()->json($products);
@@ -161,6 +210,7 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Sale::class);
         $error_messages = [
             'products.required' => "Choisir un produit",
             'products.*.quantity.min' => "La quantité doit être supérieure à 0 pour chaque produit",
@@ -193,66 +243,21 @@ class SaleController extends Controller
         }
 
         try {
-            DB::beginTransaction();
-            $percent=0;
-           if ($request->code_promo && strlen($request->code_promo) == 6) {
-                $code_promo = CodePromo::where('code', $request->code_promo)->where('status', 1)->first();
-                $percent = $code_promo->percents;
-            }
-
-            // Store sale
-            $sale = Sale::create([
-                'code' => $this->code(),
+            $sale = $this->saleCreationService->create([
+                'products' => $request->products,
                 'received_amount' => $request->received_amount,
                 'total_amount' => $request->total_amount,
-                'remaining_amount' => $request->received_amount-$request->total_amount,
-                'code_promo' => $percent,
+                'code_promo' => $request->code_promo,
                 'discount' => $request->discount,
-                'amount_init' => $request->discount+$request->total_amount,
                 'client_id' => $request->client_id ?: null,
-                'cashier' => auth()->user()->name,
-            ]);
+            ], $request->user());
 
-            // Process products and store sale details
-            $totalProfit = $this->processProducts($sale, $request->products);
-
-            // subtract remise to profit if remise exist
-            if ($request->discount) {
-                $totalProfit = $totalProfit - $request->discount;
-            }
-
-            // Update the total profit in the sale table
-            $sale->update(['total_profit' => $totalProfit]);
-
-            // comptabilty run code
-            $this->handleAmsAccounting($sale);
-
-            // Render HTML directly: faster than generating and rasterizing a PDF.
             $company = CompanySetting::first();
             $receiptHtml = view('pos.receipt', [
                 'sale' => $sale,
                 'saleDetails' => $sale->saleDetails,
                 'company' => $company,
             ])->render();
-
-            // send sale email notification to users
-            // $this->sendSaleEmailNotification($sale);
-            SendSaleEmailJob::dispatch($sale->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
-
-            // send sms to client
-            $number = '90859488';
-            $message = 'Vous venez de faire un achat au total de '.$request->total_amount.' FCFA auprès de '.($company->name ?? config('app.name')).' et nous vous remercions.';
-            // $this->sendSms($number, $message);
-            SendSaleWhatsappJob::dispatch($sale->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
-
-            // Log action
-            Action::create([
-                'user_id' => auth()->user()->id,
-                'function' => 'VENTE',
-                'text' => auth()->user()->name . " a effectué une vente",
-            ]);
-
-            DB::commit();
             return response()->json([
                 "status" => true,
                 "reload" => true,
@@ -261,75 +266,9 @@ class SaleController extends Controller
                 'receiptHtml' => $receiptHtml,
             ]);
         } catch (\Throwable $th) {
-            DB::rollBack();
             return response()->json([
                 "status" => false,
                 "msg" => "Erreur survenue lors de la vente liée au produit ou au menu. " . $th->getMessage(),
-            ]);
-        }
-    }
-
-    private function processProducts($sale, $products)
-    {
-        $totalProfit = 0;
-
-        foreach ($products as $product) {
-            // search product
-            $Product = Product::whereKey($product['product_id'])->lockForUpdate()->firstOrFail();
-
-            // calculate profit and store it in sale detail
-            $profit = $Product->profit*$product['quantity'];
-
-            // store sale detail
-            $sale->saleDetails()->create([
-                'product_id' => $product['product_id'],
-                'quantity' => $product['quantity'],
-                'unit_price' => $product['unit_price'],
-                'total_price' => $product['total_price'],
-                'profit' => $profit
-            ]);
-
-            // update product quantity if product qte is greater than user quantity
-            $this->updateProductQuantity($Product, $product['quantity']);
-
-            // Ajouter le profit total
-            $totalProfit += $profit;
-        }
-        return $totalProfit;
-    }
-
-    private function updateProductQuantity($product, $quantity)
-    {
-        if ($product->qte >= $quantity) {
-            $newQte = $product->qte - $quantity;
-            $product->update(['qte' => $newQte]);
-
-            if($product->type == 2){
-                foreach ($product->MenuProducts as $item){
-                    $MenuProduct = Product::findOrFail($item->product_id);
-                    $this->updateProductQuantity($MenuProduct, $item->quantity);
-                }
-            }
-
-            // check if security margin is affected
-            // if($product->email == 0){
-                if ($newQte <= $product->margin) {
-                    SendMarginEmailJob::dispatch(
-                        $product->name,
-                        $product->margin,
-                        $newQte,
-                        app(CompanyContext::class)->getCompanyId()
-                    )->afterCommit();
-                }
-                // $product->update(['email' => 1]);
-            // }
-        }else {
-            throw new \RuntimeException("Stock insuffisant pour le produit {$product->name}.");
-            return response()->json([
-                "status" => false,
-                "reload" => false,
-                "title" => "VENTE ECHOUEE",
-                "msg" => "Le produit ". $product->name. " n'a plus de stock disponible pour la quantité demandée"
             ]);
         }
     }
@@ -396,6 +335,7 @@ class SaleController extends Controller
     public function generatePDF($id)
     {
         $sale = Sale::findOrFail($id);
+        $this->authorize('export', $sale);
         $saleDetails = $sale->saleDetails;
 
         $company = CompanySetting::first();
@@ -523,11 +463,13 @@ class SaleController extends Controller
     public function show(string $id)
     {
         $Sale = Sale::findOrFail($id);
+        $this->authorize('view', $Sale);
         return view('pos.sale.show_detail', compact('Sale'));
     }
 
     public function history(Request $request)
     {
+        $this->authorize('viewAny', Sale::class);
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         if ($request->ajax()) {
             $daterange = $request->daterange; // Exemple : "01/10/2024 - 31/10/2024"
@@ -542,47 +484,50 @@ class SaleController extends Controller
                 $endDate = Carbon::today()->format('Y-m-d 23:59:59');
             }
         
-            $Object = Sale::with('saleDetails.product','client')->whereBetween('created_at', [$startDate, $endDate])->latest()->get();
+            $summary = Sale::query()
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
+                ->first();
+            $totalProfit = $canViewFinancials
+                ? (float) Sale::whereBetween('created_at', [$startDate, $endDate])->sum('total_profit')
+                : null;
+            $productCount = SaleDetail::whereBetween('created_at', [$startDate, $endDate])->count();
 
-            // somme calcul on sale
-            $total_sale = $Object->count();
-            $total_amount = 0;
-            $total_profit = 0;
-            $product_count = 0 ;
-            foreach ($Object as $sale) {
-                $total_amount += $sale->total_amount;
-                $total_profit += $canViewFinancials ? $sale->total_profit : 0;
-                $product_count += $sale->saleDetails->count();
+            $mostSoldProducts = SaleDetail::query()
+                ->select('product_id')
+                ->selectRaw('SUM(quantity) as total_quantity')
+                ->with('product:id,name,image,price')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('product_id')
+                ->orderByDesc('total_quantity')
+                ->take(10)
+                ->get();
+
+            $columns = [
+                'id', 'company_id', 'code', 'total_amount', 'discount',
+                'client_id', 'cashier', 'created_at',
+            ];
+            if ($canViewFinancials) {
+                $columns[] = 'total_profit';
             }
+            $sales = Sale::query()
+                ->select($columns)
+                ->with('client:id,name')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->latest();
+            $hasCompany = CompanySetting::query()->exists();
 
-            //top-selling product 
-            $mostSoldProducts = DB::table('sale_details')
-            ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
-            ->where('company_id', app(CompanyContext::class)->getCompanyId())
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('product_id')
-            ->orderByDesc('total_quantity')
-            ->take(10)
-            ->get();
-
-            $mostSoldProducts = $mostSoldProducts->map(function ($saleDetail) {
-                $saleDetail->product = Product::find($saleDetail->product_id);
-                return $saleDetail;
-            });
-
-            if (!$canViewFinancials) {
-                $this->hideFinancialFields($Object);
-            }
-
-            return DataTables::of($Object)
+            return DataTables::of($sales)
                 ->addIndexColumn()
-                ->addColumn('action', function ($row) { 
-                    $company = \App\Models\CompanySetting::first();
+                ->filterColumn('client', function ($query, $keyword) {
+                    $query->whereHas('client', fn ($client) => $client->where('name', 'like', "%{$keyword}%"));
+                })
+                ->addColumn('action', function ($row) use ($hasCompany) {
                     $buttons = '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view">
                         <i class="fas fa-lg fa-fw me-0 fa-eye"></i>
                     </a>';
 
-                    if ($company AND $company->count() > 0) {
+                    if ($hasCompany) {
                         $buttons .= ' <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"> <i class="fas fa-file-pdf"></i> PDF</a>';
                     }
                     return $buttons;
@@ -594,10 +539,10 @@ class SaleController extends Controller
                     return $Object->client->name ?? 'Aucun';
                 })
                 ->with([
-                    'totalSale' => $total_sale,
-                    'totalAmount' => $total_amount,
-                    'totalProfit' => $canViewFinancials ? $total_profit : null,
-                    'productCount' => $product_count,
+                    'totalSale' => (int) $summary->sale_count,
+                    'totalAmount' => (float) $summary->total_amount,
+                    'totalProfit' => $totalProfit,
+                    'productCount' => $productCount,
                     'mostSoldProducts' => $mostSoldProducts,
                 ])
                 ->rawColumns(['action'])
@@ -609,6 +554,7 @@ class SaleController extends Controller
 
     public function exportHistoryPdf(Request $request)
     {
+        $this->authorize('export', Sale::class);
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         $daterange = $request->get('daterange');
         if ($daterange) {

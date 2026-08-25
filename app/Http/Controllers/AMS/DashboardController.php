@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AMS\CashAccount;
 use App\Models\AMS\Setting;
 use App\Models\AMS\Transaction;
-use App\Models\Category;
-use App\Models\Product;
 use App\Models\Sale;
 use App\Services\CompanyContext;
 use Illuminate\Http\Request;
@@ -18,34 +16,30 @@ class DashboardController extends Controller
     public function index()
     {
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
-        $Category = Category::where('status',1)->orderBy('name', 'asc')->get();
-        $Product =  $Product = Product::where('status',1)->orderBy('name', 'asc')->get();
-
-        $cashAccounts = CashAccount::all();
+        $cashAccountCount = CashAccount::count();
         $mainCash = CashAccount::where('is_default', 1)->first();
         $taxCash = CashAccount::where('is_tax', 1)->first();
-        
-        $transactions = Transaction::all();
+        $transactionCount = Transaction::count();
         $latestTransactions = Transaction::latest()->take(20)->get();
-
-        $sales = Sale::all();
+        $salesSummary = Sale::query()
+            ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
+            ->first();
+        $saleCount = (int) $salesSummary->sale_count;
         $totalProfit = $canViewFinancials ? Sale::sum('total_profit') : 0;
-        $totalSalesAmount = Sale::sum('total_amount');
+        $totalSalesAmount = (float) $salesSummary->total_amount;
         $sale_total_profit = $totalProfit;
         
         $settings = Setting::first();
 
         return view('ams.dashboard', compact(
-            'Category',
-            'Product',
             'sale_total_profit',
             'totalSalesAmount',
             'mainCash',
             'settings',
-            'cashAccounts',
+            'cashAccountCount',
             'taxCash',
-            'transactions',
-            'sales',
+            'transactionCount',
+            'saleCount',
             'totalProfit',
             'latestTransactions',
             'canViewFinancials'

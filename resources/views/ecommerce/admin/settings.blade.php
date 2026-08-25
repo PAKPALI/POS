@@ -6,6 +6,8 @@
     .current-logo { max-height: 80px; border-radius: 8px; }
     .storefront-access { border: 1px solid rgba(25,195,125,.35); background: rgba(25,195,125,.07); border-radius: 14px; }
     .storefront-url { overflow-wrap: anywhere; color: #55dca4; }
+    .slug-prefix { max-width: 52%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slug-status { min-height: 22px; }
 </style>
 @endpush
 
@@ -37,6 +39,18 @@
                                     <label for="site_name" class="form-label">Nom du site</label>
                                     <input type="text" class="form-control" id="site_name" value="{{ $company->name }}" readonly>
                                     <small class="text-muted">Utilise le nom de la compagnie</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="boutique_slug" class="form-label">Adresse personnalisée de la boutique</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text slug-prefix" title="{{ url('/boutique') }}/">{{ url('/boutique') }}/</span>
+                                        <input type="text" name="slug" class="form-control" id="boutique_slug"
+                                            value="{{ $company->slug }}" data-original-slug="{{ $company->slug }}"
+                                            minlength="3" maxlength="80" autocomplete="off" required>
+                                    </div>
+                                    <div id="slugStatus" class="slug-status small mt-2" aria-live="polite"></div>
+                                    <small class="text-warning d-block">Si vous changez cette adresse, les anciens liens déjà partagés ne fonctionneront plus.</small>
                                 </div>
 
                                 <div class="mb-3">
@@ -85,10 +99,7 @@
                                     </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary">
-                                    <div id="settingsLoader" class="spinner-grow spinner-grow-sm" style="display:none;"></div>
-                                    <span id="settingsSubmitText">Enregistrer</span>
-                                </button>
+                                <button type="submit" class="btn btn-primary" data-loading-text="Enregistrement…">Enregistrer</button>
                             </form>
                         </div>
                     </div>
@@ -102,7 +113,6 @@
 
                             <form id="addManagerForm" class="mb-3">
                                 @csrf
-                                <input type="hidden" name="company_id" value="{{ $company->id }}">
                                 <div class="input-group">
                                     <select name="user_id" class="form-select" required>
                                         <option value="">Selectionner un utilisateur</option>
@@ -110,7 +120,7 @@
                                             <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                                         @endforeach
                                     </select>
-                                    <button type="submit" class="btn btn-success">Ajouter</button>
+                                    <button type="submit" class="btn btn-success" data-loading-text="Ajout…">Ajouter</button>
                                 </div>
                             </form>
 
@@ -140,7 +150,52 @@
 
 <script>
 $(function() {
-    $('#settingsLoader').hide();
+    let slugCheckTimer = null;
+    let slugCheckRequest = null;
+    let slugAvailable = true;
+
+    function updateStorefrontPreview(url) {
+        if (!url) return;
+        $('#storefrontUrl').attr('href', url).text(url);
+        $('#copyStorefrontUrl').data('url', url).attr('data-url', url);
+    }
+
+    $('#boutique_slug').on('input', function() {
+        const input = this;
+        const value = input.value.trim();
+        window.clearTimeout(slugCheckTimer);
+        if (slugCheckRequest) slugCheckRequest.abort();
+
+        if (!value) {
+            slugAvailable = false;
+            $('#slugStatus').attr('class', 'slug-status small mt-2 text-danger').text('Saisissez une adresse pour votre boutique.');
+            return;
+        }
+
+        $('#slugStatus').attr('class', 'slug-status small mt-2 text-info')
+            .html('<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Vérification de la disponibilité…');
+
+        slugCheckTimer = window.setTimeout(function() {
+            slugCheckRequest = $.get("{{ route('ecommerce.slug.check') }}", {slug: value})
+                .done(function(data) {
+                    slugAvailable = data.available;
+                    $(input).data('normalized-slug', data.slug);
+                    $('#slugStatus')
+                        .attr('class', 'slug-status small mt-2 ' + (data.available ? 'text-success' : 'text-danger'))
+                        .text(data.msg + (data.slug && data.slug !== value ? ' Adresse proposée : ' + data.slug : ''));
+                    if (data.available) updateStorefrontPreview(data.storefront_url);
+                })
+                .fail(function(xhr, status) {
+                    if (status === 'abort') return;
+                    slugAvailable = false;
+                    $('#slugStatus').attr('class', 'slug-status small mt-2 text-danger')
+                        .text(xhr.responseJSON?.msg || 'La disponibilité ne peut pas être vérifiée pour le moment.');
+                });
+        }, 450);
+    }).on('blur', function() {
+        const normalized = $(this).data('normalized-slug');
+        if (slugAvailable && normalized) $(this).val(normalized);
+    });
 
     $('#copyStorefrontUrl').on('click', function() {
         navigator.clipboard.writeText($(this).data('url')).then(function() {
@@ -152,7 +207,7 @@ $(function() {
     var managersTable = $('#managers-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: "{{ route('ecommerce.managers.list', $company->id) }}",
+        ajax: "{{ route('ecommerce.managers.list') }}",
         columns: [
             {data: 'DT_RowIndex', name: 'DT_RowIndex'},
             {data: 'user_name', name: 'user_name'},
@@ -198,33 +253,71 @@ $(function() {
         },
     });
 
-    $('#settingsForm').submit(function(e) {
-        e.preventDefault();
-        $('#settingsLoader').fadeIn();
-        $('#settingsSubmitText').hide();
+    function settingsRequest(form, confirmedSlugChange) {
+        const formData = new FormData(form);
+        formData.set('confirm_slug_change', confirmedSlugChange ? '1' : '0');
 
-        var formData = new FormData(this);
-        $.ajax({
+        return $.ajax({
             type: 'POST',
             url: "{{ route('ecommerce.settings.update') }}",
             data: formData,
             contentType: false,
-            processData: false,
-            success: function(data) {
-                $('#settingsLoader').hide();
-                $('#settingsSubmitText').fadeIn();
-                Swal.fire({
-                    toast: true, position: 'top', icon: data.status ? 'success' : 'error',
-                    title: data.title, showConfirmButton: false, timer: 3000, text: data.msg
-                });
-            },
-            error: function() {
-                $('#settingsLoader').hide();
-                $('#settingsSubmitText').fadeIn();
-                Swal.fire({ toast: true, position: 'top', icon: 'error', title: 'Erreur',
-                    text: 'Impossible de communiquer avec le serveur.', showConfirmButton: false, timer: 3000 });
-            }
+            processData: false
         });
+    }
+
+    function settingsSaved(data) {
+        $('#boutique_slug').val(data.slug).data('original-slug', data.slug).data('normalized-slug', data.slug);
+        slugAvailable = true;
+        updateStorefrontPreview(data.storefront_url);
+        Swal.fire({
+            toast: true, position: 'top', icon: 'success',
+            title: data.title, showConfirmButton: false, timer: 3000, text: data.msg
+        });
+    }
+
+    $('#settingsForm').submit(function(e) {
+        e.preventDefault();
+        const form = this;
+        const normalizedSlug = $('#boutique_slug').data('normalized-slug') || $('#boutique_slug').val().trim();
+        const originalSlug = $('#boutique_slug').data('original-slug');
+        const slugChanged = normalizedSlug !== originalSlug;
+
+        if (!slugAvailable) {
+            Swal.fire({ icon: 'error', title: 'Adresse indisponible', text: 'Choisissez une adresse disponible avant d’enregistrer.' });
+            return;
+        }
+
+        if (slugChanged) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Changer le lien de la boutique ?',
+                text: "L’ancien lien /boutique/" + originalSlug + " ne fonctionnera plus. Le nouveau sera /boutique/" + normalizedSlug + ".",
+                showCancelButton: true,
+                confirmButtonText: 'Oui, changer le lien',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#d97706',
+                showLoaderOnConfirm: true,
+                allowOutsideClick: () => !Swal.isLoading(),
+                allowEscapeKey: () => !Swal.isLoading(),
+                preConfirm: function() {
+                    return settingsRequest(form, true).catch(function(xhr) {
+                        Swal.showValidationMessage(xhr.responseJSON?.msg || 'Impossible de modifier le lien de la boutique.');
+                        return false;
+                    });
+                }
+            }).then(function(result) {
+                if (result.isConfirmed && result.value) settingsSaved(result.value);
+            });
+            return;
+        }
+
+        settingsRequest(form, false)
+            .done(settingsSaved)
+            .fail(function(xhr) {
+                Swal.fire({ toast: true, position: 'top', icon: 'error', title: 'Erreur',
+                    text: xhr.responseJSON?.msg || 'Impossible de communiquer avec le serveur.', showConfirmButton: false, timer: 3000 });
+            });
     });
 
     $('#addManagerForm').submit(function(e) {
@@ -243,6 +336,14 @@ $(function() {
                     managersTable.ajax.reload();
                     $('#addManagerForm')[0].reset();
                 }
+            },
+            error: function(xhr) {
+                const data = xhr.responseJSON || {};
+                Swal.fire({
+                    toast: true, position: 'top', icon: 'error',
+                    title: data.title || 'Ajout impossible', showConfirmButton: false,
+                    timer: 3500, text: data.msg || 'Impossible de communiquer avec le serveur.'
+                });
             }
         });
     });
@@ -251,19 +352,32 @@ $(function() {
         var id = $(this).data('id');
         Swal.fire({
             icon: 'question', title: 'Retirer ce manager?',
-            showCancelButton: true, confirmButtonText: 'Oui', cancelButtonText: 'Non'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
+            showCancelButton: true, confirmButtonText: 'Oui', cancelButtonText: 'Non',
+            showLoaderOnConfirm: true,
+            allowOutsideClick: () => !Swal.isLoading(),
+            allowEscapeKey: () => !Swal.isLoading(),
+            preConfirm: function() {
+                return $.ajax({
                     type: 'DELETE',
                     url: "{{ url('ecommerce/managers') }}/" + id,
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                    success: function(data) {
-                        Swal.fire({ toast: true, position: 'top', icon: 'success',
-                            title: data.title, showConfirmButton: false, timer: 3000 });
-                        managersTable.ajax.reload();
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+                }).then(function(data) {
+                    if (!data.status) {
+                        throw new Error(data.msg || 'Le retrait a échoué.');
                     }
+                    return data;
+                }).catch(function(xhr) {
+                    const message = xhr.responseJSON?.msg || xhr.message || 'Impossible de retirer ce manager.';
+                    Swal.showValidationMessage(message);
+                    return false;
                 });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const data = result.value;
+                Swal.fire({ toast: true, position: 'top', icon: 'success',
+                    title: data.title, text: data.msg, showConfirmButton: false, timer: 3000 });
+                managersTable.ajax.reload(null, false);
             }
         });
     });

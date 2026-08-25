@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleDetail;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\CompanyUser;
@@ -39,45 +40,33 @@ class UserController extends Controller
     {
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         $Action = Action::whereDate('created_at', today())->latest()->paginate(10);
-        $Category = Category::all();
-        $Product = Product::all();
-        $Sale = Sale::all();
+        $categoryCount = Category::count();
+        $productCount = Product::count();
+        $salesSummary = Sale::query()
+            ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_revenue, COALESCE(SUM(discount), 0) as total_discount')
+            ->first();
         $clientCount = Client::count();
         $supplierCount = Supplier::count();
         $company = CompanySetting::first();
 
-        // calculate total profit on sale
-        // $total_amount = 0;
-        $sale_total_profit = 0;
-        // $product_count = 0 ;
-        foreach ($canViewFinancials ? $Sale : [] as $sale) {
-            // $total_amount += $sale->total_amount;
-            $sale_total_profit += $sale->total_profit;
-            // $product_count += $sale->saleDetails->count();
-        }
+        $saleCount = (int) $salesSummary->sale_count;
+        $sale_total_revenue = (float) $salesSummary->total_revenue;
+        $sale_total_discount = (float) $salesSummary->total_discount;
+        $sale_total_profit = $canViewFinancials ? (float) Sale::sum('total_profit') : 0;
 
-        // calculate top-selling product 
-        $mostSoldProducts = DB::table('sale_details')
-            ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
-            ->where('company_id', app(CompanyContext::class)->getCompanyId())
-            //->whereDate('created_at', $today)  Filtrer pour les ventes d'aujourd'hui
+        $mostSoldProducts = SaleDetail::query()
+            ->select('product_id')
+            ->selectRaw('SUM(quantity) as total_quantity')
+            ->with('product:id,name,image,price')
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
             ->paginate(4);
 
-        // Add information about each product
-        $mostSoldProducts->each(function ($saleDetail) {
-            $saleDetail->product = Product::find($saleDetail->product_id);
-        });
-
-        $sale_total_revenue = $Sale->sum('total_amount');
-        $sale_total_discount = $Sale->sum('discount');
-
         return view('dashboard', compact(
             'Action',
-            'Category',
-            'Product',
-            'Sale',
+            'categoryCount',
+            'productCount',
+            'saleCount',
             'clientCount',
             'supplierCount',
             'sale_total_profit',
@@ -91,14 +80,19 @@ class UserController extends Controller
 
     public function index()
     {
-        // composer require yajra/laravel-datatables-oracle
         $companyId = app(CompanyContext::class)->getCompanyId();
-        $Object = User::whereHas('activeMemberships', fn ($query) => $query->where('company_id', $companyId))
-            ->with(['memberships' => fn ($query) => $query->where('company_id', $companyId)->with('role')])
-            ->latest()->get();
         if(request()->ajax()){
-            // $Student = Student::all();
-            return DataTables::of($Object)
+            $users = User::query()
+                ->join('company_user as active_membership', function ($join) use ($companyId) {
+                    $join->on('active_membership.user_id', '=', 'users.id')
+                        ->where('active_membership.company_id', $companyId)
+                        ->where('active_membership.status', 'active');
+                })
+                ->leftJoin('roles as active_role', 'active_role.id', '=', 'active_membership.role_id')
+                ->select('users.*', 'active_role.name as active_role_name')
+                ->latest('users.created_at');
+
+            return DataTables::of($users)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
                     $clone = '<button type="button" data-id="'.$row->id.'" data-name="'.e($row->name).'" title="Intégrer dans une autre compagnie" class="btn btn-info btn-sm cloneUser"><i class="fas fa-lg fa-fw me-0 fa-clone"></i></button> ';
@@ -111,9 +105,7 @@ class UserController extends Controller
                     }
                     return $btn;
                 })
-                ->editColumn('user_type', function ($Object) use ($companyId) {
-                    return $Object->memberships->firstWhere('company_id', $companyId)?->role?->name ?? 'Non attribué';
-                })
+                ->editColumn('user_type', fn ($user) => $user->active_role_name ?? 'Non attribué')
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
                         $btn = ' <a  class="btn btn-success btn-sm">Actif</a>';
@@ -400,138 +392,95 @@ class UserController extends Controller
     public function updatePassword(Request $request)
     {
         $error_messages = [
-            "AM.required" => "Remplir le champ ancien mot de passe!",
-            "NM.required" => "Remplir le champ nouveau mot de passe!",
-            "CM.required" => "Remplir le champ confirmer mot de passe!",
-            "NM.min" => "Le nouveau mot de passe doit comporter au moins 8 caractères!",
-            'NM.regex' => 'Le nouveau mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre.',
+            'AM.required' => 'Saisissez votre mot de passe actuel.',
+            'NM.required' => 'Saisissez votre nouveau mot de passe.',
+            'NM.min' => 'Le nouveau mot de passe doit comporter au moins 8 caractères.',
+            'NM.regex' => 'Le nouveau mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.',
+            'NM.same' => 'Le nouveau mot de passe et sa confirmation sont différents.',
+            'CM.required' => 'Confirmez votre nouveau mot de passe.',
         ];
 
-        $validator = Validator::make($request->all(),[
-            'AM' => ['required'],
-            'NM' => ['required', 'min:8'],
-            'NM' => ['required','min:8','regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',],
-            'CM' => ['required'],
+        $validator = Validator::make($request->all(), [
+            'AM' => ['required', 'string'],
+            'NM' => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/', 'same:CM'],
+            'CM' => ['required', 'string'],
         ], $error_messages);
 
-        if($validator->fails())
+        if ($validator->fails()) {
             return response()->json([
-            "status" => false,
-            "reload" => false,
-            "title" => "TENTATIVE ECHOUEE",
-            "msg" => $validator->errors()->first()]);
-
-        $id = $request-> user_id;
-        $User = User::find($id);
-
-        if(Hash::check($request-> AM, $User-> password)){
-            if($request-> NM == $request-> CM){
-                $search = User::find($id);
-                if($search){
-                    $search -> update([
-                        'password' =>  Hash::make($request-> CM)
-                    ]);
-                    // Action::create([
-                    //     'user_id' => auth()->user()->id,
-                    //     'function' => 'MISE A JOUR DU MOT DE PASSE',
-                    //     'text' => auth()->user()->name." a fait la mise a jour de son mot de passe",
-                    // ]); 
-                    return response()->json([
-                        "status" => true,
-                        "reload" => true,
-                        "redirect_to" => "0",
-                        "title" => "MIS A JOUR REUSSIE",
-                        "msg" => "Mise à jour réussie"
-                    ]);
-                }
-            }else{
-                return response()->json([
-                    "status" => false,
-                    "reload" => false,
-                    "title" => "TENTATIVE ECHOUEE",
-                    "msg" => "Le nouveau mot de passe et la confirmation du mot de passe sont différents"
-                ]);
-            }
-        }else{
-            return response()->json([
-                "status" => false,
-                "reload" => false,
-                "title" => "TENTATIVE ECHOUEE",
-                "msg" => "L'ancien mot de passe saisie ne correspond pas au mot de passe enregistré dans la base de donnée"
-            ]);
+                'status' => false,
+                'reload' => false,
+                'title' => 'MODIFICATION IMPOSSIBLE',
+                'msg' => $validator->errors()->first(),
+            ], 422);
         }
+
+        $user = $request->user();
+        if (! Hash::check($request->string('AM')->toString(), $user->password)) {
+            return response()->json([
+                'status' => false,
+                'reload' => false,
+                'title' => 'MODIFICATION IMPOSSIBLE',
+                'msg' => 'Le mot de passe actuel est incorrect.',
+            ], 422);
+        }
+
+        $user->update(['password' => Hash::make($request->string('NM')->toString())]);
+
+        return response()->json([
+            'status' => true,
+            'reload' => true,
+            'redirect_to' => '0',
+            'title' => 'MOT DE PASSE MODIFIÉ',
+            'msg' => 'Votre mot de passe a été mis à jour.',
+        ]);
     }
 
     public function updateEmail(Request $request)
     {
         $error_messages = [
-            "AE.required" => "Remplir le champ ancien email!",
-            "NE.required" => "Remplir le champ nouveau email!",
-            "CE.required" => "Remplir le champ confirmer email!",
+            'NE.required' => 'Saisissez votre nouvelle adresse e-mail.',
+            'NE.email' => 'Saisissez une adresse e-mail valide.',
+            'NE.unique' => 'Cette adresse e-mail est déjà utilisée.',
+            'NE.same' => 'La nouvelle adresse e-mail et sa confirmation sont différentes.',
+            'CE.required' => 'Confirmez votre nouvelle adresse e-mail.',
+            'current_password.required' => 'Saisissez votre mot de passe actuel.',
         ];
 
-        $validator = Validator::make($request->all(),[
-            'AE' => ['required'],
-            'NE' => ['required'],
-            'CE' => ['required'],
+        $user = $request->user();
+        $validator = Validator::make($request->all(), [
+            'NE' => ['required', 'string', 'email', 'max:255', 'same:CE', Rule::unique('users', 'email')->ignore($user->id)],
+            'CE' => ['required', 'string', 'email'],
+            'current_password' => ['required', 'string'],
         ], $error_messages);
 
-        if($validator->fails())
+        if ($validator->fails()) {
             return response()->json([
-            "status" => false,
-            "reload" => false,
-            "title" => "TENTATIVE ECHOUEE",
-            "msg" => $validator->errors()->first()]);
-
-        $id = $request-> user_id;
-        $User = User::find($id);
-        $emailExist = User::where('email',$request-> CE)->get();
-
-        if($request-> AE == $User-> email){
-            if($request-> NE == $request-> CE){
-                if($emailExist!=NULL){
-                    $search = User::find($id);
-                    if($search){
-                        $search -> update([
-                            'email' =>  $request-> CE
-                        ]);
-                        // Action::create([
-                        //     'user_id' => auth()->user()->id,
-                        //     'function' => 'MISE A JOUR DU EMAIL',
-                        //     'text' => auth()->user()->name." a fait la mise a jour de son email",
-                        // ]); 
-                        return response()->json([
-                            "status" => true,
-                            "reload" => true,
-                            "redirect_to" => "0",
-                            "title" => "MIS A JOUR DU EMAIL REUSSIE",
-                            "msg" => "Mise à jour réussie"
-                        ]);
-                    }
-                }else{
-                    return response()->json([
-                        "status" => false,
-                        "reload" => false,
-                        "title" => "TENTATIVE ECHOUEE",
-                        "msg" => "Le nouveau email saisi existe déja"
-                    ]);
-                }
-            }else{
-                return response()->json([
-                    "status" => false,
-                    "reload" => false,
-                    "title" => "TENTATIVE ECHOUEE",
-                    "msg" => "Le nouveau email et la confirmation du email sont différents"
-                ]);
-            }
-        }else{
-            return response()->json([
-                "status" => false,
-                "reload" => false,
-                "title" => "TENTATIVE ECHOUEE",
-                "msg" => "L'ancien email saisie ne correspond pas au email enregistré actuelement dans la base de donnée"
-            ]);
+                'status' => false,
+                'reload' => false,
+                'title' => 'MODIFICATION IMPOSSIBLE',
+                'msg' => $validator->errors()->first(),
+            ], 422);
         }
+
+        if (! Hash::check($request->string('current_password')->toString(), $user->password)) {
+            return response()->json([
+                'status' => false,
+                'reload' => false,
+                'title' => 'MODIFICATION IMPOSSIBLE',
+                'msg' => 'Le mot de passe actuel est incorrect.',
+            ], 422);
+        }
+
+        $user->update(['email' => mb_strtolower($request->string('NE')->toString())]);
+
+        return response()->json([
+            'status' => true,
+            'reload' => true,
+            'redirect_to' => '0',
+            'title' => 'ADRESSE E-MAIL MODIFIÉE',
+            'msg' => 'Votre adresse e-mail a été mise à jour.',
+        ]);
     }
 
     public function topSellingProducts(Request $request)

@@ -14,11 +14,13 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\CleanActions::class,
         \App\Console\Commands\SendWeeklyInventoryReport::class,
+        \App\Console\Commands\CleanNotificationDeliveries::class,
     ];
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('actions:clean')->weeklyOn(0, '23:59');
+        $schedule->command('actions:clean --days=365')->weeklyOn(0, '23:59')->withoutOverlapping();
         $schedule->command('inventory:weekly-report')->weeklyOn(0, '23:59');
+        $schedule->command('notifications:clean-deliveries --days=180')->weeklyOn(0, '23:30')->withoutOverlapping();
         // $schedule->command('actions:clean')->everyMinute();
     }
 

@@ -45,8 +45,10 @@ class NotificationSettingController extends Controller
 
         DB::transaction(function () use ($request, $company, $allowedUsers) {
             $company->update([
+                'sale_email_enabled' => $request->boolean('sale_email_enabled'),
                 'sale_whatsapp_enabled' => $request->boolean('sale_whatsapp_enabled'),
                 'sale_sms_enabled' => $request->boolean('sale_sms_enabled'),
+                'inventory_email_enabled' => $request->boolean('inventory_email_enabled'),
                 'inventory_whatsapp_enabled' => $request->boolean('inventory_whatsapp_enabled'),
                 'inventory_sms_enabled' => $request->boolean('inventory_sms_enabled'),
             ]);

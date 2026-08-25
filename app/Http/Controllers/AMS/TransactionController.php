@@ -15,7 +15,13 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $transactions = Transaction::latest();
+        $transactions = Transaction::query()
+            ->select([
+                'id', 'type', 'amount', 'description', 'from_cash_id', 'to_cash_id',
+                'created_by', 'created_at',
+            ])
+            ->with(['fromCash:id,name', 'toCash:id,name', 'user:id,name'])
+            ->latest();
 
         if(request()->ajax()){
             return DataTables::of($transactions)
@@ -61,23 +67,22 @@ class TransactionController extends Controller
         }
         $cashes = CashAccount::where('status',1)->get();
 
-        $totalTransactions = Transaction::selectRaw('COUNT(*) as count, COALESCE(SUM(amount),0) as total')->first();
+        $summary = Transaction::query()->selectRaw(<<<'SQL'
+            COUNT(*) as total_count,
+            COALESCE(SUM(amount), 0) as total_amount,
+            SUM(CASE WHEN type = 'IN' THEN 1 ELSE 0 END) as in_count,
+            COALESCE(SUM(CASE WHEN type = 'IN' THEN amount ELSE 0 END), 0) as in_amount,
+            SUM(CASE WHEN type = 'OUT' THEN 1 ELSE 0 END) as out_count,
+            COALESCE(SUM(CASE WHEN type = 'OUT' THEN amount ELSE 0 END), 0) as out_amount,
+            SUM(CASE WHEN type = 'TRANSFER' THEN 1 ELSE 0 END) as transfer_count,
+            COALESCE(SUM(CASE WHEN type = 'TRANSFER' THEN amount ELSE 0 END), 0) as transfer_amount
+        SQL)->first();
 
-        $inTransactions = Transaction::where('type', 'IN')
-            ->selectRaw('COUNT(*) as count, COALESCE(SUM(amount),0) as total')
-            ->first();
-
-        $outTransactions = Transaction::where('type', 'OUT')
-            ->selectRaw('COUNT(*) as count, COALESCE(SUM(amount),0) as total')
-            ->first();
-
-        $transferTransactions = Transaction::where('type', 'TRANSFER')
-            ->selectRaw('COUNT(*) as count, COALESCE(SUM(amount),0) as total')
-            ->first();
-
-        $totalIn = Transaction::where('type', 'IN')->sum('amount');
-        $totalOut = Transaction::where('type', 'OUT')->sum('amount');
-        $netBalance = $totalIn - $totalOut;
+        $totalTransactions = (object) ['count' => (int) $summary->total_count, 'total' => (float) $summary->total_amount];
+        $inTransactions = (object) ['count' => (int) $summary->in_count, 'total' => (float) $summary->in_amount];
+        $outTransactions = (object) ['count' => (int) $summary->out_count, 'total' => (float) $summary->out_amount];
+        $transferTransactions = (object) ['count' => (int) $summary->transfer_count, 'total' => (float) $summary->transfer_amount];
+        $netBalance = (float) $summary->in_amount - (float) $summary->out_amount;
 
         return view('ams.transaction.index', compact('cashes','netBalance', 'totalTransactions', 'inTransactions', 'outTransactions', 'transferTransactions'));
     }

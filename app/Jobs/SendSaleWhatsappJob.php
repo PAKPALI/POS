@@ -2,12 +2,14 @@
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\HasReliableNotificationQueue;
 use App\Models\Sale;
 use App\Models\Company;
 use App\Models\User;
 use App\Services\SmsService;
 use App\Services\Report\DailySalesReportService;
 use App\Services\CompanyContext;
+use App\Services\NotificationDeliveryService;
 use App\Services\NotificationRecipientService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,10 +17,13 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
+use Throwable;
 
 class SendSaleWhatsappJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use HasReliableNotificationQueue;
 
     public $saleId;
     public $companyId;
@@ -31,7 +36,7 @@ class SendSaleWhatsappJob implements ShouldQueue
 
     public function handle(): void
     {
-        $company = Company::find($this->companyId);
+        $company = Company::active()->find($this->companyId);
         if (!$company) return;
         app(CompanyContext::class)->setPublicCompany($company);
 
@@ -39,6 +44,8 @@ class SendSaleWhatsappJob implements ShouldQueue
         if (!$sale) return;
         $smsService = app(SmsService::class);
         $recipientService = app(NotificationRecipientService::class);
+        $deliveryService = app(NotificationDeliveryService::class);
+        $hasFailures = false;
 
         if (!$company->sale_whatsapp_enabled && !$company->sale_sms_enabled) {
             Log::info('Notifications de vente WhatsApp/SMS désactivées', ['company_id' => $company->id]);
@@ -52,25 +59,55 @@ class SendSaleWhatsappJob implements ShouldQueue
 
         if ($company->sale_whatsapp_enabled) {
             foreach ($recipientService->users($this->companyId, 'sale', 'whatsapp') as $user) {
-                $response = $smsService->sendWhatsappSms($user->phone, "Notification de vente", $message);
-                if (is_array($response) && isset($response['status']) && $response['status'] === false) {
-                    Log::warning("Sale WhatsApp message not sent to $user->phone: " . ($response['message'] ?? 'Quota ou erreur'));
-                } else {
-                    Log::info("Sale WhatsApp message sent with success to $user->phone");
+                try {
+                    $sent = $deliveryService->deliver(
+                        $company->id, 'sale', $sale->id, 'sale', 'whatsapp', $user->id,
+                        function () use ($smsService, $user, $message): void {
+                            $response = $smsService->sendWhatsappSms($user->phone, 'Notification de vente', $message);
+                            if (($response['status'] ?? false) !== true) {
+                                throw new RuntimeException('Envoi WhatsApp refusé par le fournisseur.');
+                            }
+                        }
+                    );
+                    if ($sent) {
+                        Log::info('Sale WhatsApp message sent successfully', [
+                            'company_id' => $company->id, 'sale_id' => $sale->id, 'user_id' => $user->id,
+                        ]);
+                    }
+                } catch (Throwable $exception) {
+                    $hasFailures = true;
+                    Log::warning('Sale WhatsApp message not sent', [
+                        'company_id' => $company->id, 'sale_id' => $sale->id,
+                        'user_id' => $user->id, 'error' => class_basename($exception),
+                    ]);
                 }
             }
         }
 
         if ($company->sale_sms_enabled) {
             foreach ($recipientService->users($this->companyId, 'sale', 'sms') as $user) {
-                $response = $smsService->sendSms($user->phone, $message);
-                if (($response['status'] ?? false) !== true) {
+                try {
+                    $deliveryService->deliver(
+                        $company->id, 'sale', $sale->id, 'sale', 'sms', $user->id,
+                        function () use ($smsService, $user, $message): void {
+                            $response = $smsService->sendSms($user->phone, $message);
+                            if (($response['status'] ?? false) !== true) {
+                                throw new RuntimeException('Envoi SMS refusé par le fournisseur.');
+                            }
+                        }
+                    );
+                } catch (Throwable $exception) {
+                    $hasFailures = true;
                     Log::warning('Sale SMS message not sent', [
                         'company_id' => $company->id, 'user_id' => $user->id,
-                        'phone' => $user->phone, 'response' => $response,
+                        'sale_id' => $sale->id, 'error' => class_basename($exception),
                     ]);
                 }
             }
+        }
+
+        if ($hasFailures) {
+            throw new RuntimeException('Une ou plusieurs notifications de vente mobiles ont échoué.');
         }
     }
 

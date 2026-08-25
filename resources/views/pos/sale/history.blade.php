@@ -170,10 +170,9 @@
                                         </div>
                                     </div>
                                     <div class="card-footer mt-1">
-                                        <button id="submit" type="button" class="btn btn-info">
-                                            <div id="loader" class="spinner-grow"></div>
-                                            <div id="submitText">Valider</div>
-                                        </button> 
+                                        <button id="submit" type="button" class="btn btn-info" data-loading-text="Chargement…">
+                                            Valider
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -276,8 +275,6 @@
 
     <script>
         $(function() {
-            // hide loader
-            $('#loader').hide();
             $('#mostText').hide()
             $('#mostSoldProductsTable').hide()
 
@@ -412,9 +409,7 @@
 
             //Search absent by class and different date
             $('#submit').click(function(e) {
-                $('#submitText').fadeOut();
-                $('#loader').fadeIn();
-
+                const button = this;
                 // get date
                 var daterange = $('#reportrange').val();
                 if (daterange) {
@@ -427,9 +422,6 @@
 
                     // Vérifier si la date de début est après la date de fin
                     if (date1.isAfter(date2)) {
-                        $('#loader').fadeOut();
-                        $('#submitText').show();
-
                         // Show alert error
                         Swal.fire({
                             toast: true,
@@ -441,13 +433,30 @@
                             timerProgressBar: true,
                             text: 'La date de début doit être inférieure ou égale à la date de fin !',
                         });
+                        return;
                     }
                 }
-                $('#submitText').fadeIn();
-                $('#loader').fadeOut();
 
-                // Refresh DataTable
-                Datatable.draw();
+                const reloadRequest = new Promise(function(resolve, reject) {
+                    Datatable.one('xhr.dt.historyFilter', function(event, settings, json, xhr) {
+                        if (!json || (xhr && xhr.status >= 400) || json.error) {
+                            reject(new Error(json?.error || 'Impossible de charger l’historique.'));
+                            return;
+                        }
+                        resolve(json);
+                    });
+                    Datatable.ajax.reload(null, true);
+                });
+
+                window.ServerButtonLoader.withLoader(button, reloadRequest, 'Chargement…')
+                    .catch(function(error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Chargement impossible',
+                            text: error.message || 'Impossible de charger l’historique des ventes.',
+                            confirmButtonText: "D'accord"
+                        });
+                    });
             });
 
             $('#exportSalesPdf').on('click', function() {

@@ -60,6 +60,7 @@ class LoginController extends Controller
 
         $memberships = $user->activeMemberships()->with('company')->get();
         $redirect = route('companies.select');
+        $selectedMembership = null;
 
         if ($memberships->count() === 1 && $memberships->first()->company?->isActive()) {
             $membership = $memberships->first();
@@ -67,24 +68,17 @@ class LoginController extends Controller
             $request->session()->put('active_company_name', $membership->company->name);
             $membership->update(['last_accessed_at' => now()]);
             $redirect = $this->landingPage->forMembership($membership);
+            $selectedMembership = $membership;
         }
 
-        if($user->user_type == 1){
-            return response()->json([
-                "status" => true,
-                "reload" => true,
-                "redirect_to" => $redirect,
-                "title" => "CONNEXION REUSSIE",
-                'check' => Auth::check(),
-                "msg" => "connexion réussie"
-            ]);      
+        if ($selectedMembership) {
+            Action::create([
+                'company_id' => $selectedMembership->company_id,
+                'user_id' => $user->id,
+                'function' => 'CONNEXION',
+                'text' => $user->name.' s’est connecté à l’entreprise '.$selectedMembership->company->name.'.',
+            ]);
         }
-        
-        Action::create([
-            'user_id' => auth()->user()->id,
-            'function' => 'CONNEXION',
-            'text' => " s'est connecté",
-        ]);
 
         return response()->json([
             "status" => true,

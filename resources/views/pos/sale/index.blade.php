@@ -33,6 +33,66 @@
         box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
     }
 
+    .pos-product-flyer {
+        position: fixed;
+        z-index: 2147483000;
+        pointer-events: none;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, .9);
+        border-radius: 18px;
+        background-color: rgba(255, 255, 255, .92);
+        background-position: center;
+        background-size: cover;
+        box-shadow:
+            0 18px 38px rgba(0, 0, 0, .5),
+            0 0 0 5px rgba(13, 202, 240, .28);
+        filter: saturate(.9) contrast(1.08);
+        will-change: transform, opacity, filter;
+        transform-origin: center center;
+    }
+
+    .pos-product-click-origin {
+        position: fixed;
+        z-index: 2147483001;
+        width: 12px;
+        height: 12px;
+        margin: -6px 0 0 -6px;
+        pointer-events: none;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #0dcaf0;
+        box-shadow: 0 0 0 0 rgba(13, 202, 240, .7);
+        animation: product-click-origin .28s ease-out forwards;
+    }
+
+    @keyframes product-click-origin {
+        to {
+            opacity: 0;
+            box-shadow: 0 0 0 18px rgba(13, 202, 240, 0);
+            transform: scale(.35);
+        }
+    }
+
+    .cart-receive-pulse,
+    #orderCount.cart-receive-pulse {
+        animation: cart-receive-pulse .38s ease-out;
+    }
+
+    @keyframes cart-receive-pulse {
+        50% {
+            color: #fff;
+            text-shadow: 0 0 12px #0dcaf0;
+            transform: scale(1.5);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .cart-receive-pulse,
+        #orderCount.cart-receive-pulse {
+            animation: none;
+        }
+    }
+
     @media (max-width: 575.98px) {
         .pos .pos-content-container {
             padding: .5rem !important;
@@ -42,8 +102,7 @@
             --bs-gutter-x: .5rem;
         }
 
-        #product_list .product_list,
-        #product_list .search_product_list {
+        #product_list .product_list {
             padding-bottom: .5rem !important;
         }
 
@@ -140,11 +199,11 @@
                     <div data-scrollbar="true" data-height="100%" data-skip-mobile="true">
                         <ul class="nav nav-tabs">
                             <li class="nav-item">
-                                <a class="nav-link active" href="#" data-filter="all">
+                                <a class="nav-link active" href="#" data-filter="all" data-category-id="">
                                     <div class="card">
                                         <div class="card-body">
                                             <i class="fa fa-th-large"></i> Tous
-                                            ( <span>{{$Product->where('status',1)->count()}}</span> )
+                                    ( <span>{{ $productCount }}</span> )
                                         </div>
                                         <div class="card-arrow">
                                             <div class="card-arrow-top-left"></div>
@@ -158,11 +217,11 @@
 
                             @foreach($Category->where('status',1) as $category)
                             <li class="nav-item">
-                                <a class="nav-link" href="#" data-filter="{{$category->name}}">
+                                <a class="nav-link" href="#" data-filter="category" data-category-id="{{ $category->id }}">
                                     <div class="card">
                                         <div class="card-body">
                                             <i class="fa fa-tags"></i> {{$category->name}}
-                                            ( <span>{{$category->products->count()}}</span> )
+                                            ( <span>{{ $category->available_products_count }}</span> )
                                         </div>
                                         <div class="card-arrow">
                                             <div class="card-arrow-top-left"></div>
@@ -207,7 +266,7 @@
                                         </div>
                                         <div class="row align-items-center mb-2">
                                             <div class="col-7">
-                                                <h3 class="mb-0">{{$Object->count()}}</h3>
+                                                <h3 class="mb-0">{{ $saleCount }}</h3>
                                             </div>
                                             <div class="col-5">
                                                 <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
@@ -371,55 +430,15 @@
                             </div>
                         </div>
 
-                        <!-- product list -->
-                        @foreach($Category->where('status',1) as $category)
-                            @foreach($category->products->where('status',1)->where('qte', '>', 0) as $product)
-                                @php
-                                    $hasProductImage = $product->image
-                                        && $product->image !== 'null'
-                                        && file_exists(public_path('images/'.$product->image));
-                                    $productImageUrl = $hasProductImage
-                                        ? asset('images/'.$product->image)
-                                        : asset('icons/product-placeholder.svg');
-                                @endphp
-                                <div class="col-6 col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list" data-type="{{ $category->name }}">
-                                    <div class="card h-100">
-                                        <div class="card-body products h-100 p-1">
-                                            <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
-                                                data-id="{{ $product->id }}"
-                                                data-name="{{ $product->name }}"
-                                                data-price="{{ $product->price_ttc ?? $product->price }}"
-                                                data-image="{{ $productImageUrl }}"
-                                                data-qte="{{ $product->qte }}"
-                                            >
-
-                                                <!-- 1440 * 1024 -->
-                                                <div class="img" style=" background-image: url('{{ $productImageUrl }}');
-                                                    background-size: cover;
-                                                    background-repeat: no-repeat;
-                                                    background-position: center;
-                                                    width: 100%;
-                                                    height: 100%;
-                                                ">
-                                                </div>
-                                                <div class="info">
-                                                    <div class="title">Nom : {{ $product->name }}&reg;</div>
-                                                    <!-- <div class="desc">pork, egg, mushroom, salad</div> -->
-                                                    <div class="title price">Prix : {{ $product->price_ttc ?? $product->price }} FCFA</div>
-                                                    <div class="title qte">Quantité : {{ $product->qte }}</div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="card-arrow">
-                                            <div class="card-arrow-top-left"></div>
-                                            <div class="card-arrow-top-right"></div>
-                                            <div class="card-arrow-bottom-left"></div>
-                                            <div class="card-arrow-bottom-right"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        @endforeach
+                        <div id="catalogProducts" class="row gx-4 text-center w-100 m-0"></div>
+                        <div id="catalogEmpty" class="col-12 py-5 text-muted" style="display:none;">
+                            Aucun produit disponible pour ce filtre.
+                        </div>
+                        <div class="col-12 pb-4">
+                            <button id="catalogLoadMore" type="button" class="btn btn-outline-info" data-loading-text="Chargement…" style="display:none;">
+                                Charger plus de produits
+                            </button>
+                        </div>
                     </div>
                     <div id="loader" class="spinner-grow"></div>
                 </div>
@@ -455,9 +474,6 @@
                             <div class="pos-order">
                                 <select id="clientSelect" class="form-control mb-2">
                                     <option value="">Client de la vente (aucun)</option>
-                                    @foreach($Clients as $client)
-                                        <option value="{{ $client->id }}">{{ $client->name }}</option>
-                                    @endforeach
                                 </select>
                             </div>
 
@@ -747,9 +763,198 @@
         $('#loader').hide();
         $('#saleLoader').hide();
         $('#search_loader').hide();
-        let originalProducts = $('#product_list').html();
         const defaultPosProductImage = @json(asset('icons/product-placeholder.svg'));
-        bindProductEvents();
+        const catalogUrl = @json(route('products.search'));
+        const clientSearchUrl = @json(route('clients.search'));
+        const cartStorageKey = @json('pos_cart_v1_' . auth()->id() . '_' . $activeCompany->id);
+        const catalogState = {
+            page: 1,
+            query: '',
+            categoryId: '',
+            hasMore: true,
+            loading: false,
+            request: null
+        };
+        let catalogSearchTimer = null;
+        let lastProductPointer = null;
+        let isRestoringCart = false;
+
+        function escapeHtml(value) {
+            return $('<div>').text(value ?? '').html();
+        }
+
+        function productCard(product) {
+            const image = escapeHtml(product.image_url || defaultPosProductImage);
+            const name = escapeHtml(product.name);
+            const price = Number(product.sale_price || product.price || 0);
+            const quantity = Number(product.qte || 0);
+
+            return `
+                <div class="col-6 col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list">
+                    <div class="card h-100">
+                        <div class="card-body products h-100 p-1">
+                            <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
+                                data-id="${Number(product.id)}" data-name="${name}" data-price="${price}"
+                                data-image="${image}" data-qte="${quantity}">
+                                <div class="img" style="background-image:url('${image}');background-size:cover;background-repeat:no-repeat;background-position:center;width:100%;height:150px"></div>
+                                <div class="info">
+                                    <div class="title">Nom : ${name}&reg;</div>
+                                    <div class="title price">Prix : ${price} FCFA</div>
+                                    <div class="title qte">Quantité : ${quantity}</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="card-arrow">
+                            <div class="card-arrow-top-left"></div><div class="card-arrow-top-right"></div>
+                            <div class="card-arrow-bottom-left"></div><div class="card-arrow-bottom-right"></div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function pointerCoordinates(pointerEvent, fallbackRect) {
+            const nativeEvent = pointerEvent?.originalEvent || pointerEvent;
+            const touch = nativeEvent?.changedTouches?.[0] || nativeEvent?.touches?.[0];
+            const clientX = touch?.clientX ?? nativeEvent?.clientX;
+            const clientY = touch?.clientY ?? nativeEvent?.clientY;
+
+            if (Number.isFinite(clientX) && Number.isFinite(clientY) && (clientX !== 0 || clientY !== 0)) {
+                return { x: clientX, y: clientY };
+            }
+
+            if (lastProductPointer && Date.now() - lastProductPointer.at < 1200) {
+                return { x: lastProductPointer.x, y: lastProductPointer.y };
+            }
+
+            return {
+                x: fallbackRect.left + (fallbackRect.width / 2),
+                y: fallbackRect.top + (fallbackRect.height / 2)
+            };
+        }
+
+        function animateProductToCart(productElement, pointerEvent) {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const imageElement = productElement.querySelector('.img');
+            const mobileCart = document.querySelector('.pos-mobile-sidebar-toggler');
+            const desktopCart = document.querySelector('.pos-sidebar-nav .nav-sale-command .nav-link');
+            const mobileCartIsVisible = mobileCart && window.getComputedStyle(mobileCart).display !== 'none';
+            const cartElement = mobileCartIsVisible ? mobileCart : desktopCart;
+            if (!imageElement || !cartElement) return;
+
+            const start = imageElement.getBoundingClientRect();
+            const target = cartElement.getBoundingClientRect();
+            if (!start.width || !start.height || !target.width || !target.height) return;
+
+            const flyerSize = Math.min(118, Math.max(76, start.width * .68));
+            const pointer = pointerCoordinates(pointerEvent, start);
+            const clickX = pointer.x;
+            const clickY = pointer.y;
+            const flyerLeft = clickX - (flyerSize / 2);
+            const flyerTop = clickY - (flyerSize / 2);
+
+            const clickOrigin = document.createElement('span');
+            clickOrigin.className = 'pos-product-click-origin';
+            clickOrigin.setAttribute('aria-hidden', 'true');
+            clickOrigin.style.left = `${clickX}px`;
+            clickOrigin.style.top = `${clickY}px`;
+            document.body.appendChild(clickOrigin);
+            window.setTimeout(() => clickOrigin.remove(), 300);
+
+            const flyer = document.createElement('div');
+            flyer.className = 'pos-product-flyer';
+            flyer.setAttribute('aria-hidden', 'true');
+            flyer.style.left = `${flyerLeft}px`;
+            flyer.style.top = `${flyerTop}px`;
+            flyer.style.width = `${flyerSize}px`;
+            flyer.style.height = `${flyerSize}px`;
+            flyer.style.backgroundImage = window.getComputedStyle(imageElement).backgroundImage;
+            document.body.appendChild(flyer);
+
+            if (typeof flyer.animate !== 'function') {
+                flyer.remove();
+                return;
+            }
+
+            const deltaX = target.left + (target.width / 2) - (flyerLeft + flyerSize / 2);
+            const deltaY = target.top + (target.height / 2) - (flyerTop + flyerSize / 2);
+            const arcHeight = reduceMotion ? 20 : Math.min(150, Math.max(70, Math.abs(deltaX) * .16));
+
+            const animation = flyer.animate([
+                { transform: 'translate3d(0, 0, 0) scale(.05)', opacity: .2, filter: 'blur(1px)', offset: 0 },
+                { transform: 'translate3d(0, 0, 0) scale(1)', opacity: .94, filter: 'blur(0)', offset: .16 },
+                { transform: `translate3d(${deltaX * .52}px, ${deltaY * .46 - arcHeight}px, 0) scale(.8) rotate(-5deg)`, opacity: .82, filter: 'blur(.2px)', offset: .56 },
+                { transform: `translate3d(${deltaX}px, ${deltaY}px, 0) scale(.18) rotate(4deg)`, opacity: .2, filter: 'blur(1px)' }
+            ], {
+                duration: reduceMotion ? 320 : 720,
+                easing: 'cubic-bezier(.2,.72,.3,1)',
+                fill: 'forwards'
+            });
+
+            animation.finished.catch(() => {}).finally(() => {
+                flyer.remove();
+                cartElement.classList.remove('cart-receive-pulse');
+                void cartElement.offsetWidth;
+                cartElement.classList.add('cart-receive-pulse');
+                window.setTimeout(() => cartElement.classList.remove('cart-receive-pulse'), 400);
+            });
+        }
+
+        function loadCatalog(reset = false) {
+            if (reset && catalogState.request) {
+                catalogState.request.abort();
+                catalogState.request = null;
+                catalogState.loading = false;
+            }
+            if (catalogState.loading || (!reset && !catalogState.hasMore)) {
+                return catalogState.request || $.Deferred().resolve().promise();
+            }
+
+            if (reset) {
+                catalogState.page = 1;
+                catalogState.hasMore = true;
+                $('#catalogProducts').empty();
+                $('#catalogEmpty').hide();
+            }
+
+            catalogState.loading = true;
+            $('#search_loader').show();
+            $('#catalogLoadMore').prop('disabled', true);
+
+            catalogState.request = $.ajax({
+                url: catalogUrl,
+                type: 'GET',
+                data: {
+                    q: catalogState.query,
+                    category_id: catalogState.categoryId,
+                    page: catalogState.page
+                }
+            }).done(function(response) {
+                const products = response.data || [];
+                products.forEach(product => $('#catalogProducts').append(productCard(product)));
+                bindProductEvents();
+
+                catalogState.hasMore = Number(response.current_page) < Number(response.last_page);
+                catalogState.page = Number(response.current_page) + 1;
+                $('#catalogEmpty').toggle($('#catalogProducts .product_list').length === 0);
+                $('#catalogLoadMore').toggle(catalogState.hasMore);
+            }).fail(function(xhr, status) {
+                if (status === 'abort') return;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Catalogue indisponible',
+                    text: xhr.responseJSON?.message || 'Impossible de charger les produits.',
+                    confirmButtonText: "D'accord"
+                });
+            }).always(function() {
+                catalogState.loading = false;
+                catalogState.request = null;
+                $('#search_loader').hide();
+                $('#catalogLoadMore').prop('disabled', false);
+            });
+
+            return catalogState.request;
+        }
 
         // Référence stable de la copie jQuery qui a initialisé Select2
         // (hub/assets/js/vendor.min.js charge une autre copie de jQuery qui écrase window.jQuery → window.$)
@@ -760,9 +965,29 @@
             try {
                 clientSelect.select2({
                     width: '100%',
-                    placeholder: "<strong style=\"font-size: 1.4em;\">Choisir un client (aucun)</strong>",
+                    placeholder: 'Rechercher un client (facultatif)',
                     allowClear: true,
-                    escapeMarkup: function(markup) { return markup; }
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: clientSearchUrl,
+                        dataType: 'json',
+                        delay: 300,
+                        data: function(params) {
+                            return {
+                                q: params.term || '',
+                                page: params.page || 1
+                            };
+                        },
+                        processResults: function(response) {
+                            return response;
+                        },
+                        cache: true
+                    },
+                    language: {
+                        searching: function() { return 'Recherche en cours…'; },
+                        noResults: function() { return 'Aucun client trouvé'; },
+                        loadingMore: function() { return 'Chargement…'; }
+                    }
                 });
             } catch (e) {}
         }
@@ -771,107 +996,62 @@
         // on pose la valeur sur le <select> puis on recrée le widget si besoin,
         // sans dépendre d'un événement 'change' qui peut ne pas atteindre select2
         // à cause des deux copies de jQuery chargées sur la page.
-        function syncClientSelection(value) {
+        function syncClientSelection(value, clientName = '') {
             const id = value === null || value === undefined ? '' : String(value);
-            clientSelect.val(id);
-            if (typeof clientSelect.select2 !== 'function') return;
-            try {
-                if (clientSelect.hasClass('select2-hidden-accessible')) {
-                    clientSelect.select2('destroy');
+            if (!id) {
+                clientSelect.val('').trigger('change.select2');
+                return;
+            }
+
+            let option = clientSelect.find(`option[value="${id}"]`);
+            if (!option.length) {
+                option = $(new Option(clientName || `Client #${id}`, id, true, true));
+                clientSelect.append(option);
+            }
+            clientSelect.val(id).trigger('change.select2');
+
+            if (clientName) return;
+
+            $.getJSON(clientSearchUrl, { client_id: id }).done(function(response) {
+                const client = response.results?.[0];
+                if (!client) {
+                    option.remove();
+                    clientSelect.val('').trigger('change.select2');
+                    persistCurrentCart();
+                    return;
                 }
-                initClientSelect();
-            } catch (e) {}
+                option.text(client.text);
+                clientSelect.trigger('change.select2');
+                persistCurrentCart();
+            });
         }
 
         initClientSelect();
 
-        // Au clic sur un élément de navigation
-        $('.nav-link').on('click', function(e) {
+        // Filtrage serveur du catalogue par catégorie.
+        $('.pos-menu .nav-link[data-filter]').on('click', function(e) {
             e.preventDefault();
-            // hide sale list
             $('.sale_list').fadeOut();
             $('#confirmSale').fadeIn();
             $('.no-sale').hide();
-            
-            // Get the selected category
-            var filter = $(this).attr('data-filter');
-            
-            // Delete active class from all tabs and add to clicked tab
-            $('.nav-link').removeClass('active');
+
+            $('.pos-menu .nav-link[data-filter]').removeClass('active');
             $(this).addClass('active');
-            $('#product_list').html(originalProducts); // Remet les produits initiaux
-            bindProductEvents();
-            
-            // Filter items by category
-            if (filter == 'all') {
-                // Afficher tous les articles
-                $('.pos-content .col-xxl-3').show();
-            } else {
-               // Hide all items, then show only those in the category
-                $('.pos-content .col-xxl-3').hide();
-                $('.pos-content .col-xxl-3[data-type="' + filter + '"]').show();
-            }
-            
+            catalogState.categoryId = String($(this).data('category-id') || '');
+            loadCatalog(true);
         });
 
-        $('#searchProduct').on('keyup', function () {
-            let value = $(this).val();
-            $('.search_product_list').remove();
-            if (value.length === 0) {
-                let originalProducts = $('#product_list').html();
-                bindProductEvents();
-                return;
-            }
-
-            $('#search_loader').show();
-            $.ajax({
-                url: "{{ route('products.search') }}",
-                type: "GET",
-                data: { q: value},
-                success: function (products) {
-                    let container = $('#product_list');
-                    container.empty();
-                    if (products.length === 0) {
-                        container.append('<h1 class="text-center" >Aucun produit trouvé</h1>');
-                    } else {
-                        products.forEach(product => {
-                            container.append(`
-                                <div class="col-6 col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 search_product_list">
-                                    <div class="card h-100">
-                                        <div class="card-body products h-100 p-1">
-                                            <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
-                                                data-id="${product.id}"
-                                                data-name="${product.name}"
-                                                data-price="${product.price}"
-                                                data-image="${product.image_url || defaultPosProductImage}"
-                                                data-qte="${product.qte}">
-                                                <div class="img" style="background-image: url('${product.image_url || defaultPosProductImage}'); background-size: cover; background-position: center; width: 100%; height: 150px;"></div>
-                                                <div class="info">
-                                                    <div class="title">Nom : ${product.name}&reg;</div>
-                                                    <div class="title price">Prix : ${product.price} FCFA</div>
-                                                    <div class="title qte">Quantité : ${product.qte}</div>
-                                                </div>
-                                            </a> 
-                                        </div>
-                                        <div class="card-arrow">
-                                            <div class="card-arrow-top-left"></div>
-                                            <div class="card-arrow-top-right"></div>
-                                            <div class="card-arrow-bottom-left"></div>
-                                            <div class="card-arrow-bottom-right"></div>
-                                        </div>   
-                                    </div>  
-                                </div>
-                            `);
-                        });
-                        bindProductEvents();
-                    }
-                },
-                complete: function () {
-                    // Cache le loader après la réponse (réussie ou échouée)
-                    $('#search_loader').hide();
-                }
-            });
+        $('#searchProduct').on('input', function () {
+            window.clearTimeout(catalogSearchTimer);
+            catalogState.query = $(this).val().trim();
+            catalogSearchTimer = window.setTimeout(() => loadCatalog(true), 300);
         });
+
+        $('#catalogLoadMore').on('click', function () {
+            loadCatalog(false);
+        });
+
+        loadCatalog(true);
 
         // Au clic sur élément de navigation de la liste des ventes
         $('.nav-sale').on('click', function(e) {
@@ -899,8 +1079,21 @@
         function bindProductEvents() {
             $('#search_loader').hide();
             // Supprime les événements avant de les ré-attacher pour éviter les doublons
+            $('.pos-product').off('pointerdown touchstart').on('pointerdown touchstart', function (e) {
+                const nativeEvent = e.originalEvent || e;
+                const touch = nativeEvent.changedTouches?.[0] || nativeEvent.touches?.[0];
+                const clientX = touch?.clientX ?? nativeEvent.clientX;
+                const clientY = touch?.clientY ?? nativeEvent.clientY;
+
+                if (Number.isFinite(clientX) && Number.isFinite(clientY)) {
+                    lastProductPointer = { x: clientX, y: clientY, at: Date.now() };
+                }
+            });
+
             $('.pos-product').off('click').on('click', function (e) {
                 e.preventDefault();
+
+                animateProductToCart(this, e.originalEvent || e);
 
                 let productId = $(this).data('id');
                 let productName = $(this).data('name');
@@ -950,23 +1143,6 @@
                 }
             );
 
-            $('.search_product_list .pos-product').hover(
-                function() {
-                    $(this).addClass('product-hover');
-                },
-                function() {
-                    $(this).removeClass('product-hover');
-                }
-            );
-            $('.search_product_list .pos-product').on('click', function(e) {
-                e.preventDefault();
-                
-                // Removes the click effect of other products
-                $('.product_list .pos-product').removeClass('product-clicked');
-                
-                // Add the click effect of other products
-                $(this).addClass('product-clicked');
-            });
         }
 
         function openReceiptInModal(receiptHtml) {
@@ -1170,6 +1346,7 @@
                                             success: function(data) {
                                                 if (data.status) {
                                                     removeActivePendingOrder();
+                                                    clearPersistedCart();
                                                     Swal.fire({
                                                         toast: true,
                                                         position: 'top',
@@ -1264,6 +1441,7 @@
                                     success: function(data) {
                                         if (data.status) {
                                             removeActivePendingOrder();
+                                            clearPersistedCart();
                                             Swal.fire({
                                                 toast: true,
                                                 position: 'top',
@@ -1390,6 +1568,7 @@
             });
             let remiseMontant = parseFloat($('#remiseInput').val()) || 0;
             $('.total-amount').text((total - remiseMontant) + ' FCFA');
+            persistCurrentCart();
         }
 
         $(document).on('click', '.btn-plus', function(e) {
@@ -1411,7 +1590,7 @@
         });
 
         // update price when quantity input is change
-        $(document).on('keyup', '.quantity-input', function(e) {
+        $(document).on('input', '.quantity-input', function(e) {
             e.preventDefault();
             let productRow = $(this).closest('.pos-order-product');
             let quantityInput = productRow.find('.quantity-input');
@@ -1433,7 +1612,7 @@
             serverSide: true,
             ajax: "{{ route('sale.index')}}",
             columns: [
-                {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                 {data: 'code',name: 'code'},
                 {data: 'received_amount',name: 'received_amount'},
                 {data: 'total_amount',name: 'total_amount'},
@@ -1530,6 +1709,7 @@
 
         $("#deletpromoinput").on("click", function () {
             $("#promoCodeInput").val("").focus(); // Effacer et remettre le focus
+            persistCurrentCart();
         });
 
         $("#deletremiseinput").on("click", function () {
@@ -1541,12 +1721,20 @@
             updateTotal();
         });
 
+        $('#promoCodeInput').on('input', function() {
+            persistCurrentCart();
+        });
+
+        clientSelect.on('change', function() {
+            persistCurrentCart();
+        });
+
         // ============= PENDING ORDERS (localStorage) =============
 
         let activePendingOrder = null;
 
         function getPendingOrdersKey() {
-            return 'pending_orders_' + ({{ auth()->id() }});
+            return @json('pending_orders_' . auth()->id() . '_' . $activeCompany->id);
         }
 
         function getPendingOrders() {
@@ -1643,8 +1831,62 @@
             const codePromo = ($('#promoCodeInput').val() || '').trim();
             const remise = parseFloat($('#remiseInput').val()) || 0;
             const client_id = clientSelect.val();
+            const client_name = client_id
+                ? clientSelect.find('option:selected').text().trim()
+                : '';
 
-            return { products, total_amount: totalAmount, code_promo: codePromo, remise: remise, client_id: client_id };
+            return { products, total_amount: totalAmount, code_promo: codePromo, remise: remise, client_id, client_name };
+        }
+
+        function clearPersistedCart() {
+            try {
+                localStorage.removeItem(cartStorageKey);
+            } catch (error) {
+                console.warn('Le panier local n’a pas pu être supprimé.', error);
+            }
+        }
+
+        function persistCurrentCart() {
+            if (isRestoringCart) return;
+
+            const order = getOrderFromCart();
+            if (!order) {
+                clearPersistedCart();
+                return;
+            }
+
+            order.saved_at = new Date().toISOString();
+            order.version = 1;
+
+            try {
+                localStorage.setItem(cartStorageKey, JSON.stringify(order));
+            } catch (error) {
+                console.warn('Le panier local n’a pas pu être enregistré.', error);
+            }
+        }
+
+        function restorePersistedCart() {
+            let order = null;
+
+            try {
+                const storedCart = localStorage.getItem(cartStorageKey);
+                order = storedCart ? JSON.parse(storedCart) : null;
+            } catch (error) {
+                clearPersistedCart();
+                console.warn('Le panier local était illisible et a été ignoré.', error);
+                return;
+            }
+
+            if (!order || !Array.isArray(order.products) || order.products.length === 0) return;
+
+            isRestoringCart = true;
+            try {
+                restoreOrderToCart(order);
+            } finally {
+                isRestoringCart = false;
+            }
+
+            persistCurrentCart();
         }
 
         function restoreOrderToCart(order) {
@@ -1655,26 +1897,33 @@
             if (!order.products || order.products.length === 0) return;
 
             order.products.forEach(function(p) {
+                const productId = Number.parseInt(p.product_id, 10);
+                const unitPrice = Number.parseFloat(p.unit_price);
+                const quantity = Math.max(1, Number.parseInt(p.quantity, 10) || 1);
+                if (!Number.isInteger(productId) || !Number.isFinite(unitPrice)) return;
+
+                const productName = escapeHtml(p.name || 'Produit');
+                const productImage = escapeHtml(p.image || defaultPosProductImage);
                 const productHtml = `
                     <div class="pos-order">
-                        <div class="pos-order-product" data-product-id="${p.product_id}">
-                            <div class="img" style="background-image: url(${p.image || defaultPosProductImage})"></div>
+                        <div class="pos-order-product" data-product-id="${productId}">
+                            <div class="img" style="background-image: url('${productImage}')"></div>
                             <div class="flex-1">
-                                <div class="h6 mb-1">${p.name}</div>
-                                <div class="small">${p.unit_price} FCFA</div>
+                                <div class="h6 mb-1">${productName}</div>
+                                <div class="small">${unitPrice} FCFA</div>
                                 <div class="d-flex">
                                     <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
-                                    <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${p.quantity}">
+                                    <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${quantity}">
                                     <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
                                 </div>
                             </div>
-                            <div class="pos-order-price">${p.unit_price * p.quantity} FCFA</div>
+                            <div class="pos-order-price">${unitPrice * quantity} FCFA</div>
                             <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
                         </div>
                     </div>
                 `;
                 $('#newOrderTab').append(productHtml);
-                addProduct(p.product_id);
+                addProduct(productId);
             });
 
             updateOrderCount();
@@ -1686,7 +1935,7 @@
                 $('#remiseInput').val(order.remise);
             }
             if (order.client_id) {
-                syncClientSelection(order.client_id);
+                syncClientSelection(order.client_id, order.client_name || '');
             }
             updateTotal();
         }
@@ -1770,7 +2019,8 @@
                         total_amount: orderData.total_amount,
                         code_promo: orderData.code_promo,
                         remise: orderData.remise,
-                        client_id: orderData.client_id
+                        client_id: orderData.client_id,
+                        client_name: orderData.client_name
                     };
 
                     const existingOrderIndex = orders.findIndex(order => order.id === savedOrder.id);
@@ -1867,6 +2117,7 @@
 
         // Init badge on page load
         updatePendingBadge();
+        restorePersistedCart();
 
         let stockRefreshRequest = null;
 
@@ -1875,51 +2126,7 @@
                 return stockRefreshRequest;
             }
 
-            stockRefreshRequest = $.ajax({
-                url: "{{ route('products.search') }}",
-                type: 'GET',
-                data: { q: '' }
-            }).done(function(products) {
-                const stocks = new Map(
-                    products.map(product => [String(product.id), Number(product.qte)])
-                );
-
-                function synchronizeCards(container) {
-                    container.find('.pos-product').each(function() {
-                        const card = $(this);
-                        const productId = String(card.data('id'));
-
-                        if (!stocks.has(productId)) {
-                            card.closest('.product_list, .search_product_list').remove();
-                            return;
-                        }
-
-                        const quantity = stocks.get(productId);
-                        card.attr('data-qte', quantity).data('qte', quantity);
-                        card.find('.qte').text('Quantité : ' + quantity);
-                    });
-                }
-
-                // Met à jour la liste visible (y compris un résultat de recherche).
-                synchronizeCards($('#product_list'));
-
-                // Met aussi à jour la copie restaurée lors d'un changement de catégorie.
-                const originalContainer = $('<div>').html(originalProducts);
-                synchronizeCards(originalContainer);
-                originalProducts = originalContainer.html();
-
-                bindProductEvents();
-            }).fail(function() {
-                Swal.fire({
-                    toast: true,
-                    position: 'top',
-                    icon: 'warning',
-                    title: 'Stock non actualisé',
-                    text: 'Rechargez la page pour voir les nouvelles quantités.',
-                    showConfirmButton: false,
-                    timer: 4000
-                });
-            }).always(function() {
+            stockRefreshRequest = loadCatalog(true).always(function() {
                 stockRefreshRequest = null;
             });
 

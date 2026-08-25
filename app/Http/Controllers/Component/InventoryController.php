@@ -23,10 +23,15 @@ class InventoryController extends Controller
      */
     public function index( Request $request )
     {
+        $this->authorize('viewAny', Inventory::class);
         $this->ensureFiltersBelongToActiveCompany($request);
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Inventory::with('product', 'user');
+        $Object = Inventory::with([
+            'product:id,name',
+            'supplier:id,name',
+            'user:id,name',
+        ]);
 
         if($request->type !== null){
             $Object->where('type', $request->type);
@@ -52,6 +57,15 @@ class InventoryController extends Controller
             // $Student = Student::all();
             return DataTables::of($Object)
                 ->addIndexColumn()
+                ->filterColumn('product_id', function ($query, $keyword) {
+                    $query->whereHas('product', fn ($product) => $product->where('name', 'like', "%{$keyword}%"));
+                })
+                ->filterColumn('supplier_id', function ($query, $keyword) {
+                    $query->whereHas('supplier', fn ($supplier) => $supplier->where('name', 'like', "%{$keyword}%"));
+                })
+                ->filterColumn('created_by', function ($query, $keyword) {
+                    $query->whereHas('user', fn ($user) => $user->where('name', 'like', "%{$keyword}%"));
+                })
                 ->addColumn('action', function($row){
                     $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
                     return $btn;
@@ -86,6 +100,7 @@ class InventoryController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Inventory::class);
         //
     }
 
@@ -94,6 +109,7 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Inventory::class);
         $error_messages = [
             "product_id.required" => "Sélectionnez un produit!",
             "product_id.exists" => "Le produit sélectionné n'est pas disponible dans la compagnie active!",
@@ -195,7 +211,8 @@ class InventoryController extends Controller
     }
 
     public function remove(Request $request)
-    { 
+    {
+        $this->authorize('create', Inventory::class);
         $error_messages = [
             "product_id.required" => "Sélectionnez un produit!",
             "qte_removed.required" => "Remplir le champ Quantité!",
@@ -290,11 +307,13 @@ class InventoryController extends Controller
     public function show(string $id)
     {
         $Inventory = Inventory::findOrFail($id);
+        $this->authorize('view', $Inventory);
         return view('component.inventory.show', compact('Inventory'));
     }
 
     public function exportPdf(Request $request)
     {
+        $this->authorize('export', Inventory::class);
         $this->ensureFiltersBelongToActiveCompany($request);
 
         $query = Inventory::with('product', 'user');

@@ -37,7 +37,7 @@
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
                         <h4 class="mb-0">
-                            {{ $cashAccounts->count() }}
+                            {{ $cashAccountCount }}
                         </h4>
                     </div>
 
@@ -62,7 +62,7 @@
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
                         <h4 class="mb-0">
-                            {{ $transactions->count() }}
+                            {{ $transactionCount }}
                         </h4>
                     </div>
 
@@ -81,7 +81,7 @@
         <div class="card border-color mb-3">
             <div class="card-body">
                 <div class="d-flex fw-bold small mb-3">
-                    <span class="flex-grow-1">VENTES ({{ $sales->count() }})</span>
+                    <span class="flex-grow-1">VENTES ({{ $saleCount }})</span>
                 </div>
 
                 <div class="row align-items-center mb-2">

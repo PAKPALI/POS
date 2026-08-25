@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
+use App\Models\Action;
 use App\Models\CompanyUser;
 use App\Services\CompanyContext;
 use App\Services\AuthorizedLandingPage;
@@ -77,6 +78,15 @@ class SwitchCompanyController extends Controller
             'user_id' => $user->id,
             'from_company' => $previousCompanyId,
             'to_company' => $companyId,
+        ]);
+
+        Action::create([
+            'company_id' => $companyId,
+            'user_id' => $user->id,
+            'function' => $previousCompanyId ? 'CHANGEMENT ENTREPRISE' : 'CONNEXION',
+            'text' => $previousCompanyId
+                ? $user->name.' a ouvert l’entreprise '.$membership->company->name.'.'
+                : $user->name.' s’est connecté à l’entreprise '.$membership->company->name.'.',
         ]);
 
         return redirect($this->landingPage->forMembership($membership))

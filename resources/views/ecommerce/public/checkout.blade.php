@@ -22,6 +22,9 @@
     [data-theme="dark"] .checkout-remove { background:#1e293b; }
     [data-theme="dark"] .checkout-qty button:hover { background:#172554; }
     [data-theme="dark"] .checkout-remove:hover { background:#451a1a; }
+    .location-panel { border:1px solid var(--border); background:color-mix(in srgb, var(--acc) 5%, transparent); border-radius:11px; padding:14px; }
+    .location-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .location-feedback { margin-top:8px; font-size:.78rem; min-height:18px; }
     @keyframes cartItemIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
     @media(max-width:575px) {
         .checkout-cart-item { grid-template-columns:52px minmax(0,1fr); gap:10px; }
@@ -70,7 +73,26 @@
                             </div>
                             <div class="col-sm-6">
                                 <label style="font-weight:600;font-size:.82rem;color:var(--text);margin-bottom:4px;display:block;">Adresse</label>
-                                <input type="text" name="customer_address" class="form-control" placeholder="Optionnel" style="border:2px solid var(--border);border-radius:8px;padding:.55rem .85rem;font-size:.88rem;">
+                                <input type="text" name="customer_address" class="form-control" placeholder="Quartier, rue, repère…" style="border:2px solid var(--border);border-radius:8px;padding:.55rem .85rem;font-size:.88rem;">
+                            </div>
+                            <div class="col-12">
+                                <div class="location-panel">
+                                    <label for="deliveryLocationUrl" style="font-weight:700;font-size:.84rem;color:var(--text);margin-bottom:7px;display:block;">
+                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> Localisation de livraison <span class="text-muted fw-normal">(optionnel)</span>
+                                    </label>
+                                    <input type="url" id="deliveryLocationUrl" name="delivery_location_url" class="form-control" placeholder="Collez un lien Google Maps" inputmode="url" style="border:2px solid var(--border);border-radius:8px;padding:.55rem .85rem;font-size:.88rem;">
+                                    <input type="hidden" name="delivery_latitude" id="deliveryLatitude">
+                                    <input type="hidden" name="delivery_longitude" id="deliveryLongitude">
+                                    <div class="location-actions mt-2">
+                                        <button type="button" id="shareLocationBtn" class="btn btn-outline-primary btn-sm" data-no-server-loader>
+                                            <i class="bi bi-crosshair me-1"></i> Envoyer ma position actuelle
+                                        </button>
+                                        <button type="button" id="clearLocationBtn" class="btn btn-outline-secondary btn-sm" style="display:none;" data-no-server-loader>
+                                            <i class="bi bi-x-circle me-1"></i> Effacer
+                                        </button>
+                                    </div>
+                                    <div id="locationFeedback" class="location-feedback text-muted">Vous pouvez partager votre position ou coller un lien Google Maps.</div>
+                                </div>
                             </div>
                             <div class="col-12">
                                 <label style="font-weight:600;font-size:.82rem;color:var(--text);margin-bottom:4px;display:block;">Notes</label>
@@ -93,9 +115,8 @@
                     <div class="d-flex justify-content-between py-2" style="color:var(--muted);font-size:.88rem;"><span>Taxe</span><span id="summaryTax" style="font-weight:600;color:var(--text);">0 FCFA</span></div>
                     <hr style="border-color:var(--border);margin:12px 0;">
                     <div class="d-flex justify-content-between" style="font-weight:800;font-size:1.15rem;"><span>Total</span><span id="summaryTotal" style="color:var(--acc);">0 FCFA</span></div>
-                    <button type="submit" class="btn-primary-custom w-100 justify-content-center mt-4" id="submitOrderBtn" form="orderForm" style="font-size:.95rem;padding:.8rem;border:none;cursor:pointer;">
-                        <span id="orderBtnText"><i class="bi bi-check2-circle"></i> Passer la commande</span>
-                        <span id="orderBtnLoader" class="spinner-border spinner-border-sm" style="display:none;"></span>
+                    <button type="submit" class="btn-primary-custom w-100 justify-content-center mt-4" id="submitOrderBtn" form="orderForm" data-loading-text="Enregistrement…" style="font-size:.95rem;padding:.8rem;border:none;cursor:pointer;">
+                        <i class="bi bi-check2-circle"></i> Passer la commande
                     </button>
                     <p style="color:var(--muted);font-size:.78rem;text-align:center;margin-top:14px;margin-bottom:0;">
                         <i class="bi bi-shield-check text-success me-1"></i> Paiement a la livraison
@@ -158,6 +179,52 @@
         $('#summaryTotal').text(fmt(subtotal)+' FCFA');
     }
     function fmt(n) { return Math.round(Number(n) || 0).toLocaleString('fr-FR').replace(/\u202f/g, ' '); }
+
+    $('#shareLocationBtn').on('click', function() {
+        var button = this;
+        var originalHtml = button.innerHTML;
+        if (!navigator.geolocation) {
+            $('#locationFeedback').removeClass('text-success text-muted').addClass('text-danger').text('La localisation n’est pas disponible sur cet appareil. Collez plutôt un lien Google Maps.');
+            return;
+        }
+
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Localisation en cours…';
+        $('#locationFeedback').removeClass('text-danger text-success').addClass('text-muted').text('Autorisez l’accès à votre position dans le navigateur.');
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var latitude = position.coords.latitude.toFixed(7);
+            var longitude = position.coords.longitude.toFixed(7);
+            $('#deliveryLatitude').val(latitude);
+            $('#deliveryLongitude').val(longitude);
+            $('#deliveryLocationUrl').val('https://www.google.com/maps/search/?api=1&query=' + latitude + ',' + longitude).prop('readonly', true);
+            $('#clearLocationBtn').show();
+            $('#locationFeedback').removeClass('text-danger text-muted').addClass('text-success').html('<i class="bi bi-check-circle me-1"></i> Position ajoutée à la commande.');
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }, function(error) {
+            var message = error.code === 1
+                ? 'Vous avez refusé l’accès à la position. Vous pouvez coller un lien Google Maps.'
+                : 'Impossible de récupérer la position. Réessayez ou collez un lien Google Maps.';
+            $('#locationFeedback').removeClass('text-success text-muted').addClass('text-danger').text(message);
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }, {enableHighAccuracy:true, timeout:12000, maximumAge:60000});
+    });
+
+    $('#deliveryLocationUrl').on('input', function() {
+        $('#deliveryLatitude, #deliveryLongitude').val('');
+        $('#clearLocationBtn').toggle(Boolean(this.value.trim()));
+        $(this).prop('readonly', false);
+    });
+
+    $('#clearLocationBtn').on('click', function() {
+        $('#deliveryLocationUrl, #deliveryLatitude, #deliveryLongitude').val('');
+        $('#deliveryLocationUrl').prop('readonly', false);
+        $(this).hide();
+        $('#locationFeedback').removeClass('text-danger text-success').addClass('text-muted').text('Vous pouvez partager votre position ou coller un lien Google Maps.');
+    });
+
     $('#orderForm').submit(function(e) {
         e.preventDefault();
         var cart = getCart();
@@ -165,15 +232,13 @@
         if (!$('[name="customer_name"]').val().trim()) { alert('Entrez votre nom'); return; }
         if (!$('[name="customer_phone"]').val().trim()) { alert('Entrez votre telephone'); return; }
         $('#cartInput').val(JSON.stringify(cart));
-        $('#orderBtnText').hide(); $('#orderBtnLoader').show(); $('#submitOrderBtn').prop('disabled',true);
         $.ajax({
             type: 'POST', url: '{{ route("storefront.order.place", $company) }}', data: $(this).serialize(),
             success: function(data) {
-                $('#orderBtnText').show(); $('#orderBtnLoader').hide(); $('#submitOrderBtn').prop('disabled',false);
-                if (data.status) { localStorage.removeItem(CART_KEY); window.location.href = '{{ route("storefront.success", $company) }}?code=' + data.code; }
+                if (data.status) { localStorage.removeItem(CART_KEY); window.location.href = '{{ route("storefront.success", $company) }}?code=' + encodeURIComponent(data.code); }
                 else { alert(data.msg || 'Erreur'); }
             },
-            error: function() { $('#orderBtnText').show(); $('#orderBtnLoader').hide(); $('#submitOrderBtn').prop('disabled',false); alert('Erreur serveur'); }
+            error: function(xhr) { alert(xhr.responseJSON?.msg || 'La commande ne peut pas être enregistrée pour le moment.'); }
         });
     });
     $(function() { renderCheckoutCart(); });

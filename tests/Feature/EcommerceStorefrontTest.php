@@ -40,4 +40,40 @@ class EcommerceStorefrontTest extends TestCase
         $this->get(route('storefront.product', [$company, $product->id]))
             ->assertOk()->assertSee('Jus naturel');
     }
+
+    public function test_companies_with_the_same_name_receive_distinct_stable_storefront_urls(): void
+    {
+        $first = Company::create([
+            'name' => 'Matrix Boutique',
+            'email' => 'matrix-one@test.local',
+            'number1' => '100',
+            'description' => 'Repère unique de la première boutique',
+            'ecommerce_active' => true,
+        ]);
+        $second = Company::create([
+            'name' => 'Matrix Boutique',
+            'email' => 'matrix-two@test.local',
+            'number1' => '200',
+            'description' => 'Repère unique de la deuxième boutique',
+            'ecommerce_active' => true,
+        ]);
+
+        $this->assertSame('matrix-boutique', $first->slug);
+        $this->assertSame('matrix-boutique-2', $second->slug);
+        $this->assertNotSame($first->public_id, $second->public_id);
+        $this->assertNotSame(route('storefront.home', $first), route('storefront.home', $second));
+
+        $this->get(route('storefront.home', $first))
+            ->assertOk()
+            ->assertSee('Repère unique de la première boutique')
+            ->assertDontSee('Repère unique de la deuxième boutique');
+        $this->get(route('storefront.home', $second))
+            ->assertOk()
+            ->assertSee('Repère unique de la deuxième boutique')
+            ->assertDontSee('Repère unique de la première boutique');
+
+        $originalSlug = $first->slug;
+        $first->update(['name' => 'Matrix Boutique renommée']);
+        $this->assertSame($originalSlug, $first->fresh()->slug);
+    }
 }

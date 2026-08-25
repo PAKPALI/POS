@@ -46,7 +46,7 @@
                     </div>
                     <div class="row align-items-center mb-2">
                         <div class="col-7">
-                            <h3 class="mb-0">{{$Category->count()}}</h3>
+                            <h3 class="mb-0">{{ $categoryCount }}</h3>
                         </div>
                         <div class="col-5">
                             <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
@@ -81,7 +81,7 @@
                     </div>
                     <div class="row align-items-center mb-2">
                         <div class="col-7">
-                            <h3 class="mb-0">{{$Product->count()}}</h3>
+                            <h3 class="mb-0">{{ $productCount }}</h3>
                         </div>
                         <div class="col-5">
                             <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
@@ -115,7 +115,7 @@
                 </div>
                 <div class="row align-items-center mb-2">
                     <div class="col-7">
-                        <h3 class="mb-0">{{$Sale->count()}}</h3>
+                        <h3 class="mb-0">{{ $saleCount }}</h3>
                     </div>
                     <div class="col-5">
                         <div class="mt-n3 mb-n2" data-render="apexchart" data-type="bar"

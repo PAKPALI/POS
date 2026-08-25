@@ -46,7 +46,7 @@ class SmsService
         }
 
         $message = '['.$company->name.'] '.$message;
-        $response = Http::withHeaders([
+        $response = Http::connectTimeout(5)->timeout(20)->withHeaders([
             'Content-Type' => 'application/json',
             'token' => $this->token,
             'key' => $this->key,
@@ -66,9 +66,8 @@ class SmsService
         } else {
             Log::warning('Erreur SMS API', [
                 'http_status' => $response->status(),
-                'response' => $payload ?? $response->body(),
                 'company_id' => $company->id,
-                'phone' => $phoneNumber,
+                'provider_status' => is_array($payload) ? ($payload['status'] ?? null) : null,
             ]);
         }
 
@@ -87,9 +86,8 @@ class SmsService
 
         $title = $company->name.' — '.$title;
         $message = '['.$company->name.'] '.$message;
-        Log::info("Sending WhatsApp message to $phoneNumber: $message");
         try {
-            $response = Http::withHeaders([
+            $response = Http::connectTimeout(5)->timeout(20)->withHeaders([
                 'Content-Type' => 'application/json',
                 'token' => $this->token,
                 'key' => $this->key,
@@ -100,8 +98,6 @@ class SmsService
                 'content' => $message,
             ]);
 
-            Log::info('WhatsApp API response: ' . json_encode($response->json()));
-
             $payload = $response->json();
             $accepted = $response->successful() && is_array($payload) && ($payload['status'] ?? false) === true;
             if ($accepted) {
@@ -109,9 +105,8 @@ class SmsService
             } else {
                 Log::warning('Erreur WhatsApp API', [
                     'http_status' => $response->status(),
-                    'response' => $payload ?? $response->body(),
                     'company_id' => $company->id,
-                    'phone' => $phoneNumber,
+                    'provider_status' => is_array($payload) ? ($payload['status'] ?? null) : null,
                 ]);
             }
 
@@ -127,7 +122,7 @@ class SmsService
     public function uploadWhatsappDocument(string $filePath)
     {
         try {
-            $response = Http::withHeaders([
+            $response = Http::connectTimeout(5)->timeout(30)->withHeaders([
                 'token' => $this->token,
                 'key' => $this->key,
             ])
@@ -140,9 +135,6 @@ class SmsService
                 $this->baseUrl . '/whatsapp/upload-document'
             );
 
-            Log::info(
-                'WhatsApp document upload response : '. json_encode($response->json())
-            );
             return $response->json();
         } catch (\Throwable $e) {
             Log::error(
@@ -160,7 +152,7 @@ class SmsService
             if (!$company) return ['status' => false, 'message' => 'Compagnie introuvable'];
             $message = '['.$company->name.'] '.$message;
 
-            $response = Http::withHeaders([
+            $response = Http::connectTimeout(5)->timeout(20)->withHeaders([
                 'Content-Type' => 'application/json',
                 'token' => $this->token,
                 'key' => $this->key,
@@ -174,10 +166,6 @@ class SmsService
                 ]
             );
 
-            Log::info(
-                'WhatsApp document send response : '
-                . json_encode($response->json())
-            );
             return $response->json();
         } catch (\Throwable $e) {
 

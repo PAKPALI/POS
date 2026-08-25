@@ -722,7 +722,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        var CART_KEY = 'ecommerce_cart';
+        var CART_KEY = 'ecommerce_cart_{{ $company->public_id }}';
         var DEFAULT_PRODUCT_IMAGE = @json(asset('icons/product-placeholder.svg'));
         function getCart() {
             try {

@@ -32,7 +32,8 @@ class ProductController extends Controller
         $this->ensureCategoryFilterBelongsToActiveCompany($request);
 
         // composer require yajra/laravel-datatables-oracle
-        $query = Product::where('type',1)->where('status', 1);
+        $query = Product::with(['category:id,name', 'supplier:id,name'])
+            ->where('type',1)->where('status', 1);
 
         if($request->category_id){
             $query->where('category_id', $request->category_id);
@@ -55,6 +56,12 @@ class ProductController extends Controller
             // $Student = Student::all();
             return DataTables::of($Object)
                 ->addIndexColumn()
+                ->filterColumn('category_id', function ($query, $keyword) {
+                    $query->whereHas('category', fn ($category) => $category->where('name', 'like', "%{$keyword}%"));
+                })
+                ->filterColumn('supplier_id', function ($query, $keyword) {
+                    $query->whereHas('supplier', fn ($supplier) => $supplier->where('name', 'like', "%{$keyword}%"));
+                })
                 ->editColumn('margin', function ($Object) {
                     if($Object->qte>$Object->margin){
                         $btn = '<a class="btn btn-primary btn-sm state1"></a>';
@@ -114,12 +121,19 @@ class ProductController extends Controller
     {
         $this->authorize('viewAny', Product::class);
 
-        $query = Product::where('type',1)->where('status', 0);
+        $query = Product::with(['category:id,name', 'supplier:id,name'])
+            ->where('type',1)->where('status', 0);
 
         $Object = $query->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()
+                ->filterColumn('category_id', function ($query, $keyword) {
+                    $query->whereHas('category', fn ($category) => $category->where('name', 'like', "%{$keyword}%"));
+                })
+                ->filterColumn('supplier_id', function ($query, $keyword) {
+                    $query->whereHas('supplier', fn ($supplier) => $supplier->where('name', 'like', "%{$keyword}%"));
+                })
                 ->addColumn('action', function($row){
                     $btn = '<a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
                             <a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>

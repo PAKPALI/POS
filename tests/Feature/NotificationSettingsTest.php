@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\NotificationRecipientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\Concerns\InteractsWithCompanies;
 use Tests\TestCase;
 
@@ -23,6 +24,7 @@ class NotificationSettingsTest extends TestCase
 
         $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
             ->put(route('notifications.update'), [
+                'sale_email_enabled' => 1,
                 'sale_whatsapp_enabled' => 1,
                 'inventory_sms_enabled' => 1,
                 'recipients' => [
@@ -40,6 +42,8 @@ class NotificationSettingsTest extends TestCase
             'email_enabled' => 0, 'whatsapp_enabled' => 0, 'sms_enabled' => 1,
         ]);
         $company->refresh();
+        $this->assertTrue($company->sale_email_enabled);
+        $this->assertFalse($company->inventory_email_enabled);
         $this->assertTrue($company->sale_whatsapp_enabled);
         $this->assertTrue($company->inventory_sms_enabled);
     }
@@ -86,5 +90,17 @@ class NotificationSettingsTest extends TestCase
         $role->permissions()->attach($permission->id);
         $this->actingAs($manager)->withSession(['active_company_id' => $company->id])
             ->get(route('notifications.index'))->assertOk();
+    }
+
+    public function test_weekly_inventory_email_is_skipped_when_the_global_channel_is_disabled(): void
+    {
+        Mail::fake();
+        $owner = User::factory()->create(['status' => 1, 'user_type' => 2]);
+        $company = $this->activateCompanyFor($owner, 'inventory-email-disabled');
+        $company->update(['inventory_email_enabled' => false]);
+
+        $this->artisan('inventory:weekly-report')->assertSuccessful();
+
+        Mail::assertNothingOutgoing();
     }
 }

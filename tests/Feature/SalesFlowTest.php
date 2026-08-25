@@ -13,6 +13,8 @@ use App\Models\Sale;
 use App\Models\User;
 use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
+use App\Jobs\SendMarginEmailJob;
+use App\Services\NotificationRecipientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Queue;
@@ -130,6 +132,52 @@ class SalesFlowTest extends TestCase
         (new SendSaleWhatsappJob($sale->id, $this->company->id))->handle();
 
         Http::assertNothingSent();
+    }
+
+    public function test_disabled_email_channels_skip_sale_and_inventory_recipients(): void
+    {
+        Queue::fake();
+        $this->company->update([
+            'sale_email_enabled' => false,
+            'inventory_email_enabled' => false,
+        ]);
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+
+        $this->mock(NotificationRecipientService::class)
+            ->shouldNotReceive('users');
+
+        (new SendSaleEmailJob($sale->id, $this->company->id))->handle();
+        (new SendMarginEmailJob('Test Product', 10, 9, $this->company->id))->handle();
+    }
+
+    public function test_margin_alert_is_dispatched_only_when_stock_crosses_the_threshold(): void
+    {
+        Queue::fake();
+
+        $this->makeSale([
+            'products' => [[
+                'product_id' => $this->product->id,
+                'quantity' => 90,
+                'unit_price' => 5000,
+                'total_price' => 450000,
+            ]],
+            'total_amount' => 450000,
+            'received_amount' => 450000,
+        ])->assertJson(['status' => true]);
+
+        $this->makeSale([
+            'products' => [[
+                'product_id' => $this->product->id,
+                'quantity' => 1,
+                'unit_price' => 5000,
+                'total_price' => 5000,
+            ]],
+            'total_amount' => 5000,
+            'received_amount' => 5000,
+        ])->assertJson(['status' => true]);
+
+        Queue::assertPushed(SendMarginEmailJob::class, 1);
     }
 
     /** Creating a sale decreases product quantity */

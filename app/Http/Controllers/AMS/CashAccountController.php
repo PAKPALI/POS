@@ -19,6 +19,7 @@ class CashAccountController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', CashAccount::class);
         // composer require yajra/laravel-datatables-oracle
         $Object = CashAccount::latest();
         if(request()->ajax()){
@@ -96,6 +97,7 @@ class CashAccountController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', CashAccount::class);
         //
     }
 
@@ -104,6 +106,7 @@ class CashAccountController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', CashAccount::class);
         $error_messages = [
             "name.required" => "Remplir le champ Nom de la caisse!",
         ];
@@ -189,6 +192,7 @@ class CashAccountController extends Controller
     public function show(string $id)
     {
         $cashAccount = CashAccount::findOrFail($id);
+        $this->authorize('view', $cashAccount);
         return view('ams.cash.show', compact('cashAccount'));
     }
 
@@ -198,6 +202,7 @@ class CashAccountController extends Controller
     public function edit(string $id)
     {
         $cashAccount = CashAccount::findOrFail($id);
+        $this->authorize('update', $cashAccount);
         return view('ams.cash.edit', compact('cashAccount'));
     }
 
@@ -207,6 +212,7 @@ class CashAccountController extends Controller
     public function update(Request $request, string $id)
     {
         $cashAccount = CashAccount::findOrFail($id);
+        $this->authorize('update', $cashAccount);
 
         $error_messages = [
             "name.required" => "Remplir le champ Nom de la caisse!",
@@ -282,6 +288,7 @@ class CashAccountController extends Controller
     public function destroy(string $id)
     {
         $Object = CashAccount::findOrFail($id);
+        $this->authorize('delete', $Object);
         if($Object->status ==1){
             $Object->update([
                 'status' => 0,

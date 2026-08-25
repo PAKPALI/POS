@@ -25,12 +25,16 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h4>Activation des canaux</h4>
-                <p class="text-muted">Ces interrupteurs autorisent globalement les envois WhatsApp et SMS de la catégorie.</p>
+                <p class="text-muted">Ces interrupteurs autorisent globalement les envois par e-mail, WhatsApp et SMS de la catégorie.</p>
                 <div class="row g-3">
                     @foreach(['sale' => 'Ventes', 'inventory' => 'Inventaire'] as $category => $label)
                     <div class="col-md-6">
                         <div class="border rounded p-3 h-100">
                             <h5>{{ $label }}</h5>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="{{ $category }}_email_enabled" value="1" id="{{ $category }}_email_enabled" {{ $company->{$category.'_email_enabled'} ? 'checked' : '' }}>
+                                <label class="form-check-label" for="{{ $category }}_email_enabled">Autoriser les e-mails</label>
+                            </div>
                             <div class="form-check form-switch mb-2">
                                 <input class="form-check-input" type="checkbox" name="{{ $category }}_whatsapp_enabled" value="1" id="{{ $category }}_whatsapp_enabled" {{ $company->{$category.'_whatsapp_enabled'} ? 'checked' : '' }}>
                                 <label class="form-check-label" for="{{ $category }}_whatsapp_enabled">Autoriser WhatsApp</label>
