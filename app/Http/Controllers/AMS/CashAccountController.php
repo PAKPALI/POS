@@ -21,7 +21,7 @@ class CashAccountController extends Controller
     {
         $this->authorize('viewAny', CashAccount::class);
         // composer require yajra/laravel-datatables-oracle
-        $Object = CashAccount::latest();
+        $Object = CashAccount::with('user:id,name')->latest();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -67,18 +67,26 @@ class CashAccountController extends Controller
                 ->make(true);
         }
 
-        $totalCash = CashAccount::selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')->first();
-        $totalCashSum = CashAccount::sum('balance');
+        $cashSummary = CashAccount::query()
+            ->selectRaw('COUNT(*) as total_count, COALESCE(SUM(balance), 0) as total_balance')
+            ->selectRaw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as active_count')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = 1 THEN balance ELSE 0 END), 0) as active_balance')
+            ->selectRaw('SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as inactive_count')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = 0 THEN balance ELSE 0 END), 0) as inactive_balance')
+            ->first();
+        $specialCashes = CashAccount::query()
+            ->where(fn ($query) => $query->where('is_default', 1)->orWhere('is_tax', 1))
+            ->get();
 
-        $activeCash = CashAccount::where('status', 1)->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')->first();
-        $activeCashSum = CashAccount::where('status', 1)->sum('balance');
-            
-        $inactiveCash = CashAccount::where('status', 0)->selectRaw('COUNT(*) as count, COALESCE(SUM(balance),0) as total')->first();
-        $inactiveCashSum = CashAccount::where('status', 0)->sum('balance');
-
-        $defaultCash = CashAccount::where('is_default', 1)->first();
-        $defaultCashName = CashAccount::where('is_default', 1)->first()?->name;
-        $taxCash = CashAccount::where('is_tax', 1)->first();
+        $totalCash = (object) ['count' => (int) $cashSummary->total_count];
+        $totalCashSum = (float) $cashSummary->total_balance;
+        $activeCash = (object) ['count' => (int) $cashSummary->active_count];
+        $activeCashSum = (float) $cashSummary->active_balance;
+        $inactiveCash = (object) ['count' => (int) $cashSummary->inactive_count];
+        $inactiveCashSum = (float) $cashSummary->inactive_balance;
+        $defaultCash = $specialCashes->firstWhere('is_default', 1);
+        $defaultCashName = $defaultCash?->name;
+        $taxCash = $specialCashes->firstWhere('is_tax', 1);
         return view('ams.cash.index', compact(
             'totalCash',
             'activeCash',

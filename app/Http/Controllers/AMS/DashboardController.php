@@ -23,9 +23,10 @@ class DashboardController extends Controller
         $latestTransactions = Transaction::latest()->take(20)->get();
         $salesSummary = Sale::query()
             ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
+            ->selectRaw('COALESCE(SUM(total_profit), 0) as total_profit')
             ->first();
         $saleCount = (int) $salesSummary->sale_count;
-        $totalProfit = $canViewFinancials ? Sale::sum('total_profit') : 0;
+        $totalProfit = $canViewFinancials ? (float) $salesSummary->total_profit : 0;
         $totalSalesAmount = (float) $salesSummary->total_amount;
         $sale_total_profit = $totalProfit;
         

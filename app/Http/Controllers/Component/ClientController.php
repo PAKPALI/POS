@@ -20,7 +20,7 @@ class ClientController extends Controller
         $this->authorize('viewAny', Client::class);
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Client::where('status', 1)->latest();
+        $Object = Client::with('user:id,name')->where('status', 1)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()
@@ -61,7 +61,7 @@ class ClientController extends Controller
         $this->authorize('viewAny', Client::class);
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Client::where('status', 0)->latest();
+        $Object = Client::with('user:id,name')->where('status', 0)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()

@@ -19,7 +19,7 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $Object = Supplier::where('status', 1)->latest();
+        $Object = Supplier::with('user:id,name')->where('status', 1)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()
@@ -65,7 +65,7 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $Object = Supplier::where('status', 0)->latest();
+        $Object = Supplier::with('user:id,name')->where('status', 0)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()

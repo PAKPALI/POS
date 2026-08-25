@@ -8514,3 +8514,49 @@ Stack trace:
 [2026-08-25 14:25:42] testing.INFO: Notifications de vente WhatsApp/SMS désactivées {"company_id":123} 
 [2026-08-25 14:25:42] testing.INFO: Notifications de vente par e-mail désactivées {"company_id":124} 
 [2026-08-25 14:25:42] testing.INFO: Notifications d’inventaire par e-mail désactivées {"company_id":124} 
+[2026-08-25 15:14:15] testing.INFO: Company switch {"user_id":1,"from_company":1,"to_company":2} 
+[2026-08-25 15:14:39] testing.INFO: Company switch {"user_id":2,"from_company":null,"to_company":3} 
+[2026-08-25 15:14:39] testing.INFO: Rétention du journal d’activité exécutée {"retention_days":365,"company_id":4,"pretend":true,"affected_actions":1} 
+[2026-08-25 15:14:39] testing.INFO: Rétention du journal d’activité exécutée {"retention_days":365,"company_id":4,"pretend":false,"affected_actions":1} 
+[2026-08-25 15:14:40] testing.INFO: Company switch {"user_id":21,"from_company":27,"to_company":28} 
+[2026-08-25 15:14:40] testing.INFO: Invitation email accepted by SMTP {"invitation_id":1,"company_id":29,"recipient":"invitee@test.local","message_id":null} 
+[2026-08-25 15:14:41] testing.INFO: Company switch {"user_id":32,"from_company":null,"to_company":36} 
+[2026-08-25 15:14:42] testing.INFO: E-commerce order email sent {"company_id":57,"order_id":6,"user_id":45} 
+[2026-08-25 15:14:42] testing.INFO: Company switch {"user_id":50,"from_company":65,"to_company":64} 
+[2026-08-25 15:14:42] testing.INFO: Notifications d’inventaire WhatsApp/SMS désactivées {"company_id":71} 
+[2026-08-25 15:14:43] testing.INFO: Rétention des livraisons de notifications exécutée {"retention_days":180,"pretend":true,"affected_deliveries":1} 
+[2026-08-25 15:14:43] testing.INFO: Rétention des livraisons de notifications exécutée {"retention_days":180,"pretend":false,"affected_deliveries":1} 
+[2026-08-25 15:14:43] testing.INFO: Rapport inventaire ignoré : canal e-mail désactivé {"company_id":91} 
+[2026-08-25 15:14:45] testing.INFO: Notifications de vente WhatsApp/SMS désactivées {"company_id":123} 
+[2026-08-25 15:14:45] testing.INFO: Notifications de vente par e-mail désactivées {"company_id":124} 
+[2026-08-25 15:14:45] testing.INFO: Notifications d’inventaire par e-mail désactivées {"company_id":124} 
+[2026-08-25 15:15:24] testing.INFO: Company switch {"user_id":2,"from_company":null,"to_company":3} 
+[2026-08-25 15:15:24] testing.INFO: Rétention du journal d’activité exécutée {"retention_days":365,"company_id":4,"pretend":true,"affected_actions":1} 
+[2026-08-25 15:15:24] testing.INFO: Rétention du journal d’activité exécutée {"retention_days":365,"company_id":4,"pretend":false,"affected_actions":1} 
+[2026-08-25 15:15:25] testing.INFO: Company switch {"user_id":21,"from_company":27,"to_company":28} 
+[2026-08-25 15:15:25] testing.INFO: Invitation email accepted by SMTP {"invitation_id":1,"company_id":29,"recipient":"invitee@test.local","message_id":null} 
+[2026-08-25 15:15:26] testing.INFO: Company switch {"user_id":32,"from_company":null,"to_company":36} 
+[2026-08-25 15:15:27] testing.INFO: E-commerce order email sent {"company_id":57,"order_id":6,"user_id":45} 
+[2026-08-25 15:15:28] testing.INFO: Company switch {"user_id":50,"from_company":65,"to_company":64} 
+[2026-08-25 15:15:28] testing.INFO: Notifications d’inventaire WhatsApp/SMS désactivées {"company_id":71} 
+[2026-08-25 15:15:29] testing.INFO: Rétention des livraisons de notifications exécutée {"retention_days":180,"pretend":true,"affected_deliveries":1} 
+[2026-08-25 15:15:29] testing.INFO: Rétention des livraisons de notifications exécutée {"retention_days":180,"pretend":false,"affected_deliveries":1} 
+[2026-08-25 15:15:29] testing.INFO: Rapport inventaire ignoré : canal e-mail désactivé {"company_id":91} 
+[2026-08-25 15:15:31] testing.INFO: Notifications de vente WhatsApp/SMS désactivées {"company_id":123} 
+[2026-08-25 15:15:31] testing.INFO: Notifications de vente par e-mail désactivées {"company_id":124} 
+[2026-08-25 15:15:31] testing.INFO: Notifications d’inventaire par e-mail désactivées {"company_id":124} 
+[2026-08-25 15:31:15] testing.INFO: Company switch {"user_id":2,"from_company":null,"to_company":3} 
+[2026-08-25 15:31:15] testing.INFO: Rétention du journal d’activité exécutée {"retention_days":365,"company_id":4,"pretend":true,"affected_actions":1} 
+[2026-08-25 15:31:15] testing.INFO: Rétention du journal d’activité exécutée {"retention_days":365,"company_id":4,"pretend":false,"affected_actions":1} 
+[2026-08-25 15:31:16] testing.INFO: Company switch {"user_id":21,"from_company":27,"to_company":28} 
+[2026-08-25 15:31:16] testing.INFO: Invitation email accepted by SMTP {"invitation_id":1,"company_id":29,"recipient":"invitee@test.local","message_id":null} 
+[2026-08-25 15:31:17] testing.INFO: Company switch {"user_id":32,"from_company":null,"to_company":36} 
+[2026-08-25 15:31:18] testing.INFO: E-commerce order email sent {"company_id":57,"order_id":6,"user_id":45} 
+[2026-08-25 15:31:19] testing.INFO: Company switch {"user_id":50,"from_company":65,"to_company":64} 
+[2026-08-25 15:31:19] testing.INFO: Notifications d’inventaire WhatsApp/SMS désactivées {"company_id":71} 
+[2026-08-25 15:31:20] testing.INFO: Rétention des livraisons de notifications exécutée {"retention_days":180,"pretend":true,"affected_deliveries":1} 
+[2026-08-25 15:31:20] testing.INFO: Rétention des livraisons de notifications exécutée {"retention_days":180,"pretend":false,"affected_deliveries":1} 
+[2026-08-25 15:31:20] testing.INFO: Rapport inventaire ignoré : canal e-mail désactivé {"company_id":91} 
+[2026-08-25 15:31:22] testing.INFO: Notifications de vente WhatsApp/SMS désactivées {"company_id":125} 
+[2026-08-25 15:31:22] testing.INFO: Notifications de vente par e-mail désactivées {"company_id":126} 
+[2026-08-25 15:31:22] testing.INFO: Notifications d’inventaire par e-mail désactivées {"company_id":126} 

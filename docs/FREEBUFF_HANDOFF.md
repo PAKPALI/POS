@@ -1,6 +1,6 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 25 août 2026 — après optimisation du POS et instrumentation locale des performances.
+Dernière mise à jour : 25 août 2026 — après le troisième lot d’optimisation SQL multi-compagnies.
 
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
 
@@ -9,7 +9,7 @@ Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre int
 - Migration fonctionnelle SaaS : **environ 94 %**.
 - Préparation à une production SaaS : **environ 70 %**.
 - Monétisation et abonnements : **0 % volontairement**, les plans seront définis ultérieurement.
-- Suite complète validée : **121 tests, 667 assertions, tous réussis**.
+- Suite complète validée : **123 tests, 674 assertions, tous réussis**.
 - Décision du propriétaire au 25 août 2026 : **le déploiement O2switch n’est pas encore autorisé**. Continuer à maintenir sa documentation, mais ne lancer aucune connexion, migration, configuration cron/SMTP, copie de fichiers ou opération sur l’hébergement avant une nouvelle demande explicite.
 
 ## Fonctionnalités terminées et validées
@@ -25,6 +25,7 @@ Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre int
 - Création de compagnies supplémentaires avec informations essentielles.
 - Aucune bascule automatique après création : une confirmation demande à l’utilisateur s’il souhaite ouvrir la nouvelle compagnie.
 - Le switch vérifie l’adhésion active, régénère la session, met à jour `last_accessed_at` et journalise le changement.
+- Le sélecteur de compagnie permet désormais d’abandonner le choix : lorsqu’une compagnie est déjà active, « Retour à l’application » ramène vers la première page autorisée calculée par `AuthorizedLandingPage`, sans changer la compagnie ni sa session. Sans contexte actif, « Quitter sans choisir » ferme proprement la session afin d’éviter une boucle avec le sélecteur. Ne pas remplacer ce comportement par un simple retour dans l’historique du navigateur.
 - La gestion est centralisée dans **Paramètres > Compagnie** : cartes de toutes les compagnies en haut, détails et modification de la compagnie active en bas.
 - Après modification du nom, de l’e-mail ou du logo, la page est rechargée afin de synchroniser les cartes.
 - Ne pas réintroduire une entrée séparée « Mes compagnies » dans le menu principal.
@@ -359,4 +360,14 @@ Le travail est non commité et le dépôt était déjà sale avant la reprise. P
 - Nouvelle référence complète : **121 tests réussis, 667 assertions**.
 - Tests manuels : provoquer une notification réussie puis relancer le même job et vérifier l’absence de doublon ; simuler un échec fournisseur puis corriger et relancer ; vérifier les compteurs du tableau Transactions ; exécuter `php artisan notifications:clean-deliveries --days=180 --pretend`.
 - Travaux locaux critiques terminés. Restent volontairement hors périmètre jusqu’au signal du propriétaire : déploiement O2switch, configuration réelle des fournisseurs et conception des abonnements.
+
+## Mise à jour du 25 août 2026 — optimisation SQL, lot 3
+
+- Les tableaux Clients, Fournisseurs, Catégories, Codes promotionnels et Caisses chargent désormais leur créateur en lot. Le nombre de requêtes ne grandit plus avec le nombre de lignes affichées (suppression des N+1 sur `user`).
+- Le tableau de bord général et le tableau de bord comptable calculent chiffre d’affaires, remise et bénéfice dans une seule agrégation sur `sales`, au lieu d’exécuter une seconde somme pour le bénéfice.
+- La page des caisses calcule les compteurs et soldes totaux, actifs et inactifs avec une seule requête conditionnelle. Une seconde requête récupère ensemble la caisse principale et la caisse de taxe : le résumé utilise donc exactement deux requêtes, indépendamment du volume.
+- La migration `2026_08_25_130000_add_tenant_listing_performance_indexes.php` ajoute les index `(company_id, status, created_at)` aux tables `cash_accounts`, `categories`, `clients`, `code_promos` et `suppliers`. Ces index accélèrent l’isolation, le filtre de statut et le tri des listes récentes pour chaque compagnie.
+- `QueryOptimizationTest` impose désormais une seule agrégation des ventes, vérifie l’absence de N+1 sur une page de clients et plafonne le résumé des caisses à deux requêtes.
+- Nouvelle référence complète : **123 tests réussis, 674 assertions**.
+- À la mise en production seulement, surveiller le journal des requêtes lentes avec des volumes réels et utiliser `EXPLAIN` dans phpMyAdmin avant tout index supplémentaire. Redis reste inutile pour ce lot.
 

@@ -26,6 +26,7 @@
         .create-card { display: flex; min-height: 210px; align-items: center; justify-content: center; text-align: center; border: 1px dashed rgba(255,255,255,.22); background: rgba(255,255,255,.025); }
         .create-card:hover { border-color: var(--company-accent); background: rgba(25,195,125,.055); }
         .create-icon { width: 48px; height: 48px; margin: 0 auto 1rem; border-radius: 14px; display: grid; place-items: center; background: rgba(25,195,125,.13); color: var(--company-accent); font-size: 1.5rem; }
+        .selection-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
     </style>
 </head>
 <body class="text-white">
@@ -46,6 +47,21 @@
             <div class="eyebrow text-uppercase mb-2">Vos espaces de travail</div>
             <h1 class="display-6 fw-bold mb-2">Quelle entreprise souhaitez-vous ouvrir ?</h1>
             <p class="hero-copy mb-0">Chaque entreprise possède ses propres produits, ventes, utilisateurs et permissions. Votre contexte sera adapté dès l’ouverture.</p>
+            <div class="selection-actions mt-4">
+                @if($returnUrl)
+                    <a href="{{ $returnUrl }}" class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left me-2"></i>Retour à l’application
+                    </a>
+                    <span class="small text-white-50">Aucun changement d’entreprise ne sera effectué.</span>
+                @else
+                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light">
+                            <i class="bi bi-box-arrow-left me-2"></i>Quitter sans choisir
+                        </button>
+                    </form>
+                @endif
+            </div>
         </section>
 
         @if(session('error'))<div class="alert alert-danger border-0">{{ session('error') }}</div>@endif

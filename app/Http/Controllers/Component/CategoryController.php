@@ -20,7 +20,7 @@ class CategoryController extends Controller
         $this->authorize('viewAny', Category::class);
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Category::where('status', 1)->latest();
+        $Object = Category::with('user:id,name')->where('status', 1)->latest();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -62,7 +62,7 @@ class CategoryController extends Controller
         $this->authorize('viewAny', Category::class);
 
         // composer require yajra/laravel-datatables-oracle
-        $Object = Category::where('status', 0)->latest();
+        $Object = Category::with('user:id,name')->where('status', 0)->latest();
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)

@@ -51,7 +51,9 @@ class CompanyCreationTest extends TestCase
         $this->actingAs($owner)->get(route('companies.select'))
             ->assertOk()
             ->assertSee($firstCompany->name)
-            ->assertSee($secondCompany->name);
+            ->assertSee($secondCompany->name)
+            ->assertSee('Retour à l’application')
+            ->assertSee(route('dashboard'), false);
 
         $this->actingAs($owner)
             ->post(route('companies.switch', $secondCompany->id))

@@ -44,6 +44,7 @@ class UserController extends Controller
         $productCount = Product::count();
         $salesSummary = Sale::query()
             ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_revenue, COALESCE(SUM(discount), 0) as total_discount')
+            ->selectRaw('COALESCE(SUM(total_profit), 0) as total_profit')
             ->first();
         $clientCount = Client::count();
         $supplierCount = Supplier::count();
@@ -52,7 +53,7 @@ class UserController extends Controller
         $saleCount = (int) $salesSummary->sale_count;
         $sale_total_revenue = (float) $salesSummary->total_revenue;
         $sale_total_discount = (float) $salesSummary->total_discount;
-        $sale_total_profit = $canViewFinancials ? (float) Sale::sum('total_profit') : 0;
+        $sale_total_profit = $canViewFinancials ? (float) $salesSummary->total_profit : 0;
 
         $mostSoldProducts = SaleDetail::query()
             ->select('product_id')

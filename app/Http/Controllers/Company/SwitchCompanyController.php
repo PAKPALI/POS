@@ -32,8 +32,12 @@ class SwitchCompanyController extends Controller
             ->get();
 
         $activeCompanyId = session('active_company_id');
+        $activeMembership = $memberships->firstWhere('company_id', (int) $activeCompanyId);
+        $returnUrl = $activeMembership
+            ? $this->landingPage->forMembership($activeMembership)
+            : null;
 
-        return view('company.select', compact('memberships', 'activeCompanyId'));
+        return view('company.select', compact('memberships', 'activeCompanyId', 'returnUrl'));
     }
 
     /**

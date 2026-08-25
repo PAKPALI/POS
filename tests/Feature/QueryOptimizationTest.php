@@ -55,7 +55,7 @@ class QueryOptimizationTest extends TestCase
 
         $this->actingAs($owner)->get(route('dashboard'))->assertOk();
 
-        $this->assertLessThanOrEqual(2, count($salesQueries));
+        $this->assertCount(1, $salesQueries);
         foreach ($salesQueries as $query) {
             $this->assertStringNotContainsString('select *', strtolower($query));
         }
@@ -454,6 +454,69 @@ class QueryOptimizationTest extends TestCase
         $this->assertCount(1, $transactionQueries);
         $this->assertStringContainsString('case when', strtolower($transactionQueries[0]));
         $this->assertStringNotContainsString('select *', strtolower($transactionQueries[0]));
+    }
+
+    public function test_client_datatable_eager_loads_creators_without_n_plus_one_queries(): void
+    {
+        $owner = User::factory()->create(['user_type' => 2, 'status' => 1]);
+        $company = $this->activateCompanyFor($owner, 'client-query-volume');
+
+        foreach (range(1, 15) as $number) {
+            Client::create([
+                'company_id' => $company->id,
+                'name' => 'Client requête '.$number,
+                'created_by' => $owner->id,
+                'status' => 1,
+            ]);
+        }
+
+        $queries = [];
+        DB::listen(function (QueryExecuted $query) use (&$queries) {
+            if (preg_match('/from ["`](clients|users)["`]/i', $query->sql)) {
+                $queries[] = $query->sql;
+            }
+        });
+
+        $response = $this->actingAs($owner)->getJson(route('client.index').'?'.http_build_query([
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+        ]), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+
+        $this->assertCount(10, $response->json('data'));
+        $this->assertLessThanOrEqual(4, count($queries));
+    }
+
+    public function test_cash_dashboard_uses_two_queries_for_all_summaries(): void
+    {
+        $owner = User::factory()->create(['user_type' => 2, 'status' => 1]);
+        $company = $this->activateCompanyFor($owner, 'cash-query-volume');
+
+        foreach (range(1, 12) as $number) {
+            CashAccount::create([
+                'company_id' => $company->id,
+                'name' => 'Caisse performance '.$number,
+                'code' => 'PERF-'.$company->id.'-'.$number,
+                'balance' => 1000,
+                'currency' => 'FCFA',
+                'is_default' => $number === 1,
+                'is_tax' => $number === 2,
+                'status' => $number % 3 === 0 ? 0 : 1,
+                'created_by' => $owner->id,
+            ]);
+        }
+
+        $cashQueries = [];
+        DB::listen(function (QueryExecuted $query) use (&$cashQueries) {
+            if (preg_match('/from ["`]cash_accounts["`]/i', $query->sql)) {
+                $cashQueries[] = $query->sql;
+            }
+        });
+
+        $this->actingAs($owner)->get(route('cash-account.index'))->assertOk();
+
+        $this->assertCount(2, $cashQueries);
+        $this->assertStringContainsString('case when', strtolower($cashQueries[0]));
     }
 
     private function dataTableUrl(string $url, array $columns, string $search, array $extra = []): string
