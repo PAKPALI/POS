@@ -324,6 +324,7 @@ class UserController extends Controller
         $text = "Voici votre mot de passe ".$code."";
         // Envoyez l'e-mail avec le code généré
         Mail::send('emails.user.connectPass', ['text' => $text,'name' => $name, 'company' => $company], function($message) use ($email, $company){
+            $message->from(config('mail.from.address'), $company?->name ?? config('app.name'));
             $message->to($email);
             $message->subject(($company?->name ?? config('app.name')).' — Accès utilisateur');
         });

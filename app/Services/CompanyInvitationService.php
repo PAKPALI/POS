@@ -89,6 +89,7 @@ class CompanyInvitationService
                 'invitation' => $invitation,
                 'url' => $url,
             ], function ($message) use ($invitation) {
+                $message->from(config('mail.from.address'), $invitation->company->name);
                 $message->to($invitation->email);
                 $message->subject($invitation->company->name.' — Invitation à rejoindre l’entreprise');
             });

@@ -19,6 +19,8 @@ class EcommerceOrderNotification extends Mailable
 
     public function build(): self
     {
+        $this->from(config('mail.from.address'), $this->company->name);
+
         return $this->subject($this->company->name.' — Nouvelle commande #'.$this->order->code)
             ->view('emails.ecommerce.orderNotification');
     }

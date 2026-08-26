@@ -67,7 +67,8 @@ class SendWeeklyInventoryReport extends Command
                                 'start_date' => $startOfWeek,
                                 'end_date' => $endOfWeek,
                             ], function ($message) use ($user, $pdfContent, $company) {
-                                $message->to($user->email)
+                                $message->from(config('mail.from.address'), $company->name)
+                                    ->to($user->email)
                                     ->subject('Rapport hebdomadaire inventaire - '.$company->name)
                                     ->attachData(
                                         $pdfContent,

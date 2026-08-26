@@ -160,14 +160,21 @@ class EcommerceOrderSecurityTest extends TestCase
 
         (new SendEcommerceOrderEmailJob($order->id, $companyA->id))->handle();
 
-        Mail::assertSent(EcommerceOrderNotification::class, fn ($mail) => $mail->hasTo($managerA->email));
+        Mail::assertSent(EcommerceOrderNotification::class, function ($mail) use ($managerA, $companyA) {
+            $mail->build();
+
+            return $mail->hasTo($managerA->email)
+                && $mail->hasFrom(config('mail.from.address'), $companyA->name);
+        });
         Mail::assertSentCount(1);
 
         $html = (new EcommerceOrderNotification($order->load('items'), $companyA))->render();
         $this->assertStringContainsString('Entreprise Mail A', $html);
         $this->assertStringContainsString('CMD-MAIL-001', $html);
         $this->assertStringContainsString('Produit e-mail', $html);
-        $this->assertStringContainsString('Cet e-mail a été envoyé par', $html);
+        $this->assertStringContainsString('Cet e-mail vous est envoyé par', $html);
+        $this->assertStringContainsString(config('app.name'), $html);
+        $this->assertStringContainsString((string) now()->year, $html);
         $this->assertStringContainsString('Consulter la commande', $html);
         $this->assertStringContainsString('Ouvrir dans Google Maps', $html);
         $this->assertStringContainsString('https://maps.app.goo.gl/AbCdEf123456', $html);

@@ -2,7 +2,7 @@
 
 Ce guide prépare un premier déploiement SaaS avec **Laravel 10**, **PHP 8.2**, **MySQL**, une queue en base de données et sans Redis.
 
-> **Statut au 25 août 2026 : préparation documentaire uniquement.** Le propriétaire n’est pas encore en phase de déploiement. Ne lancer aucune opération sur O2switch, ne transférer aucun fichier et ne configurer aucun service tant qu’il n’a pas donné son accord explicite. Ce document reste une procédure anticipée à compléter localement.
+> **Statut au 26 août 2026 : staging O2switch en cours de validation.** L'environnement de staging peut recevoir les corrections demandées par le propriétaire. Le déploiement en production commerciale reste distinct et ne doit pas être lancé sans accord explicite.
 
 > Ne jamais envoyer le fichier `.env` réel sur Git et ne jamais copier les mots de passe dans une documentation. Remplacer tous les exemples avant le déploiement.
 
@@ -21,7 +21,7 @@ Dans **cPanel > Domaines**, faire pointer le domaine ou sous-domaine vers le dos
 
 ## 2. Préparer O2switch
 
-1. Dans cPanel, sélectionner PHP **8.2** pour le domaine.
+1. Dans cPanel, sélectionner PHP **8.2** pour le domaine et activer l'extension **ZIP**, requise par les exports Excel `.xlsx`.
 2. Créer une base MySQL, un utilisateur MySQL et lui attribuer tous les privilèges sur cette base.
 3. Activer le certificat SSL du domaine et vérifier que `https://votre-domaine.com` répond.
 4. Ouvrir le Terminal cPanel ou établir une connexion SSH.
@@ -51,14 +51,21 @@ Le fichier `public/hot` est un marqueur du serveur de développement : il doit �
 
 ## 4. Installer les dépendances
 
-Depuis le Terminal cPanel :
+Toujours transférer les versions à jour de `composer.json` **et** `composer.lock`. Depuis le Terminal cPanel, vérifier d'abord que ZIP est actif, puis installer exactement les versions verrouillées :
 
 ```bash
 cd /home/UTILISATEUR_CPANEL/proseller
+php -m | grep -i zip
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+composer show maatwebsite/excel
+composer show phpoffice/phpspreadsheet
 ```
 
-Si Composer refuse la version PHP, vérifier que le terminal utilise bien PHP 8.2 et demander au support O2switch le chemin Composer/PHP correspondant au domaine.
+La commande ZIP doit afficher `zip`. Les deux dernières commandes doivent confirmer la présence de Laravel Excel et PhpSpreadsheet. Dans la version actuellement validée du projet, les versions attendues sont `maatwebsite/excel 3.1.70` et `phpoffice/phpspreadsheet 1.30.6`.
+
+Ne pas utiliser `composer update` sur le serveur : `composer install` doit respecter `composer.lock`. Une erreur `Interface "Maatwebsite\\Excel\\Concerns\\FromGenerator" not found` signifie que le code déployé est plus récent que le dossier `vendor`; relancer cette procédure puis `php artisan optimize:clear`.
+
+Si Composer refuse la version PHP, vérifier que le terminal utilise bien PHP 8.2 et demander au support O2switch le chemin Composer/PHP correspondant au domaine. Si ZIP n'apparaît pas, l'activer dans le gestionnaire d'extensions PHP de cPanel avant de relancer Composer.
 
 ## 5. Créer le `.env` de production
 
@@ -185,6 +192,7 @@ Puis tester manuellement :
 - installation PWA depuis Android et Safari/iPhone ;
 - page 403 et menus selon les permissions ;
 - page hors connexion de la PWA.
+- exports CSV et Excel des produits, de l'inventaire et des ventes ; vérifier que le fichier Excel téléchargé porte bien l'extension `.xlsx` et s'ouvre sans réparation.
 
 Consulter également `storage/logs/laravel.log`, `scheduler.log`, `queue.log`, `slow-queries-AAAA-MM-JJ.log` et les tâches présentes dans la table `failed_jobs`.
 
@@ -253,6 +261,8 @@ Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode main
 - [ ] Base MySQL sauvegardée
 - [ ] Migrations terminées
 - [ ] Liens de stockage fonctionnels
+- [ ] Extension PHP `zip` active et packages `maatwebsite/excel` / `phpoffice/phpspreadsheet` installés par Composer
+- [ ] Exports Excel `.xlsx` validés sur le serveur
 - [ ] SMTP vérifié avec un vrai destinataire
 - [ ] Cron du scheduler actif
 - [ ] Cron de queue actif
