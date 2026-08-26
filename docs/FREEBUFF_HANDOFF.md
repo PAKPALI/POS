@@ -451,4 +451,5 @@ Le travail est non commité et le dépôt était déjà sale avant la reprise. P
 - `transaction_id`, `idempotency_key` et `event_id` empêchent les doublons. La V1 ne fournissant pas d'`event_id`, le contrôleur génère une empreinte SHA-256 stable à partir de la transaction et du paiement. Un même webhook rejoué ne crédite pas deux fois.
 - La clé fournie dans la conversation est considérée exposée et n’a pas été enregistrée. Elle doit être régénérée avec `payments:write` et `read`.
 - Documentation : `docs/INTEGRATION_KPRIMEPAY_QUOTAS.md`. Après ajout du scénario webhook V1 et la non-régression complète : **138 tests, 785 assertions, 0 échec**.
+- Expérience PWA KPrimePay : le checkout s’ouvre désormais dans une fenêtre séparée créée directement par le clic utilisateur. La page Quotas reste ouverte, garde le bouton bloqué avec son loader, surveille le statut local toutes les 3 secondes, ferme la fenêtre et se recharge après confirmation `paid`. Une redirection complète reste disponible si les pop-ups sont bloquées. Ne jamais remplacer ce contrôle local par une confiance dans la seule URL de retour.
 

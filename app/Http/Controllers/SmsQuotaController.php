@@ -102,7 +102,19 @@ class SmsQuotaController extends Controller
         return response()->json([
             'status' => true,
             'checkout_url' => $payment->checkout_url,
+            'transaction_id' => $payment->transaction_id,
             'msg' => 'Redirection vers le paiement sécurisé…',
+        ]);
+    }
+
+    public function status(string $transactionId)
+    {
+        $payment = QuotaPayment::where('transaction_id', $transactionId)->firstOrFail();
+
+        return response()->json([
+            'status' => true,
+            'payment_status' => $payment->status,
+            'transaction_id' => $payment->transaction_id,
         ]);
     }
 

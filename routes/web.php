@@ -254,6 +254,7 @@ Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.select
 Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:quota.manage'])->group(function () {
     Route::get('sms-quota', [SmsQuotaController::class, 'index'])->name('sms-quota.index');
     Route::post('sms-quota/checkout', [SmsQuotaController::class, 'checkout'])->middleware('throttle:10,1')->name('sms-quota.checkout');
+    Route::get('sms-quota/status/{transactionId}', [SmsQuotaController::class, 'status'])->middleware('throttle:60,1')->name('sms-quota.status');
     Route::get('sms-quota/return', [SmsQuotaController::class, 'returned'])->name('sms-quota.return');
 });
 

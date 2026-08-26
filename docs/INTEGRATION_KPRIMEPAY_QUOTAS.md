@@ -65,6 +65,12 @@ https://VOTRE-DOMAINE/setting/sms-quota/return
 
 Cette page indique seulement que la confirmation est en attente. Elle n’accorde aucun quota, car un client pourrait appeler lui-même une URL de retour.
 
+## Expérience PWA et fenêtre de paiement
+
+Le checkout est ouvert dans une fenêtre sécurisée distincte afin de conserver le POS/PWA au premier plan. La page principale interroge toutes les trois secondes la route tenantée `sms-quota.status` pendant cinq minutes au maximum. Elle ne se fie jamais au contenu de la fenêtre externe : seul le statut local mis à jour après vérification du webhook déclenche la fermeture de la fenêtre et le rechargement des quotas.
+
+Si le navigateur bloque l’ouverture de la fenêtre, l’application utilise automatiquement la redirection complète vers KPrimePay. Ce repli est notamment utile avec certains navigateurs mobiles ou modes PWA restrictifs.
+
 ## Sécurité et reprise
 
 - `transaction_id` et `Idempotency-Key` sont uniques.

@@ -29,7 +29,7 @@
             <div class="alert alert-secondary d-flex justify-content-between align-items-center mt-4 mb-3">
                 <span>Montant du paiement</span><strong><span id="quota-total">0</span> FCFA</strong>
             </div>
-            <button type="submit" class="btn btn-primary" id="quota-checkout-button" data-loading-text="Ouverture du paiement…"><i class="bi bi-shield-lock me-1"></i>Payer avec KPrimePay</button>
+            <button type="submit" class="btn btn-primary" id="quota-checkout-button" data-loading-text="Paiement en cours…"><i class="bi bi-shield-lock me-1"></i>Payer avec KPrimePay</button>
             <p class="small text-muted mt-2 mb-0">Les quotas sont crédités uniquement après confirmation du paiement par KPrimePay.</p>
         </form></div>
     </div>
@@ -51,26 +51,82 @@
 <script>
 $(function () {
     const smsPrice = {{ $smsUnitPrice }}, whatsappPrice = {{ $whatsappUnitPrice }};
+    const paymentStatusUrl = @json(route('sms-quota.status', ['transactionId' => '__TRANSACTION__']));
+
     function updateTotal() {
         const sms = Math.max(0, parseInt($('#sms_quantity').val(), 10) || 0);
         const whatsapp = Math.max(0, parseInt($('#whatsapp_quantity').val(), 10) || 0);
         $('#quota-total').text(new Intl.NumberFormat('fr-FR').format((sms * smsPrice) + (whatsapp * whatsappPrice)));
     }
-    $('.quota-quantity').on('input change', updateTotal); updateTotal();
+
+    function waitForPayment(transactionId, paymentWindow) {
+        const startedAt = Date.now();
+        return new Promise(function (resolve, reject) {
+            function check() {
+                $.getJSON(paymentStatusUrl.replace('__TRANSACTION__', encodeURIComponent(transactionId)))
+                    .done(function (response) {
+                        if (response.payment_status === 'paid') {
+                            if (paymentWindow && !paymentWindow.closed) paymentWindow.close();
+                            resolve(response);
+                            return;
+                        }
+                        if (response.payment_status === 'failed') {
+                            if (paymentWindow && !paymentWindow.closed) paymentWindow.close();
+                            reject(new Error('Le paiement a échoué ou a été annulé.'));
+                            return;
+                        }
+                        if (Date.now() - startedAt >= 300000) {
+                            reject(new Error('La confirmation prend plus de temps que prévu. Consultez de nouveau l’historique dans quelques instants.'));
+                            return;
+                        }
+                        window.setTimeout(check, 3000);
+                    })
+                    .fail(function (xhr) {
+                        if (xhr.status === 401 || xhr.status === 403 || xhr.status === 404) {
+                            reject(new Error('Le suivi sécurisé du paiement n’est plus disponible.'));
+                            return;
+                        }
+                        if (Date.now() - startedAt >= 300000) {
+                            reject(new Error('Impossible de confirmer le paiement pour le moment.'));
+                            return;
+                        }
+                        window.setTimeout(check, 5000);
+                    });
+            }
+            check();
+        });
+    }
+
+    $('.quota-quantity').on('input change', updateTotal);
+    updateTotal();
+
     $('#quota-checkout-form').on('submit', function (event) {
         event.preventDefault();
         const button = document.getElementById('quota-checkout-button');
+        const paymentWindow = window.open('', 'kprimepay-checkout', 'popup=yes,width=520,height=760,resizable=yes,scrollbars=yes');
+
         window.ServerButtonLoader.withLoader(button, function () {
-            return $.ajax({
+            return Promise.resolve($.ajax({
                 url: @json(route('sms-quota.checkout')),
                 method: 'POST',
                 data: $('#quota-checkout-form').serialize(),
                 dataType: 'json'
+            })).then(function (response) {
+                if (!response.status || !response.checkout_url || !response.transaction_id) {
+                    throw new Error(response.msg || 'Le checkout ne peut pas être lancé.');
+                }
+                if (!paymentWindow) {
+                    window.location.assign(response.checkout_url);
+                    return new Promise(function () {});
+                }
+                paymentWindow.location.replace(response.checkout_url);
+                paymentWindow.focus();
+                return waitForPayment(response.transaction_id, paymentWindow);
             });
-        }, 'Ouverture du paiement…').then(function (response) {
-            if (!response.status || !response.checkout_url) throw new Error(response.msg || 'Le checkout ne peut pas être lancé.');
-            window.location.assign(response.checkout_url);
+        }, 'Paiement en cours…').then(function () {
+            window.location.reload();
         }).catch(function (error) {
+            if (paymentWindow && !paymentWindow.closed) paymentWindow.close();
             const response = error.responseJSON || {};
             Swal.fire({icon:'error', title:response.title || 'Paiement impossible', text:response.msg || error.message || 'Impossible de contacter le service de paiement.'});
         });

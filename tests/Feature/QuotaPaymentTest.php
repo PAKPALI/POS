@@ -61,6 +61,9 @@ class QuotaPaymentTest extends TestCase
         $payment = QuotaPayment::firstOrFail();
         $this->assertSame(160, (int) $payment->amount);
         $this->assertSame('pending', $payment->status);
+        $checkout->assertJson(['transaction_id' => $payment->transaction_id]);
+        $this->getJson(route('sms-quota.status', $payment->transaction_id))
+            ->assertOk()->assertJson(['payment_status' => 'pending']);
         Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/checkout')
             && $request->hasHeader('Authorization', 'Bearer sandbox-secret')
             && $request->hasHeader('Idempotency-Key', $payment->idempotency_key));
@@ -88,6 +91,8 @@ class QuotaPaymentTest extends TestCase
         $this->assertSame(2, (int) $company->fresh()->sms_count);
         $this->assertSame(3, (int) $company->fresh()->whatsapp_count);
         $this->assertSame('paid', $payment->fresh()->status);
+        $this->getJson(route('sms-quota.status', $payment->transaction_id))
+            ->assertOk()->assertJson(['payment_status' => 'paid']);
 
         $this->withHeaders($headers)->postJson('/api/kprimepay/webhook', $payload)->assertOk();
         $this->assertSame(2, (int) $company->fresh()->sms_count);
