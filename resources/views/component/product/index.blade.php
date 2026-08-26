@@ -197,22 +197,21 @@
                         <div class="col-xl-12 mb-5">
                             <div class="card mb-3">
                                 <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des produits</h4></span>
-                                        <button type="button" id="exportPdf" class="btn btn-secondary mb-1 me-2 text-right">PDF</button>
-                                        <button type="button" class="btn btn-primary mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap fw-bold small mb-3">
+                                        <span class="me-auto"><h4 class="mb-0">Listes des produits</h4></span>
+                                        <button type="button" class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#addModal"><i class="fas fa-plus me-1"></i>Ajouter</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
                                     <hr class="">
-                                    <div class="accordion" id="accordionExample">
+                                    <div class="accordion" id="productOptionsAccordion">
                                         <div class="accordion-item">
-                                            <h2 class="accordion-header" id="headingTwo">
+                                            <h2 class="accordion-header" id="productFilterHeading">
                                                 <button class="accordion-button collapsed" type="button"
-                                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                                                    FILTRER PAR :
+                                                    data-bs-toggle="collapse" data-bs-target="#productFilterCollapse" aria-expanded="false" aria-controls="productFilterCollapse">
+                                                    <i class="fas fa-filter me-2"></i>Filtrer les produits
                                                 </button>
                                             </h2>
-                                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                            <div id="productFilterCollapse" class="accordion-collapse collapse" data-bs-parent="#productOptionsAccordion">
                                                 <div class="accordion-body">
                                                     <div class="row mb-2">
                                                         <div class="col-md-4 mb-2">
@@ -245,6 +244,23 @@
                                                                 <option value="0">Inactif</option>
                                                             </select>
                                                         </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="productExportHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                                    data-bs-target="#productExportCollapse" aria-expanded="false" aria-controls="productExportCollapse">
+                                                    <i class="fas fa-download me-2"></i>Exporter les données
+                                                </button>
+                                            </h2>
+                                            <div id="productExportCollapse" class="accordion-collapse collapse" data-bs-parent="#productOptionsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="row g-2">
+                                                        <div class="col-12 col-sm-4"><button type="button" data-format="csv" class="exportTabular btn btn-warning text-dark w-100"><i class="fas fa-file-csv me-1"></i>CSV</button></div>
+                                                        <div class="col-12 col-sm-4"><button type="button" data-format="excel" class="exportTabular btn btn-success w-100"><i class="fas fa-file-excel me-1"></i>Excel</button></div>
+                                                        <div class="col-12 col-sm-4"><button type="button" id="exportPdf" class="btn btn-secondary w-100"><i class="fas fa-file-pdf me-1"></i>PDF</button></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -820,6 +836,19 @@
                     "{{ route('product.export.pdf') }}?" + params,
                     '_blank'
                 );
+            });
+
+            $('.exportTabular').on('click', function(e) {
+                e.preventDefault();
+                const button = this;
+                const params = $.param({
+                    category_id: $('#filter_category').val(),
+                    qte: $('#filter_qte').val(),
+                    status: $('#filter_status').val()
+                });
+                const baseUrl = "{{ route('product.export.tabular', ['format' => '__FORMAT__']) }}";
+                window.ServerButtonLoader.download(button, baseUrl.replace('__FORMAT__', button.dataset.format) + '?' + params)
+                    .catch(error => Swal.fire({icon: 'error', title: 'Export impossible', text: error.message}));
             });
         });
     </script>

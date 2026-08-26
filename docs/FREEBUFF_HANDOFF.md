@@ -4,12 +4,26 @@ Dernière mise à jour : 25 août 2026 — après le troisième lot d’optimisa
 
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
 
+Rapport consolidé destiné au propriétaire : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-25.md`. Il résume les acquis, les pourcentages, les risques résiduels et l’ordre recommandé avant le pilote.
+
+Rapport de charge reproductible : `docs/RAPPORT_TEST_VOLUME_SAAS_2026-08-25.md`. Le benchmark MySQL isolé utilise uniquement une base `*_testing`, charge jusqu’à 100 000 lignes de vente détaillées et ne doit pas être ajouté à la suite quotidienne.
+
+Rapport de concurrence : `docs/RAPPORT_CONCURRENCE_SAAS_2026-08-25.md`. Dix ventes simultanées et huit conversions simultanées d’une même commande sont validées sans survente, doublon ni écart de caisse. Le benchmark est également exclu de la suite quotidienne.
+
+Rapport de charge des notifications : `docs/RAPPORT_CHARGE_NOTIFICATIONS_2026-08-25.md`. Le benchmark à 4 workers et 1 000 livraisons a révélé puis permis de corriger une double revendication concurrente. Après correction : 0 doublon, 0 échec et environ 108 livraisons locales par seconde.
+
+Rapport des exports PDF : `docs/RAPPORT_EXPORTS_PDF_VOLUME_2026-08-26.md`. DomPDF dépassait 512 Mo sur plusieurs milliers de lignes. Les exports sont désormais bornés avant rendu à 300 produits, 500 mouvements ou 100 ventes ; les volumes supérieurs demandent un filtre plus précis.
+
+Rapport CSV/Excel : `docs/RAPPORT_EXPORTS_CSV_EXCEL_2026-08-26.md`. Produits, Inventaire et Historique disposent d’exports exhaustifs générés en flux, filtrés par compagnie et protégés contre l’injection de formules. Les boutons utilisent le loader serveur global.
+
+- Correctif téléchargement CSV/Excel : la PWA servait encore l’ancien `server-button-loader.js`, rendant `ServerButtonLoader.download()` indisponible. Le cache est maintenant `pro-seller-pwa-v3` et le script porte `?v=20260826-1` dans tous les layouts. Conserver le versionnement lors des prochaines modifications d’assets mis en cache.
+
 ## Niveau d’avancement
 
 - Migration fonctionnelle SaaS : **environ 94 %**.
 - Préparation à une production SaaS : **environ 70 %**.
 - Monétisation et abonnements : **0 % volontairement**, les plans seront définis ultérieurement.
-- Suite complète validée : **123 tests, 674 assertions, tous réussis**.
+- Suite quotidienne validée : **129 tests, 719 assertions, tous réussis**. Les 5 scénarios lourds de volume/concurrence/queue/PDF sont séparés dans `benchmarks/` et ne sont exécutés que sur demande.
 - Décision du propriétaire au 25 août 2026 : **le déploiement O2switch n’est pas encore autorisé**. Continuer à maintenir sa documentation, mais ne lancer aucune connexion, migration, configuration cron/SMTP, copie de fichiers ou opération sur l’hébergement avant une nouvelle demande explicite.
 
 ## Fonctionnalités terminées et validées
@@ -370,4 +384,71 @@ Le travail est non commité et le dépôt était déjà sale avant la reprise. P
 - `QueryOptimizationTest` impose désormais une seule agrégation des ventes, vérifie l’absence de N+1 sur une page de clients et plafonne le résumé des caisses à deux requêtes.
 - Nouvelle référence complète : **123 tests réussis, 674 assertions**.
 - À la mise en production seulement, surveiller le journal des requêtes lentes avec des volumes réels et utiliser `EXPLAIN` dans phpMyAdmin avant tout index supplémentaire. Redis reste inutile pour ce lot.
+
+## Mise à jour du 25 août 2026 — benchmark MySQL à gros volume
+
+- Un benchmark séparé, explicitement exclu de la suite quotidienne, est disponible dans `benchmarks/SaasVolumeBenchmark.php`. Il refuse toute base dont le nom ne se termine pas par `_testing`.
+- Volume validé : 5 compagnies, 50 utilisateurs, 10 000 produits, 5 000 clients, 50 000 ventes, 100 000 lignes de vente et 10 000 commandes. Pic PHP : 96 Mo.
+- Les sept parcours mesurés restent sous 0,8 seconde lors du passage diagnostique final et sous 14 requêtes : tableau de bord 781 ms, POS 773 ms, produits 94 ms, clients 17 ms, utilisateurs 17 ms, commandes 14 ms et historique 696 ms. Un passage à froid peut atteindre environ 1,4 seconde sur les agrégations.
+- Les filtres `DATE(created_at)` du POS ont été remplacés par des plages indexables. Les agrégations de bénéfice ont été fusionnées, réduisant le POS de 15 à 14 requêtes et l’historique de 11 à 10.
+- La migration appliquée `2026_08_25_140000_add_sale_detail_period_performance_index.php` ajoute l’index `(company_id, created_at, product_id)` sur `sale_details`.
+- Rapport complet : `docs/RAPPORT_TEST_VOLUME_SAAS_2026-08-25.md`. La performance locale passe raisonnablement de 88 % à **90 %**. Prochaine étape : concurrence multi-utilisateurs et données réparties sur plusieurs mois.
+
+## Mise à jour du 26 août 2026 — vrais exports Excel XLSX
+
+- Laravel Excel `maatwebsite/excel` 3.1.70 est installé et l'extension PHP `zip` est active en local.
+- `StreamingTabularExport` ne produit plus du XML Spreadsheet : Produits, Inventaire et Historique des ventes téléchargent maintenant de vrais fichiers `.xlsx`.
+- Les requêtes restent parcourues avec `cursor()` et un export `FromGenerator`; la neutralisation des formules dangereuses est conservée.
+- Le test `StreamingTabularExportTest` contrôle le nom `.xlsx` et la signature ZIP `PK` des trois classeurs : **1 test, 20 assertions, 0 échec**.
+- À vérifier lors du futur déploiement O2switch : activer l'extension PHP `zip` avant `composer install`.
+- Les commandes PDF/CSV/Excel des pages Produits, Inventaire et Historique des ventes sont maintenant rangées dans des accordéons responsives. Les boutons sont pleine largeur et empilés sur mobile, puis répartis en trois colonnes à partir de `sm`.
+
+## Mise à jour du 26 août 2026 — fin de la dépendance métier à `users.user_type`
+
+- La connexion vérifie maintenant uniquement le statut global du compte. Les accès et la destination après connexion proviennent de l’adhésion et du rôle de la compagnie active ; `users.user_type` n’intervient plus.
+- Un compte désactivé est refusé quel que soit son ancien type. Un compte actif reste connectable même si sa valeur historique est inconnue.
+- Les statistiques du POS adaptent leurs colonnes à la permission `reports.view_margin`, et non à l’ancien type d’utilisateur.
+- La création par inscription, invitation ou ajout depuis la liste n’écrit plus de rôle global. Une modification d’utilisateur met à jour uniquement `company_user.role_id` pour la compagnie active.
+- La colonne DataTables a été renommée `role_name` afin de ne plus présenter le rôle actif sous le faux nom `user_type`.
+- Migration locale appliquée : `2026_08_26_120000_make_legacy_user_type_nullable.php`. La colonne reste temporairement en base pour compatibilité historique, mais devient facultative et n’est plus remplie par les nouveaux flux.
+- Nouvelle référence complète : **131 tests, 729 assertions, 0 échec**. Avancement fonctionnel SaaS réévalué à **96 %** ; utilisateurs/rôles/permissions à **97 %**.
+
+## Mise à jour du 26 août 2026 — sélecteurs Inventaire progressifs
+
+- L’ouverture de la page Inventaire ne charge plus tous les produits et fournisseurs de la compagnie.
+- Les sélecteurs Produit et Fournisseur du filtre et de la modale d’entrée utilisent désormais Select2 avec recherche serveur, temporisation de 250 ms et pagination de 20 résultats.
+- Le sélecteur de la modale de sortie applique en plus `qte > 0`, afin de ne proposer que les produits réellement disponibles.
+- Deux routes protégées par `inventory.manage` ont été ajoutées : `inventory.products.search` et `inventory.suppliers.search`. Les scopes de la compagnie active restent appliqués aux deux requêtes.
+- Le test de volume confirme la pagination, le filtre de stock et l’absence des collections complètes dans le HTML initial.
+- Nouvelle référence complète : **132 tests, 740 assertions, 0 échec**.
+
+## Mise à jour du 26 août 2026 — catalogue E-commerce progressif
+
+- Une catégorie publique n’envoie plus tous ses produits : elle est paginée à 12 articles avec conservation des paramètres d’URL.
+- La page « Tous nos produits » propose une recherche responsive par nom et conserve cette recherche pendant la pagination.
+- Les listes publiques Produits chargent leur catégorie en lot, supprimant le N+1 associé à l’affichage des cartes.
+- Le checkout ne fait plus de `pluck()` de toutes les images du catalogue. Il utilise l’image déjà enregistrée dans le panier local et le placeholder pour les anciens paniers incomplets.
+- Les menus de catégories sélectionnent uniquement `id` et `name`, triés par nom.
+- Le nouveau test couvre 14 produits, la seconde page, la recherche et l’absence du catalogue dans le HTML du checkout.
+- Nouvelle référence complète : **133 tests, 751 assertions, 0 échec**. E-commerce : **94 %** ; performance locale et qualité : **96 %**.
+
+## Mise à jour du 26 août 2026 — composition des menus progressive et tenantée
+
+- Les écrans de création et modification d’un menu ne chargent plus tous les produits simples dans leur HTML.
+- Chaque ligne de composition utilise Select2 et la route paginée `menu.products.search`, avec 20 résultats, recherche temporisée et scope de la compagnie active.
+- Les produits déjà associés restent préselectionnés lors de la modification sans reconstruire toute la liste.
+- Les validations de création et modification imposent désormais que la catégorie et chaque produit composant soient actifs, du bon type et rattachés à la compagnie active. Une composition inter-compagnies est rejetée avant écriture.
+- La liste des menus charge les catégories en lot afin d’éviter le N+1.
+- Nouveau test : pagination sur 25 composants, HTML initial allégé et rejet d’un produit étranger.
+- Nouvelle référence complète : **134 tests, 759 assertions, 0 échec**.
+
+## Mise à jour du 26 août 2026 — KPrimePay et achat de quotas
+
+- L’ancienne modification manuelle gratuite des compteurs a été supprimée de l’interface. La page permet maintenant d’acheter des SMS à 35 FCFA et des messages WhatsApp à 30 FCFA.
+- Permission dédiée `quota.manage`, visible en français dans la configuration des rôles et attribuée automatiquement aux propriétaires/administrateurs existants par la migration `2026_08_26_130000_create_quota_payments_and_permission.php`.
+- Le checkout KPrimePay v2 utilise bearer token serveur, `Idempotency-Key`, montant recalculé côté serveur et redirection vers l’URL hébergée.
+- Webhook public : `POST /api/kprimepay/webhook`. Le contrôleur accepte le format V2 et le format V1 actuellement émis (`payment.web.checkout`). Un retour navigateur ne crédite rien. Tout succès est reconfirmé avec `/v2/transactions/debit-status`, puis montant/devise/statut sont comparés avant un crédit SQL atomique.
+- `transaction_id`, `idempotency_key` et `event_id` empêchent les doublons. La V1 ne fournissant pas d'`event_id`, le contrôleur génère une empreinte SHA-256 stable à partir de la transaction et du paiement. Un même webhook rejoué ne crédite pas deux fois.
+- La clé fournie dans la conversation est considérée exposée et n’a pas été enregistrée. Elle doit être régénérée avec `payments:write` et `read`.
+- Documentation : `docs/INTEGRATION_KPRIMEPAY_QUOTAS.md`. Après ajout du scénario webhook V1 et la non-régression complète : **138 tests, 785 assertions, 0 échec**.
 

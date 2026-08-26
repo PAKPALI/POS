@@ -8,6 +8,24 @@
         </div>
     </div>
 
+    <form method="GET" action="{{ route('storefront.products', $company) }}" class="row g-2 mb-4" data-server-loader-form>
+        <div class="col-12 col-sm">
+            <label for="storefrontProductSearch" class="visually-hidden">Rechercher un produit</label>
+            <input id="storefrontProductSearch" type="search" name="q" value="{{ $search }}" maxlength="100"
+                class="form-control" placeholder="Rechercher un produit…">
+        </div>
+        <div class="col-8 col-sm-auto">
+            <button type="submit" class="btn-primary-custom w-100 justify-content-center">
+                <i class="bi bi-search me-1"></i>Rechercher
+            </button>
+        </div>
+        @if($search !== '')
+            <div class="col-4 col-sm-auto">
+                <a href="{{ route('storefront.products', $company) }}" class="btn-outline-custom w-100 justify-content-center">Effacer</a>
+            </div>
+        @endif
+    </form>
+
     @if($products->isEmpty())
         <div class="empty-state"><i class="bi bi-box-seam"></i><h5>Aucun produit disponible</h5></div>
     @else

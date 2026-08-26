@@ -121,21 +121,6 @@
                                                 <div id="product-fields-container">
                                                     <!-- Dynamic field will be here -->
                                                 </div>
-                                                {{-- <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Produits</label>
-                                                    
-                                                    <select class="form-select mb-3" name="category">
-                                                        <option value="">selectionnez un produits</option>
-                                                        @foreach ($Product as $product)
-                                                            <option value="{{$product->id}}">{{$product->name}}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Quantité</label>
-                                                    <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
-                                                </div> --}}
                                             </div>
                                         </div>
                                         <div class="card-footer mt-4">
@@ -187,9 +172,6 @@
                                     <label for="exampleInputText0">Produits</label>
                                     <select class="form-select mb-3 product-select" name="products[]">
                                         <option value="">selectionnez un produit</option>
-                                        @foreach ($Product as $product)
-                                            <option value="{{$product->id}}">{{$product->name}}</option>
-                                        @endforeach
                                     </select>
                                 </div>
 
@@ -349,9 +331,29 @@
             });
 
             // Add product field
+            const menuProductSearchUrl = @json(route('menu.products.search'));
+
+            function initMenuProductSelect(element, dropdownParent) {
+                $(element).select2({
+                    width: '100%',
+                    placeholder: 'Rechercher un produit',
+                    allowClear: true,
+                    dropdownParent: $(dropdownParent),
+                    ajax: {
+                        url: menuProductSearchUrl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({q: params.term || '', page: params.page || 1}),
+                        processResults: data => data,
+                        cache: true
+                    }
+                });
+            }
+
             $('.add-product-field').on('click', function () {
                 let template = $('#product-field-template').html(); // get template model
                 $('#product-fields-container').append(template);   // Add template in container
+                initMenuProductSelect($('#product-fields-container .product-select').last(), '#addModal');
             });
 
             // Delete product field

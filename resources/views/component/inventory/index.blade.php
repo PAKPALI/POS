@@ -40,20 +40,13 @@
                                                 <div class="form-group col-6">
                                                     <label for="product_id">Produit</label>
                                                     <select name="product_id" id="product_id" class="form-select">
-                                                        
                                                         <option value="">Sélectionner un produit</option>
-                                                        @foreach($Product as $item)
-                                                            <option value="{{$item->id}}">{{$item->name}} ({{$item->qte}})</option>
-                                                        @endforeach
                                                     </select>
                                                 </div>
                                                 <div class="form-group col-6">
                                                     <label for="supplier_id">Fournisseur</label>
                                                     <select name="supplier_id" id="supplier_id" class="form-select">
                                                         <option value="">Aucun fournisseur</option>
-                                                        @foreach($Supplier as $item)
-                                                            <option value="{{$item->id}}">{{$item->name}}</option>
-                                                        @endforeach
                                                     </select>
                                                 </div>
                                                 <div class="form-group col-6">
@@ -95,9 +88,6 @@
                                                     <label for="product_id1">Produit</label>
                                                     <select name="product_id" id="product_id1" class="form-select">
                                                         <option value="">Sélectionner un produit</option>
-                                                        @foreach($Product->where('qte', '>', 0) as $item)
-                                                            <option value="{{$item->id}}">{{$item->name}} ({{$item->qte}})</option>
-                                                        @endforeach
                                                     </select>
                                                 </div>
                                                 <div class="form-group col-6">
@@ -140,23 +130,22 @@
                         <div class="col-xl-12">
                             <div class="card mb-3">
                                 <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des inventaires</h4></span>
-                                        <button type="button" class="btn btn-xs btn-secondary mb-1 me-2 text-right" id="exportPdf">PDF</button>
-                                        <button type="button" class="btn btn-xs btn-primary mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Entrée</button>
-                                        <button type="button" class="btn btn-xs btn-danger mb-1 me-2 text-right" data-bs-toggle="modal" data-bs-target="#removeModal">Sortie</button>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap fw-bold small mb-3">
+                                        <span class="me-auto"><h4 class="mb-0">Listes des inventaires</h4></span>
+                                        <button type="button" class="btn btn-sm btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#addModal"><i class="fas fa-plus me-1"></i>Entrée</button>
+                                        <button type="button" class="btn btn-sm btn-danger text-nowrap" data-bs-toggle="modal" data-bs-target="#removeModal"><i class="fas fa-minus me-1"></i>Sortie</button>
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
                                     </div>
                                     <hr class="">
-                                    <div class="accordion" id="accordionExample">
+                                    <div class="accordion" id="inventoryOptionsAccordion">
                                         <div class="accordion-item">
-                                            <h2 class="accordion-header" id="headingTwo">
+                                            <h2 class="accordion-header" id="inventoryFilterHeading">
                                                 <button class="accordion-button collapsed" type="button"
-                                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                                                    FILTRER PAR :
+                                                    data-bs-toggle="collapse" data-bs-target="#inventoryFilterCollapse" aria-expanded="false" aria-controls="inventoryFilterCollapse">
+                                                    <i class="fas fa-filter me-2"></i>Filtrer les inventaires
                                                 </button>
                                             </h2>
-                                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                            <div id="inventoryFilterCollapse" class="accordion-collapse collapse" data-bs-parent="#inventoryOptionsAccordion">
                                                 <div class="accordion-body">
                                                     <div class="row mb-2">
                                                         <div class="col-md-3 mb-2">
@@ -172,12 +161,6 @@
                                                             <label>Produit</label>
                                                             <select class="form-select" id="filter_product">
                                                                 <option value="">Tous les produits</option>
-
-                                                                @foreach($Product as $prod)
-                                                                    <option value="{{ $prod->id }}">
-                                                                        {{ $prod->name }} ({{ $prod->qte }})
-                                                                    </option>
-                                                                @endforeach
                                                             </select>
                                                         </div>
 
@@ -185,12 +168,6 @@
                                                             <label>Fournisseur</label>
                                                             <select class="form-select" id="filter_supplier">
                                                                 <option value="">Tous les fournisseurs</option>
-
-                                                                @foreach($Supplier as $sup)
-                                                                    <option value="{{ $sup->id }}">
-                                                                        {{ $sup->name }}
-                                                                    </option>
-                                                                @endforeach
                                                             </select>
                                                         </div>
 
@@ -204,6 +181,23 @@
                                                             <input type="date" class="form-control" id="end_date">
                                                         </div>
 
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="inventoryExportHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                                    data-bs-target="#inventoryExportCollapse" aria-expanded="false" aria-controls="inventoryExportCollapse">
+                                                    <i class="fas fa-download me-2"></i>Exporter les données
+                                                </button>
+                                            </h2>
+                                            <div id="inventoryExportCollapse" class="accordion-collapse collapse" data-bs-parent="#inventoryOptionsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="row g-2">
+                                                        <div class="col-12 col-sm-4"><button type="button" data-format="csv" class="exportTabular btn btn-warning text-dark w-100"><i class="fas fa-file-csv me-1"></i>CSV</button></div>
+                                                        <div class="col-12 col-sm-4"><button type="button" data-format="excel" class="exportTabular btn btn-success w-100"><i class="fas fa-file-excel me-1"></i>Excel</button></div>
+                                                        <div class="col-12 col-sm-4"><button type="button" class="btn btn-secondary w-100" id="exportPdf"><i class="fas fa-file-pdf me-1"></i>PDF</button></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -349,6 +343,37 @@
                     $('#datatable').css('width', '100%');
                 },
             });
+
+            const productSearchUrl = @json(route('inventory.products.search'));
+            const supplierSearchUrl = @json(route('inventory.suppliers.search'));
+
+            function remoteSelect(selector, url, placeholder, options = {}) {
+                const element = $(selector);
+                element.select2({
+                    width: '100%',
+                    placeholder: placeholder,
+                    allowClear: true,
+                    dropdownParent: options.dropdownParent ? $(options.dropdownParent) : undefined,
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term || '',
+                            page: params.page || 1,
+                            ...(options.inStock ? {in_stock: 1} : {})
+                        }),
+                        processResults: data => data,
+                        cache: true
+                    }
+                });
+            }
+
+            remoteSelect('#product_id', productSearchUrl, 'Rechercher un produit', {dropdownParent: '#addModal'});
+            remoteSelect('#supplier_id', supplierSearchUrl, 'Aucun fournisseur', {dropdownParent: '#addModal'});
+            remoteSelect('#product_id1', productSearchUrl, 'Rechercher un produit en stock', {dropdownParent: '#removeModal', inStock: true});
+            remoteSelect('#filter_product', productSearchUrl, 'Tous les produits');
+            remoteSelect('#filter_supplier', supplierSearchUrl, 'Tous les fournisseurs');
 
             $('#filter_product, #filter_supplier, #start_date, #end_date, #type').on('change', function(){
                 Datatable.draw();
@@ -502,6 +527,21 @@
                 });
 
                 window.open("{{ route('inventory.export.pdf') }}?" + params, '_blank');
+            });
+
+            $('.exportTabular').on('click', function(e) {
+                e.preventDefault();
+                const button = this;
+                const params = $.param({
+                    type: $('#type').val(),
+                    product_id: $('#filter_product').val(),
+                    supplier_id: $('#filter_supplier').val(),
+                    start_date: $('#start_date').val(),
+                    end_date: $('#end_date').val()
+                });
+                const baseUrl = "{{ route('inventory.export.tabular', ['format' => '__FORMAT__']) }}";
+                window.ServerButtonLoader.download(button, baseUrl.replace('__FORMAT__', button.dataset.format) + '?' + params)
+                    .catch(error => Swal.fire({icon: 'error', title: 'Export impossible', text: error.message}));
             });
         }); 
     </script>

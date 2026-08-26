@@ -104,6 +104,6 @@
         </div>
     </main>
 </div>
-<script src="{{ asset('hub/assets/js/server-button-loader.js') }}"></script>
+<script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
 </body>
 </html>

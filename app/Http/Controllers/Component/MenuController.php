@@ -8,10 +8,12 @@ use App\Models\Category;
 use App\Models\MenuProduct;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Services\CompanyContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class MenuController extends Controller
 {
@@ -21,7 +23,7 @@ class MenuController extends Controller
     public function index()
     {
         // composer require yajra/laravel-datatables-oracle
-        $Object = Product::where('type',2)->latest();
+        $Object = Product::with('category:id,name')->where('type',2)->latest();
         if(request()->ajax()){
             return DataTables::of($Object)
                 ->addIndexColumn()
@@ -66,9 +68,33 @@ class MenuController extends Controller
                 ->rawColumns(['margin','action','status'])
                 ->make(true);
         }
-        $Category = Category::where('status','1')->latest()->get();
-        $Product = product::where('status','1')->where('type','1')->latest()->get();
-        return view('component.menu.index',compact('Category','Product'));
+        $Category = Category::where('status','1')->orderBy('name')->get(['id', 'name']);
+        return view('component.menu.index',compact('Category'));
+    }
+
+    public function searchProducts(Request $request)
+    {
+        $this->authorize('viewAny', Product::class);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $search = trim((string) ($validated['q'] ?? ''));
+        $products = Product::query()
+            ->select(['id', 'name', 'qte'])
+            ->where('status', 1)
+            ->where('type', 1)
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->orderBy('name')
+            ->paginate(20);
+
+        return response()->json([
+            'results' => $products->getCollection()->map(fn (Product $product) => [
+                'id' => $product->id,
+                'text' => $product->name.' ('.$product->qte.')',
+            ])->values(),
+            'pagination' => ['more' => $products->hasMorePages()],
+        ]);
     }
 
     /**
@@ -109,15 +135,19 @@ class MenuController extends Controller
         
         $validator = Validator::make($request->all(), [
             'type' => ['required', 'numeric'],
-            'category' => ['required'],
+            'category' => ['required', Rule::exists('categories', 'id')->where(
+                fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)
+            )],
             'name' => ['required'],
             'qte' => ['required', 'numeric'],
             'price' => ['required', 'numeric'],
             'margin' => ['numeric'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
 
             'products' => ['required'], // Valider que c'est un tableau
-            'products.*.product_id' => ['required', 'exists:products,id'], // Vérifie que chaque produit existe
+            'products.*.product_id' => ['required', Rule::exists('products', 'id')->where(
+                fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)->where('type', 1)
+            )],
             'products.*.quantity' => ['required', 'numeric', 'min:1'], // Vérifie la quantité
         ], $error_messages);
         
@@ -190,12 +220,10 @@ class MenuController extends Controller
      */
     public function edit(string $id)
     {
-        $Products = product::where('status','1')->where('type','1')->latest()->get();
-
         $Product = Product::findOrFail($id);
-        $MenuProduct = $Product->MenuProducts;
-        $Category = Category::where('status','1')->latest()->get();
-        return view('component.menu.edit', compact('Product','Products','Category','MenuProduct'));
+        $MenuProduct = $Product->MenuProducts()->with('product:id,name')->get();
+        $Category = Category::where('status','1')->orderBy('name')->get(['id', 'name']);
+        return view('component.menu.edit', compact('Product','Category','MenuProduct'));
     }
 
     /**
@@ -228,15 +256,19 @@ class MenuController extends Controller
         
         $validator = Validator::make($request->all(), [
             'type' => ['required', 'numeric'],
-            // 'category' => ['required'],
+            'category' => ['required', Rule::exists('categories', 'id')->where(
+                fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)
+            )],
             'name' => ['required'],
             'qte' => ['required', 'numeric'],
             'price' => ['required', 'numeric'],
             'margin' => ['numeric'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
 
             'products' => ['required'], // Valider que c'est un tableau
-            'products.*.product_id' => ['required', 'exists:products,id'], // Vérifie que chaque produit existe
+            'products.*.product_id' => ['required', Rule::exists('products', 'id')->where(
+                fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)->where('type', 1)
+            )],
             'products.*.quantity' => ['required', 'numeric', 'min:1'], // Vérifie la quantité
         ], $error_messages);
         

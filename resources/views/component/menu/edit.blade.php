@@ -68,11 +68,7 @@
                         <div class="form-group col-5 mb-2 mt-2">
                             <label for="exampleInputText0">Produits </label>
                             <select class="form-select mb-3 product-select2" name="products[]">
-                                <option value="">selectionnez un produit </option>
-                                @foreach ($Products as $product)
-                                    <option value="{{ $product->id }}" {{ $product->id == $mp->product_id ? 'selected' : '' }}>
-                                        {{$product->name}}</option>
-                                @endforeach
+                                <option value="{{ $mp->product_id }}" selected>{{ $mp->product?->name }}</option>
                             </select>
                         </div>
 
@@ -106,9 +102,6 @@
             <label for="exampleInputText0">Produits</label>
             <select class="form-select mb-3 product-select2" name="products[]">
                 <option value="">selectionnez un produit</option>
-                @foreach ($Products as $product)
-                    <option value="{{$product->id}}">{{$product->name}}</option>
-                @endforeach
             </select>
         </div>
 
@@ -137,10 +130,32 @@
         });
 
         // Add product field
+        const menuProductSearchUrlEdit = @json(route('menu.products.search'));
+
+        function initMenuProductSelectEdit(element) {
+            $(element).select2({
+                width: '100%',
+                placeholder: 'Rechercher un produit',
+                allowClear: true,
+                dropdownParent: $('#editModal'),
+                ajax: {
+                    url: menuProductSearchUrlEdit,
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({q: params.term || '', page: params.page || 1}),
+                    processResults: data => data,
+                    cache: true
+                }
+            });
+        }
+
+        $('.product-select2').each(function () { initMenuProductSelectEdit(this); });
+
         $('.add-product-field2').on('click', function () {
             let template = $('#product-field-template2').html(); // get template model
             // template exist on index blade
             $('#product-fields-container2').append(template);   // Add template in container
+            initMenuProductSelectEdit($('#product-fields-container2 .product-select2').last());
         });
 
         // Delete product field

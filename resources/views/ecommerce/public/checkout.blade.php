@@ -128,7 +128,7 @@
 
 @push('scripts')
     <script>
-    var CHECKOUT_PRODUCT_IMAGES = @json($productImages ?? []);
+    var CHECKOUT_PRODUCT_IMAGES = {};
 
     function checkoutProductImage(item) {
         return CHECKOUT_PRODUCT_IMAGES[String(item.product_id)]

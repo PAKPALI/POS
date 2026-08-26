@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CompanyController extends Controller
 {
@@ -71,6 +72,7 @@ class CompanyController extends Controller
             'adress' => ['required'],
             'number1' => ['required'],
             'default_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ], $error_messages);
 
         if($validator->fails())
@@ -98,7 +100,7 @@ class CompanyController extends Controller
 
             if ($request->hasFile('logo')) {
                 $file = $request->file('logo');
-                $filename = time().'_'.$file->getClientOriginalName();
+                $filename = Str::uuid().'.'.$file->extension();
                 $file->move(public_path('images'), $filename);
                 $data['logo'] = 'images/'.$filename;
             }
@@ -147,6 +149,7 @@ class CompanyController extends Controller
             'name' => ['required'],
             'email' => ['required'],
             'number1' => ['required'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ], $error_messages);
 
         if($validator->fails())
@@ -179,7 +182,7 @@ class CompanyController extends Controller
                     unlink(public_path($Company->logo));
                 }
                 $file = $request->file('logo');
-                $filename = time().'_'.$file->getClientOriginalName();
+                $filename = Str::uuid().'.'.$file->extension();
                 $file->move(public_path('images'), $filename);
                 $data['logo'] = 'images/'.$filename;
             }

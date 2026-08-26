@@ -19,6 +19,7 @@
 @endpush
 
 @section('content')
+@php($permissionMembership = $currentMembership ?? null)
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8 col-xl-6">
@@ -34,19 +35,19 @@
                     </p>
 
                     <div class="d-flex flex-wrap justify-content-center gap-2">
-                        @if($currentMembership?->hasPermission('dashboard.view'))
+                        @if($permissionMembership?->hasPermission('dashboard.view'))
                             <a href="{{ route('dashboard') }}" class="btn btn-theme"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</a>
                         @endif
-                        @if($currentMembership?->hasPermission('clients.manage'))
+                        @if($permissionMembership?->hasPermission('clients.manage'))
                             <a href="{{ route('client.index') }}" class="btn btn-outline-theme">Clients</a>
                         @endif
-                        @if($currentMembership?->hasPermission('sales.manage'))
+                        @if($permissionMembership?->hasPermission('sales.manage'))
                             <a href="{{ route('sale.index') }}" class="btn btn-outline-theme">Point de vente</a>
                         @endif
-                        @if($currentMembership?->hasPermission('inventory.manage'))
+                        @if($permissionMembership?->hasPermission('inventory.manage'))
                             <a href="{{ route('inventory.index') }}" class="btn btn-outline-theme">Inventaire</a>
                         @endif
-                        <a href="{{ route('profil') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-2"></i>Mon profil</a>
+                        <a href="{{ $permissionMembership ? route('profil') : route('companies.select') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-2"></i>{{ $permissionMembership ? 'Mon profil' : 'Mes entreprises' }}</a>
                     </div>
 
                     <p class="small text-secondary mt-4 mb-0">

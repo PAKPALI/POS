@@ -3,29 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\CompanySetting;
+use App\Models\QuotaPayment;
+use App\Services\CompanyContext;
+use App\Services\KprimePayService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Throwable;
 
 class SmsQuotaController extends Controller
 {
     public function index()
     {
-        $company = CompanySetting::first();
-        return view('sms_quota.index', compact('company'));
+        $company = CompanySetting::findOrFail(app(CompanyContext::class)->getCompanyId());
+        $payments = QuotaPayment::latest()->paginate(10);
+        $smsUnitPrice = (int) config('services.kprimepay.sms_unit_price');
+        $whatsappUnitPrice = (int) config('services.kprimepay.whatsapp_unit_price');
+
+        return view('sms_quota.index', compact('company', 'payments', 'smsUnitPrice', 'whatsappUnitPrice'));
     }
 
-    public function update(Request $request)
+    public function checkout(Request $request, KprimePayService $kprimePay)
     {
+        if (blank(config('services.kprimepay.token'))) {
+            return response()->json([
+                'status' => false,
+                'title' => 'KPrimePay non configuré',
+                'msg' => 'Ajoutez une clé KPrimePay valide dans le fichier .env, puis videz le cache de configuration.',
+            ], 503);
+        }
+
         $validator = Validator::make($request->all(), [
-            'sms_count' => ['required', 'integer', 'min:0'],
-            'whatsapp_count' => ['required', 'integer', 'min:0'],
+            'sms_quantity' => ['required', 'integer', 'min:0', 'max:100000'],
+            'whatsapp_quantity' => ['required', 'integer', 'min:0', 'max:100000'],
         ], [
-            'sms_count.required' => 'Le nombre de SMS est requis.',
-            'whatsapp_count.required' => 'Le nombre de WhatsApp est requis.',
-            'sms_count.integer' => 'Le nombre de SMS doit être un entier.',
-            'whatsapp_count.integer' => 'Le nombre de WhatsApp doit être un entier.',
-            'sms_count.min' => 'Le nombre de SMS doit être au moins 0.',
-            'whatsapp_count.min' => 'Le nombre de WhatsApp doit être au moins 0.',
+            'sms_quantity.integer' => 'Le nombre de SMS doit être un entier.',
+            'whatsapp_quantity.integer' => 'Le nombre de WhatsApp doit être un entier.',
         ]);
 
         if ($validator->fails()) {
@@ -36,24 +50,65 @@ class SmsQuotaController extends Controller
             ]);
         }
 
-        $company = CompanySetting::first();
-        if (!$company) {
+        $smsQuantity = (int) $request->input('sms_quantity');
+        $whatsappQuantity = (int) $request->input('whatsapp_quantity');
+        if ($smsQuantity + $whatsappQuantity < 1) {
             return response()->json([
                 'status' => false,
-                'title' => 'Configuration manquante',
-                'msg' => 'Aucune configuration de société trouvée.',
-            ]);
+                'title' => 'Quantité requise',
+                'msg' => 'Choisissez au moins un SMS ou un message WhatsApp.',
+            ], 422);
         }
 
-        $company->update([
-            'sms_count' => $request->sms_count,
-            'whatsapp_count' => $request->whatsapp_count,
+        $amount = $smsQuantity * (int) config('services.kprimepay.sms_unit_price')
+            + $whatsappQuantity * (int) config('services.kprimepay.whatsapp_unit_price');
+        if ($amount > 2000000) {
+            return response()->json(['status' => false, 'title' => 'Montant trop élevé', 'msg' => 'Le montant maximum est de 2 000 000 FCFA.'], 422);
+        }
+
+        $companyId = app(CompanyContext::class)->getCompanyId();
+        $reference = 'QUOTA-'.$companyId.'-'.strtoupper(Str::random(16));
+        $payment = QuotaPayment::create([
+            'company_id' => $companyId,
+            'user_id' => $request->user()->id,
+            'transaction_id' => $reference,
+            'idempotency_key' => 'checkout-'.strtolower($reference),
+            'sms_quantity' => $smsQuantity,
+            'whatsapp_quantity' => $whatsappQuantity,
+            'amount' => $amount,
+            'currency' => 'XOF',
+            'status' => 'created',
         ]);
+
+        try {
+            $data = $kprimePay->createCheckout($payment, route('sms-quota.return', ['transaction_id' => $reference]));
+            $payment->update([
+                'status' => 'pending',
+                'kpp_reference' => $data['kpp_tx_reference'],
+                'checkout_url' => $data['checkout_url'],
+                'expires_at' => $data['expires_at'] ?? null,
+            ]);
+        } catch (Throwable $exception) {
+            $payment->update(['status' => 'failed', 'failure_reason' => class_basename($exception), 'failed_at' => now()]);
+            report($exception);
+
+            return response()->json([
+                'status' => false,
+                'title' => 'Paiement indisponible',
+                'msg' => $exception->getMessage(),
+            ], 502);
+        }
 
         return response()->json([
             'status' => true,
-            'title' => 'Mise à jour réussie',
-            'msg' => 'Les quotas ont été mis à jour.',
+            'checkout_url' => $payment->checkout_url,
+            'msg' => 'Redirection vers le paiement sécurisé…',
         ]);
+    }
+
+    public function returned(Request $request)
+    {
+        return redirect()->route('sms-quota.index')
+            ->with('info', 'Paiement reçu. Les quotas seront ajoutés automatiquement dès confirmation de KPrimePay.');
     }
 }

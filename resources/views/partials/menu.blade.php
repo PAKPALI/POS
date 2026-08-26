@@ -224,12 +224,12 @@
 					</a>
 				</div>
 			@endif
-			@if($currentMembership?->role?->key === 'owner')
-				<div class="menu-header">SUPER UTILISATEUR</div>
+			@if($currentMembership?->hasPermission('quota.manage'))
+				<div class="menu-header">COMMUNICATIONS</div>
 				<div class="menu-item @if(Request::route()->getName() === 'sms-quota.index') active @endif">
 					<a href="{{ route('sms-quota.index') }}" class="menu-link">
 						<span class="menu-icon"><i class="bi bi-chat-left-text"></i></span>
-						<span class="menu-text">Quota SMS</span>
+						<span class="menu-text">Quotas SMS & WhatsApp</span>
 					</a>
 				</div>
 			@endif

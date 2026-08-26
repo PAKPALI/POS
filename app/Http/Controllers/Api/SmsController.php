@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class SmsController extends Controller
 {
@@ -16,16 +17,30 @@ class SmsController extends Controller
      */
     public function handleCallback(Request $request)
     {
-        // Log the incoming request for debugging purposes
-        Log::info('SMS Callback Received', $request->all());
+        $secret = (string) config('services.kprimesms.callback_secret');
+        if ($secret === '') {
+            return response()->json(['message' => 'Callback indisponible.'], 503);
+        }
 
-        // Process the request as needed
-        // For example, you might want to validate the request data
-        $status = $request->input('status');
-        $responseToken = $request->input('response_token');
-        Log::success('SMS Callback Received', $request->all());
+        $providedSignature = (string) $request->header('X-KPrime-Signature', '');
+        $expectedSignature = hash_hmac('sha256', $request->getContent(), $secret);
+        if ($providedSignature === '' || ! hash_equals($expectedSignature, $providedSignature)) {
+            return response()->json(['message' => 'Signature invalide.'], 401);
+        }
 
-        // Return a response to acknowledge receipt of the callback
-        // return response()->json(['status' => 'success'], 200);
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', 'string', 'max:50'],
+            'response_token' => ['required', 'string', 'max:255'],
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Payload invalide.'], 422);
+        }
+
+        Log::info('SMS callback validated', [
+            'status' => $request->string('status')->toString(),
+            'response_token_hash' => hash('sha256', $request->string('response_token')->toString()),
+        ]);
+
+        return response()->json(['status' => 'accepted']);
     }
 }

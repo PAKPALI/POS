@@ -25,6 +25,7 @@ class CompanyProvisioner
         'members.manage' => 'Utilisateurs',
         'company.manage' => 'Paramètres de la compagnie',
         'notifications.manage' => 'Gérer les notifications',
+        'quota.manage' => 'Acheter des quotas SMS et WhatsApp',
         'reports.view_margin' => 'Marges et bénéfices',
     ];
 

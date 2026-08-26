@@ -40,12 +40,11 @@ use Illuminate\Support\Facades\Route;
 
 // register
 Route::get('', function () {
-    $user = User::where('user_type',2)->count();
-    if($user==0){
+    if (!User::exists()) {
         return view('admin/register');
-    }else{
-        return view('admin/login');
     }
+
+    return view('admin/login');
 })->name('user_verify_auth');
 
 // manage user before auth-login
@@ -64,7 +63,8 @@ Route::get('user_login', function () {
     }
 })->name('user_login');
 
-Route::post('admin_register', [UserController::class, "register"])->name('admin_register');
+Route::post('admin_register', [UserController::class, "register"])
+    ->middleware(['guest', 'throttle:5,1'])->name('admin_register');
 Route::get('signup', fn () => response()->view('admin.register')->withHeaders([
     'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
     'Pragma' => 'no-cache',
@@ -143,8 +143,11 @@ Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.sele
     });
     Route::get('product/export/pdf', [ProductController::class, 'exportPdf'])
     ->name('product.export.pdf');
+    Route::get('product/export/{format}', [ProductController::class, 'exportTabular'])
+        ->whereIn('format', ['csv', 'excel'])->name('product.export.tabular');
     //menu
     Route::controller(MenuController::class)->group(function () {
+        Route::get('menu-products/search', 'searchProducts')->name('menu.products.search');
         Route::resource('menu', MenuController::class);
     });
     // inventory
@@ -154,7 +157,11 @@ Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.sele
     Route::controller(InventoryController::class)->group(function () {
         Route::resource('inventory', InventoryController::class);
         Route::post('inventory-remove', 'remove')->name('inventory.remove');
+        Route::get('inventory-products/search', 'searchProducts')->name('inventory.products.search');
+        Route::get('inventory-suppliers/search', 'searchSuppliers')->name('inventory.suppliers.search');
         Route::get('inventory/export/pdf', [InventoryController::class, 'exportPdf'])->name('inventory.export.pdf');
+        Route::get('inventory/export/{format}', [InventoryController::class, 'exportTabular'])
+            ->whereIn('format', ['csv', 'excel'])->name('inventory.export.tabular');
     });
 });
 
@@ -171,6 +178,8 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
         //history
         Route::get('history', 'history')->name('history');
         Route::get('history/export/pdf', 'exportHistoryPdf')->name('history.export.pdf');
+        Route::get('history/export/{format}', 'exportHistoryTabular')
+            ->whereIn('format', ['csv', 'excel'])->name('history.export.tabular');
         Route::get('/clients/search', 'searchClients')->name('clients.search');
         Route::get('/products/search', 'search')->name('products.search');
         Route::get('sale/invoice/{id}/pdf', 'generatePDF')->name('codePromo.pdf');
@@ -240,8 +249,12 @@ Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.select
         Route::resource('company', CompanyController::class);
     });
 
+});
+
+Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:quota.manage'])->group(function () {
     Route::get('sms-quota', [SmsQuotaController::class, 'index'])->name('sms-quota.index');
-    Route::post('sms-quota', [SmsQuotaController::class, 'update'])->name('sms-quota.update');
+    Route::post('sms-quota/checkout', [SmsQuotaController::class, 'checkout'])->middleware('throttle:10,1')->name('sms-quota.checkout');
+    Route::get('sms-quota/return', [SmsQuotaController::class, 'returned'])->name('sms-quota.return');
 });
 
 Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:notifications.manage'])->group(function () {
@@ -255,4 +268,5 @@ Route::get('/home', fn () => redirect(app(\App\Services\AuthorizedLandingPage::c
     session('active_company_id')
 )))->middleware('auth')->name('home');
 Route::post('outUser', [UserController::class, 'outUser'])->name('outUser');
-Route::post('/login', [LoginController::class, 'login'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])
+    ->middleware(['guest', 'throttle:10,1'])->name('login');

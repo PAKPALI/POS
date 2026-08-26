@@ -3,6 +3,7 @@
 
     const buttonStates = new WeakMap();
     const requestCounts = new WeakMap();
+    const explicitlyManagedButtons = new WeakSet();
     let pendingButton = null;
     let pendingButtonTimer = null;
     let jqueryEventsBound = false;
@@ -89,9 +90,47 @@
         else requestCounts.set(button, remaining);
     }
 
-    function withLoader(button, promise, loadingText) {
+    function withLoader(button, promiseOrFactory, loadingText) {
         start(button, loadingText);
-        return Promise.resolve(promise).finally(function () { stop(button); });
+        explicitlyManagedButtons.add(button);
+
+        let promise;
+        try {
+            promise = typeof promiseOrFactory === 'function' ? promiseOrFactory() : promiseOrFactory;
+        } catch (error) {
+            explicitlyManagedButtons.delete(button);
+            stop(button);
+            return Promise.reject(error);
+        }
+
+        return Promise.resolve(promise).finally(function () {
+            explicitlyManagedButtons.delete(button);
+            stop(button);
+        });
+    }
+
+    function download(button, url, loadingText) {
+        start(button, loadingText || 'Préparation…');
+        return window.fetch(url, {credentials: 'same-origin'})
+            .then(async function (response) {
+                if (!response.ok) {
+                    throw new Error((await response.text()) || 'Impossible de préparer le fichier.');
+                }
+                const blob = await response.blob();
+                const disposition = response.headers.get('content-disposition') || '';
+                const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+                const plain = disposition.match(/filename="?([^";]+)"?/i);
+                const filename = encoded ? decodeURIComponent(encoded[1]) : (plain ? plain[1] : 'export');
+                const objectUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = objectUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.setTimeout(function () { window.URL.revokeObjectURL(objectUrl); }, 1000);
+            })
+            .finally(function () { stop(button); });
     }
 
     function rememberPendingButton(button) {
@@ -102,7 +141,7 @@
         }, 1000);
     }
 
-    window.ServerButtonLoader = {start: start, stop: stop, withLoader: withLoader};
+    window.ServerButtonLoader = {start: start, stop: stop, withLoader: withLoader, download: download};
 
     document.addEventListener('click', function (event) {
         const button = findButton(event.target);
@@ -122,7 +161,9 @@
         start(button);
 
         window.setTimeout(function () {
-            if (event.defaultPrevented && (requestCounts.get(button) || 0) === 0) stop(button);
+            if (event.defaultPrevented
+                && !explicitlyManagedButtons.has(button)
+                && (requestCounts.get(button) || 0) === 0) stop(button);
         }, 0);
     }, true);
 
@@ -148,7 +189,7 @@
 
         window.jQuery(document).ajaxSend(function (_event, xhr) {
             const button = pendingButton;
-            if (!isEligible(button)) return;
+            if (!isEligible(button) || explicitlyManagedButtons.has(button)) return;
 
             start(button);
             incrementRequests(button);

@@ -3,7 +3,7 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
             <h2 class="section-title">{{ $category->name }}</h2>
-            <p class="section-subtitle mb-0">{{ $products->count() }} produit(s)</p>
+            <p class="section-subtitle mb-0">{{ $products->total() }} produit(s)</p>
         </div>
         <a href="{{ route('storefront.home', $company) }}" class="btn-outline-custom" style="font-size:.82rem;padding:.45rem 1rem;">
             <i class="bi bi-arrow-left me-1"></i> Retour
@@ -47,5 +47,6 @@
                 </div>
             @endforeach
         </div>
+        <div class="mt-4 d-flex justify-content-center">{{ $products->links('pagination::bootstrap-5') }}</div>
     @endif
 @endsection

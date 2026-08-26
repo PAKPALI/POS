@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Services\SmsService;
 use App\Services\CompanyContext;
 use App\Services\SaleCreationService;
+use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -44,6 +45,8 @@ class SaleController extends Controller
         $this->authorize('viewAny', Sale::class);
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         $today = Carbon::today();
+        $dayStart = $today->copy()->startOfDay();
+        $dayEnd = $today->copy()->endOfDay();
 
         if (request()->ajax()) {
             $columns = [
@@ -58,7 +61,7 @@ class SaleController extends Controller
             $sales = Sale::query()
                 ->select($columns)
                 ->with('client:id,name')
-                ->whereDate('created_at', $today)
+                ->whereBetween('created_at', [$dayStart, $dayEnd])
                 ->latest();
 
             return DataTables::of($sales)
@@ -89,21 +92,20 @@ class SaleController extends Controller
         $setting  = Setting::first();
 
         $salesSummary = Sale::query()
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', [$dayStart, $dayEnd])
             ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
+            ->selectRaw('COALESCE(SUM(total_profit), 0) as total_profit')
             ->first();
         $saleCount = (int) $salesSummary->sale_count;
         $total_amount = (float) $salesSummary->total_amount;
-        $sale_total_profit = $canViewFinancials
-            ? (float) Sale::whereDate('created_at', $today)->sum('total_profit')
-            : 0;
-        $product_count = SaleDetail::whereDate('created_at', $today)->count();
+        $sale_total_profit = $canViewFinancials ? (float) $salesSummary->total_profit : 0;
+        $product_count = SaleDetail::whereBetween('created_at', [$dayStart, $dayEnd])->count();
 
         $mostSoldProducts = SaleDetail::query()
             ->select('product_id')
             ->selectRaw('SUM(quantity) as total_quantity')
             ->with('product:id,name,image,price')
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', [$dayStart, $dayEnd])
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
             ->take(10)
@@ -487,9 +489,10 @@ class SaleController extends Controller
             $summary = Sale::query()
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
+                ->selectRaw('COALESCE(SUM(total_profit), 0) as total_profit')
                 ->first();
             $totalProfit = $canViewFinancials
-                ? (float) Sale::whereBetween('created_at', [$startDate, $endDate])->sum('total_profit')
+                ? (float) $summary->total_profit
                 : null;
             $productCount = SaleDetail::whereBetween('created_at', [$startDate, $endDate])->count();
 
@@ -582,6 +585,11 @@ class SaleController extends Controller
             });
         }
 
+        $maxRows = (int) config('performance.pdf_exports.sales_max_rows', 100);
+        if ((clone $query)->limit($maxRows + 1)->pluck('id')->count() > $maxRows) {
+            return back()->with('error', "L’export PDF est limité à {$maxRows} ventes. Réduisez la période ou précisez la recherche.");
+        }
+
         $sales = $query->latest()->get();
         $summary = [
             'sales_count' => $sales->count(),
@@ -626,6 +634,69 @@ class SaleController extends Controller
 
         return $pdf->download(
             'historique-ventes-'.$startDate->format('Y-m-d').'-'.$endDate->format('Y-m-d').'.pdf'
+        );
+    }
+
+    public function exportHistoryTabular(Request $request, string $format, StreamingTabularExport $export)
+    {
+        $this->authorize('export', Sale::class);
+        $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
+        if ($request->filled('daterange')) {
+            [$start, $end] = explode(' - ', $request->string('daterange')->toString());
+            $startDate = Carbon::createFromFormat('d-m-Y', trim($start))->startOfDay();
+            $endDate = Carbon::createFromFormat('d-m-Y', trim($end))->endOfDay();
+        } else {
+            $startDate = Carbon::today()->startOfDay();
+            $endDate = Carbon::today()->endOfDay();
+        }
+
+        $query = Sale::query()
+            ->leftJoin('clients', 'clients.id', '=', 'sales.client_id')
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select([
+                'sales.code', 'sales.total_amount', 'sales.received_amount',
+                'sales.remaining_amount', 'sales.discount', 'sales.cashier',
+                'sales.created_at', 'clients.name as client_name',
+            ]);
+        if ($canViewFinancials) $query->addSelect('sales.total_profit');
+        $search = trim((string) $request->get('search'));
+        if ($search !== '') {
+            $query->where(function ($query) use ($search, $canViewFinancials) {
+                $query->where('sales.code', 'like', "%{$search}%")
+                    ->orWhere('sales.cashier', 'like', "%{$search}%")
+                    ->orWhere('sales.total_amount', 'like', "%{$search}%")
+                    ->orWhere('clients.name', 'like', "%{$search}%");
+                if ($canViewFinancials) $query->orWhere('sales.total_profit', 'like', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy('sales.id')->cursor()->map(function ($sale) use ($canViewFinancials) {
+            $row = [
+                (string) $sale->code,
+                $sale->client_name ?? 'Aucun',
+                (float) $sale->total_amount,
+                (float) $sale->received_amount,
+                (float) $sale->remaining_amount,
+                (float) $sale->discount,
+                $sale->cashier,
+                Carbon::parse($sale->created_at)->format('d-m-Y H:i:s'),
+            ];
+            if ($canViewFinancials) $row[] = (float) $sale->total_profit;
+            return $row;
+        });
+        $headers = ['Code', 'Client', 'Total', 'Reçu', 'Monnaie', 'Remise', 'Caissier', 'Date'];
+        if ($canViewFinancials) $headers[] = 'Bénéfice';
+        Action::create([
+            'user_id' => auth()->id(),
+            'function' => 'EXPORTER VENTES '.strtoupper($format),
+            'text' => auth()->user()->name.' a exporté l’historique des ventes en '.strtoupper($format),
+        ]);
+
+        return $export->download(
+            $format,
+            'ventes-'.$startDate->format('Y-m-d').'-'.$endDate->format('Y-m-d'),
+            $headers,
+            $rows
         );
     }
 

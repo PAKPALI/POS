@@ -365,7 +365,7 @@
 
                 @if(auth()->check() && strcasecmp(auth()->user()->email, $invitation->email) !== 0)
                     <div class="alert alert-warning">
-                        Vous êtes connecté avec <strong>{{ auth()->user()->email }}</strong>. En continuant, l’application ouvrira le compte <strong>{{ $invitation->email }}</strong> pour rejoindre {{ $invitation->company->name }}.
+                        Vous êtes connecté avec <strong>{{ auth()->user()->email }}</strong>. Cette invitation appartient au compte <strong>{{ $invitation->email }}</strong>. Reconnectez-vous avec ce compte pour continuer.
                     </div>
                 @endif
 
@@ -373,7 +373,7 @@
                     @csrf
                     @if($existingUser)
                         <h2 class="account-panel-title">Votre compte est prêt</h2>
-                        <p class="account-panel-copy mb-4">Aucun mot de passe temporaire n’est nécessaire. Ce lien personnel confirme votre invitation sans modifier votre mot de passe actuel.</p>
+                        <p class="account-panel-copy mb-4">Pour protéger votre compte, vous devez être connecté avec <strong>{{ $invitation->email }}</strong> avant d’accepter.</p>
                     @else
                         <h2 class="account-panel-title">Créez votre accès</h2>
                         <p class="account-panel-copy">Ces informations vous permettront de vous reconnecter ensuite à toutes les entreprises auxquelles vous avez accès.</p>
@@ -401,8 +401,8 @@
                         <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>
                     @endif
 
-                    <button class="btn accept-button w-100" type="submit" data-loading-text="Validation en cours…">
-                        {{ $existingUser ? 'Accepter et ouvrir mon compte' : 'Créer mon compte et rejoindre l’entreprise' }}
+                    <button class="btn accept-button w-100" type="submit" data-loading-text="Validation en cours…" @disabled($existingUser && auth()->check() && auth()->id() !== $existingUser->id)>
+                        {{ $existingUser ? (auth()->check() ? 'Accepter l’invitation' : 'Me connecter pour accepter') : 'Créer mon compte et rejoindre l’entreprise' }}
                     </button>
                 </form>
 
@@ -416,6 +416,6 @@
         </div>
     </section>
 </main>
-<script src="{{ asset('hub/assets/js/server-button-loader.js') }}"></script>
+<script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
 </body>
 </html>

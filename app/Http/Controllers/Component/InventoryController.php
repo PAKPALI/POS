@@ -9,9 +9,11 @@ use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Services\CompanyContext;
+use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
@@ -90,9 +92,58 @@ class InventoryController extends Controller
                 ->rawColumns(['action', 'type'])
                 ->make(true);
         }
-        $Product = Product::where('status',1)->orderBy('name', 'asc')->get();
-        $Supplier = Supplier::where('status',1)->orderBy('name', 'asc')->get();
-        return view('component.inventory.index',compact('Product','Supplier'));
+        return view('component.inventory.index');
+    }
+
+    public function searchProducts(Request $request)
+    {
+        $this->authorize('viewAny', Inventory::class);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'in_stock' => ['nullable', 'boolean'],
+        ]);
+
+        $search = trim((string) ($validated['q'] ?? ''));
+        $products = Product::query()
+            ->select(['id', 'name', 'qte'])
+            ->where('status', 1)
+            ->when($validated['in_stock'] ?? false, fn ($query) => $query->where('qte', '>', 0))
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->orderBy('name')
+            ->paginate(20);
+
+        return response()->json([
+            'results' => $products->getCollection()->map(fn (Product $product) => [
+                'id' => $product->id,
+                'text' => $product->name.' ('.$product->qte.')',
+            ])->values(),
+            'pagination' => ['more' => $products->hasMorePages()],
+        ]);
+    }
+
+    public function searchSuppliers(Request $request)
+    {
+        $this->authorize('viewAny', Inventory::class);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $search = trim((string) ($validated['q'] ?? ''));
+        $suppliers = Supplier::query()
+            ->select(['id', 'name'])
+            ->where('status', 1)
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->orderBy('name')
+            ->paginate(20);
+
+        return response()->json([
+            'results' => $suppliers->getCollection()
+                ->map(fn (Supplier $supplier) => ['id' => $supplier->id, 'text' => $supplier->name])
+                ->values(),
+            'pagination' => ['more' => $suppliers->hasMorePages()],
+        ]);
     }
 
     /**
@@ -339,6 +390,11 @@ class InventoryController extends Controller
             ]);
         }
 
+        $maxRows = (int) config('performance.pdf_exports.inventories_max_rows', 500);
+        if ((clone $query)->limit($maxRows + 1)->pluck('id')->count() > $maxRows) {
+            return back()->with('error', "L’export PDF est limité à {$maxRows} mouvements. Réduisez la période ou appliquez davantage de filtres.");
+        }
+
         $inventories = $query->latest()->get();
 
         $company = app(CompanyContext::class)->getCompany();
@@ -349,6 +405,49 @@ class InventoryController extends Controller
             'text' => auth()->user()->name." a exporté l'inventaire en PDF",
         ]);
         return $pdf->download('inventaires.pdf-'. strtoupper($company->name ?? config('app.name')) . '.pdf');
+    }
+
+    public function exportTabular(Request $request, string $format, StreamingTabularExport $export)
+    {
+        $this->authorize('export', Inventory::class);
+        $this->ensureFiltersBelongToActiveCompany($request);
+        $query = Inventory::query()
+            ->leftJoin('products', 'products.id', '=', 'inventories.product_id')
+            ->leftJoin('suppliers', 'suppliers.id', '=', 'inventories.supplier_id')
+            ->leftJoin('users', 'users.id', '=', 'inventories.created_by')
+            ->select([
+                'inventories.type', 'inventories.qte_before', 'inventories.qte_added',
+                'inventories.qte_after', 'inventories.created_at', 'products.name as product_name',
+                'suppliers.name as supplier_name', 'users.name as creator_name',
+            ]);
+        if ($request->type !== null) $query->where('inventories.type', $request->type);
+        if ($request->product_id) $query->where('inventories.product_id', $request->product_id);
+        if ($request->supplier_id) $query->where('inventories.supplier_id', $request->supplier_id);
+        if ($request->start_date && $request->end_date) {
+            $query->whereBetween('inventories.created_at', [
+                $request->start_date.' 00:00:00', $request->end_date.' 23:59:59',
+            ]);
+        }
+
+        $rows = $query->orderBy('inventories.id')->cursor()->map(fn ($inventory) => [
+            $inventory->product_name ?? 'Produit supprimé',
+            (int) $inventory->type === 1 ? 'Entrée' : 'Sortie',
+            (int) $inventory->qte_before,
+            (int) $inventory->qte_added,
+            (int) $inventory->qte_after,
+            $inventory->supplier_name ?? '-',
+            $inventory->creator_name ?? '-',
+            Carbon::parse($inventory->created_at)->format('d-m-Y H:i:s'),
+        ]);
+        Action::create([
+            'user_id' => auth()->id(),
+            'function' => 'EXPORTER INVENTAIRE '.strtoupper($format),
+            'text' => auth()->user()->name.' a exporté l’inventaire en '.strtoupper($format),
+        ]);
+
+        return $export->download($format, 'inventaire-'.now()->format('Y-m-d-His'), [
+            'Produit', 'Type', 'Qté avant', 'Qté saisie', 'Qté après', 'Fournisseur', 'Créé par', 'Date',
+        ], $rows);
     }
 
     /**

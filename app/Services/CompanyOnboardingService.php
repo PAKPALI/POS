@@ -19,7 +19,6 @@ class CompanyOnboardingService
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
-                'user_type' => 2,
                 'status' => 1,
                 'password' => Hash::make($data['password']),
             ]);

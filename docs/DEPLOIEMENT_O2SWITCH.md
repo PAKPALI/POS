@@ -44,6 +44,8 @@ Transférer le projet dans `/home/UTILISATEUR_CPANEL/proseller`, en excluant au 
 - `node_modules` ;
 - `storage/logs/*.log` ;
 - les fichiers de test locaux inutiles en production.
+- `login.html`, `realpage.html`, `response.html` et `php_error.log` ;
+- `public/hub` uniquement si ses assets ne sont plus référencés par l’interface (il est encore utilisé actuellement).
 
 Le fichier `public/hot` est un marqueur du serveur de développement : il doit être absent en production.
 
@@ -75,7 +77,11 @@ APP_URL=https://votre-domaine.com
 CACHE_DRIVER=file
 SESSION_DRIVER=file
 QUEUE_CONNECTION=database
+SESSION_SECURE_COOKIE=true
+KPRIME_SMS_CALLBACK_SECRET=une_valeur_aleatoire_longue
 ```
+
+Le secret du callback SMS doit être différent de la clé API et configuré de la même manière chez le fournisseur. Sans ce secret, le callback répond volontairement `503`.
 
 Générer la clé une seule fois lors de la première installation :
 
@@ -193,6 +199,16 @@ PERFORMANCE_LOG_CHANNEL=performance
 PERFORMANCE_LOG_SQL=true
 ```
 
+Conserver également les plafonds PDF validés sous 512 Mo. Ils empêchent DomPDF de saturer la mémoire lorsque plusieurs milliers de lignes sont demandées :
+
+```dotenv
+PDF_PRODUCTS_MAX_ROWS=300
+PDF_INVENTORIES_MAX_ROWS=500
+PDF_SALES_MAX_ROWS=100
+```
+
+Un dépassement demande à l’utilisateur de préciser ses filtres avant de relancer l’export. Ne pas augmenter ces valeurs sur l’hébergement mutualisé sans refaire `benchmarks/PdfExportBenchmark.php` avec la limite mémoire réelle. Pour les exports exhaustifs, privilégier ultérieurement un format CSV/Excel généré en flux.
+
 Les événements sont écrits dans `storage/logs/slow-queries-AAAA-MM-JJ.log` et conservés 14 jours. Chaque entrée indique la durée, la route, le chemin, la connexion, la compagnie et l’utilisateur lorsque ces contextes existent. La structure SQL est enregistrée avec ses marqueurs ; les valeurs liées et les saisies utilisateur ne sont jamais ajoutées par le moniteur.
 
 Pendant le pilote, contrôler ce fichier chaque jour. Une même requête dépassant régulièrement 300 ms doit être analysée avec `EXPLAIN` dans phpMyAdmin avant d’ajouter un index. Ne jamais copier une requête de production contenant des données métier dans un outil public.
@@ -244,8 +260,22 @@ Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode main
 - [ ] Test avec au moins deux compagnies
 - [ ] Test des permissions avec un utilisateur non administrateur
 - [ ] PWA installée et testée sous HTTPS
+- [ ] Upload d’un fichier `.php` refusé et accès à `/images/test.php` bloqué
+- [ ] Signature du callback SMS vérifiée avec le fournisseur
+- [ ] En-têtes HSTS, CSP Report-Only, Referrer-Policy et Permissions-Policy présents
 - [ ] Sauvegarde restaurée sur un environnement de test
 
 ## Valeurs à demander au moment du déploiement
 
 Pour produire les commandes finales prêtes à copier, relever uniquement : le nom du domaine, le chemin `/home/...`, le résultat de `which php`, les noms MySQL (sans publier les mots de passe) et les paramètres SMTP fournis par O2switch.
+## Paiements KPrimePay pour les quotas
+
+Avant d’activer l’achat de quotas, renseigner les variables `KPRIMEPAY_*` décrites dans `docs/INTEGRATION_KPRIMEPAY_QUOTAS.md`. La clé doit avoir les scopes `payments:write` et `read`.
+
+Configurer dans KPrimePay l’URL de rappel HTTPS :
+
+```text
+https://VOTRE-DOMAINE/api/kprimepay/webhook
+```
+
+Tester d’abord avec `KPRIMEPAY_MODE=1`. Ne passer à `KPRIMEPAY_MODE=2` qu’après validation du checkout, du webhook, du montant et de l’idempotence. La clé communiquée pendant le développement doit être révoquée et remplacée avant ce test.

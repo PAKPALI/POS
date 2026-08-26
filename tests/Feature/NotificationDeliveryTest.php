@@ -76,6 +76,44 @@ class NotificationDeliveryTest extends TestCase
         $this->assertNotNull($failed->sent_at);
     }
 
+    public function test_a_processing_delivery_is_not_claimed_twice_but_a_stale_claim_is_recoverable(): void
+    {
+        $user = User::factory()->create(['status' => 1, 'user_type' => 2]);
+        $company = $this->activateCompanyFor($user, 'delivery-processing-lock');
+        $delivery = NotificationDelivery::create([
+            'company_id' => $company->id,
+            'user_id' => $user->id,
+            'event_type' => 'sale',
+            'event_key' => 'locked-42',
+            'category' => 'sale',
+            'channel' => 'email',
+            'status' => 'processing',
+            'attempts' => 1,
+        ]);
+        $calls = 0;
+        $service = app(NotificationDeliveryService::class);
+
+        $claimedWhileFresh = $service->deliver(
+            $company->id, 'sale', 'locked-42', 'sale', 'email', $user->id,
+            function () use (&$calls): void { $calls++; }
+        );
+
+        $this->assertFalse($claimedWhileFresh);
+        $this->assertSame(0, $calls);
+        $this->assertSame(1, $delivery->fresh()->attempts);
+
+        NotificationDelivery::whereKey($delivery->id)->update(['updated_at' => now()->subMinutes(11)]);
+        $claimedAfterTimeout = $service->deliver(
+            $company->id, 'sale', 'locked-42', 'sale', 'email', $user->id,
+            function () use (&$calls): void { $calls++; }
+        );
+
+        $this->assertTrue($claimedAfterTimeout);
+        $this->assertSame(1, $calls);
+        $this->assertSame('sent', $delivery->fresh()->status);
+        $this->assertSame(2, $delivery->fresh()->attempts);
+    }
+
     public function test_the_same_event_remains_isolated_between_two_companies(): void
     {
         $user = User::factory()->create(['status' => 1, 'user_type' => 2]);

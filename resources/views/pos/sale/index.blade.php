@@ -256,7 +256,7 @@
                         <div class="row sale_list mb-5">
                             <!-- total sale -->
                             
-                            <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
+                            <div class="{{ $canViewFinancials ? 'col-xl-3' : 'col-xl-4' }} col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
@@ -288,7 +288,7 @@
                                 </div>
                             </div>
                             <!-- total  product sold daily-->
-                            <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
+                            <div class="{{ $canViewFinancials ? 'col-xl-3' : 'col-xl-4' }} col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
@@ -320,7 +320,7 @@
                                 </div>
                             </div>
                             <!-- total  amount daily-->
-                            <div class="{{auth()->user()->user_type==3?'col-xl-4':'col-xl-3'}} col-lg-6 ">
+                            <div class="{{ $canViewFinancials ? 'col-xl-3' : 'col-xl-4' }} col-lg-6 ">
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">

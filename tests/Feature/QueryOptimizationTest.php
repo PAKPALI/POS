@@ -93,7 +93,7 @@ class QueryOptimizationTest extends TestCase
 
         $this->assertSame(16, $response->json('recordsTotal'));
         $this->assertCount(10, $response->json('data'));
-        $this->assertContains('Équipe rapide', array_column($response->json('data'), 'user_type'));
+        $this->assertContains('Équipe rapide', array_column($response->json('data'), 'role_name'));
     }
 
     public function test_order_datatable_paginates_in_sql(): void
@@ -413,6 +413,66 @@ class QueryOptimizationTest extends TestCase
             ->assertDontSee('Client initial 1');
 
         $this->assertSame([], $clientQueries);
+    }
+
+    public function test_inventory_selectors_are_tenant_scoped_and_paginated(): void
+    {
+        $owner = User::factory()->create(['status' => 1]);
+        $company = $this->activateCompanyFor($owner);
+        $category = Category::create([
+            'company_id' => $company->id,
+            'name' => 'Sélecteurs inventaire',
+            'created_by' => $owner->id,
+            'status' => 1,
+        ]);
+
+        foreach (range(1, 25) as $number) {
+            Product::create([
+                'company_id' => $company->id,
+                'category_id' => $category->id,
+                'name' => 'Produit inventaire '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                'qte' => $number === 25 ? 0 : $number,
+                'price' => 100,
+                'price_ttc' => 100,
+                'purchase_price' => 50,
+                'profit' => 50,
+                'margin' => 1,
+                'type' => 1,
+                'status' => 1,
+                'created_by' => $owner->id,
+            ]);
+            Supplier::create([
+                'company_id' => $company->id,
+                'name' => 'Fournisseur inventaire '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                'status' => 1,
+                'created_by' => $owner->id,
+            ]);
+        }
+
+        $products = $this->actingAs($owner)->getJson(route('inventory.products.search', [
+            'q' => 'Produit inventaire',
+            'page' => 1,
+        ]))->assertOk();
+        $this->assertCount(20, $products->json('results'));
+        $this->assertTrue($products->json('pagination.more'));
+
+        $inStock = $this->getJson(route('inventory.products.search', [
+            'q' => 'Produit inventaire 25',
+            'in_stock' => 1,
+        ]))->assertOk();
+        $this->assertCount(0, $inStock->json('results'));
+
+        $suppliers = $this->getJson(route('inventory.suppliers.search', [
+            'q' => 'Fournisseur inventaire',
+            'page' => 2,
+        ]))->assertOk();
+        $this->assertCount(5, $suppliers->json('results'));
+        $this->assertFalse($suppliers->json('pagination.more'));
+
+        $this->get(route('inventory.index'))
+            ->assertOk()
+            ->assertDontSee('Produit inventaire 01')
+            ->assertDontSee('Fournisseur inventaire 01');
     }
 
     public function test_transaction_dashboard_uses_one_summary_query(): void

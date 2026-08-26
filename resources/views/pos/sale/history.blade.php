@@ -191,13 +191,29 @@
                         <div class="col-xl-12">
                             <div class="card mb-4">
                                 <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des ventes</h4></span>
-                                        <button type="button" id="exportSalesPdf" class="btn btn-primary btn-sm me-3">
-                                            <i class="fas fa-file-pdf me-1"></i> Liste vente PDF
-                                        </button>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap fw-bold small mb-3">
+                                        <span class="me-auto"><h4 class="mb-0">Listes des ventes</h4></span>
                                         <!-- <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button> -->
                                         <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
+                                    </div>
+                                    <div class="accordion mb-3" id="salesExportAccordion">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="salesExportHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                                    data-bs-target="#salesExportCollapse" aria-expanded="false" aria-controls="salesExportCollapse">
+                                                    <i class="fas fa-download me-2"></i>Exporter les ventes affichées
+                                                </button>
+                                            </h2>
+                                            <div id="salesExportCollapse" class="accordion-collapse collapse" data-bs-parent="#salesExportAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="row g-2">
+                                                        <div class="col-12 col-sm-4"><button type="button" data-format="csv" class="exportSalesTabular btn btn-warning text-dark w-100"><i class="fas fa-file-csv me-1"></i>CSV</button></div>
+                                                        <div class="col-12 col-sm-4"><button type="button" data-format="excel" class="exportSalesTabular btn btn-success w-100"><i class="fas fa-file-excel me-1"></i>Excel</button></div>
+                                                        <div class="col-12 col-sm-4"><button type="button" id="exportSalesPdf" class="btn btn-primary w-100"><i class="fas fa-file-pdf me-1"></i>PDF</button></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="table-responsive">
                                         <table id="datatable" class="table text-nowrap w-100">
@@ -478,6 +494,17 @@
                 });
 
                 window.location.href = "{{ route('history.export.pdf') }}?" + params.toString();
+            });
+
+            $('.exportSalesTabular').on('click', function() {
+                const button = this;
+                const params = new URLSearchParams({
+                    daterange: $('#reportrange').val(),
+                    search: Datatable.search()
+                });
+                const baseUrl = "{{ route('history.export.tabular', ['format' => '__FORMAT__']) }}";
+                window.ServerButtonLoader.download(button, baseUrl.replace('__FORMAT__', button.dataset.format) + '?' + params.toString())
+                    .catch(error => Swal.fire({icon: 'error', title: 'Export impossible', text: error.message}));
             });
 
             var start = moment().subtract(29, 'days');

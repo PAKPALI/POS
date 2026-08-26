@@ -76,4 +76,48 @@ class EcommerceStorefrontTest extends TestCase
         $first->update(['name' => 'Matrix Boutique renommée']);
         $this->assertSame($originalSlug, $first->fresh()->slug);
     }
+
+    public function test_public_catalog_is_paginated_searchable_and_checkout_does_not_embed_every_product(): void
+    {
+        $company = Company::create([
+            'name' => 'Boutique volumineuse',
+            'email' => 'volume@test.local',
+            'number1' => '300',
+            'ecommerce_active' => true,
+        ]);
+        app(CompanyContext::class)->setPublicCompany($company);
+        $category = Category::create(['name' => 'Catalogue', 'status' => 1, 'created_by' => 1]);
+
+        foreach (range(1, 14) as $number) {
+            Product::create([
+                'category_id' => $category->id,
+                'name' => 'Article vitrine '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                'qte' => 10,
+                'price' => 1000,
+                'purchase_price' => 500,
+                'profit' => 500,
+                'margin' => 50,
+                'type' => 1,
+                'status' => 1,
+                'created_by' => 1,
+            ]);
+        }
+
+        $firstCategoryPage = $this->get(route('storefront.category', [$company, $category->id]))
+            ->assertOk()
+            ->assertSee('14 produit(s)')
+            ->assertSee('Article vitrine 14')
+            ->assertDontSee('Article vitrine 01');
+        $this->assertStringContainsString('page=2', $firstCategoryPage->getContent());
+
+        $this->get(route('storefront.products', [$company, 'q' => 'Article vitrine 01']))
+            ->assertOk()
+            ->assertSee('Article vitrine 01')
+            ->assertDontSee('Article vitrine 02');
+
+        $this->get(route('storefront.checkout', $company))
+            ->assertOk()
+            ->assertDontSee('Article vitrine 14')
+            ->assertSee('var CHECKOUT_PRODUCT_IMAGES = {};', false);
+    }
 }

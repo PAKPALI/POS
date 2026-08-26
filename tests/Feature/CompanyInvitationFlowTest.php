@@ -63,7 +63,12 @@ class CompanyInvitationFlowTest extends TestCase
         $token = 'existing-token';
         $invitation = $this->invitation($target, $targetRole, $owner, $user->email, $token);
 
-        $this->post(route('invitations.accept', $token))->assertRedirect(route('companies.select'));
+        $this->post(route('invitations.accept', $token))->assertRedirect(route('user_login'));
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('company_user', ['company_id' => $target->id, 'user_id' => $user->id]);
+
+        $this->actingAs($user)->post(route('invitations.accept', $token))->assertRedirect(route('companies.select'));
 
         $this->assertAuthenticatedAs($user);
         $this->assertDatabaseHas('company_user', ['company_id' => $source->id, 'user_id' => $user->id, 'role_id' => $sourceRole->id]);
@@ -105,14 +110,14 @@ class CompanyInvitationFlowTest extends TestCase
         $this->actingAs($wrongUser)->post(route('invitations.accept', 'revoked-token'))->assertStatus(410);
         $invitedUser = User::factory()->create(['user_type' => 3, 'status' => 1, 'email' => 'right@test.local']);
         $valid = $this->invitation($company, $role, $owner, $invitedUser->email, 'right-token');
-        $this->actingAs($wrongUser)->post(route('invitations.accept', 'right-token'))->assertRedirect(route('profil'));
+        $this->actingAs($wrongUser)->postJson(route('invitations.accept', 'right-token'))->assertForbidden();
 
         $this->assertDatabaseMissing('company_user', ['company_id' => $company->id, 'user_id' => $wrongUser->id]);
-        $this->assertDatabaseHas('company_user', ['company_id' => $company->id, 'user_id' => $invitedUser->id, 'role_id' => $role->id]);
-        $this->assertAuthenticatedAs($invitedUser);
+        $this->assertDatabaseMissing('company_user', ['company_id' => $company->id, 'user_id' => $invitedUser->id]);
+        $this->assertAuthenticatedAs($wrongUser);
         $this->assertNull($expired->fresh()->accepted_at);
         $this->assertNull($revoked->fresh()->accepted_at);
-        $this->assertNotNull($valid->fresh()->accepted_at);
+        $this->assertNull($valid->fresh()->accepted_at);
     }
 
     public function test_invitation_from_another_company_cannot_be_resent_or_revoked(): void

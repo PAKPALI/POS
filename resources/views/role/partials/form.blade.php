@@ -11,6 +11,7 @@
         'members' => 'Utilisateurs, rôles et permissions',
         'company' => 'Paramètres de la compagnie',
         'notifications' => 'Gestion des notifications',
+        'quota' => 'Quotas de communication',
         'reports' => 'Rapports et bénéfices',
     ];
     $permissionDetails = [
@@ -24,6 +25,7 @@
         'members.manage' => 'Ajouter des utilisateurs, leur attribuer un rôle et configurer les permissions.',
         'company.manage' => 'Modifier les informations et les réglages généraux de la compagnie.',
         'notifications.manage' => 'Configurer les canaux et les destinataires des notifications de ventes et d’inventaire.',
+        'quota.manage' => 'Consulter les quotas et acheter des crédits SMS ou WhatsApp pour la compagnie.',
         'reports.view_margin' => 'Consulter les marges, bénéfices et informations financières sensibles.',
     ];
 @endphp

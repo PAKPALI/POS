@@ -33,6 +33,13 @@ class InvitationAcceptanceController extends Controller
 
         if ($existingUser) {
             abort_unless((int) $existingUser->status === 1, 403, 'Le compte associé à cette invitation est désactivé.');
+            if (! Auth::check()) {
+                return redirect()->route('user_login')->with(
+                    'error',
+                    'Connectez-vous avec le compte '.$invitation->email.' puis ouvrez de nouveau le lien d’invitation.'
+                );
+            }
+            abort_unless(Auth::id() === $existingUser->id, 403, 'Cette invitation appartient à un autre compte.');
             $user = $existingUser;
         } else {
             $validated = $request->validate([
@@ -43,18 +50,13 @@ class InvitationAcceptanceController extends Controller
             $user = DB::transaction(fn () => User::create([
                 'name' => $validated['name'], 'email' => $invitation->email,
                 'phone' => $validated['phone'] ?? null, 'password' => $validated['password'],
-                'user_type' => 3, 'status' => 1,
+                'status' => 1,
             ]));
         }
 
         $service->accept($invitation, $user);
 
-        if (!Auth::check() || Auth::id() !== $user->id) {
-            if (Auth::check()) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-            }
+        if (! Auth::check()) {
             Auth::login($user);
             $request->session()->regenerate();
         }

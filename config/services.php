@@ -21,6 +21,16 @@ return [
         'sender' => env('KPRIME_SMS_SENDER'),
         'sender_id' => env('KPRIME_SMS_SENDER_ID'),
         'response_url' => env('KPRIME_SMS_RESPONSE_URL'),
+        'callback_secret' => env('KPRIME_SMS_CALLBACK_SECRET'),
+    ],
+
+    'kprimepay' => [
+        'base_url' => env('KPRIMEPAY_BASE_URL', 'https://api.kprimepay.com/v2'),
+        'token' => env('KPRIMEPAY_TOKEN'),
+        'mode' => (int) env('KPRIMEPAY_MODE', 1),
+        'with_fees' => (int) env('KPRIMEPAY_WITH_FEES', 1),
+        'sms_unit_price' => (int) env('KPRIMEPAY_SMS_UNIT_PRICE', 35),
+        'whatsapp_unit_price' => (int) env('KPRIMEPAY_WHATSAPP_UNIT_PRICE', 30),
     ],
 
     'mailgun' => [

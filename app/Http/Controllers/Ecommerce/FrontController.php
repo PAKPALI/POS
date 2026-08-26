@@ -48,8 +48,8 @@ class FrontController extends Controller
         if (!$company) {
             return response('No active company');
         }
-        $categories = Category::where('status', 1)->get();
-        $products = Product::where('status', 1)->where('type', 1)
+        $categories = $this->activeCategories();
+        $products = Product::with('category:id,name')->where('status', 1)->where('type', 1)
             ->where('qte', '>', 0)
             ->latest()
             ->take(12)
@@ -70,11 +70,13 @@ class FrontController extends Controller
             return view('ecommerce.public.closed');
         }
         $category = Category::findOrFail($id);
-        $categories = Category::where('status', 1)->get();
+        $categories = $this->activeCategories();
         $products = Product::where('category_id', $id)
             ->where('status', 1)->where('type', 1)
             ->where('qte', '>', 0)
-            ->get();
+            ->orderByDesc('id')
+            ->paginate(12)
+            ->withQueryString();
         return view('ecommerce.public.category', [
             'company' => $company,
             'categories' => $categories,
@@ -91,7 +93,7 @@ class FrontController extends Controller
             return view('ecommerce.public.closed');
         }
         $product = Product::with('category')->findOrFail($id);
-        $categories = Category::where('status', 1)->get();
+        $categories = $this->activeCategories();
         return view('ecommerce.public.product', [
             'company' => $company,
             'categories' => $categories,
@@ -105,19 +107,11 @@ class FrontController extends Controller
         if (!$company) {
             return view('ecommerce.public.closed');
         }
-        $categories = Category::where('status', 1)->get();
-        $productImages = Product::query()
-            ->pluck('image', 'id')
-            ->map(function ($image) {
-                return $image && $image !== 'null'
-                    ? asset('images/'.$image)
-                    : asset('icons/product-placeholder.svg');
-            });
+        $categories = $this->activeCategories();
 
         return view('ecommerce.public.checkout', [
             'company' => $company,
             'categories' => $categories,
-            'productImages' => $productImages,
         ]);
     }
 
@@ -277,7 +271,7 @@ class FrontController extends Controller
             return view('ecommerce.public.closed');
         }
         $code = $request->code;
-        $categories = Category::where('status', 1)->get();
+        $categories = $this->activeCategories();
         return view('ecommerce.public.success', [
             'company' => $company,
             'categories' => $categories,
@@ -318,21 +312,36 @@ class FrontController extends Controller
         );
     }
 
-    public function allProducts()
+    public function allProducts(Request $request)
     {
         $company = $this->getCompany();
         if (!$company) {
             return view('ecommerce.public.closed');
         }
-        $categories = Category::where('status', 1)->get();
-        $products = Product::where('status', 1)->where('type', 1)
+        $validated = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
+        $search = trim((string) ($validated['q'] ?? ''));
+        $categories = $this->activeCategories();
+        $products = Product::with('category:id,name')->where('status', 1)->where('type', 1)
             ->where('qte', '>', 0)
-            ->paginate(12);
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->orderByDesc('id')
+            ->paginate(12)
+            ->withQueryString();
         return view('ecommerce.public.products', [
             'company' => $company,
             'categories' => $categories,
             'products' => $products,
+            'search' => $search,
         ]);
+    }
+
+    private function activeCategories()
+    {
+        return Category::query()
+            ->select(['id', 'name'])
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
     }
 
 }

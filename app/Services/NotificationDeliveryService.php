@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\NotificationDelivery;
 use App\Models\CompanyUser;
 use Closure;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
 
@@ -39,16 +40,35 @@ class NotificationDeliveryService
             'status' => 'pending',
         ]);
 
-        if ($delivery->status === 'sent') {
+        $claimed = DB::transaction(function () use ($delivery, $category): bool {
+            $lockedDelivery = NotificationDelivery::whereKey($delivery->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedDelivery->status === 'sent') {
+                return false;
+            }
+
+            // Un autre worker vient de prendre cette livraison. Un état ancien
+            // reste récupérable après dix minutes en cas d'arrêt brutal du worker.
+            if ($lockedDelivery->status === 'processing'
+                && $lockedDelivery->updated_at?->isAfter(now()->subMinutes(10))) {
+                return false;
+            }
+
+            $lockedDelivery->update([
+                'category' => $category,
+                'status' => 'processing',
+                'attempts' => $lockedDelivery->attempts + 1,
+                'last_error' => null,
+            ]);
+
+            return true;
+        }, 3);
+
+        if (! $claimed) {
             return false;
         }
-
-        $delivery->update([
-            'category' => $category,
-            'status' => 'processing',
-            'attempts' => $delivery->attempts + 1,
-            'last_error' => null,
-        ]);
 
         try {
             $sender();

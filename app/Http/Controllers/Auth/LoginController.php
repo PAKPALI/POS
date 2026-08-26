@@ -10,6 +10,8 @@ use App\Services\AuthorizedLandingPage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 class LoginController extends Controller
@@ -93,6 +95,15 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        $throttleKey = Str::lower((string) $request->input('email')).'|'.$request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return response()->json([
+                'status' => false,
+                'reload' => false,
+                'title' => 'TROP DE TENTATIVES',
+                'msg' => 'Patientez '.RateLimiter::availableIn($throttleKey).' secondes avant de réessayer.',
+            ], 429);
+        }
         $error_messages = [
             "email.required" => "Remplir le champ email!",
             "email.email" => "La structure d'un email n'est pas respecte!",
@@ -115,42 +126,38 @@ class LoginController extends Controller
 
         if($user){
             if(Hash::check($request-> password, $user-> password)){
-                // verify admin login
-                if($user->user_type == 2){
-                    return $this->loginUser($user, $request);           
-                }elseif($user->user_type == 3){
-                    // verify employe login
-                    if($user->status == 1){
-                        return $this->loginUser($user, $request);
-                    }else{
-                        // employe is not active
-                        return response()->json([
-                            "status" => false,
-                            "reload" => true,
-                            'check' => Auth::check(),
-                            "title" => "CONNECTION ECHOUEE",
-                            "msg" => "Pas autorisé à vous connecté"
-                        ]);  
-                    }
-                }else{// verify super admin login
-                    return $this->loginUser($user, $request);
+                RateLimiter::clear($throttleKey);
+                // Le statut est global. Les droits sont déterminés par le rôle
+                // de l'adhésion dans la compagnie active, jamais par user_type.
+                if ((int) $user->status !== 1) {
+                    return response()->json([
+                        "status" => false,
+                        "reload" => true,
+                        'check' => Auth::check(),
+                        "title" => "CONNEXION ÉCHOUÉE",
+                        "msg" => "Votre compte est désactivé. Contactez un administrateur."
+                    ]);
                 }
+
+                return $this->loginUser($user, $request);
             }else{
+                RateLimiter::hit($throttleKey, 60);
                 return response()->json([
                     "status" => false,
                     "reload" => true,
                     'check' => Auth::check(),
                     "title" => "CONNECTION ECHOUEE",
-                    "msg" => "Le mot de passe est incorrecte"
+                    "msg" => "Les identifiants fournis sont incorrects."
                 ]);
             }
         }else{
+            RateLimiter::hit($throttleKey, 60);
             return response()->json([
                 "status" => false,
                 "reload" => true,
                 'check' => Auth::check(),
                 "title" => "CONNECTION ECHOUEE",
-                "msg" => "L'email est incorrecte"
+                "msg" => "Les identifiants fournis sont incorrects."
             ]);
         }
     }

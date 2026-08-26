@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Services\CompanyContext;
+use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -220,7 +221,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'purchase_price' => ['required', 'numeric', 'min:0'],
             'margin' => ['numeric', 'min:0'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ], $error_messages);
         
         
@@ -338,7 +339,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'purchase_price' => ['required', 'numeric', 'min:0'],
             'margin' => ['numeric', 'min:0'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ], $error_messages);
 
         if($validator->fails())
@@ -438,6 +439,11 @@ class ProductController extends Controller
             $query->where('qte', '<=', 0);
         }
 
+        $maxRows = (int) config('performance.pdf_exports.products_max_rows', 300);
+        if ((clone $query)->limit($maxRows + 1)->pluck('id')->count() > $maxRows) {
+            return back()->with('error', "L’export PDF est limité à {$maxRows} produits. Appliquez un filtre plus précis avant de réessayer.");
+        }
+
         $products = $query->latest()->get();
 
         $company = $this->companyContext->getCompany();
@@ -450,6 +456,36 @@ class ProductController extends Controller
         ]);
 
         return $pdf->download('liste-produits-' . strtoupper($company->name ?? config('app.name')) . '.pdf');
+    }
+
+    public function exportTabular(Request $request, string $format, StreamingTabularExport $export)
+    {
+        $this->authorize('export', Product::class);
+        $this->ensureCategoryFilterBelongsToActiveCompany($request);
+        $query = Product::query()->where('type', 1);
+        if ($request->category_id) $query->where('category_id', $request->category_id);
+        if ($request->status !== null && $request->status !== '') $query->where('status', $request->status);
+        if ($request->qte === 'with') $query->where('qte', '>', 0);
+        if ($request->qte === 'without') $query->where('qte', '<=', 0);
+
+        $rows = $query->orderBy('id')->cursor()->map(fn (Product $product) => [
+            $product->name,
+            (int) $product->qte,
+            (float) $product->purchase_price,
+            (float) $product->price,
+            (float) $product->price_ttc,
+            (float) $product->price - (float) $product->purchase_price,
+            (int) $product->status === 1 ? 'Actif' : 'Archivé',
+        ]);
+        Action::create([
+            'user_id' => auth()->id(),
+            'function' => 'EXPORTER PRODUITS '.strtoupper($format),
+            'text' => auth()->user()->name.' a exporté la liste des produits en '.strtoupper($format),
+        ]);
+
+        return $export->download($format, 'produits-'.now()->format('Y-m-d-His'), [
+            'Nom', 'Quantité', 'Prix achat', 'Prix vente', 'Prix TTC', 'Profit unitaire', 'Statut',
+        ], $rows);
     }
 
     /**

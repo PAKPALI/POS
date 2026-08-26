@@ -106,7 +106,7 @@ class UserController extends Controller
                     }
                     return $btn;
                 })
-                ->editColumn('user_type', fn ($user) => $user->active_role_name ?? 'Non attribué')
+                ->addColumn('role_name', fn ($user) => $user->active_role_name ?? 'Non attribué')
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
                         $btn = ' <a  class="btn btn-success btn-sm">Actif</a>';
@@ -152,7 +152,6 @@ class UserController extends Controller
             "email.required" => "Remplir le champ email!",
             "email.email" => "La structure d'un email n'est pas respecte!",
             "email.unique" => "Ce mail existe deja",
-            "user_type.required" => "Sélectionnez un type d'utilisateur!",
             "phone.required" => "Remplir le champ Numéro de téléphone!",
             "phone.numeric" => "Le champ Numéro de téléphone doit être numérique!",
             "phone.digits" => "Le champ Numéro de téléphone doit comporter exactement 8 chiffres!",
@@ -183,12 +182,11 @@ class UserController extends Controller
             $name = $request['name'];
             $role = Role::where('company_id', app(CompanyContext::class)->getCompanyId())->findOrFail($request->role_id);
             abort_if($role->key === 'owner', 403, 'Le rôle propriétaire ne peut pas être attribué.');
-            $user_type = $role->key === 'admin' ? 2 : 3;
             $phone = $request['phone'];
             $code = $this->code();
             $user = User::firstOrCreate(
                 ['email' => $email],
-                ['name' => $name, 'phone' => $phone, 'user_type' => $user_type, 'password' => Hash::make($code)]
+                ['name' => $name, 'phone' => $phone, 'password' => Hash::make($code), 'status' => 1]
             );
             $companyId = app(CompanyContext::class)->getCompanyId();
             CompanyUser::updateOrCreate(
@@ -362,30 +360,21 @@ class UserController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
         }else{
-            if($request['user_type'] ==2){
-                $result = $onboarding->registerOwner($request->only([
-                    'name', 'email', 'password', 'company_name', 'company_email', 'company_phone', 'phone', 'default_tax',
-                ]));
-                Auth::login($result['user']);
-                $request->session()->regenerate();
-                $request->session()->put('active_company_id', $result['company']->id);
-                $request->session()->put('active_company_name', $result['company']->name);
-                // $this->sendEmail($request['email'],$request['name']);
-                return response()->json([
-                    "status" => true,
-                    "reload" => true,
-                    "redirect_to" => route('dashboard'),
-                    "title" => "INSCRIPTION DE L'ADMINISTRATION REUSSIE!",
-                    "msg" => "L'administrateur '".$request-> name."' , est validé"
-                ]);
-            }else{
-                return response()->json([
-                    "status" => false,
-                    "reload" => false,
-                    "title" => "INSCRIPTION ECHOUEE",
-                    "msg" => 'Pas de  usertype 2'
-                ]);
-            }
+            $result = $onboarding->registerOwner($request->only([
+                'name', 'email', 'password', 'company_name', 'company_email', 'company_phone', 'phone', 'default_tax',
+            ]));
+            Auth::login($result['user']);
+            $request->session()->regenerate();
+            $request->session()->put('active_company_id', $result['company']->id);
+            $request->session()->put('active_company_name', $result['company']->name);
+
+            return response()->json([
+                "status" => true,
+                "reload" => true,
+                "redirect_to" => route('dashboard'),
+                "title" => "INSCRIPTION DE L'ADMINISTRATION REUSSIE!",
+                "msg" => "L'administrateur '".$request->name."' est validé"
+            ]);
             
         }
     }
@@ -546,7 +535,6 @@ class UserController extends Controller
             // "phone.required" => "Remplir le champ Numéro de téléphone!",
             // "phone.numeric" => "Le champ Numéro de téléphone doit être numérique!",
             // "phone.digits" => "Le champ Numéro de téléphone doit comporter exactement 8 chiffres!",
-            "user_type.required" => "Veuillez sélectionner un type d'utilisateur!",
         ];
 
         $validator = Validator::make($request->all(), [
@@ -572,7 +560,6 @@ class UserController extends Controller
             $User->update([
                 'name' => $request->name,
                 'phone' => $request->phone,
-                'user_type' => $role->key === 'admin' ? 2 : 3,
             ]);
             $membership->update(['role_id' => $role->id]);
 

@@ -30,8 +30,6 @@
                     <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" name="email" placeholder="email" required>
                 </div>
 
-                <input type="hidden" name="user_type" value="2">
-
                 <div class="mb-3">
                     <label class="form-label">Mot de passe <span class="text-danger">*</span></label>
                     <div class="input-group">

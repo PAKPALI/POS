@@ -317,7 +317,7 @@
                     {data: 'name',name: 'name'},
                     {data: 'email',name: 'email'},
                     {data: 'phone',name: 'phone'},
-                    {data: 'user_type', name: 'active_role.name'},
+                    {data: 'role_name', name: 'active_role.name'},
                     {data: 'status',name: 'status'},
                     {data: 'created_at',name: 'created_at'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},

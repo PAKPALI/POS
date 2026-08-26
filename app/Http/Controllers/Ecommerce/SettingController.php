@@ -42,6 +42,10 @@ class SettingController extends Controller
     public function updateSettings(Request $request)
     {
         $company = CompanySetting::findOrFail($this->context->getCompanyId());
+        $request->validate([
+            'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+            'description' => ['nullable', 'string', 'max:5000'],
+        ]);
         $slug = $this->normalizeSlug($request->string('slug')->toString());
         $slugValidator = $this->slugValidator($slug, $company->id);
 
@@ -73,7 +77,7 @@ class SettingController extends Controller
                 unlink(public_path($company->logo));
             }
             $file = $request->file('logo');
-            $filename = time().'_'.$file->getClientOriginalName();
+            $filename = Str::uuid().'.'.$file->extension();
             $file->move(public_path('images'), $filename);
             $data['logo'] = 'images/'.$filename;
         }
