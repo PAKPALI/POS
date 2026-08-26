@@ -185,6 +185,17 @@
         .storefront-search-field i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
         .storefront-search-field input { width:100%; min-height:44px; padding:9px 14px 9px 42px; border:1px solid var(--border); border-radius:12px; background:var(--card-bg); color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
         .storefront-search-field input:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(37,99,235,.14); }
+        .storefront-search-loading { position:absolute; right:14px; top:50%; transform:translateY(-50%); display:none; color:var(--acc); }
+        .storefront-search-results { position:absolute; top:calc(100% + 7px); left:0; right:0; z-index:1060; display:none; max-height:420px; overflow-y:auto; padding:6px; background:var(--card-bg); border:1px solid var(--border); border-radius:14px; box-shadow:0 18px 45px rgba(15,23,42,.18); }
+        .storefront-search-results.open { display:block; }
+        .storefront-search-result { display:flex; align-items:center; gap:11px; padding:9px; border-radius:10px; color:var(--text); text-decoration:none; }
+        .storefront-search-result:hover,.storefront-search-result:focus { color:var(--text); background:#eff6ff; }
+        [data-theme="dark"] .storefront-search-result:hover,[data-theme="dark"] .storefront-search-result:focus { background:#1e293b; }
+        .storefront-search-result img { width:46px; height:46px; flex:0 0 46px; border-radius:9px; object-fit:cover; background:#f1f5f9; }
+        .storefront-search-result-copy { min-width:0; flex:1; }
+        .storefront-search-result-name { display:block; overflow:hidden; color:var(--text); font-size:.86rem; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+        .storefront-search-result-meta { display:flex; justify-content:space-between; gap:8px; color:var(--muted); font-size:.72rem; }
+        .storefront-search-message { padding:14px; color:var(--muted); font-size:.82rem; text-align:center; }
         .storefront-search-submit { min-height:44px; padding:9px 18px; border:0; border-radius:12px; background:var(--acc); color:#fff; font-weight:700; white-space:nowrap; }
         .storefront-search-submit:hover { background:var(--acc-h); }
 
@@ -680,7 +691,10 @@
                 <div class="storefront-search-field">
                     <i class="bi bi-search" aria-hidden="true"></i>
                     <input id="globalStorefrontSearch" type="search" name="q" value="{{ request('q') }}" maxlength="100"
-                        placeholder="Rechercher un produit dans {{ $company->name }}…" autocomplete="off">
+                        placeholder="Rechercher un produit dans {{ $company->name }}…" autocomplete="off" aria-autocomplete="list"
+                        aria-controls="globalStorefrontSearchResults" aria-expanded="false">
+                    <span class="storefront-search-loading spinner-border spinner-border-sm" id="globalStorefrontSearchLoading" role="status" aria-label="Recherche en cours"></span>
+                    <div class="storefront-search-results" id="globalStorefrontSearchResults" role="listbox"></div>
                 </div>
                 <button type="submit" class="storefront-search-submit" data-loading-text="Recherche…" aria-label="Lancer la recherche">
                     <i class="bi bi-search me-sm-1" aria-hidden="true"></i><span>Rechercher</span>
@@ -752,6 +766,97 @@
     <script>
         var CART_KEY = 'ecommerce_cart_{{ $company->public_id }}';
         var DEFAULT_PRODUCT_IMAGE = @json(asset('icons/product-placeholder.svg'));
+        var STOREFRONT_SEARCH_URL = @json(route('storefront.search', $company));
+        (function initStorefrontLiveSearch() {
+            var input = document.getElementById('globalStorefrontSearch');
+            var results = document.getElementById('globalStorefrontSearchResults');
+            var loading = document.getElementById('globalStorefrontSearchLoading');
+            var debounceTimer = null;
+            var activeRequest = null;
+            if (!input || !results || !loading) return;
+
+            function closeResults() {
+                results.classList.remove('open');
+                input.setAttribute('aria-expanded', 'false');
+            }
+            function showMessage(message) {
+                results.replaceChildren();
+                var node = document.createElement('div');
+                node.className = 'storefront-search-message';
+                node.textContent = message;
+                results.appendChild(node);
+                results.classList.add('open');
+                input.setAttribute('aria-expanded', 'true');
+            }
+            function showProducts(products) {
+                results.replaceChildren();
+                if (!products.length) {
+                    showMessage('Aucun produit trouvé.');
+                    return;
+                }
+                products.forEach(function (product) {
+                    var link = document.createElement('a');
+                    link.className = 'storefront-search-result';
+                    link.href = product.url;
+                    link.setAttribute('role', 'option');
+                    var image = document.createElement('img');
+                    image.src = product.image;
+                    image.alt = '';
+                    image.onerror = function () { this.src = DEFAULT_PRODUCT_IMAGE; };
+                    var copy = document.createElement('span');
+                    copy.className = 'storefront-search-result-copy';
+                    var name = document.createElement('span');
+                    name.className = 'storefront-search-result-name';
+                    name.textContent = product.name;
+                    var meta = document.createElement('span');
+                    meta.className = 'storefront-search-result-meta';
+                    var category = document.createElement('span');
+                    category.textContent = product.category || 'Produit';
+                    var price = document.createElement('strong');
+                    price.textContent = new Intl.NumberFormat('fr-FR').format(product.price) + ' FCFA';
+                    meta.append(category, price);
+                    copy.append(name, meta);
+                    link.append(image, copy);
+                    results.appendChild(link);
+                });
+                results.classList.add('open');
+                input.setAttribute('aria-expanded', 'true');
+            }
+
+            input.addEventListener('input', function () {
+                window.clearTimeout(debounceTimer);
+                if (activeRequest) activeRequest.abort();
+                var query = input.value.trim();
+                if (query.length < 2) {
+                    loading.style.display = 'none';
+                    closeResults();
+                    return;
+                }
+                debounceTimer = window.setTimeout(function () {
+                    activeRequest = new AbortController();
+                    loading.style.display = 'inline-block';
+                    fetch(STOREFRONT_SEARCH_URL + '?q=' + encodeURIComponent(query), {
+                        headers: {'Accept': 'application/json'},
+                        signal: activeRequest.signal
+                    }).then(function (response) {
+                        if (!response.ok) throw new Error('Recherche indisponible');
+                        return response.json();
+                    }).then(function (payload) {
+                        if (input.value.trim() === query) showProducts(payload.results || []);
+                    }).catch(function (error) {
+                        if (error.name !== 'AbortError') showMessage('La recherche est momentanément indisponible.');
+                    }).finally(function () {
+                        if (input.value.trim() === query) loading.style.display = 'none';
+                    });
+                }, 300);
+            });
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.storefront-search-field')) closeResults();
+            });
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') closeResults();
+            });
+        })();
         function getCart() {
             try {
                 var stored = JSON.parse(localStorage.getItem(CART_KEY));

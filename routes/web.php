@@ -228,6 +228,7 @@ Route::prefix('ecommerce')->middleware(['auth', 'company.resolve', 'company.sele
 Route::prefix('boutique/{company:slug}')->controller(App\Http\Controllers\Ecommerce\FrontController::class)->group(function () {
     Route::get('/', 'index')->name('storefront.home');
     Route::get('/products', 'allProducts')->name('storefront.products');
+    Route::get('/search', 'searchSuggestions')->middleware('throttle:60,1')->name('storefront.search');
     Route::get('/category/{id}', 'category')->name('storefront.category');
     Route::get('/product/{id}', 'product')->name('storefront.product');
     Route::get('/checkout', 'checkout')->name('storefront.checkout');

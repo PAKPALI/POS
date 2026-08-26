@@ -118,6 +118,13 @@ class EcommerceStorefrontTest extends TestCase
             ->assertSee('Article vitrine 01')
             ->assertDontSee('Article vitrine 02');
 
+        $this->getJson(route('storefront.search', [$company, 'q' => 'Article vitrine 01']))
+            ->assertOk()
+            ->assertJsonCount(1, 'results')
+            ->assertJsonPath('results.0.name', 'Article vitrine 01');
+        $this->getJson(route('storefront.search', [$company, 'q' => 'A']))
+            ->assertUnprocessable();
+
         $this->get(route('storefront.checkout', $company))
             ->assertOk()
             ->assertDontSee('Article vitrine 14')

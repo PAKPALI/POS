@@ -335,6 +335,42 @@ class FrontController extends Controller
         ]);
     }
 
+    public function searchSuggestions(Request $request)
+    {
+        $company = $this->getCompany(true);
+        if (!$company) {
+            return response()->json(['results' => []], 404);
+        }
+
+        $validated = $request->validate(['q' => ['required', 'string', 'min:2', 'max:100']]);
+        $search = trim($validated['q']);
+        if (mb_strlen($search) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        $products = Product::query()
+            ->with('category:id,name')
+            ->select(['id', 'category_id', 'name', 'price', 'price_ttc', 'image', 'qte'])
+            ->where('status', 1)
+            ->where('type', 1)
+            ->where('qte', '>', 0)
+            ->where('name', 'like', '%'.$search.'%')
+            ->orderBy('name')
+            ->limit(8)
+            ->get()
+            ->map(fn (Product $product) => [
+                'name' => $product->name,
+                'category' => $product->category?->name,
+                'price' => (float) ($product->price_ttc ?? $product->price),
+                'image' => ($product->image && $product->image !== 'null')
+                    ? asset('images/'.$product->image)
+                    : asset('icons/product-placeholder.svg'),
+                'url' => route('storefront.product', [$company, $product->id]),
+            ]);
+
+        return response()->json(['results' => $products]);
+    }
+
     private function activeCategories()
     {
         return Category::query()
