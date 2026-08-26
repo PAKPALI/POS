@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
 use App\Jobs\SendMarginEmailJob;
+use App\Jobs\SendCustomerInvoiceJob;
 use App\Services\NotificationRecipientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -118,6 +119,33 @@ class SalesFlowTest extends TestCase
 
         Queue::assertPushed(SendSaleEmailJob::class, fn ($job) => $job->companyId === $this->company->id);
         Queue::assertPushed(SendSaleWhatsappJob::class, fn ($job) => $job->companyId === $this->company->id);
+    }
+
+    public function test_sale_with_client_queues_each_authorized_invoice_channel_independently(): void
+    {
+        Queue::fake();
+        $client = Client::create(['name' => 'Client facture', 'phone' => '90000000', 'created_by' => $this->user->id]);
+
+        $this->makeSale(['client_id' => $client->id])->assertJson(['status' => true, 'hasClient' => true]);
+
+        Queue::assertPushed(SendCustomerInvoiceJob::class, 2);
+        Queue::assertPushed(SendCustomerInvoiceJob::class, fn ($job) => $job->channel === 'whatsapp');
+        Queue::assertPushed(SendCustomerInvoiceJob::class, fn ($job) => $job->channel === 'sms');
+    }
+
+    public function test_manual_sms_invoice_checks_authorization_and_consumes_quota(): void
+    {
+        Queue::fake();
+        Http::fake(fn () => Http::response(['status' => true, 'message' => 'MESSAGE_SENT_SUCCESSFULLY'], 200));
+        $this->company->update(['invoice_sms_enabled' => true, 'sms_count' => 1]);
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+
+        $this->actingAs($this->user)->postJson(route('sale.send-invoice', $sale), [
+            'phone' => '90000000', 'whatsapp' => false, 'sms' => true,
+        ])->assertOk()->assertJson(['status' => true]);
+
+        $this->assertSame(0, (int) $this->company->fresh()->sms_count);
     }
 
     public function test_disabled_sale_channels_prevent_whatsapp_and_sms_requests(): void

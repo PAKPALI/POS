@@ -150,6 +150,7 @@ class SmsService
         try {
             $company = $this->getCompanySetting();
             if (!$company) return ['status' => false, 'message' => 'Compagnie introuvable'];
+            if ($company->whatsapp_count <= 0) return ['status' => false, 'message' => 'Quota WhatsApp épuisé'];
             $message = '['.$company->name.'] '.$message;
 
             $response = Http::connectTimeout(5)->timeout(20)->withHeaders([
@@ -166,7 +167,12 @@ class SmsService
                 ]
             );
 
-            return $response->json();
+            $payload = $response->json();
+            $accepted = $response->successful() && is_array($payload) && ($payload['status'] ?? false) === true;
+            if ($accepted) {
+                $company->decrement('whatsapp_count');
+            }
+            return is_array($payload) ? $payload : ['status' => false, 'message' => 'Réponse WhatsApp invalide'];
         } catch (\Throwable $e) {
 
             Log::error(

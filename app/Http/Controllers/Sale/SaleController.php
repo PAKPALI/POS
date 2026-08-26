@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Services\SmsService;
 use App\Services\CompanyContext;
 use App\Services\SaleCreationService;
+use App\Services\SaleInvoiceDeliveryService;
 use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -266,12 +267,36 @@ class SaleController extends Controller
                 "title" => "VENTE EFFECTUEE",
                 "msg" => "",
                 'receiptHtml' => $receiptHtml,
+                'saleId' => $sale->id,
+                'hasClient' => (bool) $sale->client_id,
             ]);
         } catch (\Throwable $th) {
             return response()->json([
                 "status" => false,
                 "msg" => "Erreur survenue lors de la vente liée au produit ou au menu. " . $th->getMessage(),
             ]);
+        }
+    }
+
+    public function sendInvoice(Request $request, Sale $sale, SaleInvoiceDeliveryService $delivery)
+    {
+        $this->authorize('view', $sale);
+        $validated = $request->validate([
+            'phone' => ['required', 'string', 'max:30', 'regex:/^[0-9+() .-]{6,30}$/'],
+            'whatsapp' => ['required', 'boolean'],
+            'sms' => ['required', 'boolean'],
+        ]);
+        try {
+            $channels = $delivery->deliver(
+                $sale->loadMissing('saleDetails.product'),
+                $validated['phone'],
+                (bool) $validated['whatsapp'],
+                (bool) $validated['sms']
+            );
+            return response()->json(['status' => true, 'message' => 'Facture envoyée par '.implode(' et ', $channels).'.']);
+        } catch (\Throwable $exception) {
+            Log::warning('Échec envoi manuel facture client', ['sale_id' => $sale->id, 'error' => $exception->getMessage()]);
+            return response()->json(['status' => false, 'message' => $exception->getMessage()], 422);
         }
     }
 

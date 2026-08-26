@@ -690,6 +690,28 @@
                 <div class="modal-body" id="receiptPreview">
                     <div class="py-5 text-muted">Chargement du reçu...</div>
                 </div>
+                <div class="px-3 pb-3 d-none" id="invoiceDeliveryPanel">
+                    <div class="border rounded p-3">
+                        <label for="invoicePhone" class="form-label">Numéro du client</label>
+                        <input type="tel" class="form-control mb-3" id="invoicePhone" placeholder="Ex. +228 90 00 00 00">
+                        <div class="d-flex flex-wrap gap-3 mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}>
+                                <label class="form-check-label" for="invoiceWhatsapp">WhatsApp ({{ $company->whatsapp_count }})</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="invoiceSms" {{ !$company->invoice_whatsapp_enabled && $company->invoice_sms_enabled && $company->sms_count > 0 ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}>
+                                <label class="form-check-label" for="invoiceSms">SMS ({{ $company->sms_count }})</label>
+                            </div>
+                        </div>
+                        <button type="button" id="sendInvoice" class="btn btn-success" data-loading-text="Envoi en cours…" {{ (!$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1) && (!$company->invoice_sms_enabled || $company->sms_count < 1) ? 'disabled' : '' }}>
+                            <i class="bi bi-whatsapp me-1"></i> Envoyer la facture
+                        </button>
+                        @if(!$company->invoice_whatsapp_enabled && !$company->invoice_sms_enabled)
+                            <div class="small text-warning mt-2">L’envoi doit d’abord être autorisé dans Paramètres &gt; Notifications.</div>
+                        @endif
+                    </div>
+                </div>
                 <div class="modal-footer">
                     <button type="button" id="print" class="btn btn-success">
                         <i class="bi bi-printer me-1"></i> Imprimer
@@ -1145,8 +1167,12 @@
 
         }
 
-        function openReceiptInModal(receiptHtml) {
+        let currentReceiptSaleId = null;
+        function openReceiptInModal(receiptHtml, saleData) {
             $('#receiptPreview').html(receiptHtml);
+            currentReceiptSaleId = saleData.saleId;
+            $('#invoiceDeliveryPanel').toggleClass('d-none', !!saleData.hasClient);
+            $('#invoicePhone').val('');
             $('#pdfModal').modal('show');
             return;
 
@@ -1359,7 +1385,7 @@
                                                     });
 
                                                     // Ouvrir le reçu PDF
-                                                    openReceiptInModal(data.receiptHtml);
+                                                    openReceiptInModal(data.receiptHtml, data);
                                                 } else {
                                                     $('#loader').hide();
                                                     $('#saleLoader').hide();
@@ -1454,7 +1480,7 @@
                                             });
 
                                             // Ouvrir le reçu PDF
-                                            openReceiptInModal(data.receiptHtml);
+                                            openReceiptInModal(data.receiptHtml, data);
                                         } else {
                                             $('#loader').hide();
                                             $('#saleLoader').hide();
@@ -1491,6 +1517,35 @@
 
         $('#print').on('click', function(e) {
             printPdf()
+        });
+
+        $('#sendInvoice').on('click', async function() {
+            const button = this;
+            const phone = $('#invoicePhone').val().trim();
+            const whatsapp = $('#invoiceWhatsapp').is(':checked');
+            const sms = $('#invoiceSms').is(':checked');
+            if (!phone || (!whatsapp && !sms)) {
+                Swal.fire({icon: 'warning', title: 'Informations incomplètes', text: 'Saisissez un numéro et choisissez au moins un canal.'});
+                return;
+            }
+            const url = '{{ route('sale.send-invoice', ['sale' => '__SALE__']) }}'.replace('__SALE__', currentReceiptSaleId);
+            const request = fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+                body: JSON.stringify({phone, whatsapp, sms})
+            }).then(async response => {
+                const data = await response.json();
+                if (!response.ok || !data.status) throw new Error(data.message || 'Envoi impossible.');
+                return data;
+            });
+            try {
+                const data = window.ServerButtonLoader
+                    ? await window.ServerButtonLoader.withLoader(button, request, 'Envoi en cours…')
+                    : await request;
+                Swal.fire({icon: 'success', title: 'Facture envoyée', text: data.message});
+            } catch (error) {
+                Swal.fire({icon: 'error', title: 'Envoi impossible', text: error.message || 'Veuillez réessayer.'});
+            }
         });
 
         let selectedProducts = new Set(); // init count for count order

@@ -26,7 +26,7 @@
         .btn {
             display: inline-block;
             font-weight: 600;
-            color: #ffffff;
+            color: #ffffff !important;
             text-align: center;
             vertical-align: middle;
             background-color: #007bff;
@@ -37,6 +37,14 @@
             border-radius: 5px;
             text-decoration: none;
             transition: background-color 0.3s ease-in-out;
+        }
+        a.btn,
+        a.btn:link,
+        a.btn:visited,
+        a.btn:hover,
+        a.btn:active {
+            color: #ffffff !important;
+            text-decoration: none !important;
         }
         .btn:hover {
             background-color: #0056b3;

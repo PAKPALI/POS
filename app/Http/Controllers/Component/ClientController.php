@@ -120,6 +120,7 @@ class ClientController extends Controller
 
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+() .-]{6,30}$/'],
         ], $error_messages);
 
         if($validator->fails())
@@ -136,6 +137,7 @@ class ClientController extends Controller
             ]);
             Client::create([
                 'name' => $request-> name,
+                'phone' => $request->phone,
                 'created_by' => Auth::user()->id,
             ]);
 
@@ -186,6 +188,7 @@ class ClientController extends Controller
 
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+() .-]{6,30}$/'],
         ], $error_messages);
 
         if($validator->fails())
@@ -198,6 +201,7 @@ class ClientController extends Controller
 
             $Client->update([
                 'name' => $request->name,
+                'phone' => $request->phone,
             ]);
 
             return response()->json([

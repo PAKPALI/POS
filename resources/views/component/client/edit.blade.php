@@ -6,6 +6,10 @@
                 <label for="name">Nom</label>
                 <input type="text" name="name" class="form-control" id="name" value="{{$Client->name}}" placeholder="Nom">
             </div>
+            <div class="form-group col-12 mt-3">
+                <label for="phone">Téléphone</label>
+                <input type="tel" name="phone" class="form-control" id="phone" value="{{$Client->phone}}" placeholder="Ex. +228 90 00 00 00">
+            </div>
         </div>
     </div>
     <div class="card-footer mt-4">

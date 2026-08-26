@@ -42,6 +42,10 @@
                                                     <input type="text" name="name" class="form-control" id="exampleInput0"
                                                         placeholder="Nom">
                                                 </div>
+                                                <div class="form-group col-12 mt-3">
+                                                    <label for="clientPhone">Téléphone</label>
+                                                    <input type="tel" name="phone" class="form-control" id="clientPhone" placeholder="Ex. +228 90 00 00 00">
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="card-footer mt-4">

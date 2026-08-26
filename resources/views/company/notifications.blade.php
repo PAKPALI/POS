@@ -50,6 +50,21 @@
             </div>
         </div>
 
+        <div class="card mb-4"><div class="card-body">
+            <h4>Factures clients</h4>
+            <p class="text-muted">Ces autorisations couvrent l’envoi automatique au client choisi et l’envoi manuel depuis le reçu. Un envoi consomme une unité du quota correspondant.</p>
+            <div class="d-flex flex-wrap gap-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="invoice_whatsapp_enabled" value="1" id="invoice_whatsapp_enabled" {{ $company->invoice_whatsapp_enabled ? 'checked' : '' }}>
+                    <label class="form-check-label" for="invoice_whatsapp_enabled">WhatsApp ({{ $company->whatsapp_count }} disponible(s))</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="invoice_sms_enabled" value="1" id="invoice_sms_enabled" {{ $company->invoice_sms_enabled ? 'checked' : '' }}>
+                    <label class="form-check-label" for="invoice_sms_enabled">SMS ({{ $company->sms_count }} disponible(s))</label>
+                </div>
+            </div>
+        </div></div>
+
         @foreach(['sale' => 'Notifications des ventes', 'inventory' => 'Notifications d’inventaire'] as $category => $title)
         <div class="card mb-4">
             <div class="card-body">

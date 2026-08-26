@@ -8,6 +8,7 @@
                         <td>Nom : </td>
                         <td>{{$Client->name}}</td>
                     </tr>
+                    <tr><th scope="row">2</th><td>Téléphone :</td><td>{{$Client->phone ?: 'Non renseigné'}}</td></tr>
                     <tr>
                         <th scope="row">2</th>
                         <td>Creer par :</td>

@@ -52,7 +52,9 @@
     </table>
 
     <p class="text-center" style="margin-top:20px;">
-        <a class="btn" href="{{ route('ecommerce.orders.show', $order->id) }}">Consulter la commande</a>
+        <a class="btn" href="{{ route('ecommerce.orders.show', $order->id) }}" style="display:inline-block;background-color:#007bff;color:#ffffff !important;-webkit-text-fill-color:#ffffff;padding:10px 20px;border-radius:5px;font-weight:600;text-decoration:none !important;">
+            <span style="color:#ffffff !important;-webkit-text-fill-color:#ffffff;text-decoration:none !important;">Consulter la commande</span>
+        </a>
     </p>
 
     @include('emails.design.emailFooter')

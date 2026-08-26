@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class CompanySetting extends Model
 {
     use HasFactory;
-    protected $fillable = ['name','email','adress','number1','number2','message','logo','description','ecommerce_active','sms_count','whatsapp_count','sale_email_enabled','sale_whatsapp_enabled','sale_sms_enabled','inventory_email_enabled','inventory_whatsapp_enabled','inventory_sms_enabled'];
+    protected $fillable = ['name','email','adress','number1','number2','message','logo','description','ecommerce_active','sms_count','whatsapp_count','sale_email_enabled','sale_whatsapp_enabled','sale_sms_enabled','invoice_whatsapp_enabled','invoice_sms_enabled','inventory_email_enabled','inventory_whatsapp_enabled','inventory_sms_enabled'];
 
     protected static function booted(): void
     {

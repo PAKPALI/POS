@@ -183,6 +183,7 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
         Route::get('/clients/search', 'searchClients')->name('clients.search');
         Route::get('/products/search', 'search')->name('products.search');
         Route::get('sale/invoice/{id}/pdf', 'generatePDF')->name('codePromo.pdf');
+        Route::post('sale/{sale}/send-invoice', 'sendInvoice')->middleware('throttle:10,1')->name('sale.send-invoice');
     });
 });
 

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Jobs\SendMarginEmailJob;
 use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
+use App\Jobs\SendCustomerInvoiceJob;
 use App\Models\Action;
 use App\Models\AMS\CashAccount;
 use App\Models\AMS\Setting;
@@ -50,6 +51,10 @@ class SaleCreationService
 
             SendSaleEmailJob::dispatch($sale->id, $this->context->getCompanyId())->afterCommit();
             SendSaleWhatsappJob::dispatch($sale->id, $this->context->getCompanyId())->afterCommit();
+            if ($sale->client_id) {
+                SendCustomerInvoiceJob::dispatch($sale->id, $this->context->getCompanyId(), 'whatsapp')->afterCommit();
+                SendCustomerInvoiceJob::dispatch($sale->id, $this->context->getCompanyId(), 'sms')->afterCommit();
+            }
 
             Action::create([
                 'user_id' => $cashier->id,
