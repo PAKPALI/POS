@@ -556,6 +556,57 @@
                 var id = $(this).data("id");
                 window.location.href = 'sale/invoice/' + id + '/pdf';
             });
+
+            let invoiceWhatsappQuota = {{ (int) ($company?->whatsapp_count ?? 0) }};
+            let invoiceSmsQuota = {{ (int) ($company?->sms_count ?? 0) }};
+            const invoiceWhatsappAuthorized = {{ $company?->invoice_whatsapp_enabled ? 'true' : 'false' }};
+            const invoiceSmsAuthorized = {{ $company?->invoice_sms_enabled ? 'true' : 'false' }};
+
+            $('body').on('click', '.deliver-invoice', function () {
+                const saleId = $(this).data('id');
+                const clientPhone = $(this).data('phone') || '';
+                Swal.fire({
+                    title: 'Envoyer la facture',
+                    html: `<input id="deliveryPhone" type="tel" class="swal2-input" value="${String(clientPhone).replace(/"/g, '&quot;')}" placeholder="Numéro du client">
+                        <div class="d-flex justify-content-center gap-4 mt-3">
+                            <div class="form-check form-switch"><input id="deliveryWhatsapp" class="form-check-input" type="checkbox" ${invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? 'checked' : 'disabled'}><label class="form-check-label" for="deliveryWhatsapp">WhatsApp (${invoiceWhatsappQuota})</label></div>
+                            <div class="form-check form-switch"><input id="deliverySms" class="form-check-input" type="checkbox" ${invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : 'disabled'}><label class="form-check-label" for="deliverySms">SMS (${invoiceSmsQuota})</label></div>
+                        </div>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Envoyer',
+                    cancelButtonText: 'Annuler',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    allowEscapeKey: () => !Swal.isLoading(),
+                    preConfirm: async () => {
+                        const phone = document.getElementById('deliveryPhone').value.trim();
+                        const whatsapp = document.getElementById('deliveryWhatsapp').checked;
+                        const sms = document.getElementById('deliverySms').checked;
+                        if (!phone || (!whatsapp && !sms)) {
+                            Swal.showValidationMessage('Saisissez un numéro et choisissez au moins un canal.');
+                            return false;
+                        }
+                        try {
+                            const url = '{{ route('sale.send-invoice', ['sale' => '__SALE__']) }}'.replace('__SALE__', saleId);
+                            const response = await fetch(url, {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+                                body: JSON.stringify({phone, whatsapp, sms})
+                            });
+                            const data = await response.json();
+                            invoiceWhatsappQuota = Number(data.whatsappQuota ?? invoiceWhatsappQuota);
+                            invoiceSmsQuota = Number(data.smsQuota ?? invoiceSmsQuota);
+                            if (!response.ok || !data.status) throw new Error(data.message || 'Envoi impossible.');
+                            return data;
+                        } catch (error) {
+                            Swal.showValidationMessage(error.message || 'Envoi impossible.');
+                            return false;
+                        }
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) Swal.fire({icon: 'success', title: 'Facture envoyée', text: result.value.message});
+                });
+            });
         }); 
     </script>
 @endsection

@@ -32,7 +32,10 @@ class EcommerceStorefrontTest extends TestCase
         $url = route('storefront.home', $company);
 
         $this->assertStringContainsString('/boutique/'.$company->slug, $url);
-        $this->get($url)->assertOk()->assertSee('Boutique Démonstration');
+        $this->get($url)->assertOk()
+            ->assertSee('Boutique Démonstration')
+            ->assertSee('globalStorefrontSearch')
+            ->assertSee(route('storefront.products', $company), false);
         $this->get(route('storefront.products', $company))->assertOk();
         $this->get(route('storefront.checkout', $company))->assertOk();
         $this->get(route('storefront.category', [$company, $category->id]))

@@ -179,6 +179,14 @@
             padding: 8px;
             cursor: pointer;
         }
+        .storefront-search-bar { padding:10px 0; background:var(--card-bg); border-bottom:1px solid var(--border); }
+        .storefront-search-form { max-width:760px; margin:0 auto; display:flex; align-items:center; gap:8px; }
+        .storefront-search-field { position:relative; flex:1; }
+        .storefront-search-field i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+        .storefront-search-field input { width:100%; min-height:44px; padding:9px 14px 9px 42px; border:1px solid var(--border); border-radius:12px; background:var(--card-bg); color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
+        .storefront-search-field input:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(37,99,235,.14); }
+        .storefront-search-submit { min-height:44px; padding:9px 18px; border:0; border-radius:12px; background:var(--acc); color:#fff; font-weight:700; white-space:nowrap; }
+        .storefront-search-submit:hover { background:var(--acc-h); }
 
         .page-wrap { min-height: 65vh; }
         .main-container { padding-top: 24px; padding-bottom: 48px; }
@@ -603,6 +611,10 @@
             .hero-modern h1 { font-size: 1.5rem; }
         }
         @media (max-width: 575px) {
+            .storefront-search-bar { padding:8px 10px; }
+            .storefront-search-form { gap:6px; }
+            .storefront-search-submit { width:44px; padding:9px; }
+            .storefront-search-submit span { display:none; }
             .hero-modern { padding: 24px 20px; border-radius: var(--radius); }
             .hero-modern h1 { font-size: 1.3rem; }
             .hero-modern .hero-stats { gap: 20px; }
@@ -660,6 +672,22 @@
             </div>
         </div>
     </nav>
+
+    <div class="storefront-search-bar">
+        <div class="container">
+            <form method="GET" action="{{ route('storefront.products', $company) }}" class="storefront-search-form" role="search" data-server-loader-form>
+                <label for="globalStorefrontSearch" class="visually-hidden">Rechercher un produit dans {{ $company->name }}</label>
+                <div class="storefront-search-field">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input id="globalStorefrontSearch" type="search" name="q" value="{{ request('q') }}" maxlength="100"
+                        placeholder="Rechercher un produit dans {{ $company->name }}…" autocomplete="off">
+                </div>
+                <button type="submit" class="storefront-search-submit" data-loading-text="Recherche…" aria-label="Lancer la recherche">
+                    <i class="bi bi-search me-sm-1" aria-hidden="true"></i><span>Rechercher</span>
+                </button>
+            </form>
+        </div>
+    </div>
 
     <div class="page-wrap">
         <div class="container main-container">

@@ -61,7 +61,7 @@ class SaleController extends Controller
 
             $sales = Sale::query()
                 ->select($columns)
-                ->with('client:id,name')
+                ->with('client:id,name,phone')
                 ->whereBetween('created_at', [$dayStart, $dayEnd])
                 ->latest();
 
@@ -71,7 +71,8 @@ class SaleController extends Controller
                     $query->whereHas('client', fn ($client) => $client->where('name', 'like', "%{$keyword}%"));
                 })
                 ->addColumn('action', function($row){
-                    return ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>';
+                    return ' <a data-id="'.$row->id.'" data-name="" data-original-title="Detail" class="btn btn-dark btn-sm view"><i class="fas fa-lg fa-fw me-0 fa-eye"></i></a>
+                        <button type="button" data-id="'.$row->id.'" class="btn btn-success btn-sm deliver-invoice" data-loading-text="Chargement…" title="Envoyer la facture"><i class="bi bi-whatsapp"></i></button>';
                 })
                 ->editColumn('client', fn ($sale) => $sale->client->name ?? 'Aucun')
                 ->rawColumns(['action'])
@@ -293,11 +294,41 @@ class SaleController extends Controller
                 (bool) $validated['whatsapp'],
                 (bool) $validated['sms']
             );
-            return response()->json(['status' => true, 'message' => 'Facture envoyée par '.implode(' et ', $channels).'.']);
+            $company = CompanySetting::firstOrFail()->fresh();
+            return response()->json([
+                'status' => true,
+                'message' => 'Facture envoyée par '.implode(' et ', $channels).'.',
+                'smsQuota' => (int) $company->sms_count,
+                'whatsappQuota' => (int) $company->whatsapp_count,
+            ]);
         } catch (\Throwable $exception) {
             Log::warning('Échec envoi manuel facture client', ['sale_id' => $sale->id, 'error' => $exception->getMessage()]);
-            return response()->json(['status' => false, 'message' => $exception->getMessage()], 422);
+            $company = CompanySetting::first();
+            return response()->json([
+                'status' => false,
+                'message' => $exception->getMessage(),
+                'smsQuota' => (int) ($company?->sms_count ?? 0),
+                'whatsappQuota' => (int) ($company?->whatsapp_count ?? 0),
+            ], 422);
         }
+    }
+
+    public function receipt(Sale $sale)
+    {
+        $this->authorize('view', $sale);
+        $sale->loadMissing(['client', 'saleDetails.product']);
+        $company = CompanySetting::firstOrFail();
+
+        return response()->json([
+            'status' => true,
+            'saleId' => $sale->id,
+            'hasClient' => (bool) $sale->client_id,
+            'clientPhone' => $sale->client?->phone,
+            'allowDelivery' => true,
+            'receiptHtml' => view('pos.receipt', compact('sale', 'company') + ['saleDetails' => $sale->saleDetails])->render(),
+            'smsQuota' => (int) $company->sms_count,
+            'whatsappQuota' => (int) $company->whatsapp_count,
+        ]);
     }
 
     public function sendSms($number, $message)
@@ -541,7 +572,7 @@ class SaleController extends Controller
             }
             $sales = Sale::query()
                 ->select($columns)
-                ->with('client:id,name')
+                ->with('client:id,name,phone')
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->latest();
             $hasCompany = CompanySetting::query()->exists();
@@ -559,6 +590,7 @@ class SaleController extends Controller
                     if ($hasCompany) {
                         $buttons .= ' <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"> <i class="fas fa-file-pdf"></i> PDF</a>';
                     }
+                    $buttons .= ' <button type="button" data-id="'.$row->id.'" data-phone="'.e($row->client?->phone ?? '').'" class="btn btn-success btn-sm deliver-invoice" title="Envoyer par WhatsApp ou SMS"><i class="bi bi-whatsapp"></i></button>';
                     return $buttons;
                 })
                 ->editColumn('created_at', function ($Object) {
@@ -578,7 +610,8 @@ class SaleController extends Controller
                 ->make(true);
         }
         
-        return view('pos.sale.history', compact('canViewFinancials'));
+        $company = CompanySetting::first();
+        return view('pos.sale.history', compact('canViewFinancials', 'company'));
     }
 
     public function exportHistoryPdf(Request $request)

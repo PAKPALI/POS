@@ -697,11 +697,11 @@
                         <div class="d-flex flex-wrap gap-3 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}>
-                                <label class="form-check-label" for="invoiceWhatsapp">WhatsApp ({{ $company->whatsapp_count }})</label>
+                                <label class="form-check-label" for="invoiceWhatsapp">WhatsApp (<span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span>)</label>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="invoiceSms" {{ !$company->invoice_whatsapp_enabled && $company->invoice_sms_enabled && $company->sms_count > 0 ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}>
-                                <label class="form-check-label" for="invoiceSms">SMS ({{ $company->sms_count }})</label>
+                                <label class="form-check-label" for="invoiceSms">SMS (<span id="invoiceSmsQuota">{{ $company->sms_count }}</span>)</label>
                             </div>
                         </div>
                         <button type="button" id="sendInvoice" class="btn btn-success" data-loading-text="Envoi en cours…" {{ (!$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1) && (!$company->invoice_sms_enabled || $company->sms_count < 1) ? 'disabled' : '' }}>
@@ -1171,8 +1171,9 @@
         function openReceiptInModal(receiptHtml, saleData) {
             $('#receiptPreview').html(receiptHtml);
             currentReceiptSaleId = saleData.saleId;
-            $('#invoiceDeliveryPanel').toggleClass('d-none', !!saleData.hasClient);
-            $('#invoicePhone').val('');
+            $('#invoiceDeliveryPanel').toggleClass('d-none', !!saleData.hasClient && !saleData.allowDelivery);
+            $('#invoicePhone').val(saleData.clientPhone || '');
+            updateInvoiceQuotas(saleData);
             $('#pdfModal').modal('show');
             return;
 
@@ -1535,16 +1536,56 @@
                 body: JSON.stringify({phone, whatsapp, sms})
             }).then(async response => {
                 const data = await response.json();
-                if (!response.ok || !data.status) throw new Error(data.message || 'Envoi impossible.');
+                if (!response.ok || !data.status) {
+                    const error = new Error(data.message || 'Envoi impossible.');
+                    error.payload = data;
+                    throw error;
+                }
                 return data;
             });
             try {
                 const data = window.ServerButtonLoader
                     ? await window.ServerButtonLoader.withLoader(button, request, 'Envoi en cours…')
                     : await request;
+                updateInvoiceQuotas(data);
                 Swal.fire({icon: 'success', title: 'Facture envoyée', text: data.message});
             } catch (error) {
+                updateInvoiceQuotas(error.payload || {});
                 Swal.fire({icon: 'error', title: 'Envoi impossible', text: error.message || 'Veuillez réessayer.'});
+            }
+        });
+
+        const invoiceWhatsappAuthorized = {{ $company->invoice_whatsapp_enabled ? 'true' : 'false' }};
+        const invoiceSmsAuthorized = {{ $company->invoice_sms_enabled ? 'true' : 'false' }};
+        function updateInvoiceQuotas(data) {
+            if (data.whatsappQuota !== undefined) {
+                $('#invoiceWhatsappQuota').text(data.whatsappQuota);
+                $('#invoiceWhatsapp').prop('disabled', !invoiceWhatsappAuthorized || Number(data.whatsappQuota) < 1);
+                if (Number(data.whatsappQuota) < 1) $('#invoiceWhatsapp').prop('checked', false);
+            }
+            if (data.smsQuota !== undefined) {
+                $('#invoiceSmsQuota').text(data.smsQuota);
+                $('#invoiceSms').prop('disabled', !invoiceSmsAuthorized || Number(data.smsQuota) < 1);
+                if (Number(data.smsQuota) < 1) $('#invoiceSms').prop('checked', false);
+            }
+            $('#sendInvoice').prop('disabled', $('#invoiceWhatsapp').prop('disabled') && $('#invoiceSms').prop('disabled'));
+        }
+
+        $('body').on('click', '.deliver-invoice', async function() {
+            const button = this;
+            const url = '{{ route('sale.receipt', ['sale' => '__SALE__']) }}'.replace('__SALE__', $(button).data('id'));
+            const request = fetch(url, {headers: {'Accept': 'application/json'}}).then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Impossible de charger la facture.');
+                return data;
+            });
+            try {
+                const data = window.ServerButtonLoader
+                    ? await window.ServerButtonLoader.withLoader(button, request, 'Chargement…')
+                    : await request;
+                openReceiptInModal(data.receiptHtml, data);
+            } catch (error) {
+                Swal.fire({icon: 'error', title: 'Facture indisponible', text: error.message});
             }
         });
 
