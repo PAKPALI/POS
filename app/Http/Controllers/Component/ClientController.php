@@ -113,6 +113,7 @@ class ClientController extends Controller
         $this->authorize('create', Client::class);
 
         $error_messages = [
+            "phone.digits_between" => "Le numéro doit contenir entre 6 et 15 chiffres, sans indicatif.",
             "name.required" => "Remplir le champ Nom!",
             "name.string" => "Le nom du client doit être un texte!",
             "name.max" => "Le nom du client ne doit pas dépasser 255 caractères!",
@@ -120,7 +121,7 @@ class ClientController extends Controller
 
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+() .-]{6,30}$/'],
+            'phone' => ['nullable', 'digits_between:6,15'],
         ], $error_messages);
 
         if($validator->fails())
@@ -181,6 +182,7 @@ class ClientController extends Controller
         $this->authorize('update', $Client);
 
         $error_messages = [
+            "phone.digits_between" => "Le numéro doit contenir entre 6 et 15 chiffres, sans indicatif.",
             "name.required" => "Remplir le champ Nom!",
             "name.string" => "Le nom du client doit être un texte!",
             "name.max" => "Le nom du client ne doit pas dépasser 255 caractères!",
@@ -188,7 +190,7 @@ class ClientController extends Controller
 
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+() .-]{6,30}$/'],
+            'phone' => ['nullable', 'digits_between:6,15'],
         ], $error_messages);
 
         if($validator->fails())

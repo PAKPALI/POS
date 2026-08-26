@@ -283,9 +283,12 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
         $validated = $request->validate([
-            'phone' => ['required', 'string', 'max:30', 'regex:/^[0-9+() .-]{6,30}$/'],
+            'phone' => ['required', 'digits_between:6,15'],
             'whatsapp' => ['required', 'boolean'],
             'sms' => ['required', 'boolean'],
+        ], [
+            'phone.required' => 'Saisissez le numéro du client.',
+            'phone.digits_between' => 'Le numéro doit contenir entre 6 et 15 chiffres, sans indicatif.',
         ]);
         try {
             $channels = $delivery->deliver(

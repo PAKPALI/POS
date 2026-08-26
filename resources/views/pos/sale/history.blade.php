@@ -567,7 +567,7 @@
                 const clientPhone = $(this).data('phone') || '';
                 Swal.fire({
                     title: 'Envoyer la facture',
-                    html: `<input id="deliveryPhone" type="tel" class="swal2-input" value="${String(clientPhone).replace(/"/g, '&quot;')}" placeholder="Numéro du client">
+                    html: `<input id="deliveryPhone" type="tel" inputmode="numeric" minlength="6" maxlength="15" class="swal2-input" value="${String(clientPhone).replace(/"/g, '&quot;')}" placeholder="Numéro local sans indicatif">
                         <div class="d-flex justify-content-center gap-4 mt-3">
                             <div class="form-check form-switch"><input id="deliveryWhatsapp" class="form-check-input" type="checkbox" ${invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? 'checked' : 'disabled'}><label class="form-check-label" for="deliveryWhatsapp">WhatsApp (${invoiceWhatsappQuota})</label></div>
                             <div class="form-check form-switch"><input id="deliverySms" class="form-check-input" type="checkbox" ${invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : 'disabled'}><label class="form-check-label" for="deliverySms">SMS (${invoiceSmsQuota})</label></div>

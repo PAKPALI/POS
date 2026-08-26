@@ -693,7 +693,7 @@
                 <div class="px-3 pb-3 d-none" id="invoiceDeliveryPanel">
                     <div class="border rounded p-3">
                         <label for="invoicePhone" class="form-label">Numéro du client</label>
-                        <input type="tel" class="form-control mb-3" id="invoicePhone" placeholder="Ex. +228 90 00 00 00">
+                        <input type="tel" class="form-control mb-3" id="invoicePhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
                         <div class="d-flex flex-wrap gap-3 mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}>

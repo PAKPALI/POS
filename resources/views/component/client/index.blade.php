@@ -44,7 +44,7 @@
                                                 </div>
                                                 <div class="form-group col-12 mt-3">
                                                     <label for="clientPhone">Téléphone</label>
-                                                    <input type="tel" name="phone" class="form-control" id="clientPhone" placeholder="Ex. +228 90 00 00 00">
+                                                    <input type="tel" name="phone" class="form-control" id="clientPhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
                                                 </div>
                                             </div>
                                         </div>

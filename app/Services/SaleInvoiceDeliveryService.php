@@ -15,8 +15,8 @@ class SaleInvoiceDeliveryService
     {
         $company = CompanySetting::firstOrFail();
         $phone = trim($phone);
-        if ($phone === '' || !preg_match('/^[0-9+() .-]{6,30}$/', $phone)) {
-            throw new RuntimeException('Le numéro de téléphone est invalide.');
+        if (!preg_match('/^\d{6,15}$/', $phone)) {
+            throw new RuntimeException('Le numéro doit contenir entre 6 et 15 chiffres, sans indicatif.');
         }
         if (!$whatsapp && !$sms) throw new RuntimeException('Choisissez WhatsApp, SMS ou les deux.');
 
