@@ -88,6 +88,8 @@ class SmsService
                 'http_status' => $response->status(),
                 'company_id' => $company->id,
                 'provider_status' => is_array($payload) ? ($payload['status'] ?? null) : null,
+                'provider_message' => is_array($payload) ? ($payload['message'] ?? data_get($payload, 'data.message')) : null,
+                'provider_errors' => is_array($payload) ? ($payload['errors'] ?? data_get($payload, 'data.errors')) : null,
             ]);
         }
 

@@ -24,8 +24,8 @@
 
         <div class="card mb-4">
             <div class="card-body">
-                <h4>Activation des canaux</h4>
-                <p class="text-muted">Ces interrupteurs autorisent globalement les envois par e-mail, WhatsApp et SMS de la catégorie.</p>
+                <h4>Notifications internes</h4>
+                <p class="text-muted">Ces interrupteurs autorisent les alertes envoyées aux utilisateurs désignés dans les tableaux plus bas. Pour qu’un envoi parte, le canal global et la case du destinataire doivent être activés.</p>
                 <div class="row g-3">
                     @foreach(['sale' => 'Ventes', 'inventory' => 'Inventaire'] as $category => $label)
                     <div class="col-md-6">
@@ -51,8 +51,9 @@
         </div>
 
         <div class="card mb-4"><div class="card-body">
-            <h4>Factures clients</h4>
-            <p class="text-muted">Ces autorisations couvrent l’envoi automatique au client choisi et l’envoi manuel depuis le reçu. Un envoi consomme une unité du quota correspondant.</p>
+            <h4>Envoi des factures aux clients</h4>
+            <p class="text-muted mb-2">Ces réglages sont indépendants des notifications internes de ventes ci-dessus. Activez au moins un canal pour envoyer une facture au client après une vente ou depuis l’historique.</p>
+            <p class="small text-warning">Un envoi consomme une unité du quota correspondant.</p>
             <div class="d-flex flex-wrap gap-4">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" name="invoice_whatsapp_enabled" value="1" id="invoice_whatsapp_enabled" {{ $company->invoice_whatsapp_enabled ? 'checked' : '' }}>
@@ -69,7 +70,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h4>{{ $title }}</h4>
-                <p class="text-muted">Tous les utilisateurs actifs sont disponibles. Les propriétaires et administrateurs sont placés en tête et activés par défaut.</p>
+                <p class="text-muted">Cochez séparément chaque canal que cet utilisateur doit recevoir. L’activation globale seule ne sélectionne pas automatiquement les destinataires.</p>
                 <div class="table-responsive notification-users-scroll">
                     <table class="table table-striped align-middle">
                         <thead><tr><th>Utilisateur</th><th>Rôle</th><th class="text-center">E-mail</th><th class="text-center">WhatsApp</th><th class="text-center">SMS</th></tr></thead>

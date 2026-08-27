@@ -38,8 +38,8 @@
             <thead><tr><th>Référence</th><th>SMS</th><th>WhatsApp</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>
             @forelse($payments as $payment)
                 @php
-                    $statusClass = match($payment->status) {'paid' => 'success', 'failed' => 'danger', 'pending' => 'warning', default => 'secondary'};
-                    $statusLabel = match($payment->status) {'paid' => 'Payé', 'failed' => 'Échoué', 'pending' => 'En attente', default => 'Créé'};
+                    $statusClass = match($payment->status) {'paid' => 'success', 'failed' => 'danger', 'expired' => 'secondary', 'pending' => 'warning', default => 'secondary'};
+                    $statusLabel = match($payment->status) {'paid' => 'Payé', 'failed' => 'Échoué', 'expired' => 'Expiré', 'pending' => 'En attente', default => 'Créé'};
                 @endphp
                 <tr><td><small>{{ $payment->transaction_id }}</small></td><td>{{ $payment->sms_quantity }}</td><td>{{ $payment->whatsapp_quantity }}</td>
                     <td>{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</td><td><span class="badge bg-{{ $statusClass }}">{{ $statusLabel }}</span></td>
@@ -70,9 +70,9 @@ $(function () {
                             resolve(response);
                             return;
                         }
-                        if (response.payment_status === 'failed') {
+                        if (response.payment_status === 'failed' || response.payment_status === 'expired') {
                             if (paymentWindow && !paymentWindow.closed) paymentWindow.close();
-                            reject(new Error('Le paiement a échoué ou a été annulé.'));
+                            reject(new Error(response.payment_status === 'expired' ? 'Le délai de paiement a expiré.' : 'Le paiement a échoué ou a été annulé.'));
                             return;
                         }
                         if (Date.now() - startedAt >= 300000) {

@@ -158,32 +158,48 @@
                         <h1 class="page-header">
                             HISTORIQUE DES VENTES
                         </h1>
-                        <div class="card mt-3">
-                            <div class="card-body">
-                                <form id="searchForm">
-                                    @csrf
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <label class="form-label"><h4>Choisir la date</h4></label>
-                                            <!-- <input id="reportrange" class="btn btn-outline-theme d-flex align-items-center text-start"> -->
-                                            <input id="reportrange" type="text" class="form-control">
-                                        </div>
+                        <div class="accordion mt-3" id="salesFilterAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="salesFilterHeading">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#salesFilterCollapse" aria-expanded="false" aria-controls="salesFilterCollapse">
+                                        <i class="bi bi-funnel me-2"></i>Filtrer les ventes et le classement des produits
+                                    </button>
+                                </h2>
+                                <div id="salesFilterCollapse" class="accordion-collapse collapse" aria-labelledby="salesFilterHeading">
+                                    <div class="accordion-body">
+                                        <form id="searchForm">
+                                            @csrf
+                                            <div class="row g-3 align-items-end">
+                                                <div class="col-12 col-lg-4">
+                                                    <label for="reportrange" class="form-label">Période</label>
+                                                    <input id="reportrange" type="text" class="form-control">
+                                                </div>
+                                                <div class="col-12 col-md-6 col-lg-3">
+                                                    <label for="historyClient" class="form-label">Client</label>
+                                                    <select id="historyClient" class="form-select" data-placeholder="Tous les clients">
+                                                        <option value="">Tous les clients</option>
+                                                        @foreach($clients as $client)<option value="{{ $client->id }}">{{ $client->name }}</option>@endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-12 col-md-6 col-lg-3">
+                                                    <label for="historySupplier" class="form-label">Fournisseur</label>
+                                                    <select id="historySupplier" class="form-select" data-placeholder="Tous les fournisseurs">
+                                                        <option value="">Tous les fournisseurs</option>
+                                                        @foreach($suppliers as $supplier)<option value="{{ $supplier->id }}">{{ $supplier->name }}</option>@endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-12 col-lg-2 d-grid gap-2">
+                                                    <button id="submit" type="button" class="btn btn-info" data-loading-text="Filtrage…">
+                                                        <i class="bi bi-search me-1"></i>Filtrer
+                                                    </button>
+                                                    <button id="resetHistoryFilters" type="button" class="btn btn-outline-secondary btn-sm">Réinitialiser</button>
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted mt-3 mb-0">Le tableau, les statistiques, les exports et le classement des produits utiliseront les mêmes critères.</p>
+                                        </form>
                                     </div>
-                                    <div class="card-footer mt-1">
-                                        <button id="submit" type="button" class="btn btn-info" data-loading-text="Chargement…">
-                                            Valider
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="card-arrow">
-                                <div class="card-arrow-top-left"></div>
-                                <div class="card-arrow-top-right"></div>
-                                <div class="card-arrow-bottom-left"></div>
-                                <div class="card-arrow-bottom-right"></div>
-                            </div>
-                            <div class="hljs-container">
-                                <pre><code class="xml" data-url="assets/data/table-plugins/code-1.json"></code></pre>
+                                </div>
                             </div>
                         </div>
                         <hr class="mb-4">
@@ -304,6 +320,8 @@
                     url: "{{ route('history') }}",
                     data: function(d) {
                         d.daterange = $('#reportrange').val();
+                        d.client_id = $('#historyClient').val();
+                        d.supplier_id = $('#historySupplier').val();
                     }
                 },
                 columns: [
@@ -490,6 +508,8 @@
 
                 const params = new URLSearchParams({
                     daterange: $('#reportrange').val(),
+                    client_id: $('#historyClient').val(),
+                    supplier_id: $('#historySupplier').val(),
                     search: Datatable.search()
                 });
 
@@ -500,6 +520,8 @@
                 const button = this;
                 const params = new URLSearchParams({
                     daterange: $('#reportrange').val(),
+                    client_id: $('#historyClient').val(),
+                    supplier_id: $('#historySupplier').val(),
                     search: Datatable.search()
                 });
                 const baseUrl = "{{ route('history.export.tabular', ['format' => '__FORMAT__']) }}";
@@ -539,6 +561,26 @@
             }, cb);
             cb(start, end);
 
+            $('#resetHistoryFilters').on('click', function () {
+                const button = this;
+                $('#historyClient, #historySupplier').val('').trigger('change');
+                const picker = $('#reportrange').data('daterangepicker');
+                picker.setStartDate(moment().subtract(29, 'days'));
+                picker.setEndDate(moment());
+                const resetRequest = new Promise(function(resolve, reject) {
+                    Datatable.one('xhr.dt.historyReset', function(event, settings, json, xhr) {
+                        if (!json || (xhr && xhr.status >= 400) || json.error) {
+                            reject(new Error(json?.error || 'Impossible de réinitialiser les filtres.'));
+                            return;
+                        }
+                        resolve(json);
+                    });
+                    Datatable.ajax.reload(null, true);
+                });
+                window.ServerButtonLoader.withLoader(button, resetRequest, 'Réinitialisation…')
+                    .catch(error => Swal.fire({icon: 'error', title: 'Réinitialisation impossible', text: error.message}));
+            });
+
             $('body').on('click', '.view', function () {
                 var id = $(this).data("id");
                 $.ajax({
@@ -574,7 +616,7 @@
                             <div class="form-check form-switch"><input id="deliveryWhatsapp" class="form-check-input" type="checkbox" ${invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? 'checked' : 'disabled'}><label class="form-check-label" for="deliveryWhatsapp">WhatsApp (${invoiceWhatsappQuota})</label></div>
                             <div class="form-check form-switch"><input id="deliverySms" class="form-check-input" type="checkbox" ${invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : 'disabled'}><label class="form-check-label" for="deliverySms">SMS (${invoiceSmsQuota})</label></div>
                         </div>
-                        ${!invoiceWhatsappAuthorized && !invoiceSmsAuthorized ? `<div class="small text-warning mt-3">L’envoi doit d’abord être autorisé dans Communications &gt; SMS &amp; WhatsApp &gt; Configuration.@if($currentMembership?->hasPermission('notifications.manage')) <a href="{{ route('notifications.index') }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>@endif</div>` : ''}`,
+                        ${!invoiceWhatsappAuthorized && !invoiceSmsAuthorized ? `<div class="small text-warning mt-3">Activez WhatsApp ou SMS dans la section « Envoi des factures aux clients » de Communications &gt; SMS &amp; WhatsApp &gt; Configuration.@if($currentMembership?->hasPermission('notifications.manage')) <a href="{{ route('notifications.index') }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>@endif</div>` : ''}`,
                     showCancelButton: true,
                     confirmButtonText: 'Envoyer',
                     cancelButtonText: 'Annuler',

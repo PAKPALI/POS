@@ -2,31 +2,32 @@
 
 ## Synthèse
 
-Le POS est devenu un SaaS multi-entreprises fonctionnel et testable sur le staging O2switch. Le cœur métier, l’isolation des compagnies, les rôles, le POS, l’E-commerce, les notifications et l’achat de quotas sont opérationnels. Le travail restant concerne principalement la validation complète du staging, l’exploitation O2switch et la future couche d’abonnements.
+Le POS est devenu un SaaS multi-entreprises fonctionnel et validé sur le staging O2switch. Le cœur métier, l’isolation des compagnies, les rôles, le POS, l’E-commerce, les notifications, la PWA mobile et l’achat réel de quotas sont opérationnels. Les essais multi-compagnies, le paiement KPrimePay réel et l’absence de double crédit webhook ont été confirmés manuellement. Le travail restant concerne principalement l’exploitation, la sauvegarde, le pilote et la future couche d’abonnements.
 
 | Axe | Avancement | Situation actuelle |
 |---|---:|---|
-| Migration fonctionnelle SaaS | **97 %** | Socle multi-compagnies opérationnel |
-| Isolation et sécurité multi-tenant | **95 %** | Scopes, permissions, policies et contraintes SQL en place |
+| Migration fonctionnelle SaaS | **98 %** | Socle multi-compagnies validé sur staging |
+| Isolation et sécurité multi-tenant | **97 %** | Tests automatisés et essais réels multi-compagnies validés |
 | Utilisateurs, rôles et permissions | **97 %** | Rôle distinct par compagnie, invitations et changement de contexte |
-| POS, ventes, stock et caisses | **96 %** | Parcours métier transactionnels et optimisés |
+| POS, ventes, stock et caisses | **97 %** | Parcours métier transactionnels, historique filtrable et classement produits |
 | E-commerce multi-boutiques | **96 %** | Catalogue, recherche instantanée, commande et conversion en vente |
-| Notifications et communications | **95 %** | Destinataires, canaux, quotas, anti-doublon et identité de compagnie |
-| Paiement des quotas KPrimePay | **92 %** | Checkout réel, webhooks V1/V2 et crédit atomique validés |
-| PWA et expérience mobile | **90 %** | Installation et parcours adaptés ; recette staging mobile à terminer |
-| Performance et qualité locale | **96 %** | Tests, benchmarks, pagination SQL et exports volumineux |
-| Préparation production SaaS | **82 %** | Staging actif ; exploitation, sauvegarde et recette finale restantes |
+| Notifications et communications | **97 %** | Destinataires, canaux, quotas, pagination, anti-doublon et identité de compagnie |
+| Paiement des quotas KPrimePay | **99 %** | Paiement réel, webhooks V1/V2, anti-doublon et réconciliation automatique |
+| PWA et expérience mobile | **98 %** | Installation et connexion mobile validées sur staging |
+| Performance et qualité locale | **97 %** | 147 tests, benchmarks, pagination SQL et exports volumineux |
+| Préparation production SaaS | **96 %** | Staging, sauvegardes, supervision et délivrabilité validés ; pilote restant |
 | Abonnements SaaS | **0 %** | Volontairement différés jusqu’à définition des plans |
 
-Avancement général avant abonnements : **environ 95 % fonctionnel**. Préparation à une production commerciale : **environ 82 %**.
+Avancement général avant abonnements : **environ 98 % fonctionnel**. Préparation à une production commerciale : **environ 96 %**.
 
 ## Preuves de validation
 
-- Suite complète après correction de la connexion PWA : **143 tests réussis, 824 assertions, 0 échec**.
+- Suite complète actualisée le 27 août après la réconciliation KPrimePay : **147 tests réussis, 880 assertions, 0 échec**.
 - Benchmarks séparés disponibles pour gros volume MySQL, concurrence des ventes, charge des notifications et limites PDF.
 - Exports CSV et vrais classeurs Excel `.xlsx` disponibles pour Produits, Inventaire et Historique des ventes.
 - Laravel Excel est installé sur le staging O2switch et l’export y a été confirmé fonctionnel.
-- Le staging O2switch est désormais en cours de validation ; il ne doit pas encore être assimilé à la production commerciale.
+- Le staging O2switch a été validé fonctionnellement avec plusieurs compagnies, une PWA mobile opérationnelle et un paiement KPrimePay réel sans double crédit webhook.
+- Le propriétaire confirme également un test complet de sauvegarde/restauration, une surveillance des queues et tâches cron sur plusieurs jours, ainsi que la validation de la délivrabilité e-mail avec SPF, DKIM et DMARC.
 
 ## Fonctions SaaS terminées
 
@@ -58,6 +59,19 @@ Avancement général avant abonnements : **environ 95 % fonctionnel**. Préparat
 - Le footer mentionne la compagnie comme émetteur métier et réserve le nom de l’application au copyright dynamique.
 - Les boutons d’e-mail utilisent un texte blanc renforcé pour Gmail et Outlook.
 - Les derniers tests couvrent également l’envoi des factures par les canaux autorisés et la consommation des quotas.
+- Le menu `Communications > SMS & WhatsApp` centralise Configuration, Quota et Consommation.
+- Les alertes internes et l’envoi des factures clients sont clairement séparés dans la configuration.
+- Les notifications WhatsApp proactives de ventes et d’inventaire utilisent le modèle fournisseur approprié.
+- Le SMS d’inventaire possède un contenu compact accepté par le fournisseur, tandis que WhatsApp conserve le détail complet.
+- L’historique de consommation est paginé à 10 lignes par défaut avec choix 10/25/50 et conservation des filtres.
+
+## Historique des ventes et analyse
+
+- Le filtre de l’historique est regroupé dans un panneau repliable responsive.
+- Une période, un client et un fournisseur peuvent être combinés.
+- Le tableau, les indicateurs, les exports et le classement des produits partagent exactement le même périmètre.
+- Le filtre fournisseur retient les ventes contenant ses produits et limite le classement aux produits concernés.
+- La quantité totale vendue est calculée à partir des quantités, et non du simple nombre de lignes.
 
 ## Paiement KPrimePay
 
@@ -68,48 +82,33 @@ Avancement général avant abonnements : **environ 95 % fonctionnel**. Préparat
 - Toute confirmation est revérifiée auprès de KPrimePay avant crédit.
 - Montant, devise, référence et transaction locale sont contrôlés.
 - Le crédit des quotas est atomique et idempotent.
+- Les checkouts expirés encore en attente sont revérifiés automatiquement toutes les dix minutes puis classés `paid`, `failed` ou `expired`.
+- Le webhook et le scheduler partagent le même service atomique de règlement, empêchant un double crédit en cas de concurrence.
 - Dans la PWA, le paiement s’ouvre dans une fenêtre séparée ; la page surveille le statut local, ferme la fenêtre et se recharge après confirmation.
 - Une redirection complète reste disponible si les fenêtres sont bloquées.
 
 ## Point technique immédiat
 
-Les migrations suivantes sont présentes dans le code mais encore **en attente dans la base locale contrôlée le 27 août** :
-
-- `2026_08_26_140000_add_invoice_delivery_settings_and_client_phone` ;
-- `2026_08_27_100000_add_country_codes_for_messaging` ;
-- `2026_08_27_110000_create_communication_logs_and_permission`.
-
-Avant de poursuivre les tests manuels liés aux factures et communications, sauvegarder la base puis exécuter localement :
-
-```bash
-php artisan migrate
-php artisan migrate:status
-```
-
-Sur le staging, utiliser uniquement après sauvegarde :
+Toutes les migrations présentes dans le dépôt sont désormais **appliquées dans la base locale**, y compris les réglages de facture, les codes pays et le journal de consommation. Le staging doit être contrôlé séparément après chaque livraison :
 
 ```bash
 php artisan migrate --force
 php artisan optimize:clear
+php artisan queue:restart
 ```
 
-Vérifier séparément le statut des migrations du staging : le statut local ne prouve pas leur application sur O2switch.
+Le statut local ne prouve pas leur application sur O2switch. Toujours exécuter `php artisan migrate:status` sur le staging.
 
 ## Ce qui reste avant la production commerciale
 
-1. Appliquer et vérifier les trois migrations récentes en local puis sur le staging sauvegardé.
-2. Terminer une recette fonctionnelle complète sur le staging avec au moins deux compagnies et plusieurs rôles.
-3. Résoudre et valider définitivement la connexion depuis la PWA mobile du staging, y compris cookies, domaine de session et HTTPS.
-4. Tester les crons du scheduler et de la queue pendant plusieurs heures avec de vrais e-mails, SMS et WhatsApp.
-5. Vérifier KPrimePay en situation réelle : succès, échec, abandon, double webhook et retour tardif.
-6. Tester sauvegarde et restauration MySQL ainsi que `storage/app`.
-7. Vérifier SMTP, SPF, DKIM, DMARC et le nom d’expéditeur des différentes compagnies.
-8. Contrôler les journaux d’erreurs, jobs échoués et requêtes lentes sur O2switch.
-9. Réaliser un pilote limité avant ouverture générale.
-10. Définir ultérieurement plans, prix, essais et règles d’abonnement.
+1. Vérifier et archiver le statut des migrations à chaque livraison staging/production.
+2. Formaliser une procédure simple pour les erreurs, jobs échoués, quotas anormaux et paiements bloqués.
+3. Valider manuellement sur staging les scénarios KPrimePay abandonné, refusé et confirmé tardivement désormais couverts automatiquement côté serveur.
+4. Réaliser un pilote limité avec quelques entreprises avant l’ouverture générale.
+5. Définir ultérieurement plans, prix, essais et règles d’abonnement.
 
 ## Prochaine étape recommandée
 
-La prochaine phase est la **recette staging complète**, en commençant par les migrations en attente puis le parcours suivant : connexion mobile, changement de compagnie, vente, facture e-mail/SMS/WhatsApp, inventaire, commande E-commerce, paiement de quotas KPrimePay et contrôle des journaux/queues.
+La prochaine phase est le **pilote limité** et la formalisation de la procédure d’incident. Les sauvegardes/restaurations, la supervision prolongée des tâches et la délivrabilité e-mail sont confirmées.
 
-Le projet peut entrer en pilote après validation de cette recette, des sauvegardes et des tâches planifiées. Il n’est pas encore recommandé de l’ouvrir commercialement à grande échelle.
+Le projet est désormais suffisamment avancé pour entrer dans un pilote limité. L’ouverture commerciale à grande échelle reste conditionnée par la validation des sauvegardes, de la supervision et du retour du pilote.

@@ -26,7 +26,7 @@ class SaleInvoiceDeliveryService
 
         $results = [];
         if ($whatsapp) {
-            if (!$company->invoice_whatsapp_enabled) throw new RuntimeException('L’envoi de factures WhatsApp doit être autorisé dans Communications > SMS & WhatsApp > Configuration.');
+            if (!$company->invoice_whatsapp_enabled) throw new RuntimeException('Activez WhatsApp dans la section « Envoi des factures aux clients » de Communications > SMS & WhatsApp > Configuration.');
             if ($company->whatsapp_count < 1) throw new RuntimeException('Le quota WhatsApp est épuisé.');
             $path = tempnam(sys_get_temp_dir(), 'invoice_').'.pdf';
             try {
@@ -42,7 +42,7 @@ class SaleInvoiceDeliveryService
             }
         }
         if ($sms) {
-            if (!$company->invoice_sms_enabled) throw new RuntimeException('L’envoi de factures SMS doit être autorisé dans Communications > SMS & WhatsApp > Configuration.');
+            if (!$company->invoice_sms_enabled) throw new RuntimeException('Activez SMS dans la section « Envoi des factures aux clients » de Communications > SMS & WhatsApp > Configuration.');
             if ($company->sms_count < 1) throw new RuntimeException('Le quota SMS est épuisé.');
             $message = 'Facture n°'.$sale->code.' - Total: '.number_format((float) $sale->total_amount, 0, ',', ' ').' FCFA. Merci pour votre achat.';
             $response = $this->sms->sendSms($phone, $message, $countryCode, 'invoice');

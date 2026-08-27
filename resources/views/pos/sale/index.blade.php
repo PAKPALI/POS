@@ -713,7 +713,7 @@
                         </button>
                         @if(!$company->invoice_whatsapp_enabled && !$company->invoice_sms_enabled)
                             <div class="small text-warning mt-2">
-                                L’envoi doit d’abord être autorisé dans Communications &gt; SMS &amp; WhatsApp &gt; Configuration.
+                                Activez WhatsApp ou SMS dans la section « Envoi des factures aux clients » de Communications &gt; SMS &amp; WhatsApp &gt; Configuration.
                                 @if($currentMembership?->hasPermission('notifications.manage'))
                                     <a href="{{ route('notifications.index') }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>
                                 @endif

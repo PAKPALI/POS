@@ -13,6 +13,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\Sale;
+use App\Models\SaleDetail;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
@@ -153,7 +154,7 @@ class QueryOptimizationTest extends TestCase
             'created_by' => $owner->id,
             'status' => 1,
         ]);
-        Sale::create([
+        $sale = Sale::create([
             'company_id' => $company->id,
             'code' => 881122,
             'received_amount' => 5000,
@@ -165,6 +166,24 @@ class QueryOptimizationTest extends TestCase
             'tax_amount' => 0,
             'amount_init' => 5000,
             'client_id' => $client->id,
+        ]);
+        $category = Category::create([
+            'company_id' => $company->id, 'name' => 'Catégorie historique',
+            'created_by' => $owner->id, 'status' => 1,
+        ]);
+        $supplier = Supplier::create([
+            'company_id' => $company->id, 'name' => 'Fournisseur historique',
+            'created_by' => $owner->id, 'status' => 1,
+        ]);
+        $product = Product::create([
+            'company_id' => $company->id, 'category_id' => $category->id,
+            'supplier_id' => $supplier->id, 'name' => 'Produit classé',
+            'qte' => 10, 'margin' => 2, 'price' => 1500, 'purchase_price' => 1000,
+            'status' => 1, 'type' => 1, 'created_by' => $owner->id,
+        ]);
+        SaleDetail::create([
+            'company_id' => $company->id, 'sale_id' => $sale->id, 'product_id' => $product->id,
+            'quantity' => 3, 'unit_price' => 1500, 'total_price' => 4500, 'profit' => 1500,
         ]);
 
         $todayColumns = [
@@ -204,6 +223,17 @@ class QueryOptimizationTest extends TestCase
         ), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
 
         $this->assertSame(1, $historyResponse->json('recordsFiltered'));
+
+        $filteredHistory = $this->getJson($this->dataTableUrl(
+            route('history'),
+            $historyColumns,
+            '',
+            ['daterange' => $range, 'client_id' => $client->id, 'supplier_id' => $supplier->id]
+        ), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        $this->assertSame(1, $filteredHistory->json('recordsFiltered'));
+        $this->assertSame(3, (int) $filteredHistory->json('productCount'));
+        $this->assertSame($product->id, $filteredHistory->json('mostSoldProducts.0.product_id'));
+        $this->assertSame(3, (int) $filteredHistory->json('mostSoldProducts.0.total_quantity'));
     }
 
     public function test_product_table_searches_related_category_name(): void

@@ -26,6 +26,8 @@ class NotificationSettingsTest extends TestCase
             ->put(route('notifications.update'), [
                 'sale_email_enabled' => 1,
                 'sale_whatsapp_enabled' => 1,
+                'invoice_whatsapp_enabled' => 1,
+                'invoice_sms_enabled' => 1,
                 'inventory_sms_enabled' => 1,
                 'recipients' => [
                     'sale' => [$owner->id => ['email' => 1, 'whatsapp' => 1]],
@@ -45,6 +47,8 @@ class NotificationSettingsTest extends TestCase
         $this->assertTrue($company->sale_email_enabled);
         $this->assertFalse($company->inventory_email_enabled);
         $this->assertTrue($company->sale_whatsapp_enabled);
+        $this->assertTrue($company->invoice_whatsapp_enabled);
+        $this->assertTrue($company->invoice_sms_enabled);
         $this->assertTrue($company->inventory_sms_enabled);
     }
 

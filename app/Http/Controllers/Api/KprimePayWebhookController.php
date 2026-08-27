@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\CompanySetting;
 use App\Models\QuotaPayment;
 use App\Services\KprimePayService;
+use App\Services\QuotaPaymentSettlementService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Throwable;
 
 class KprimePayWebhookController extends Controller
 {
-    public function __invoke(Request $request, KprimePayService $kprimePay)
+    public function __invoke(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement)
     {
         $webhook = $this->normalizeWebhook($request, $request->all());
         if ($webhook === null) {
@@ -29,12 +29,7 @@ class KprimePayWebhookController extends Controller
 
         if ($webhook['event'] === 'collection.failed') {
             if ($payment->status !== 'paid') {
-                $payment->update([
-                    'event_id' => $webhook['event_id'],
-                    'status' => 'failed',
-                    'failure_reason' => substr($webhook['failure_reason'], 0, 255),
-                    'failed_at' => now(),
-                ]);
+                $settlement->markFailed($payment, $webhook['failure_reason'], $webhook['event_id']);
             }
             return response()->json(['status' => true]);
         }
@@ -49,29 +44,18 @@ class KprimePayWebhookController extends Controller
             return response()->json(['status' => false, 'message' => 'VERIFICATION_UNAVAILABLE'], 503);
         }
 
-        if (($verified['status'] ?? null) !== 'success'
-            || ($verified['transaction_currency'] ?? null) !== $payment->currency
-            || $webhook['currency'] !== $payment->currency
-            || (int) ($verified['transaction_amount'] ?? -1) !== (int) $payment->amount
-            || $webhook['amount'] !== (int) $payment->amount) {
+        if ($webhook['currency'] !== $payment->currency || $webhook['amount'] !== (int) $payment->amount) {
             return response()->json(['status' => false, 'message' => 'PAYMENT_MISMATCH'], 422);
         }
 
-        DB::transaction(function () use ($payment, $webhook): void {
-            $locked = QuotaPayment::withoutCompanyScope()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
-            if ($locked->status === 'paid') {
-                return;
+        try {
+            $settlement->creditVerified($payment, $verified, $webhook['event_id'], $webhook['kpp_reference']);
+        } catch (RuntimeException $exception) {
+            if ($exception->getMessage() === 'PAYMENT_MISMATCH') {
+                return response()->json(['status' => false, 'message' => 'PAYMENT_MISMATCH'], 422);
             }
-            CompanySetting::withoutGlobalScopes()->whereKey($locked->company_id)->increment('sms_count', $locked->sms_quantity);
-            CompanySetting::withoutGlobalScopes()->whereKey($locked->company_id)->increment('whatsapp_count', $locked->whatsapp_quantity);
-            $locked->update([
-                'event_id' => $webhook['event_id'],
-                'kpp_reference' => $webhook['kpp_reference'] ?: $locked->kpp_reference,
-                'status' => 'paid',
-                'paid_at' => now(),
-                'failure_reason' => null,
-            ]);
-        });
+            throw $exception;
+        }
 
         return response()->json(['status' => true, 'message' => 'CREDITED']);
     }

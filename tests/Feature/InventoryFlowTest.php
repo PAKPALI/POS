@@ -136,7 +136,10 @@ class InventoryFlowTest extends TestCase
             && (string) $request['phone_number'] === '90000000'
             && str_contains($request['title'], $this->company->name));
         Http::assertSent(fn ($request) => str_ends_with($request->url(), 'sms/push')
-            && (string) $request['phone_number'] === '90000000');
+            && (string) $request['phone_number'] === '90000000'
+            && str_contains($request['message'], 'INVENTAIRE ENTREE')
+            && !str_contains($request['message'], '📦')
+            && mb_strlen($request['message']) <= 160);
         $this->assertSame(1, (int) $this->company->fresh()->whatsapp_count);
         $this->assertSame(1, (int) $this->company->fresh()->sms_count);
         $this->assertDatabaseHas('notification_deliveries', [

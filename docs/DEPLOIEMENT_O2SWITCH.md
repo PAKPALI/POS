@@ -140,7 +140,7 @@ Dans **cPanel > Tâches cron**, créer deux tâches exécutées chaque minute. R
 * * * * * flock -n /home/UTILISATEUR_CPANEL/.proseller-schedule.lock -c 'cd /home/UTILISATEUR_CPANEL/proseller && /CHEMIN/PHP artisan schedule:run' >> /home/UTILISATEUR_CPANEL/proseller/storage/logs/scheduler.log 2>&1
 ```
 
-Il exécute notamment le nettoyage tenanté du journal, le rapport hebdomadaire d'inventaire et la rétention à 180 jours du registre idempotent des livraisons de notifications (`notifications:clean-deliveries`).
+Il exécute notamment le nettoyage tenanté du journal, le rapport hebdomadaire d'inventaire, la rétention à 180 jours du registre idempotent des livraisons de notifications (`notifications:clean-deliveries`) et la réconciliation des paiements KPrimePay expirés toutes les dix minutes (`payments:reconcile-kprimepay --limit=100`).
 
 ### E-mails et notifications en attente
 
@@ -155,7 +155,10 @@ Vérifications utiles :
 ```bash
 php artisan schedule:list
 php artisan queue:failed
+php artisan payments:reconcile-kprimepay --limit=100 --pretend
 ```
+
+Pour diagnostiquer un job échoué ou un paiement KPrimePay bloqué, suivre `docs/PROCEDURE_INCIDENTS_PAIEMENTS_JOBS.md`. Ne jamais utiliser `queue:retry all` ni créditer les quotas directement sans rapprochement avec KPrimePay.
 
 ## 10. Sauvegardes minimales
 

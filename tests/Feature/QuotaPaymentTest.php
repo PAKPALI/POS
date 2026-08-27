@@ -185,4 +185,60 @@ class QuotaPaymentTest extends TestCase
 
         $this->assertDatabaseCount('quota_payments', 0);
     }
+
+    public function test_reconciliation_settles_failed_and_expired_payments_without_double_credit(): void
+    {
+        config([
+            'services.kprimepay.base_url' => 'https://api.kprimepay.test/v2',
+            'services.kprimepay.token' => 'sandbox-secret',
+        ]);
+        $owner = User::factory()->create(['status' => 1]);
+        $company = $this->activateCompanyFor($owner, 'quota-reconciliation');
+        $makePayment = function (string $suffix, int $sms, int $whatsapp, int $amount) use ($owner, $company) {
+            return QuotaPayment::create([
+                'company_id' => $company->id,
+                'user_id' => $owner->id,
+                'transaction_id' => 'QUOTA-RECON-'.$suffix,
+                'idempotency_key' => 'quota-recon-'.strtolower($suffix),
+                'sms_quantity' => $sms,
+                'whatsapp_quantity' => $whatsapp,
+                'amount' => $amount,
+                'currency' => 'XOF',
+                'status' => 'pending',
+                'expires_at' => now()->subMinute(),
+            ]);
+        };
+        $paid = $makePayment('PAID', 2, 1, 100);
+        $failed = $makePayment('FAILED', 5, 0, 175);
+        $expired = $makePayment('EXPIRED', 0, 4, 120);
+
+        Http::fake(function (Request $request) {
+            $transactionId = (string) $request['transaction_id'];
+            $data = match (true) {
+                str_ends_with($transactionId, 'PAID') => [
+                    'status' => 'success', 'transaction_currency' => 'XOF',
+                    'transaction_amount' => 100, 'kpp_tx_reference' => 'KPP_RECON_PAID',
+                ],
+                str_ends_with($transactionId, 'FAILED') => [
+                    'status' => 'failed', 'failure_reason' => 'Solde insuffisant',
+                    'transaction_currency' => 'XOF', 'transaction_amount' => 175,
+                ],
+                default => ['status' => 'pending'],
+            };
+            return Http::response(['status' => true, 'data' => $data]);
+        });
+
+        $this->artisan('payments:reconcile-kprimepay')->assertSuccessful();
+        $this->assertSame('paid', $paid->fresh()->status);
+        $this->assertSame('KPP_RECON_PAID', $paid->fresh()->kpp_reference);
+        $this->assertSame('failed', $failed->fresh()->status);
+        $this->assertSame('Solde insuffisant', $failed->fresh()->failure_reason);
+        $this->assertSame('expired', $expired->fresh()->status);
+        $this->assertSame(2, (int) $company->fresh()->sms_count);
+        $this->assertSame(1, (int) $company->fresh()->whatsapp_count);
+
+        $this->artisan('payments:reconcile-kprimepay')->assertSuccessful();
+        $this->assertSame(2, (int) $company->fresh()->sms_count);
+        $this->assertSame(1, (int) $company->fresh()->whatsapp_count);
+    }
 }

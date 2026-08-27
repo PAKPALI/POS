@@ -13,6 +13,7 @@ class CommunicationLogController extends Controller
             'from' => ['nullable','date'], 'to' => ['nullable','date','after_or_equal:from'],
             'channel' => ['nullable', Rule::in(['sms','whatsapp'])],
             'function' => ['nullable', Rule::in(['sale','inventory','invoice','other'])],
+            'per_page' => ['nullable', Rule::in([10, 25, 50])],
         ]);
         $query = CommunicationLog::query()
             ->when($filters['from'] ?? null, fn ($q, $date) => $q->whereDate('sent_at', '>=', $date))
@@ -20,7 +21,7 @@ class CommunicationLogController extends Controller
             ->when($filters['channel'] ?? null, fn ($q, $value) => $q->where('channel', $value))
             ->when($filters['function'] ?? null, fn ($q, $value) => $q->where('function', $value));
         $totals = (clone $query)->selectRaw('channel, SUM(units) total')->groupBy('channel')->pluck('total', 'channel');
-        $logs = $query->latest('sent_at')->paginate(30)->withQueryString();
+        $logs = $query->latest('sent_at')->paginate((int) ($filters['per_page'] ?? 10))->withQueryString();
         return view('communications.index', compact('logs', 'totals', 'filters'));
     }
 }

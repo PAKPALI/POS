@@ -49,12 +49,17 @@ class SendInventoryWhatsappJob implements ShouldQueue
         }
 
         $message = $this->formatMessage($inventory);
+        $smsMessage = $this->formatSmsMessage($inventory);
         $smsService = app(SmsService::class);
         $recipientService = app(NotificationRecipientService::class);
         $deliveryService = app(NotificationDeliveryService::class);
         $hasFailures = false;
         if ($company->inventory_whatsapp_enabled) {
-            foreach ($recipientService->users($this->companyId, 'inventory', 'whatsapp') as $user) {
+            $whatsappRecipients = $recipientService->users($this->companyId, 'inventory', 'whatsapp');
+            if ($whatsappRecipients->isEmpty()) {
+                Log::warning('WhatsApp inventaire activé sans destinataire sélectionné', ['company_id' => $company->id]);
+            }
+            foreach ($whatsappRecipients as $user) {
                 try {
                     $sent = $deliveryService->deliver(
                         $company->id, 'inventory', $inventory->id, 'inventory', 'whatsapp', $user->id,
@@ -82,12 +87,16 @@ class SendInventoryWhatsappJob implements ShouldQueue
             }
         }
         if ($company->inventory_sms_enabled) {
-            foreach ($recipientService->users($this->companyId, 'inventory', 'sms') as $user) {
+            $smsRecipients = $recipientService->users($this->companyId, 'inventory', 'sms');
+            if ($smsRecipients->isEmpty()) {
+                Log::warning('SMS inventaire activé sans destinataire sélectionné', ['company_id' => $company->id]);
+            }
+            foreach ($smsRecipients as $user) {
                 try {
                     $deliveryService->deliver(
                         $company->id, 'inventory', $inventory->id, 'inventory', 'sms', $user->id,
-                        function () use ($smsService, $user, $message): void {
-                            $response = $smsService->sendSms($user->phone, $message, $user->country_code, 'inventory');
+                        function () use ($smsService, $user, $smsMessage): void {
+                            $response = $smsService->sendSms($user->phone, $smsMessage, $user->country_code, 'inventory');
                             if (($response['status'] ?? false) !== true) {
                                 throw new RuntimeException($response['message'] ?? 'Envoi SMS refusé par le fournisseur.');
                             }
@@ -128,5 +137,16 @@ class SendInventoryWhatsappJob implements ShouldQueue
             "Qté après: {$inventory->qte_after} | " .
             "Note: {$note} | _________".
             "Pour plus de détails, connectez-vous à PRO-SELLER pour voir les détails de l'inventaire et générer le rapport selon le filtre choisi.";
+    }
+
+    private function formatSmsMessage($inventory): string
+    {
+        $type = $inventory->type == 1 ? 'ENTREE' : 'SORTIE';
+        $product = mb_substr((string) ($inventory->product->name ?? 'Produit'), 0, 30);
+        $user = mb_substr((string) ($inventory->user->name ?? 'Inconnu'), 0, 20);
+        $movement = $inventory->type == 1 ? '+' : '-';
+
+        return "INVENTAIRE {$type} | {$product} | {$inventory->qte_before} -> {$inventory->qte_after} "
+            ."({$movement}{$inventory->qte_added}) | Par: {$user}";
     }
 }

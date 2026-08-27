@@ -17,6 +17,7 @@ use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Services\SmsService;
 use App\Services\CompanyContext;
@@ -537,7 +538,8 @@ class SaleController extends Controller
         $this->authorize('viewAny', Sale::class);
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
         if ($request->ajax()) {
-            $daterange = $request->daterange; // Exemple : "01/10/2024 - 31/10/2024"
+            $filters = $this->validatedHistoryFilters($request);
+            $daterange = $filters['daterange'] ?? null;
         
             if ($daterange) {
                 [$startDate, $endDate] = explode(' - ', $daterange);
@@ -549,21 +551,31 @@ class SaleController extends Controller
                 $endDate = Carbon::today()->format('Y-m-d 23:59:59');
             }
         
-            $summary = Sale::query()
-                ->whereBetween('created_at', [$startDate, $endDate])
+            $salesFilter = fn ($query) => $this->applyHistorySaleFilters(
+                $query,
+                $startDate,
+                $endDate,
+                $filters['client_id'] ?? null,
+                $filters['supplier_id'] ?? null
+            );
+
+            $summary = $salesFilter(Sale::query())
                 ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
                 ->selectRaw('COALESCE(SUM(total_profit), 0) as total_profit')
                 ->first();
             $totalProfit = $canViewFinancials
                 ? (float) $summary->total_profit
                 : null;
-            $productCount = SaleDetail::whereBetween('created_at', [$startDate, $endDate])->count();
+            $productDetails = SaleDetail::query()
+                ->whereHas('sale', $salesFilter)
+                ->when($filters['supplier_id'] ?? null, fn ($query, $supplierId) => $query
+                    ->whereHas('product', fn ($product) => $product->where('supplier_id', $supplierId)));
+            $productCount = (int) (clone $productDetails)->sum('quantity');
 
-            $mostSoldProducts = SaleDetail::query()
+            $mostSoldProducts = $productDetails
                 ->select('product_id')
                 ->selectRaw('SUM(quantity) as total_quantity')
                 ->with('product:id,name,image,price')
-                ->whereBetween('created_at', [$startDate, $endDate])
                 ->groupBy('product_id')
                 ->orderByDesc('total_quantity')
                 ->take(10)
@@ -576,10 +588,9 @@ class SaleController extends Controller
             if ($canViewFinancials) {
                 $columns[] = 'total_profit';
             }
-            $sales = Sale::query()
+            $sales = $salesFilter(Sale::query())
                 ->select($columns)
                 ->with('client:id,name,phone,country_code')
-                ->whereBetween('created_at', [$startDate, $endDate])
                 ->latest();
             $hasCompany = CompanySetting::query()->exists();
 
@@ -617,14 +628,43 @@ class SaleController extends Controller
         }
         
         $company = CompanySetting::first();
-        return view('pos.sale.history', compact('canViewFinancials', 'company'));
+        $clients = Client::query()->where('status', 1)->orderBy('name')->get(['id', 'name']);
+        $suppliers = Supplier::query()->where('status', 1)->orderBy('name')->get(['id', 'name']);
+        return view('pos.sale.history', compact('canViewFinancials', 'company', 'clients', 'suppliers'));
+    }
+
+    private function validatedHistoryFilters(Request $request): array
+    {
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
+        return $request->validate([
+            'daterange' => ['nullable', 'string', 'max:50'],
+            'client_id' => ['nullable', 'integer', Rule::exists('clients', 'id')->where(
+                fn ($query) => $query->where('company_id', $companyId)->where('status', 1)
+            )],
+            'supplier_id' => ['nullable', 'integer', Rule::exists('suppliers', 'id')->where(
+                fn ($query) => $query->where('company_id', $companyId)->where('status', 1)
+            )],
+        ]);
+    }
+
+    private function applyHistorySaleFilters($query, $startDate, $endDate, ?int $clientId, ?int $supplierId)
+    {
+        return $query
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->when($clientId, fn ($sales, $id) => $sales->where('sales.client_id', $id))
+            ->when($supplierId, fn ($sales, $id) => $sales->whereHas(
+                'saleDetails.product',
+                fn ($product) => $product->where('supplier_id', $id)
+            ));
     }
 
     public function exportHistoryPdf(Request $request)
     {
         $this->authorize('export', Sale::class);
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
-        $daterange = $request->get('daterange');
+        $filters = $this->validatedHistoryFilters($request);
+        $daterange = $filters['daterange'] ?? null;
         if ($daterange) {
             [$startDate, $endDate] = explode(' - ', $daterange);
             $startDate = Carbon::createFromFormat('d-m-Y', $startDate)->startOfDay();
@@ -634,8 +674,13 @@ class SaleController extends Controller
             $endDate = Carbon::today()->endOfDay();
         }
 
-        $query = Sale::with('saleDetails.product','client')
-            ->whereBetween('created_at', [$startDate, $endDate]);
+        $query = $this->applyHistorySaleFilters(
+            Sale::with('saleDetails.product','client'),
+            $startDate,
+            $endDate,
+            $filters['client_id'] ?? null,
+            $filters['supplier_id'] ?? null
+        );
 
         $search = trim((string) $request->get('search'));
         if ($search !== '') {
@@ -666,10 +711,14 @@ class SaleController extends Controller
             'total_profit' => $canViewFinancials ? $sales->sum('total_profit') : null,
         ];
 
+        $supplierId = $filters['supplier_id'] ?? null;
         $topProducts = $sales
             ->flatMap(function ($sale) {
                 return $sale->saleDetails;
             })
+            ->when($supplierId, fn ($details) => $details->filter(
+                fn ($detail) => (int) $detail->product?->supplier_id === (int) $supplierId
+            ))
             ->groupBy(function ($detail) {
                 return $detail->product_id ?: 'deleted';
             })
@@ -706,8 +755,9 @@ class SaleController extends Controller
     {
         $this->authorize('export', Sale::class);
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
-        if ($request->filled('daterange')) {
-            [$start, $end] = explode(' - ', $request->string('daterange')->toString());
+        $filters = $this->validatedHistoryFilters($request);
+        if (!empty($filters['daterange'])) {
+            [$start, $end] = explode(' - ', $filters['daterange']);
             $startDate = Carbon::createFromFormat('d-m-Y', trim($start))->startOfDay();
             $endDate = Carbon::createFromFormat('d-m-Y', trim($end))->endOfDay();
         } else {
@@ -715,9 +765,14 @@ class SaleController extends Controller
             $endDate = Carbon::today()->endOfDay();
         }
 
-        $query = Sale::query()
+        $query = $this->applyHistorySaleFilters(
+            Sale::query(),
+            $startDate,
+            $endDate,
+            $filters['client_id'] ?? null,
+            $filters['supplier_id'] ?? null
+        )
             ->leftJoin('clients', 'clients.id', '=', 'sales.client_id')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
             ->select([
                 'sales.code', 'sales.total_amount', 'sales.received_amount',
                 'sales.remaining_amount', 'sales.discount', 'sales.cashier',
