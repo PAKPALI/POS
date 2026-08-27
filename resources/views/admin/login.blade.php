@@ -11,15 +11,15 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email <span class="text-danger">*</span></label>
-                    <input type="text" name="email" class="form-control form-control-lg bg-inverse bg-opacity-5" value
-                        placeholder>
+                    <input type="email" name="email" class="form-control form-control-lg bg-inverse bg-opacity-5"
+                        autocomplete="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" required>
                 </div>
                 <div class="mb-3">
                     <div class="d-flex">
                         <label class="form-label">Mot de passe <span class="text-danger">*</span></label>
-                        <a href="#" class="ms-auto text-inverse text-decoration-none text-opacity-50">Mot de passe oublié?</a>
+                        <a href="{{ route('password.request') }}" class="ms-auto text-inverse text-decoration-none text-opacity-50">Mot de passe oublié ?</a>
                     </div>
-                    <input type="password" name="password" class="form-control form-control-lg bg-inverse bg-opacity-5" value placeholder>
+                    <input type="password" name="password" class="form-control form-control-lg bg-inverse bg-opacity-5" autocomplete="current-password" required>
                 </div>
                 <!-- <div class="mb-3">
                     <div class="form-check">
@@ -47,7 +47,7 @@
                 event.preventDefault();
                 $.ajax({
                     type: 'POST',
-                    url: "{{ route('login') }}",
+                    url: @json(route('login', [], false)),
                     data: $('#form_login').serialize(),
                     datatype: 'json',
                     success: function (data){
@@ -74,7 +74,8 @@
                                 text: data.msg,
                                 didClose: () => {
                                     // Redirection vers une route après la fermeture de l'alerte
-                                    window.location.assign(data.redirect_to);
+                                    const redirect = new URL(data.redirect_to, window.location.origin);
+                                    window.location.assign(redirect.pathname + redirect.search + redirect.hash);
                                 }
                             });
                         } else {
@@ -87,11 +88,15 @@
                             });
                         }
                     },
-                    error: function (data){
+                    error: function (xhr){
+                        const response = xhr.responseJSON || {};
+                        let message = response.msg || response.message || "Impossible de communiquer avec le serveur.";
+                        if (xhr.status === 419) message = "Votre session de connexion a expiré. Rechargez l’application puis réessayez.";
+                        if (xhr.status === 429 && response.msg) message = response.msg;
                         Swal.fire({
                             icon: "error",
-                            title: "Erreur",
-                            text: "Impossible de communiquer avec le serveur.",
+                            title: response.title || "Connexion impossible",
+                            text: message,
                             timer: 3600,
                         });
                     }

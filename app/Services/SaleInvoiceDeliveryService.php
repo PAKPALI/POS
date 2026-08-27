@@ -34,7 +34,7 @@ class SaleInvoiceDeliveryService
                 $upload = $this->sms->uploadWhatsappDocument($path);
                 $mediaId = data_get($upload, 'media_id') ?: data_get($upload, 'data.media_id');
                 if (!$mediaId) throw new RuntimeException('Le fournisseur n’a pas accepté la facture WhatsApp.');
-                $response = $this->sms->sendWhatsappDocument($phone, $mediaId, 'Votre facture n°'.$sale->code, $countryCode);
+                $response = $this->sms->sendWhatsappDocument($phone, $mediaId, 'Votre facture n°'.$sale->code, $countryCode, 'invoice');
                 if (($response['status'] ?? false) !== true) throw new RuntimeException($response['message'] ?? 'Échec de l’envoi WhatsApp.');
                 $results[] = 'WhatsApp';
             } finally {
@@ -45,7 +45,7 @@ class SaleInvoiceDeliveryService
             if (!$company->invoice_sms_enabled) throw new RuntimeException('L’envoi de factures SMS n’est pas autorisé dans les paramètres.');
             if ($company->sms_count < 1) throw new RuntimeException('Le quota SMS est épuisé.');
             $message = 'Facture n°'.$sale->code.' - Total: '.number_format((float) $sale->total_amount, 0, ',', ' ').' FCFA. Merci pour votre achat.';
-            $response = $this->sms->sendSms($phone, $message, $countryCode);
+            $response = $this->sms->sendSms($phone, $message, $countryCode, 'invoice');
             if (($response['status'] ?? false) !== true) throw new RuntimeException($response['message'] ?? 'Échec de l’envoi SMS.');
             $results[] = 'SMS';
         }

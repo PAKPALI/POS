@@ -63,7 +63,7 @@ class SendSaleWhatsappJob implements ShouldQueue
                     $sent = $deliveryService->deliver(
                         $company->id, 'sale', $sale->id, 'sale', 'whatsapp', $user->id,
                         function () use ($smsService, $user, $message): void {
-                            $response = $smsService->sendWhatsappSms($user->phone, 'Notification de vente', $message, $user->country_code);
+                            $response = $smsService->sendWhatsappSms($user->phone, 'Notification de vente', $message, $user->country_code, 'sale');
                             if (($response['status'] ?? false) !== true) {
                                 throw new RuntimeException('Envoi WhatsApp refusé par le fournisseur.');
                             }
@@ -90,7 +90,7 @@ class SendSaleWhatsappJob implements ShouldQueue
                     $deliveryService->deliver(
                         $company->id, 'sale', $sale->id, 'sale', 'sms', $user->id,
                         function () use ($smsService, $user, $message): void {
-                            $response = $smsService->sendSms($user->phone, $message, $user->country_code);
+                            $response = $smsService->sendSms($user->phone, $message, $user->country_code, 'sale');
                             if (($response['status'] ?? false) !== true) {
                                 throw new RuntimeException('Envoi SMS refusé par le fournisseur.');
                             }

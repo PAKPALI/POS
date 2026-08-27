@@ -233,6 +233,9 @@
 					</a>
 				</div>
 			@endif
+			@if($currentMembership?->hasPermission('communications.view'))
+				<div class="menu-item @if(Request::routeIs('communications.*')) active @endif"><a href="{{ route('communications.index') }}" class="menu-link"><span class="menu-icon"><i class="bi bi-graph-up-arrow"></i></span><span class="menu-text">Consommation messages</span></a></div>
+			@endif
 			<div class="menu-item @if(Request::route()->getName() === 'profil') active @endif">
 				<a href="{{ route('profil') }}" class="menu-link">
 					<span class="menu-icon"><i class="fas fa-id-badge"></i></span>

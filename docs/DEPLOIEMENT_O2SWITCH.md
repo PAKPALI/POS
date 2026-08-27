@@ -190,6 +190,7 @@ Puis tester manuellement :
 - invitations et réinitialisation du mot de passe ;
 - e-mails, SMS et WhatsApp selon les autorisations ;
 - installation PWA depuis Android et Safari/iPhone ;
+- connexion depuis la PWA installée, fermeture complète puis réouverture : la session doit reprendre via `/home` sans revenir artificiellement au formulaire ;
 - page 403 et menus selon les permissions ;
 - page hors connexion de la PWA.
 - exports CSV et Excel des produits, de l'inventaire et des ventes ; vérifier que le fichier Excel téléchargé porte bien l'extension `.xlsx` et s'ouvre sans réparation.
@@ -270,6 +271,7 @@ Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode main
 - [ ] Test avec au moins deux compagnies
 - [ ] Test des permissions avec un utilisateur non administrateur
 - [ ] PWA installée et testée sous HTTPS
+- [ ] Connexion, fermeture et réouverture de la PWA validées sur le domaine canonique exact (`www` ou sans `www`)
 - [ ] Upload d’un fichier `.php` refusé et accès à `/images/test.php` bloqué
 - [ ] Signature du callback SMS vérifiée avec le fournisseur
 - [ ] En-têtes HSTS, CSP Report-Only, Referrer-Policy et Permissions-Policy présents

@@ -76,7 +76,7 @@ class SecurityRemediationTest extends TestCase
         ]);
 
         $this->postJson('/login', [
-            'email' => 'role-based@test.local',
+            'email' => '  ROLE-BASED@TEST.LOCAL  ',
             'password' => 'CorrectPassword123',
         ])->assertOk()->assertJson([
             'status' => true,

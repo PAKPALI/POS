@@ -95,6 +95,9 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        $request->merge([
+            'email' => mb_strtolower(trim((string) $request->input('email'))),
+        ]);
         $throttleKey = Str::lower((string) $request->input('email')).'|'.$request->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             return response()->json([

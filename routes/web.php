@@ -11,6 +11,7 @@ use App\Http\Controllers\Company\CompanyController;
 use App\Http\Controllers\Company\SwitchCompanyController;
 use App\Http\Controllers\Company\NotificationSettingController;
 use App\Http\Controllers\SmsQuotaController;
+use App\Http\Controllers\CommunicationLogController;
 use App\Http\Controllers\Component\CategoryController;
 use App\Http\Controllers\Component\ClientController;
 use App\Http\Controllers\Component\InventoryController;
@@ -265,6 +266,9 @@ Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.select
     Route::get('notifications', [NotificationSettingController::class, 'index'])->name('notifications.index');
     Route::put('notifications', [NotificationSettingController::class, 'update'])->name('notifications.update');
 });
+Route::get('setting/communications', [CommunicationLogController::class, 'index'])
+    ->middleware(['auth', 'company.resolve', 'company.selected', 'permission:communications.view'])
+    ->name('communications.index');
 
 Auth::routes();
 Route::get('/home', fn () => redirect(app(\App\Services\AuthorizedLandingPage::class)->forUser(

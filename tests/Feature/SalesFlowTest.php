@@ -147,6 +147,10 @@ class SalesFlowTest extends TestCase
 
         $this->assertSame(0, (int) $this->company->fresh()->sms_count);
         Http::assertSent(fn ($request) => $request['country'] === 'BJ' && $request['phone_number'] === '90000000');
+        $this->assertDatabaseHas('communication_logs', [
+            'company_id' => $this->company->id, 'channel' => 'sms', 'function' => 'invoice',
+            'recipient' => '90000000', 'country_code' => 'BJ', 'units' => 1,
+        ]);
     }
 
     public function test_whatsapp_invoice_uses_documented_endpoints_and_country_payload(): void

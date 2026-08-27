@@ -26,6 +26,7 @@ class CompanyProvisioner
         'company.manage' => 'Paramètres de la compagnie',
         'notifications.manage' => 'Gérer les notifications',
         'quota.manage' => 'Acheter des quotas SMS et WhatsApp',
+        'communications.view' => 'Voir la consommation SMS et WhatsApp',
         'reports.view_margin' => 'Marges et bénéfices',
     ];
 
@@ -85,7 +86,7 @@ class CompanyProvisioner
                 [
                     'default_cash_id' => $mainCash->id,
                     'tax_cash_id' => $taxCash->id,
-                    'default_tax' => $defaultTax ?? 0,
+                    'default_tax' => $defaultTax,
                 ]
             );
 

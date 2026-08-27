@@ -4,6 +4,10 @@ Dernière mise à jour : 25 août 2026 — après le troisième lot d’optimisa
 
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
 
+Rapport actuel au 27 août 2026 : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-27.md`. Référence automatique après correction PWA : **143 tests, 824 assertions, 0 échec**. Trois migrations récentes concernant les factures, indicatifs pays et journaux de communications sont encore en attente dans la base locale ; les appliquer seulement après sauvegarde et contrôler séparément le staging.
+
+Correctif connexion PWA staging du 27 août : le manifeste démarre désormais sur `/home` au lieu de `/`, le cache passe à `pro-seller-pwa-v4`, le POST de connexion est relatif à l’origine installée et la redirection reçue est ramenée au même hôte. L’e-mail mobile est normalisé (espaces/majuscules) et les erreurs 419/429 sont explicites. Après déploiement, supprimer l’ancien raccourci PWA, ouvrir le domaine HTTPS canonique dans Safari/Chrome, recharger puis réinstaller l’application.
+
 Rapport consolidé destiné au propriétaire : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-25.md`. Il résume les acquis, les pourcentages, les risques résiduels et l’ordre recommandé avant le pilote.
 
 Rapport de charge reproductible : `docs/RAPPORT_TEST_VOLUME_SAAS_2026-08-25.md`. Le benchmark MySQL isolé utilise uniquement une base `*_testing`, charge jusqu’à 100 000 lignes de vente détaillées et ne doit pas être ajouté à la suite quotidienne.

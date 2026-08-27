@@ -40,7 +40,7 @@ class CompanyOnboardingTest extends TestCase
         $this->assertDatabaseHas('cash_accounts', [
             'company_id' => $company->id, 'name' => 'Caisse de taxe', 'is_default' => 0, 'is_tax' => 1,
         ]);
-        $this->assertDatabaseHas('settings', ['company_id' => $company->id, 'default_tax' => 0]);
+        $this->assertDatabaseHas('settings', ['company_id' => $company->id, 'default_tax' => null]);
     }
 
     public function test_company_name_is_required_during_registration(): void
