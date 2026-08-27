@@ -72,6 +72,8 @@ class AuthNavigationTest extends TestCase
 
         $this->assertSame('/home', $manifest['start_url']);
         $this->assertStringContainsString('pro-seller-pwa-v4', file_get_contents(public_path('sw.js')));
+        $this->assertStringContainsString('beforeinstallprompt', file_get_contents(public_path('pwa-register.js')));
+        $this->assertStringContainsString('android-pwa-install-prompt', file_get_contents(public_path('pwa-register.js')));
         $this->get('/home')->assertRedirect(route('user_login'));
     }
 }

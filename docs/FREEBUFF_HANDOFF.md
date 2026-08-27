@@ -8,6 +8,8 @@ Rapport actuel au 27 août 2026 : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-27.md`. 
 
 Correctif connexion PWA staging du 27 août : le manifeste démarre désormais sur `/home` au lieu de `/`, le cache passe à `pro-seller-pwa-v4`, le POST de connexion est relatif à l’origine installée et la redirection reçue est ramenée au même hôte. L’e-mail mobile est normalisé (espaces/majuscules) et les erreurs 419/429 sont explicites. Après déploiement, supprimer l’ancien raccourci PWA, ouvrir le domaine HTTPS canonique dans Safari/Chrome, recharger puis réinstaller l’application.
 
+Installation Android : `public/pwa-register.js` intercepte désormais `beforeinstallprompt` et affiche une bannière interne avec logo, « Plus tard » et « Installer ». Le refus est mémorisé 7 jours, l’installation masque la bannière et le bouton présente un loader pendant l’invite système. La bannière n’apparaît que si Chrome juge la PWA installable ; HTTPS, manifeste, service worker et absence d’installation existante restent obligatoires.
+
 Rapport consolidé destiné au propriétaire : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-25.md`. Il résume les acquis, les pourcentages, les risques résiduels et l’ordre recommandé avant le pilote.
 
 Rapport de charge reproductible : `docs/RAPPORT_TEST_VOLUME_SAAS_2026-08-25.md`. Le benchmark MySQL isolé utilise uniquement une base `*_testing`, charge jusqu’à 100 000 lignes de vente détaillées et ne doit pas être ajouté à la suite quotidienne.

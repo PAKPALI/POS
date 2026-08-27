@@ -190,6 +190,7 @@ Puis tester manuellement :
 - invitations et réinitialisation du mot de passe ;
 - e-mails, SMS et WhatsApp selon les autorisations ;
 - installation PWA depuis Android et Safari/iPhone ;
+- sur Android éligible, affichage de la bannière interne « Installer PRO-SELLER » et lancement de l’invite système ;
 - connexion depuis la PWA installée, fermeture complète puis réouverture : la session doit reprendre via `/home` sans revenir artificiellement au formulaire ;
 - page 403 et menus selon les permissions ;
 - page hors connexion de la PWA.
