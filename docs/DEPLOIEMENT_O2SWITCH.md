@@ -191,6 +191,7 @@ Puis tester manuellement :
 - e-mails, SMS et WhatsApp selon les autorisations ;
 - installation PWA depuis Android et Safari/iPhone ;
 - sur Android éligible, affichage de la bannière interne « Installer PRO-SELLER » et lancement de l’invite système ;
+- sur les navigateurs mobiles sans API d’installation, affichage après quelques secondes d’un guide indiquant l’option du menu « Installer l’application » ou « Ajouter à l’écran d’accueil » ;
 - connexion depuis la PWA installée, fermeture complète puis réouverture : la session doit reprendre via `/home` sans revenir artificiellement au formulaire ;
 - page 403 et menus selon les permissions ;
 - page hors connexion de la PWA.

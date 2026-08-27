@@ -19,7 +19,7 @@ class EnsurePermission
         'ecommerce.manage' => 'à la gestion de la boutique en ligne',
         'members.manage' => 'à la gestion des utilisateurs et des rôles',
         'company.manage' => 'aux paramètres de la compagnie',
-        'notifications.manage' => 'aux paramètres des notifications',
+        'notifications.manage' => 'à la configuration des communications SMS, WhatsApp et e-mail',
         'quota.manage' => 'à l’achat des quotas SMS et WhatsApp',
         'reports.view_margin' => 'aux marges et bénéfices',
     ];

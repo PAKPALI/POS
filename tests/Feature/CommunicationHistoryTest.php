@@ -20,7 +20,12 @@ class CommunicationHistoryTest extends TestCase
         CommunicationLog::create(['channel'=>'whatsapp','function'=>'sale','recipient'=>'91000000','country_code'=>'BJ','units'=>1,'sent_at'=>now()]);
 
         $this->actingAs($owner)->get(route('communications.index', ['channel'=>'sms','function'=>'invoice']))
-            ->assertOk()->assertSee('90000000')->assertDontSee('91000000');
+            ->assertOk()
+            ->assertSee('90000000')->assertDontSee('91000000')
+            ->assertSee('SMS & WhatsApp', false)
+            ->assertSeeText('Configuration')
+            ->assertSeeText('Quota')
+            ->assertSeeText('Consommation');
 
         $member = User::create(['name'=>'Member','email'=>Str::random(8).'@test.local','password'=>'password','status'=>1]);
         $role = $this->company->roles()->create(['name'=>'Sans historique','key'=>'no-history']);

@@ -573,7 +573,8 @@
                         <div class="d-flex justify-content-center gap-4 mt-3">
                             <div class="form-check form-switch"><input id="deliveryWhatsapp" class="form-check-input" type="checkbox" ${invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? 'checked' : 'disabled'}><label class="form-check-label" for="deliveryWhatsapp">WhatsApp (${invoiceWhatsappQuota})</label></div>
                             <div class="form-check form-switch"><input id="deliverySms" class="form-check-input" type="checkbox" ${invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : 'disabled'}><label class="form-check-label" for="deliverySms">SMS (${invoiceSmsQuota})</label></div>
-                        </div>`,
+                        </div>
+                        ${!invoiceWhatsappAuthorized && !invoiceSmsAuthorized ? `<div class="small text-warning mt-3">L’envoi doit d’abord être autorisé dans Communications &gt; SMS &amp; WhatsApp &gt; Configuration.@if($currentMembership?->hasPermission('notifications.manage')) <a href="{{ route('notifications.index') }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>@endif</div>` : ''}`,
                     showCancelButton: true,
                     confirmButtonText: 'Envoyer',
                     cancelButtonText: 'Annuler',

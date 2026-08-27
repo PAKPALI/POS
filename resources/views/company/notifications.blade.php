@@ -11,8 +11,8 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h1 class="page-header mb-1">Notifications</h1>
-            <p class="text-muted mb-0">Autorisations et destinataires pour {{ $company->name }}</p>
+            <h1 class="page-header mb-1">Configuration SMS &amp; WhatsApp</h1>
+            <p class="text-muted mb-0">Canaux d’envoi et destinataires pour {{ $company->name }}</p>
         </div>
     </div>
 

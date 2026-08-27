@@ -712,7 +712,12 @@
                             <i class="bi bi-whatsapp me-1"></i> Envoyer la facture
                         </button>
                         @if(!$company->invoice_whatsapp_enabled && !$company->invoice_sms_enabled)
-                            <div class="small text-warning mt-2">L’envoi doit d’abord être autorisé dans Paramètres &gt; Notifications.</div>
+                            <div class="small text-warning mt-2">
+                                L’envoi doit d’abord être autorisé dans Communications &gt; SMS &amp; WhatsApp &gt; Configuration.
+                                @if($currentMembership?->hasPermission('notifications.manage'))
+                                    <a href="{{ route('notifications.index') }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>
+                                @endif
+                            </div>
                         @endif
                     </div>
                 </div>

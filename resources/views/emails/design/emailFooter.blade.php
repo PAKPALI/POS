@@ -1,6 +1,6 @@
 @php
     $emailCompany = isset($company) ? $company : (isset($invitation) ? $invitation->company : null);
-    $emailCompanyName = $emailCompany?->name ?? 'Votre entreprise';
+    $emailCompanyName = $emailCompany?->name ?? config('app.name');
 @endphp
 <div class="footer">
     <p style="margin-bottom:8px;">Cet e-mail vous est envoyé par <strong style="color:#ff5b57;">{{ $emailCompanyName }}</strong>.</p>

@@ -224,17 +224,32 @@
 					</a>
 				</div>
 			@endif
-			@if($currentMembership?->hasPermission('quota.manage'))
+			@if($currentMembership?->hasPermission('notifications.manage') || $currentMembership?->hasPermission('quota.manage') || $currentMembership?->hasPermission('communications.view'))
 				<div class="menu-header">COMMUNICATIONS</div>
-				<div class="menu-item @if(Request::route()->getName() === 'sms-quota.index') active @endif">
-					<a href="{{ route('sms-quota.index') }}" class="menu-link">
-						<span class="menu-icon"><i class="bi bi-chat-left-text"></i></span>
-						<span class="menu-text">Quotas SMS & WhatsApp</span>
+				<div class="menu-item has-sub @if(Request::routeIs('notifications.*') || Request::routeIs('sms-quota.*') || Request::routeIs('communications.*')) active @endif">
+					<a href="javascript:;" class="menu-link">
+						<span class="menu-icon"><i class="bi bi-chat-dots"></i></span>
+						<span class="menu-text">SMS & WhatsApp</span>
+						<span class="menu-caret"><b class="caret"></b></span>
 					</a>
+					<div class="menu-submenu">
+						@if($currentMembership?->hasPermission('notifications.manage'))
+							<div class="menu-item @if(Request::routeIs('notifications.*')) active @endif">
+								<a href="{{ route('notifications.index') }}" class="menu-link"><span class="menu-text">Configuration</span></a>
+							</div>
+						@endif
+						@if($currentMembership?->hasPermission('quota.manage'))
+							<div class="menu-item @if(Request::routeIs('sms-quota.*')) active @endif">
+								<a href="{{ route('sms-quota.index') }}" class="menu-link"><span class="menu-text">Quota</span></a>
+							</div>
+						@endif
+						@if($currentMembership?->hasPermission('communications.view'))
+							<div class="menu-item @if(Request::routeIs('communications.*')) active @endif">
+								<a href="{{ route('communications.index') }}" class="menu-link"><span class="menu-text">Consommation</span></a>
+							</div>
+						@endif
+					</div>
 				</div>
-			@endif
-			@if($currentMembership?->hasPermission('communications.view'))
-				<div class="menu-item @if(Request::routeIs('communications.*')) active @endif"><a href="{{ route('communications.index') }}" class="menu-link"><span class="menu-icon"><i class="bi bi-graph-up-arrow"></i></span><span class="menu-text">Consommation messages</span></a></div>
 			@endif
 			<div class="menu-item @if(Request::route()->getName() === 'profil') active @endif">
 				<a href="{{ route('profil') }}" class="menu-link">
@@ -242,9 +257,9 @@
 					<span class="menu-text">Profil</span>
 				</a>
 			</div>
-			@if($currentMembership?->hasPermission('company.manage') || $currentMembership?->hasPermission('notifications.manage'))
+			@if($currentMembership?->hasPermission('company.manage'))
 			<div class="menu-header">PARAMETRES</div>
-			<div class="menu-item has-sub @if(Request::route()->getName() === 'company.index' || Request::routeIs('notifications.*')) active @endif">
+			<div class="menu-item has-sub @if(Request::route()->getName() === 'company.index') active @endif">
 				<a href="javascript:;" class="menu-link">
 					<div class="menu-icon">
 						<i class="bi bi-gear"></i>
@@ -257,13 +272,6 @@
 					<div class="menu-item @if(Request::route()->getName() === 'company.index') active @endif">
 						<a href="{{ route('company.index') }}" class="menu-link">
 							<div class="menu-text">Compagnie</div>
-						</a>
-					</div>
-					@endif
-					@if($currentMembership?->hasPermission('notifications.manage'))
-					<div class="menu-item @if(Request::routeIs('notifications.*')) active @endif">
-						<a href="{{ route('notifications.index') }}" class="menu-link">
-							<div class="menu-text">Notifications</div>
 						</a>
 					</div>
 					@endif

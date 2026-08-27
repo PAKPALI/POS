@@ -3,6 +3,7 @@
 
     const IOS_INSTALL_DISMISSED_KEY = 'pro-seller-ios-install-dismissed-at';
     const ANDROID_INSTALL_DISMISSED_KEY = 'pro-seller-android-install-dismissed-at';
+    const MOBILE_INSTALL_DISMISSED_KEY = 'pro-seller-mobile-install-dismissed-at';
     const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000;
     let deferredInstallPrompt = null;
     let pageLoaded = document.readyState === 'complete';
@@ -10,6 +11,10 @@
     function isIosDevice() {
         return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function isMobileDevice() {
+        return isIosDevice() || /android|mobile|opera mini|iemobile/i.test(navigator.userAgent);
     }
 
     function isStandalone() {
@@ -124,15 +129,77 @@
         document.body.appendChild(prompt);
     }
 
+    function showMobileFallbackGuide() {
+        if (!isMobileDevice() || isIosDevice() || isStandalone() || deferredInstallPrompt) return;
+        if (document.getElementById('mobile-pwa-install-fallback')) return;
+        try {
+            const dismissedAt = Number(localStorage.getItem(MOBILE_INSTALL_DISMISSED_KEY));
+            if (dismissedAt > 0 && Date.now() - dismissedAt < DISMISS_DURATION) return;
+        } catch (error) {}
+
+        const style = document.createElement('style');
+        style.id = 'mobile-pwa-fallback-style';
+        style.textContent = `
+            #mobile-pwa-install-fallback { position:fixed; left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom)); z-index:2147482999; max-width:520px; margin:auto; padding:15px; color:#f8fafc; background:rgba(15,23,42,.98); border:1px solid #334155; border-radius:18px; box-shadow:0 20px 55px rgba(0,0,0,.42); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+            .mobile-pwa-fallback-head { display:flex; align-items:center; gap:12px; }
+            .mobile-pwa-fallback-icon { width:52px; height:52px; flex:0 0 52px; border-radius:13px; background:#fff; }
+            .mobile-pwa-fallback-copy { min-width:0; flex:1; }
+            .mobile-pwa-fallback-copy strong { display:block; margin-bottom:3px; font-size:15px; }
+            .mobile-pwa-fallback-copy span { display:block; color:#cbd5e1; font-size:12px; line-height:1.4; }
+            .mobile-pwa-fallback-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:13px; }
+            .mobile-pwa-fallback-actions button { min-height:40px; padding:8px 14px; border-radius:10px; font-size:13px; font-weight:750; }
+            .mobile-pwa-fallback-later { color:#cbd5e1; background:transparent; border:1px solid #475569; }
+            .mobile-pwa-fallback-help { color:#fff; background:#168b5b; border:1px solid #168b5b; }
+            .mobile-pwa-fallback-steps { display:none; margin-top:12px; padding:12px; color:#e2e8f0; background:#1e293b; border-radius:11px; font-size:13px; line-height:1.55; }
+            .mobile-pwa-fallback-steps.open { display:block; }
+            @media (min-width:600px) { #mobile-pwa-install-fallback { left:auto; right:22px; bottom:22px; width:430px; } }
+        `;
+        const guide = document.createElement('aside');
+        guide.id = 'mobile-pwa-install-fallback';
+        guide.setAttribute('role', 'dialog');
+        guide.setAttribute('aria-label', 'Installer PRO-SELLER');
+        guide.innerHTML = `
+            <div class="mobile-pwa-fallback-head">
+                <img class="mobile-pwa-fallback-icon" src="/icons/icon-192.png" alt="">
+                <div class="mobile-pwa-fallback-copy">
+                    <strong>Installer PRO-SELLER</strong>
+                    <span>Votre navigateur permet l’installation depuis son menu.</span>
+                </div>
+            </div>
+            <div class="mobile-pwa-fallback-steps">Ouvrez le menu <strong>⋮</strong> ou le menu principal du navigateur, puis choisissez <strong>Installer l’application</strong>, <strong>Ajouter à l’écran d’accueil</strong> ou une option équivalente.</div>
+            <div class="mobile-pwa-fallback-actions">
+                <button class="mobile-pwa-fallback-later" type="button">Plus tard</button>
+                <button class="mobile-pwa-fallback-help" type="button">Comment installer</button>
+            </div>
+        `;
+        guide.querySelector('.mobile-pwa-fallback-later').addEventListener('click', function () {
+            try { localStorage.setItem(MOBILE_INSTALL_DISMISSED_KEY, String(Date.now())); } catch (error) {}
+            guide.remove();
+            style.remove();
+        });
+        guide.querySelector('.mobile-pwa-fallback-help').addEventListener('click', function () {
+            guide.querySelector('.mobile-pwa-fallback-steps').classList.toggle('open');
+        });
+        document.head.appendChild(style);
+        document.body.appendChild(guide);
+    }
+
+    function removeMobileFallbackGuide() {
+        document.getElementById('mobile-pwa-install-fallback')?.remove();
+        document.getElementById('mobile-pwa-fallback-style')?.remove();
+    }
+
     window.addEventListener('beforeinstallprompt', function (event) {
         event.preventDefault();
         deferredInstallPrompt = event;
+        removeMobileFallbackGuide();
         if (pageLoaded) showAndroidInstallPrompt();
     });
 
     window.addEventListener('appinstalled', function () {
         deferredInstallPrompt = null;
         removeAndroidInstallPrompt();
+        removeMobileFallbackGuide();
         try { localStorage.removeItem(ANDROID_INSTALL_DISMISSED_KEY); } catch (error) {}
     });
 
@@ -196,6 +263,7 @@
         pageLoaded = true;
         showIosInstallGuide();
         showAndroidInstallPrompt();
+        window.setTimeout(showMobileFallbackGuide, 4000);
 
         if (!('serviceWorker' in navigator)) return;
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
