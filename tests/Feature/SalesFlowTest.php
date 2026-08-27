@@ -142,10 +142,31 @@ class SalesFlowTest extends TestCase
         $sale = Sale::latest()->firstOrFail();
 
         $this->actingAs($this->user)->postJson(route('sale.send-invoice', $sale), [
-            'phone' => '90000000', 'whatsapp' => false, 'sms' => true,
+            'phone' => '90000000', 'country_code' => 'BJ', 'whatsapp' => false, 'sms' => true,
         ])->assertOk()->assertJson(['status' => true]);
 
         $this->assertSame(0, (int) $this->company->fresh()->sms_count);
+        Http::assertSent(fn ($request) => $request['country'] === 'BJ' && $request['phone_number'] === '90000000');
+    }
+
+    public function test_whatsapp_invoice_uses_documented_endpoints_and_country_payload(): void
+    {
+        Queue::fake();
+        Http::fakeSequence()
+            ->push(['status' => true, 'media_id' => 'media-123'], 200)
+            ->push(['status' => true, 'message_id' => 'wa-123'], 200);
+        $this->company->update(['invoice_whatsapp_enabled' => true, 'whatsapp_count' => 1]);
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+
+        $this->actingAs($this->user)->postJson(route('sale.send-invoice', $sale), [
+            'phone' => '0700000000', 'country_code' => 'CI', 'whatsapp' => true, 'sms' => false,
+        ])->assertJson(['status' => true, 'whatsappQuota' => 0])->assertOk();
+
+        Http::assertSent(fn ($request) => isset($request['media_id']) && $request['media_id'] === 'media-123'
+            && $request['country'] === 'CI'
+            && $request['phone_number'] === '0700000000'
+            && $request['response_url'] === config('services.kprimesms.response_url'));
     }
 
     public function test_disabled_sale_channels_prevent_whatsapp_and_sms_requests(): void

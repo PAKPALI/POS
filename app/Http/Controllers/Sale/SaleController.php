@@ -61,7 +61,7 @@ class SaleController extends Controller
 
             $sales = Sale::query()
                 ->select($columns)
-                ->with('client:id,name,phone')
+                ->with('client:id,name,phone,country_code')
                 ->whereBetween('created_at', [$dayStart, $dayEnd])
                 ->latest();
 
@@ -284,6 +284,7 @@ class SaleController extends Controller
         $this->authorize('view', $sale);
         $validated = $request->validate([
             'phone' => ['required', 'digits_between:6,15'],
+            'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
             'whatsapp' => ['required', 'boolean'],
             'sms' => ['required', 'boolean'],
         ], [
@@ -294,6 +295,7 @@ class SaleController extends Controller
             $channels = $delivery->deliver(
                 $sale->loadMissing('saleDetails.product'),
                 $validated['phone'],
+                $validated['country_code'] ?? (CompanySetting::first()?->country_code ?? 'TG'),
                 (bool) $validated['whatsapp'],
                 (bool) $validated['sms']
             );
@@ -327,6 +329,7 @@ class SaleController extends Controller
             'saleId' => $sale->id,
             'hasClient' => (bool) $sale->client_id,
             'clientPhone' => $sale->client?->phone,
+            'clientCountryCode' => $sale->client?->country_code ?: $company->country_code,
             'allowDelivery' => true,
             'receiptHtml' => view('pos.receipt', compact('sale', 'company') + ['saleDetails' => $sale->saleDetails])->render(),
             'smsQuota' => (int) $company->sms_count,
@@ -575,7 +578,7 @@ class SaleController extends Controller
             }
             $sales = Sale::query()
                 ->select($columns)
-                ->with('client:id,name,phone')
+                ->with('client:id,name,phone,country_code')
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->latest();
             $hasCompany = CompanySetting::query()->exists();
@@ -593,7 +596,7 @@ class SaleController extends Controller
                     if ($hasCompany) {
                         $buttons .= ' <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"> <i class="fas fa-file-pdf"></i> PDF</a>';
                     }
-                    $buttons .= ' <button type="button" data-id="'.$row->id.'" data-phone="'.e($row->client?->phone ?? '').'" class="btn btn-success btn-sm deliver-invoice" title="Envoyer par WhatsApp ou SMS"><i class="bi bi-whatsapp"></i></button>';
+                    $buttons .= ' <button type="button" data-id="'.$row->id.'" data-phone="'.e($row->client?->phone ?? '').'" data-country="'.e($row->client?->country_code ?? '').'" class="btn btn-success btn-sm deliver-invoice" title="Envoyer par WhatsApp ou SMS"><i class="bi bi-whatsapp"></i></button>';
                     return $buttons;
                 })
                 ->editColumn('created_at', function ($Object) {

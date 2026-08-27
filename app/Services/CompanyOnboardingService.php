@@ -19,6 +19,7 @@ class CompanyOnboardingService
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
+                'country_code' => $data['country_code'] ?? 'TG',
                 'status' => 1,
                 'password' => Hash::make($data['password']),
             ]);
@@ -28,6 +29,7 @@ class CompanyOnboardingService
                 'email' => $data['company_email'] ?? $data['email'],
                 'number1' => $data['company_phone'] ?? $data['phone'] ?? 'À compléter',
                 'created_by' => $user->id,
+                'country_code' => $data['country_code'] ?? 'TG',
             ]);
 
             $this->provisioner->provision($company, $user, isset($data['default_tax']) && $data['default_tax'] !== '' ? (float) $data['default_tax'] : null);

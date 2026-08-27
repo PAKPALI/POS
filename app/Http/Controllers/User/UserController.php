@@ -165,7 +165,8 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],
             'role_id' => ['required', Rule::exists('roles', 'id')->where(fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId()))],
-            'phone' => ['required', 'numeric', 'digits:8'],
+            'phone' => ['required', 'digits_between:6,15'],
+            'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
             // 'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], $error_messages);
 
@@ -186,7 +187,7 @@ class UserController extends Controller
             $code = $this->code();
             $user = User::firstOrCreate(
                 ['email' => $email],
-                ['name' => $name, 'phone' => $phone, 'password' => Hash::make($code), 'status' => 1]
+                ['name' => $name, 'phone' => $phone, 'country_code' => $request->country_code ?: (app(CompanyContext::class)->getCompanyOrNull()?->country_code ?? 'TG'), 'password' => Hash::make($code), 'status' => 1]
             );
             $companyId = app(CompanyContext::class)->getCompanyId();
             CompanyUser::updateOrCreate(
@@ -350,6 +351,7 @@ class UserController extends Controller
             'company_name' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'default_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
         ], $error_messages);
 
         if($validator->fails())
@@ -362,7 +364,7 @@ class UserController extends Controller
             ]);
         }else{
             $result = $onboarding->registerOwner($request->only([
-                'name', 'email', 'password', 'company_name', 'company_email', 'company_phone', 'phone', 'default_tax',
+                'name', 'email', 'password', 'company_name', 'company_email', 'company_phone', 'phone', 'default_tax', 'country_code',
             ]));
             Auth::login($result['user']);
             $request->session()->regenerate();
@@ -542,6 +544,8 @@ class UserController extends Controller
             'name' => ['required'],
             // 'phone' => ['numeric', 'digits:8'],
             'role_id' => ['required', Rule::exists('roles', 'id')->where(fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId()))],
+            'phone' => ['nullable', 'digits_between:6,15'],
+            'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
         ], $error_messages);
 
         if($validator->fails())
@@ -561,6 +565,7 @@ class UserController extends Controller
             $User->update([
                 'name' => $request->name,
                 'phone' => $request->phone,
+                'country_code' => $request->country_code ?: ($User->country_code ?? 'TG'),
             ]);
             $membership->update(['role_id' => $role->id]);
 

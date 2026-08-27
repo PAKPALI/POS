@@ -10,7 +10,7 @@ class Client extends Model
 {
     use BelongsToCompany, HasFactory;
 
-    protected $fillable = ['company_id','name','phone','created_by','status'];
+    protected $fillable = ['company_id','name','phone','country_code','created_by','status'];
 
     public function user()
     {

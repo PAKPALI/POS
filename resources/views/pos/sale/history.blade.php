@@ -565,9 +565,11 @@
             $('body').on('click', '.deliver-invoice', function () {
                 const saleId = $(this).data('id');
                 const clientPhone = $(this).data('phone') || '';
+                const clientCountry = $(this).data('country') || '{{ $company->country_code ?? 'TG' }}';
                 Swal.fire({
                     title: 'Envoyer la facture',
                     html: `<input id="deliveryPhone" type="tel" inputmode="numeric" minlength="6" maxlength="15" class="swal2-input" value="${String(clientPhone).replace(/"/g, '&quot;')}" placeholder="Numéro local sans indicatif">
+                        <select id="deliveryCountry" class="swal2-select">@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}">{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
                         <div class="d-flex justify-content-center gap-4 mt-3">
                             <div class="form-check form-switch"><input id="deliveryWhatsapp" class="form-check-input" type="checkbox" ${invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? 'checked' : 'disabled'}><label class="form-check-label" for="deliveryWhatsapp">WhatsApp (${invoiceWhatsappQuota})</label></div>
                             <div class="form-check form-switch"><input id="deliverySms" class="form-check-input" type="checkbox" ${invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : 'disabled'}><label class="form-check-label" for="deliverySms">SMS (${invoiceSmsQuota})</label></div>
@@ -578,8 +580,10 @@
                     showLoaderOnConfirm: true,
                     allowOutsideClick: () => !Swal.isLoading(),
                     allowEscapeKey: () => !Swal.isLoading(),
+                    didOpen: () => document.getElementById('deliveryCountry').value = clientCountry,
                     preConfirm: async () => {
                         const phone = document.getElementById('deliveryPhone').value.trim();
+                        const country_code = document.getElementById('deliveryCountry').value;
                         const whatsapp = document.getElementById('deliveryWhatsapp').checked;
                         const sms = document.getElementById('deliverySms').checked;
                         if (!phone || (!whatsapp && !sms)) {
@@ -591,7 +595,7 @@
                             const response = await fetch(url, {
                                 method: 'POST',
                                 headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
-                                body: JSON.stringify({phone, whatsapp, sms})
+                                body: JSON.stringify({phone, country_code, whatsapp, sms})
                             });
                             const data = await response.json();
                             invoiceWhatsappQuota = Number(data.whatsappQuota ?? invoiceWhatsappQuota);

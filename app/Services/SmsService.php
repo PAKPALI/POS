@@ -37,7 +37,12 @@ class SmsService
         return CompanySetting::find($context->getCompanyId());
     }
 
-    public function sendSms($phoneNumber, $message)
+    private function providerAccepted($payload): bool
+    {
+        return is_array($payload) && in_array($payload['status'] ?? null, [true, 1, '1'], true);
+    }
+
+    public function sendSms($phoneNumber, $message, ?string $countryCode = null)
     {     
         $company = $this->getCompanySetting();
         if (!$company || $company->sms_count <= 0) {
@@ -53,14 +58,14 @@ class SmsService
         ])->post($this->baseUrl.'/sms/push', [
             'sender' => $this->sender,
             'sender_id' => $this->sender_id,
-            'country' => 'TG',
+            'country' => strtoupper($countryCode ?: $company->country_code ?: 'TG'),
             'phone_number' => $phoneNumber,
             'message' => $message,
             'response_url' => $this->responseUrl,
         ]);
 
         $payload = $response->json();
-        $accepted = $response->successful() && is_array($payload) && ($payload['status'] ?? false) === true;
+        $accepted = $response->successful() && $this->providerAccepted($payload);
         if ($accepted) {
             $company->decrement('sms_count');
         } else {
@@ -76,7 +81,7 @@ class SmsService
             : ['status' => false, 'message' => 'Réponse SMS invalide', 'http_status' => $response->status()];
     }
 
-    public function sendWhatsappSms($phoneNumber, $title, $message)
+    public function sendWhatsappSms($phoneNumber, $title, $message, ?string $countryCode = null)
     {
         $company = $this->getCompanySetting();
         if (!$company || $company->whatsapp_count <= 0) {
@@ -84,24 +89,24 @@ class SmsService
             return ['status' => false, 'message' => 'Quota WhatsApp épuisé'];
         }
 
-        $title = $company->name.' — '.$title;
-        $message = '['.$company->name.'] '.$message;
+        $message = '['.$company->name.'] '.$title.' — '.$message;
         try {
             $response = Http::connectTimeout(5)->timeout(20)->withHeaders([
                 'Content-Type' => 'application/json',
                 'token' => $this->token,
                 'key' => $this->key,
-            ])->post($this->baseUrl . '/whatsapp/template/text-message', [
-                'country' => 'TG',
+            ])->post($this->baseUrl . '/whatsapp/text-message', [
+                'country' => strtoupper($countryCode ?: $company->country_code ?: 'TG'),
                 'phone_number' => $phoneNumber,
-                'title' => $title,
                 'content' => $message,
+                'response_url' => $this->responseUrl,
             ]);
 
             $payload = $response->json();
-            $accepted = $response->successful() && is_array($payload) && ($payload['status'] ?? false) === true;
+            $accepted = $response->successful() && $this->providerAccepted($payload);
             if ($accepted) {
                 $company->decrement('whatsapp_count');
+                $payload['status'] = true;
             } else {
                 Log::warning('Erreur WhatsApp API', [
                     'http_status' => $response->status(),
@@ -132,7 +137,7 @@ class SmsService
                 basename($filePath)
             )
             ->post(
-                $this->baseUrl . '/whatsapp/upload-document'
+                $this->baseUrl . '/whatsapp/template/document-upload'
             );
 
             return $response->json();
@@ -145,7 +150,7 @@ class SmsService
         }
     }
 
-    public function sendWhatsappDocument(string $phoneNumber, string $mediaId, string $message)
+    public function sendWhatsappDocument(string $phoneNumber, string $mediaId, string $message, ?string $countryCode = null)
     {
         try {
             $company = $this->getCompanySetting();
@@ -161,16 +166,18 @@ class SmsService
                 $this->baseUrl . '/whatsapp/template/document-message',
                 [
                     'media_id' => $mediaId,
-                    'country' => 'TG',
+                    'country' => strtoupper($countryCode ?: $company->country_code ?: 'TG'),
                     'phone_number' => $phoneNumber,
                     'content' => $message,
+                    'response_url' => $this->responseUrl,
                 ]
             );
 
             $payload = $response->json();
-            $accepted = $response->successful() && is_array($payload) && ($payload['status'] ?? false) === true;
+            $accepted = $response->successful() && $this->providerAccepted($payload);
             if ($accepted) {
                 $company->decrement('whatsapp_count');
+                $payload['status'] = true;
             }
             return is_array($payload) ? $payload : ['status' => false, 'message' => 'Réponse WhatsApp invalide'];
         } catch (\Throwable $e) {

@@ -44,7 +44,8 @@
                                                 </div>
                                                 <div class="form-group col-12 mt-3">
                                                     <label for="clientPhone">Téléphone</label>
-                                                    <input type="tel" name="phone" class="form-control" id="clientPhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
+                                                    <input type="tel" name="phone" class="form-control" id="clientPhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Ex. 90000000">
+                                                    <select name="country_code" class="form-select mt-2" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === (app(\App\Services\CompanyContext::class)->getCompanyOrNull()?->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
                                                 </div>
                                             </div>
                                         </div>

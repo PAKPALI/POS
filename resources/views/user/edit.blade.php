@@ -8,7 +8,8 @@
             </div>
             <div class="form-group col-6">
                 <label for="phone">Numéro de téléphone</label>
-                <input type="number" name="phone" class="form-control" id="phone" value="{{$User->phone}}" placeholder="ex: 90859488">
+                <input type="tel" name="phone" class="form-control" id="phone" value="{{$User->phone}}" inputmode="numeric" placeholder="Ex. 90859488">
+                <select name="country_code" class="form-select mt-2" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($User->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
             </div>
             <div class="form-group col-12 mt-3">
                 <label for="edit_role_id">Rôle dans cette compagnie</label>

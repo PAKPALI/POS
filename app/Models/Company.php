@@ -20,6 +20,7 @@ class Company extends Model
         'timezone',
         'currency',
         'locale',
+        'country_code',
         'email',
         'adress',
         'number1',

@@ -28,6 +28,6 @@ class SendCustomerInvoiceJob implements ShouldQueue
         if (!$sale?->client?->phone) return;
         $whatsapp = $this->channel === 'whatsapp' && (bool) $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0;
         $sms = $this->channel === 'sms' && (bool) $company->invoice_sms_enabled && $company->sms_count > 0;
-        if ($whatsapp || $sms) $delivery->deliver($sale, $sale->client->phone, $whatsapp, $sms);
+        if ($whatsapp || $sms) $delivery->deliver($sale, $sale->client->phone, $sale->client->country_code ?: $company->country_code, $whatsapp, $sms);
     }
 }

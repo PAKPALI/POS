@@ -19,6 +19,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Taxe sur les ventes (%) <span class="text-inverse text-opacity-50">— facultatif</span></label>
+                    <select name="country_code" class="form-select form-select-lg mb-3" required><option value="">Pays de l’entreprise</option>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === 'TG')>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
                     <input type="number" min="0" max="100" step="0.01" class="form-control form-control-lg bg-inverse bg-opacity-5" name="default_tax" placeholder="Ex. 18">
                     <div class="form-text text-inverse text-opacity-50">Les caisses principale et taxe seront créées automatiquement.</div>
                 </div>

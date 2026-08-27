@@ -692,7 +692,11 @@
                 </div>
                 <div class="px-3 pb-3 d-none" id="invoiceDeliveryPanel">
                     <div class="border rounded p-3">
-                        <label for="invoicePhone" class="form-label">Numéro du client</label>
+                        <label for="invoiceCountry" class="form-label">Pays du numéro</label>
+                        <select class="form-select mb-3" id="invoiceCountry">
+                            @foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($company->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach
+                        </select>
+                        <label for="invoicePhone" class="form-label">Numéro local du client</label>
                         <input type="tel" class="form-control mb-3" id="invoicePhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
                         <div class="d-flex flex-wrap gap-3 mb-3">
                             <div class="form-check form-switch">
@@ -1173,6 +1177,7 @@
             currentReceiptSaleId = saleData.saleId;
             $('#invoiceDeliveryPanel').toggleClass('d-none', !!saleData.hasClient && !saleData.allowDelivery);
             $('#invoicePhone').val(saleData.clientPhone || '');
+            $('#invoiceCountry').val(saleData.clientCountryCode || '{{ $company->country_code ?? 'TG' }}');
             updateInvoiceQuotas(saleData);
             $('#pdfModal').modal('show');
             return;
@@ -1523,6 +1528,7 @@
         $('#sendInvoice').on('click', async function() {
             const button = this;
             const phone = $('#invoicePhone').val().trim();
+            const country_code = $('#invoiceCountry').val();
             const whatsapp = $('#invoiceWhatsapp').is(':checked');
             const sms = $('#invoiceSms').is(':checked');
             if (!phone || (!whatsapp && !sms)) {
@@ -1533,7 +1539,7 @@
             const request = fetch(url, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
-                body: JSON.stringify({phone, whatsapp, sms})
+                body: JSON.stringify({phone, country_code, whatsapp, sms})
             }).then(async response => {
                 const data = await response.json();
                 if (!response.ok || !data.status) {

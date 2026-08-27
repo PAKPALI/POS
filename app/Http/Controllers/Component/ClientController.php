@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
 {
@@ -122,6 +123,7 @@ class ClientController extends Controller
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'digits_between:6,15'],
+            'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
         ], $error_messages);
 
         if($validator->fails())
@@ -139,6 +141,7 @@ class ClientController extends Controller
             Client::create([
                 'name' => $request-> name,
                 'phone' => $request->phone,
+                'country_code' => $request->country_code ?: (app(\App\Services\CompanyContext::class)->getCompanyOrNull()?->country_code ?? 'TG'),
                 'created_by' => Auth::user()->id,
             ]);
 
@@ -191,6 +194,7 @@ class ClientController extends Controller
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'digits_between:6,15'],
+            'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
         ], $error_messages);
 
         if($validator->fails())
@@ -204,6 +208,7 @@ class ClientController extends Controller
             $Client->update([
                 'name' => $request->name,
                 'phone' => $request->phone,
+                'country_code' => $request->country_code ?: ($Client->country_code ?? 'TG'),
             ]);
 
             return response()->json([
