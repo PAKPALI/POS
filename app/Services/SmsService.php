@@ -104,15 +104,17 @@ class SmsService
             return ['status' => false, 'message' => 'Quota WhatsApp épuisé'];
         }
 
-        $message = '['.$company->name.'] '.$title.' — '.$message;
+        $title = $company->name.' — '.$title;
+        $message = '['.$company->name.'] '.$message;
         try {
             $response = Http::connectTimeout(5)->timeout(20)->withHeaders([
                 'Content-Type' => 'application/json',
                 'token' => $this->token,
                 'key' => $this->key,
-            ])->post($this->baseUrl . '/whatsapp/text-message', [
+            ])->post($this->baseUrl . '/whatsapp/template/text-message', [
                 'country' => strtoupper($countryCode ?: $company->country_code ?: 'TG'),
                 'phone_number' => $phoneNumber,
+                'title' => $title,
                 'content' => $message,
                 'response_url' => $this->responseUrl,
             ]);
@@ -127,6 +129,7 @@ class SmsService
                     'http_status' => $response->status(),
                     'company_id' => $company->id,
                     'provider_status' => is_array($payload) ? ($payload['status'] ?? null) : null,
+                    'provider_message' => is_array($payload) ? ($payload['message'] ?? data_get($payload, 'data.message')) : null,
                 ]);
             }
 

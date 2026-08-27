@@ -61,7 +61,7 @@ class SendInventoryWhatsappJob implements ShouldQueue
                         function () use ($smsService, $user, $message): void {
                             $response = $smsService->sendWhatsappSms($user->phone, 'Notification Inventaire', $message, $user->country_code, 'inventory');
                             if (($response['status'] ?? false) !== true) {
-                                throw new RuntimeException('Envoi WhatsApp refusé par le fournisseur.');
+                                throw new RuntimeException($response['message'] ?? 'Envoi WhatsApp refusé par le fournisseur.');
                             }
                         }
                     );
@@ -74,7 +74,9 @@ class SendInventoryWhatsappJob implements ShouldQueue
                     $hasFailures = true;
                     Log::warning('Inventory WhatsApp not sent', [
                         'company_id' => $company->id, 'inventory_id' => $inventory->id,
-                        'user_id' => $user->id, 'error' => class_basename($exception),
+                        'user_id' => $user->id,
+                        'error' => class_basename($exception),
+                        'message' => $exception->getMessage(),
                     ]);
                 }
             }
@@ -87,7 +89,7 @@ class SendInventoryWhatsappJob implements ShouldQueue
                         function () use ($smsService, $user, $message): void {
                             $response = $smsService->sendSms($user->phone, $message, $user->country_code, 'inventory');
                             if (($response['status'] ?? false) !== true) {
-                                throw new RuntimeException('Envoi SMS refusé par le fournisseur.');
+                                throw new RuntimeException($response['message'] ?? 'Envoi SMS refusé par le fournisseur.');
                             }
                         }
                     );
@@ -95,7 +97,9 @@ class SendInventoryWhatsappJob implements ShouldQueue
                     $hasFailures = true;
                     Log::warning('Inventory SMS message not sent', [
                         'company_id' => $company->id, 'user_id' => $user->id,
-                        'inventory_id' => $inventory->id, 'error' => class_basename($exception),
+                        'inventory_id' => $inventory->id,
+                        'error' => class_basename($exception),
+                        'message' => $exception->getMessage(),
                     ]);
                 }
             }

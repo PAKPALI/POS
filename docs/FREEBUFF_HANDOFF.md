@@ -14,6 +14,10 @@ Compatibilité des autres navigateurs mobiles : si `beforeinstallprompt` n’est
 
 Organisation du menu Communications : un parent unique `SMS & WhatsApp` regroupe désormais `Configuration` (ancienne page Notifications), `Quota` et `Consommation`. Chaque sous-menu reste masqué ou affiché selon sa permission propre. Le lien Notifications a été retiré de Paramètres, qui redevient centré sur la compagnie.
 
+Correctif notifications WhatsApp de vente : les messages automatiques utilisent de nouveau l’endpoint fournisseur de modèle `/whatsapp/template/text-message` avec `title` et `content`. Le passage accidentel à `/whatsapp/text-message` empêchait la livraison proactive alors que les SMS continuaient à fonctionner. Le pays du destinataire, le nom de la compagnie, le quota, le journal de consommation et l’idempotence sont conservés. Les refus fournisseur journalisent maintenant leur message sans exposer les clés API.
+
+Audit des notifications d’inventaire : le même endpoint de modèle est utilisé pour WhatsApp. Un test bout en bout couvre maintenant un destinataire d’inventaire autorisé simultanément par WhatsApp et SMS, les deux appels fournisseur, la diminution séparée des quotas et les états de livraison. Les erreurs des deux canaux conservent désormais le message utile du fournisseur dans les logs. Attention : l’interrupteur global de la catégorie Inventaire et la case du destinataire doivent tous deux être activés dans `Communications > SMS & WhatsApp > Configuration`.
+
 Rapport consolidé destiné au propriétaire : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-25.md`. Il résume les acquis, les pourcentages, les risques résiduels et l’ordre recommandé avant le pilote.
 
 Rapport de charge reproductible : `docs/RAPPORT_TEST_VOLUME_SAAS_2026-08-25.md`. Le benchmark MySQL isolé utilise uniquement une base `*_testing`, charge jusqu’à 100 000 lignes de vente détaillées et ne doit pas être ajouté à la suite quotidienne.

@@ -8,6 +8,7 @@ use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\NotificationRecipient;
 use App\Jobs\SendInventoryWhatsappJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -95,6 +96,61 @@ class InventoryFlowTest extends TestCase
         (new SendInventoryWhatsappJob($inventory->id, $this->company->id))->handle();
 
         Http::assertNothingSent();
+    }
+
+    public function test_inventory_sends_enabled_whatsapp_and_sms_to_configured_recipient(): void
+    {
+        Queue::fake();
+        Http::fake(fn () => Http::response(['status' => true, 'message_id' => Str::uuid()->toString()], 200));
+        $this->user->update(['phone' => '90000000', 'country_code' => 'TG']);
+        $this->company->update([
+            'inventory_whatsapp_enabled' => true,
+            'inventory_sms_enabled' => true,
+            'whatsapp_count' => 2,
+            'sms_count' => 2,
+        ]);
+        NotificationRecipient::updateOrCreate([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'category' => 'inventory',
+        ], [
+            'email_enabled' => false,
+            'whatsapp_enabled' => true,
+            'sms_enabled' => true,
+        ]);
+        $inventory = Inventory::create([
+            'product_id' => $this->product->id,
+            'supplier_id' => $this->supplier->id,
+            'type' => 1,
+            'qte_before' => 50,
+            'qte_added' => 5,
+            'qte_after' => 55,
+            'note' => 'Contrôle des canaux',
+            'created_by' => $this->user->id,
+        ]);
+
+        (new SendInventoryWhatsappJob($inventory->id, $this->company->id))->handle();
+
+        Http::assertSentCount(2);
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), 'whatsapp/template/text-message')
+            && (string) $request['phone_number'] === '90000000'
+            && str_contains($request['title'], $this->company->name));
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), 'sms/push')
+            && (string) $request['phone_number'] === '90000000');
+        $this->assertSame(1, (int) $this->company->fresh()->whatsapp_count);
+        $this->assertSame(1, (int) $this->company->fresh()->sms_count);
+        $this->assertDatabaseHas('notification_deliveries', [
+            'company_id' => $this->company->id,
+            'event_key' => (string) $inventory->id,
+            'channel' => 'whatsapp',
+            'status' => 'sent',
+        ]);
+        $this->assertDatabaseHas('notification_deliveries', [
+            'company_id' => $this->company->id,
+            'event_key' => (string) $inventory->id,
+            'channel' => 'sms',
+            'status' => 'sent',
+        ]);
     }
 
     /** Test: Stock entry increases product quantity */

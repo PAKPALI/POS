@@ -11,6 +11,7 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
+use App\Models\NotificationRecipient;
 use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
 use App\Jobs\SendMarginEmailJob;
@@ -119,6 +120,50 @@ class SalesFlowTest extends TestCase
 
         Queue::assertPushed(SendSaleEmailJob::class, fn ($job) => $job->companyId === $this->company->id);
         Queue::assertPushed(SendSaleWhatsappJob::class, fn ($job) => $job->companyId === $this->company->id);
+    }
+
+    public function test_sale_whatsapp_notification_uses_provider_template_endpoint(): void
+    {
+        Queue::fake();
+        Http::fake(fn () => Http::response(['status' => true, 'message_id' => 'wa-sale-123'], 200));
+        $this->user->update(['phone' => '90000000', 'country_code' => 'TG']);
+        $this->company->update(['sale_whatsapp_enabled' => true, 'sale_sms_enabled' => false, 'whatsapp_count' => 2]);
+        NotificationRecipient::updateOrCreate([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'category' => 'sale',
+        ], [
+            'email_enabled' => false,
+            'whatsapp_enabled' => true,
+            'sms_enabled' => false,
+        ]);
+
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+        (new SendSaleWhatsappJob($sale->id, $this->company->id))->handle();
+
+        Http::assertSentCount(1);
+        [$request] = Http::recorded()->first();
+        $this->assertStringEndsWith('whatsapp/template/text-message', $request->url());
+        $this->assertSame('TG', $request['country']);
+        $this->assertSame('90000000', (string) $request['phone_number']);
+        $this->assertStringContainsString($this->company->name, $request['title']);
+        $this->assertStringContainsString('['.$this->company->name.']', $request['content']);
+        $this->assertSame(config('services.kprimesms.response_url'), $request['response_url']);
+        $this->assertSame(1, (int) $this->company->fresh()->whatsapp_count);
+        $this->assertDatabaseHas('communication_logs', [
+            'company_id' => $this->company->id,
+            'channel' => 'whatsapp',
+            'function' => 'sale',
+            'recipient' => '90000000',
+        ]);
+        $this->assertDatabaseHas('notification_deliveries', [
+            'company_id' => $this->company->id,
+            'event_key' => (string) $sale->id,
+            'channel' => 'whatsapp',
+            'user_id' => $this->user->id,
+            'status' => 'sent',
+        ]);
     }
 
     public function test_sale_with_client_queues_each_authorized_invoice_channel_independently(): void

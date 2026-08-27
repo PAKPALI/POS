@@ -65,7 +65,7 @@ class SendSaleWhatsappJob implements ShouldQueue
                         function () use ($smsService, $user, $message): void {
                             $response = $smsService->sendWhatsappSms($user->phone, 'Notification de vente', $message, $user->country_code, 'sale');
                             if (($response['status'] ?? false) !== true) {
-                                throw new RuntimeException('Envoi WhatsApp refusé par le fournisseur.');
+                                throw new RuntimeException($response['message'] ?? 'Envoi WhatsApp refusé par le fournisseur.');
                             }
                         }
                     );
@@ -78,7 +78,9 @@ class SendSaleWhatsappJob implements ShouldQueue
                     $hasFailures = true;
                     Log::warning('Sale WhatsApp message not sent', [
                         'company_id' => $company->id, 'sale_id' => $sale->id,
-                        'user_id' => $user->id, 'error' => class_basename($exception),
+                        'user_id' => $user->id,
+                        'error' => class_basename($exception),
+                        'message' => $exception->getMessage(),
                     ]);
                 }
             }
