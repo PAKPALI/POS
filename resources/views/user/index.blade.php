@@ -46,9 +46,10 @@
                                                     <input type="email" name="email" class="form-control" id="exampleInputText0" placeholder="Email">
                                                 </div>
                                                 <div class="form-group col-6 mt-3">
-                                                    <label for="phone">Numéro de téléphone</label>
+                                                    <label for="userCountry">Pays du numéro</label>
+                                                    <select name="country_code" id="userCountry" class="form-select country-select" data-placeholder="Rechercher un pays" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === (app(\App\Services\CompanyContext::class)->getCompanyOrNull()?->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
+                                                    <label for="phone" class="mt-3">Numéro de téléphone local</label>
                                                     <input type="tel" name="phone" class="form-control" id="phone" inputmode="numeric" placeholder="Ex. 90859488">
-                                                    <select name="country_code" class="form-select mt-2" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === (app(\App\Services\CompanyContext::class)->getCompanyOrNull()?->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
                                                 </div>
                                                 <div class="form-group col-6 mt-3">
                                                     <label for="role_id">Rôle dans cette compagnie</label>

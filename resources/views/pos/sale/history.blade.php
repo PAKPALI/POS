@@ -580,7 +580,15 @@
                     showLoaderOnConfirm: true,
                     allowOutsideClick: () => !Swal.isLoading(),
                     allowEscapeKey: () => !Swal.isLoading(),
-                    didOpen: () => document.getElementById('deliveryCountry').value = clientCountry,
+                    didOpen: () => {
+                        const popup = Swal.getPopup();
+                        $('#deliveryCountry').val(clientCountry).select2({
+                            width: '100%',
+                            dropdownParent: $(popup),
+                            placeholder: 'Rechercher un pays',
+                            minimumResultsForSearch: 0
+                        });
+                    },
                     preConfirm: async () => {
                         const phone = document.getElementById('deliveryPhone').value.trim();
                         const country_code = document.getElementById('deliveryCountry').value;

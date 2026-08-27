@@ -7,9 +7,10 @@
                 <input type="text" name="name" class="form-control" id="name" value="{{$Client->name}}" placeholder="Nom">
             </div>
             <div class="form-group col-12 mt-3">
-                <label for="phone">Téléphone</label>
+                <label for="clientCountryEdit">Pays du numéro</label>
+                <select name="country_code" id="clientCountryEdit" class="form-select country-select" data-placeholder="Rechercher un pays" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($Client->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
+                <label for="phone" class="mt-3">Téléphone local</label>
                 <input type="tel" name="phone" class="form-control" id="phone" value="{{$Client->phone}}" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Ex. 90000000">
-                <select name="country_code" class="form-select mt-2" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($Client->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
             </div>
         </div>
     </div>

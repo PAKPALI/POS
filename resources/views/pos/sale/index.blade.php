@@ -693,7 +693,7 @@
                 <div class="px-3 pb-3 d-none" id="invoiceDeliveryPanel">
                     <div class="border rounded p-3">
                         <label for="invoiceCountry" class="form-label">Pays du numéro</label>
-                        <select class="form-select mb-3" id="invoiceCountry">
+                        <select class="form-select country-select mb-3" id="invoiceCountry" data-placeholder="Rechercher un pays">
                             @foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($company->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach
                         </select>
                         <label for="invoicePhone" class="form-label">Numéro local du client</label>
