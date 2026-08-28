@@ -1,0 +1,1 @@
+<svg {{ $attributes }} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="{{ config('app.name') }}"><rect width="48" height="48" rx="12" fill="currentColor" opacity=".15"/><path d="M14 16h20l-2 17H16l-2-17Zm4-5h12v5H18v-5Z" fill="currentColor"/><circle cx="20" cy="37" r="2" fill="currentColor"/><circle cx="29" cy="37" r="2" fill="currentColor"/></svg>

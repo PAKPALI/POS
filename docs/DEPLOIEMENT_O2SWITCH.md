@@ -158,7 +158,7 @@ php artisan queue:failed
 php artisan payments:reconcile-kprimepay --limit=100 --pretend
 ```
 
-Pour diagnostiquer un job échoué ou un paiement KPrimePay bloqué, suivre `docs/PROCEDURE_INCIDENTS_PAIEMENTS_JOBS.md`. Ne jamais utiliser `queue:retry all` ni créditer les quotas directement sans rapprochement avec KPrimePay.
+Pour diagnostiquer un job échoué ou un paiement KPrimePay bloqué, suivre `docs/GUIDE_KPRIMEPAY.md`. Ne jamais utiliser `queue:retry all` ni créditer les quotas directement sans rapprochement avec KPrimePay.
 
 ## 10. Sauvegardes minimales
 
@@ -287,7 +287,7 @@ Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode main
 Pour produire les commandes finales prêtes à copier, relever uniquement : le nom du domaine, le chemin `/home/...`, le résultat de `which php`, les noms MySQL (sans publier les mots de passe) et les paramètres SMTP fournis par O2switch.
 ## Paiements KPrimePay pour les quotas
 
-Avant d’activer l’achat de quotas, renseigner les variables `KPRIMEPAY_*` décrites dans `docs/INTEGRATION_KPRIMEPAY_QUOTAS.md`. La clé doit avoir les scopes `payments:write` et `read`.
+Avant d’activer l’achat de quotas, renseigner les variables `KPRIMEPAY_*` décrites dans `docs/GUIDE_KPRIMEPAY.md`. La clé doit avoir les scopes `payments:write` et `read`.
 
 Configurer dans KPrimePay l’URL de rappel HTTPS :
 
@@ -296,3 +296,36 @@ https://VOTRE-DOMAINE/api/kprimepay/webhook
 ```
 
 Tester d’abord avec `KPRIMEPAY_MODE=1`. Ne passer à `KPRIMEPAY_MODE=2` qu’après validation du checkout, du webhook, du montant et de l’idempotence. La clé communiquée pendant le développement doit être révoquée et remplacée avant ce test.
+# Console d’administration SaaS
+
+Après déploiement des fichiers de la console plateforme :
+
+```bash
+php artisan migrate --force
+php artisan platform-admin:create --from-user=pakpalididier@gmail.com
+php artisan optimize:clear
+```
+
+La commande copie l’identité et le mot de passe **chiffré** du compte POS existant sans afficher son mot de passe. Lors de la première connexion sur `/platform/login`, le super-administrateur doit obligatoirement choisir un nouveau mot de passe robuste avant d’accéder aux statistiques.
+
+Pour créer un compte plateforme sans utilisateur POS existant, utiliser la commande interactive :
+
+```bash
+php artisan platform-admin:create
+```
+
+Ne jamais passer le mot de passe dans une commande conservée dans l’historique du terminal. Vérifier ensuite que `/platform` refuse un utilisateur POS ordinaire.
+
+La migration `2026_08_28_140000_create_platform_settings_and_store_quota_unit_prices` ajoute les tarifs administrables et les prix unitaires mémorisés par paiement. Après déploiement, ouvrir `/platform/settings`, contrôler les valeurs initiales issues de `.env`, puis enregistrer les tarifs commerciaux voulus. Les anciens paiements restent valides mais ne possèdent pas le détail unitaire historique.
+
+La migration `2026_08_28_160000_store_quota_unit_costs_and_backfill_legacy_prices` ajoute les coûts unitaires historiques. Les valeurs de secours sont `KPRIMEPAY_SMS_UNIT_COST=15` et `KPRIMEPAY_WHATSAPP_UNIT_COST=15`. Après migration, vérifier dans **Administration SaaS > Paramètres** que les prix sont 35/30 XOF et les coûts 15/15 XOF.
+
+La migration `2026_08_28_180000_create_platform_system_heartbeats` active la supervision du cron. Le cron O2switch doit continuer à exécuter chaque minute :
+
+```bash
+php /chemin/vers/artisan schedule:run
+```
+
+Après déploiement, exécuter une fois `php artisan platform:heartbeat`, attendre deux minutes, puis ouvrir **Administration SaaS > Santé du système**. Le statut doit rester **Opérationnel**. S'il devient « En retard » ou « Critique », vérifier la tâche cron O2switch.
+
+Après déploiement des rôles plateforme, exécuter `php artisan optimize:clear`. Connectez-vous avec le super-administrateur existant et créez les comptes Support, Finance ou Technique depuis **Administration SaaS > Administrateurs**. Ne partagez jamais un même compte entre plusieurs personnes.

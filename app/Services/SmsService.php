@@ -58,7 +58,10 @@ class SmsService
     }
 
     public function sendSms($phoneNumber, $message, ?string $countryCode = null, string $function = 'other')
-    {     
+    {
+        if (!app(PlatformConfigurationService::class)->channelEnabled('sms')) {
+            return ['status' => false, 'message' => 'Les SMS sont temporairement désactivés par la plateforme.'];
+        }
         $company = $this->getCompanySetting();
         if (!$company || $company->sms_count <= 0) {
             Log::warning('SMS non envoyé : quota SMS épuisé.');
@@ -100,6 +103,9 @@ class SmsService
 
     public function sendWhatsappSms($phoneNumber, $title, $message, ?string $countryCode = null, string $function = 'other')
     {
+        if (!app(PlatformConfigurationService::class)->channelEnabled('whatsapp')) {
+            return ['status' => false, 'message' => 'WhatsApp est temporairement désactivé par la plateforme.'];
+        }
         $company = $this->getCompanySetting();
         if (!$company || $company->whatsapp_count <= 0) {
             Log::warning('WhatsApp non envoyé : quota WhatsApp épuisé.');
@@ -172,6 +178,9 @@ class SmsService
 
     public function sendWhatsappDocument(string $phoneNumber, string $mediaId, string $message, ?string $countryCode = null, string $function = 'other')
     {
+        if (!app(PlatformConfigurationService::class)->channelEnabled('whatsapp')) {
+            return ['status' => false, 'message' => 'WhatsApp est temporairement désactivé par la plateforme.'];
+        }
         try {
             $company = $this->getCompanySetting();
             if (!$company) return ['status' => false, 'message' => 'Compagnie introuvable'];

@@ -23,8 +23,80 @@ use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\User\RoleController;
 use App\Http\Controllers\User\CompanyInvitationController;
 use App\Models\User;
+use App\Http\Controllers\Platform\AuthController as PlatformAuthController;
+use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
+use App\Http\Controllers\Platform\CompanyController as PlatformCompanyController;
+use App\Http\Controllers\Platform\UserController as PlatformUserController;
+use App\Http\Controllers\Platform\PaymentController as PlatformPaymentController;
+use App\Http\Controllers\Platform\SettingController as PlatformSettingController;
+use App\Http\Controllers\Platform\AuditController as PlatformAuditController;
+use App\Http\Controllers\Platform\HealthController as PlatformHealthController;
+use App\Http\Controllers\Platform\AdminController as PlatformAdminController;
+use App\Http\Controllers\Platform\AlertController as PlatformAlertController;
+use App\Http\Controllers\Platform\CommunicationController as PlatformCommunicationController;
+use App\Http\Controllers\Platform\GeneralSettingController as PlatformGeneralSettingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+Route::redirect('admin-saas', '/platform/login')->name('platform.entry');
+
+Route::prefix('platform')->name('platform.')->group(function () {
+    Route::get('login', [PlatformAuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [PlatformAuthController::class, 'login'])
+        ->middleware('throttle:10,1')->name('login.submit');
+    Route::get('two-factor', [PlatformAuthController::class, 'showTwoFactor'])->name('two-factor.challenge');
+    Route::post('two-factor', [PlatformAuthController::class, 'verifyTwoFactor'])->middleware('throttle:10,1')->name('two-factor.verify');
+    Route::post('two-factor/resend', [PlatformAuthController::class, 'resendTwoFactor'])->middleware('throttle:2,1')->name('two-factor.resend');
+    Route::get('forgot-password', [PlatformAuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('forgot-password', [PlatformAuthController::class, 'sendResetLink'])->middleware('throttle:3,1')->name('password.email');
+    Route::get('reset-password/{token}', [PlatformAuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('reset-password', [PlatformAuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset.update');
+
+    Route::middleware('platform.admin')->group(function () {
+        Route::get('password/change', [PlatformAuthController::class, 'editPassword'])->name('password.edit');
+        Route::put('password', [PlatformAuthController::class, 'updatePassword'])->middleware('throttle:5,1')->name('password.update');
+        Route::middleware('platform.password')->group(function () {
+            Route::get('', [PlatformDashboardController::class, 'index'])->middleware('platform.permission:platform.dashboard.view')->name('dashboard');
+            Route::get('companies', [PlatformCompanyController::class, 'index'])->middleware('platform.permission:platform.companies.view')->name('companies.index');
+            Route::get('companies/{company}', [PlatformCompanyController::class, 'show'])->middleware('platform.permission:platform.companies.view')->name('companies.show');
+            Route::patch('companies/{company}/status', [PlatformCompanyController::class, 'updateStatus'])
+                ->middleware(['platform.permission:platform.companies.manage', 'throttle:20,1'])->name('companies.status');
+            Route::get('users', [PlatformUserController::class, 'index'])->middleware('platform.permission:platform.users.view')->name('users.index');
+            Route::get('users/{user}', [PlatformUserController::class, 'show'])->middleware('platform.permission:platform.users.view')->name('users.show');
+            Route::get('payments', [PlatformPaymentController::class, 'index'])->middleware('platform.permission:platform.payments.view')->name('payments.index');
+            Route::get('payments/{payment}', [PlatformPaymentController::class, 'show'])->middleware('platform.permission:platform.payments.view')->name('payments.show');
+            Route::post('payments/{payment}/reconcile', [PlatformPaymentController::class, 'reconcile'])
+                ->middleware(['platform.permission:platform.payments.reconcile', 'throttle:10,1'])->name('payments.reconcile');
+            Route::get('settings', [PlatformSettingController::class, 'edit'])->middleware('platform.permission:platform.pricing.manage')->name('settings.edit');
+            Route::put('settings/pricing', [PlatformSettingController::class, 'update'])
+                ->middleware(['platform.permission:platform.pricing.manage', 'throttle:10,1'])->name('settings.pricing.update');
+            Route::get('settings/general', [PlatformGeneralSettingController::class, 'edit'])->middleware('platform.permission:platform.admins.manage')->name('settings.general');
+            Route::put('settings/general', [PlatformGeneralSettingController::class, 'update'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.update');
+            Route::get('audit', [PlatformAuditController::class, 'index'])->middleware('platform.permission:platform.audit.view')->name('audit.index');
+            Route::get('audit/{audit}', [PlatformAuditController::class, 'show'])->middleware('platform.permission:platform.audit.view')->name('audit.show');
+            Route::get('health', [PlatformHealthController::class, 'index'])->middleware('platform.permission:platform.health.view')->name('health.index');
+            Route::post('health/jobs/{uuid}/retry', [PlatformHealthController::class, 'retryJob'])
+                ->whereUuid('uuid')->middleware(['platform.permission:platform.health.jobs.retry', 'throttle:10,1'])->name('health.jobs.retry');
+            Route::get('alerts', [PlatformAlertController::class, 'index'])->middleware('platform.permission:platform.health.view')->name('alerts.index');
+            Route::put('alerts/settings', [PlatformAlertController::class, 'updateSettings'])->middleware(['platform.permission:platform.health.view', 'throttle:10,1'])->name('alerts.settings');
+            Route::post('alerts/check', [PlatformAlertController::class, 'check'])->middleware(['platform.permission:platform.health.view', 'throttle:5,1'])->name('alerts.check');
+            Route::post('alerts/{alert}/acknowledge', [PlatformAlertController::class, 'acknowledge'])->middleware('platform.permission:platform.health.view')->name('alerts.acknowledge');
+            Route::post('alerts/{alert}/resolve', [PlatformAlertController::class, 'resolve'])->middleware('platform.permission:platform.health.view')->name('alerts.resolve');
+            Route::get('communications', [PlatformCommunicationController::class, 'index'])->middleware('platform.permission:platform.communications.view')->name('communications.index');
+            Route::get('communications/export/{format}', [PlatformCommunicationController::class, 'export'])->middleware('platform.permission:platform.communications.view')->name('communications.export');
+            Route::post('communications/{delivery}/retry', [PlatformCommunicationController::class, 'retry'])->middleware(['platform.permission:platform.communications.retry', 'throttle:10,1'])->name('communications.retry');
+            Route::resource('admins', PlatformAdminController::class)->only(['index', 'store', 'edit', 'update'])
+                ->middleware('platform.permission:platform.admins.manage');
+            Route::patch('admins/{admin}/status', [PlatformAdminController::class, 'updateStatus'])
+                ->middleware(['platform.permission:platform.admins.manage', 'throttle:10,1'])->name('admins.status');
+            Route::post('admins/{admin}/two-factor/reset', [PlatformAdminController::class, 'resetTwoFactor'])
+                ->middleware(['platform.permission:platform.admins.manage', 'throttle:10,1'])->name('admins.two-factor.reset');
+            Route::patch('admins/{admin}/two-factor', [PlatformAdminController::class, 'updateTwoFactor'])
+                ->middleware(['platform.permission:platform.admins.manage', 'throttle:10,1'])->name('admins.two-factor.update');
+        });
+        Route::post('logout', [PlatformAuthController::class, 'logout'])->name('logout');
+    });
+});
 
 /*
 |--------------------------------------------------------------------------

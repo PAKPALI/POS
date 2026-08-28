@@ -31,6 +31,8 @@ return [
         'with_fees' => (int) env('KPRIMEPAY_WITH_FEES', 1),
         'sms_unit_price' => (int) env('KPRIMEPAY_SMS_UNIT_PRICE', 35),
         'whatsapp_unit_price' => (int) env('KPRIMEPAY_WHATSAPP_UNIT_PRICE', 30),
+        'sms_unit_cost' => (int) env('KPRIMEPAY_SMS_UNIT_COST', 15),
+        'whatsapp_unit_cost' => (int) env('KPRIMEPAY_WHATSAPP_UNIT_COST', 15),
     ],
 
     'mailgun' => [

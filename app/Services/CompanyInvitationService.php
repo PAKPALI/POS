@@ -35,7 +35,7 @@ class CompanyInvitationService
                 'role_id' => $role->id,
                 'invited_by' => $inviter->id,
                 'token_hash' => hash('sha256', $token),
-                'expires_at' => now()->addHours(48),
+                'expires_at' => now()->addHours(app(PlatformConfigurationService::class)->integer('security.invitation_expiry_hours', 48)),
             ]);
             return [$invitation, $token];
         });
@@ -50,7 +50,7 @@ class CompanyInvitationService
         $token = CompanyInvitation::generateToken();
         $invitation->update([
             'token_hash' => hash('sha256', $token),
-            'expires_at' => now()->addHours(48),
+            'expires_at' => now()->addHours(app(PlatformConfigurationService::class)->integer('security.invitation_expiry_hours', 48)),
         ]);
         $this->send($invitation->load('company', 'role', 'inviter'), $token);
     }

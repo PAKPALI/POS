@@ -36,6 +36,12 @@
                         Créer votre compte SaaS
                     </a>
                 </div>
+                <div class="border-top border-secondary border-opacity-25 mt-4 pt-4 text-center">
+                    <div class="small text-inverse text-opacity-50 mb-2">Accès réservé au concepteur de la plateforme</div>
+                    <a href="{{ route('platform.entry') }}" class="btn btn-outline-warning w-100">
+                        <i class="bi bi-shield-lock-fill me-2"></i>Administration SaaS
+                    </a>
+                </div>
             </form>
         </div>
     </div>

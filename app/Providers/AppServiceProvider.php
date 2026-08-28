@@ -7,12 +7,25 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
+use App\Services\PlatformConfigurationService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function boot(UrlGenerator $url)
     {
+        try {
+            if (Schema::hasTable('platform_settings')) {
+                $platformConfiguration = app(PlatformConfigurationService::class);
+                config([
+                    'app.name' => $platformConfiguration->appName(),
+                    'platform.identity.logo_url' => ($logo = $platformConfiguration->get('identity.logo_path')) ? asset('storage/'.$logo) : null,
+                ]);
+            }
+        } catch (\Throwable) {
+            // L'installation et les migrations doivent rester exécutables sans base prête.
+        }
         if ($this->app->environment('production')) {
             $url->forceScheme('https');
         }

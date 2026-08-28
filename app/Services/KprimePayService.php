@@ -11,6 +11,9 @@ class KprimePayService
 {
     public function createCheckout(QuotaPayment $payment, string $returnUrl): array
     {
+        if (!app(PlatformConfigurationService::class)->channelEnabled('kprimepay')) {
+            throw new RuntimeException('Les paiements KPrimePay sont temporairement désactivés par la plateforme.');
+        }
         $response = $this->client()
             ->withHeaders(['Idempotency-Key' => $payment->idempotency_key])
             ->post($this->url('/checkout'), [

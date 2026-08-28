@@ -6,6 +6,7 @@ use App\Models\CompanySetting;
 use App\Models\QuotaPayment;
 use App\Services\CompanyContext;
 use App\Services\KprimePayService;
+use App\Services\PlatformPricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -14,17 +15,17 @@ use Throwable;
 
 class SmsQuotaController extends Controller
 {
-    public function index()
+    public function index(PlatformPricingService $pricing)
     {
         $company = CompanySetting::findOrFail(app(CompanyContext::class)->getCompanyId());
         $payments = QuotaPayment::latest()->paginate(10);
-        $smsUnitPrice = (int) config('services.kprimepay.sms_unit_price');
-        $whatsappUnitPrice = (int) config('services.kprimepay.whatsapp_unit_price');
+        $smsUnitPrice = $pricing->smsUnitPrice();
+        $whatsappUnitPrice = $pricing->whatsappUnitPrice();
 
         return view('sms_quota.index', compact('company', 'payments', 'smsUnitPrice', 'whatsappUnitPrice'));
     }
 
-    public function checkout(Request $request, KprimePayService $kprimePay)
+    public function checkout(Request $request, KprimePayService $kprimePay, PlatformPricingService $pricing)
     {
         if (blank(config('services.kprimepay.token'))) {
             return response()->json([
@@ -60,8 +61,11 @@ class SmsQuotaController extends Controller
             ], 422);
         }
 
-        $amount = $smsQuantity * (int) config('services.kprimepay.sms_unit_price')
-            + $whatsappQuantity * (int) config('services.kprimepay.whatsapp_unit_price');
+        $smsUnitPrice = $pricing->smsUnitPrice();
+        $whatsappUnitPrice = $pricing->whatsappUnitPrice();
+        $smsUnitCost = $pricing->smsUnitCost();
+        $whatsappUnitCost = $pricing->whatsappUnitCost();
+        $amount = $smsQuantity * $smsUnitPrice + $whatsappQuantity * $whatsappUnitPrice;
         if ($amount > 2000000) {
             return response()->json(['status' => false, 'title' => 'Montant trop élevé', 'msg' => 'Le montant maximum est de 2 000 000 FCFA.'], 422);
         }
@@ -74,7 +78,11 @@ class SmsQuotaController extends Controller
             'transaction_id' => $reference,
             'idempotency_key' => 'checkout-'.strtolower($reference),
             'sms_quantity' => $smsQuantity,
+            'sms_unit_price' => $smsUnitPrice,
+            'sms_unit_cost' => $smsUnitCost,
             'whatsapp_quantity' => $whatsappQuantity,
+            'whatsapp_unit_price' => $whatsappUnitPrice,
+            'whatsapp_unit_cost' => $whatsappUnitCost,
             'amount' => $amount,
             'currency' => 'XOF',
             'status' => 'created',
@@ -86,7 +94,7 @@ class SmsQuotaController extends Controller
                 'status' => 'pending',
                 'kpp_reference' => $data['kpp_tx_reference'],
                 'checkout_url' => $data['checkout_url'],
-                'expires_at' => $data['expires_at'] ?? null,
+                'expires_at' => $data['expires_at'] ?? now()->addHours(app(\App\Services\PlatformConfigurationService::class)->integer('security.payment_expiry_hours', 24)),
             ]);
         } catch (Throwable $exception) {
             $payment->update(['status' => 'failed', 'failure_reason' => class_basename($exception), 'failed_at' => now()]);

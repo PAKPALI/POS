@@ -23,8 +23,13 @@ class AuthNavigationTest extends TestCase
             ->assertOk()
             ->assertSeeText("Vous n'avez pas encore de compte ?", false)
             ->assertSee(route('register'))
+            ->assertSeeText('Administration SaaS')
+            ->assertSee(route('platform.entry'))
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
             ->assertSee(asset('hub/assets/css/app.min.css'));
+
+        $this->get(route('platform.entry'))
+            ->assertRedirect('/platform/login');
 
         $this->get(route('register'))
             ->assertOk()

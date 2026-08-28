@@ -1,4 +1,7 @@
-@extends('layouts.layout')
+@php($isPlatformError = auth('platform')->check() && request()->routeIs('platform.*'))
+@extends($isPlatformError ? 'layouts.platform' : 'layouts.layout')
+@section('title', 'Accès refusé')
+@section('page-title', 'Accès refusé')
 
 @push('css-scripts')
 <style>
@@ -35,7 +38,9 @@
                     </p>
 
                     <div class="d-flex flex-wrap justify-content-center gap-2">
-                        @if($permissionMembership?->hasPermission('dashboard.view'))
+                        @if($isPlatformError)
+                            <a href="{{ route('platform.dashboard') }}" class="btn btn-warning"><i class="bi bi-grid-1x2-fill me-2"></i>Vue générale</a>
+                        @elseif($permissionMembership?->hasPermission('dashboard.view'))
                             <a href="{{ route('dashboard') }}" class="btn btn-theme"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</a>
                         @endif
                         @if($permissionMembership?->hasPermission('clients.manage'))
@@ -47,7 +52,7 @@
                         @if($permissionMembership?->hasPermission('inventory.manage'))
                             <a href="{{ route('inventory.index') }}" class="btn btn-outline-theme">Inventaire</a>
                         @endif
-                        <a href="{{ $permissionMembership ? route('profil') : route('companies.select') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-2"></i>{{ $permissionMembership ? 'Mon profil' : 'Mes entreprises' }}</a>
+                        @unless($isPlatformError)<a href="{{ $permissionMembership ? route('profil') : route('companies.select') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-2"></i>{{ $permissionMembership ? 'Mon profil' : 'Mes entreprises' }}</a>@endunless
                     </div>
 
                     <p class="small text-secondary mt-4 mb-0">

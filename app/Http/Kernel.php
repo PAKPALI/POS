@@ -18,6 +18,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \App\Http\Middleware\PlatformMaintenanceMode::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
@@ -67,5 +68,8 @@ class Kernel extends HttpKernel
         'company.resolve' => \App\Http\Middleware\ResolveCompany::class,
         'company.selected' => \App\Http\Middleware\EnsureCompanySelected::class,
         'permission' => \App\Http\Middleware\EnsurePermission::class,
+        'platform.admin' => \App\Http\Middleware\EnsurePlatformAdmin::class,
+        'platform.password' => \App\Http\Middleware\EnsurePlatformPasswordChanged::class,
+        'platform.permission' => \App\Http\Middleware\EnsurePlatformPermission::class,
     ];
 }

@@ -60,6 +60,10 @@ class QuotaPaymentTest extends TestCase
 
         $payment = QuotaPayment::firstOrFail();
         $this->assertSame(160, (int) $payment->amount);
+        $this->assertSame(35, (int) $payment->sms_unit_price);
+        $this->assertSame(30, (int) $payment->whatsapp_unit_price);
+        $this->assertSame(15, (int) $payment->sms_unit_cost);
+        $this->assertSame(15, (int) $payment->whatsapp_unit_cost);
         $this->assertSame('pending', $payment->status);
         $checkout->assertJson(['transaction_id' => $payment->transaction_id]);
         $this->getJson(route('sms-quota.status', $payment->transaction_id))

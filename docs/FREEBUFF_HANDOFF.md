@@ -4,7 +4,7 @@ Dernière mise à jour : 25 août 2026 — après le troisième lot d’optimisa
 
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
 
-Rapport actuel au 27 août 2026 : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-27.md`. Référence automatique après correction PWA : **143 tests, 824 assertions, 0 échec**. Trois migrations récentes concernant les factures, indicatifs pays et journaux de communications sont encore en attente dans la base locale ; les appliquer seulement après sauvegarde et contrôler séparément le staging.
+Rapport général permanent : `docs/RAPPORT_GLOBAL_SAAS.md`. Les anciens rapports datés et rapports techniques séparés ont été consolidés dans ce document unique.
 
 Correctif connexion PWA staging du 27 août : le manifeste démarre désormais sur `/home` au lieu de `/`, le cache passe à `pro-seller-pwa-v4`, le POST de connexion est relatif à l’origine installée et la redirection reçue est ramenée au même hôte. L’e-mail mobile est normalisé (espaces/majuscules) et les erreurs 419/429 sont explicites. Après déploiement, supprimer l’ancien raccourci PWA, ouvrir le domaine HTTPS canonique dans Safari/Chrome, recharger puis réinstaller l’application.
 
@@ -26,21 +26,11 @@ Historique des ventes : l’ancien filtre de date isolé a été remplacé par u
 
 Consommation SMS & WhatsApp : pagination Bootstrap explicite à 10 lignes par défaut, choix 10/25/50, compteur `Affichage de X à Y sur Z` et conservation de tous les filtres dans les liens de pages.
 
-État consolidé du 27 août 2026 : toutes les migrations du dépôt sont appliquées localement. La suite complète compte `147 tests`, `880 assertions` et `0 échec`. Le propriétaire confirme sur staging : fonctionnement multi-compagnies réel, PWA mobile opérationnelle, paiement KPrimePay réel réussi, aucun double crédit webhook, sauvegarde/restauration complète réussie, queues et crons surveillés plusieurs jours, délivrabilité SPF/DKIM/DMARC validée. Estimation actualisée : noyau fonctionnel avant abonnements `98 %`, préparation production commerciale `96 %`. La prochaine phase est le pilote limité et la validation manuelle des scénarios KPrimePay secondaires désormais réconciliés automatiquement. Rapport : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-27.md`.
+État consolidé : staging multi-compagnies, PWA, KPrimePay réel, sauvegardes, queues, cron et délivrabilité validés. Utiliser `docs/RAPPORT_GLOBAL_SAAS.md` pour l’état général courant et `docs/RAPPORT_ADMINISTRATION_SAAS.md` pour la console centrale.
 
-La procédure d’exploitation pour paiements abandonnés/refusés/tardifs, paiements bloqués et jobs échoués est formalisée dans `docs/PROCEDURE_INCIDENTS_PAIEMENTS_JOBS.md`. La commande `payments:reconcile-kprimepay` tourne toutes les dix minutes : elle revérifie chez KPrimePay les checkouts `pending` expirés et les classe `paid`, `failed` ou `expired`. Le crédit atomique est centralisé dans `QuotaPaymentSettlementService` et partagé avec le webhook, ce qui protège contre le double crédit même en cas de concurrence webhook/scheduler. L’interface affiche désormais le statut `Expiré` et le polling s’arrête proprement.
+L’intégration et la procédure d’exploitation KPrimePay sont regroupées dans `docs/GUIDE_KPRIMEPAY.md`. La commande `payments:reconcile-kprimepay` tourne toutes les dix minutes et partage le crédit atomique de `QuotaPaymentSettlementService` avec le webhook.
 
-Rapport consolidé destiné au propriétaire : `docs/RAPPORT_AVANCEMENT_SAAS_2026-08-25.md`. Il résume les acquis, les pourcentages, les risques résiduels et l’ordre recommandé avant le pilote.
-
-Rapport de charge reproductible : `docs/RAPPORT_TEST_VOLUME_SAAS_2026-08-25.md`. Le benchmark MySQL isolé utilise uniquement une base `*_testing`, charge jusqu’à 100 000 lignes de vente détaillées et ne doit pas être ajouté à la suite quotidienne.
-
-Rapport de concurrence : `docs/RAPPORT_CONCURRENCE_SAAS_2026-08-25.md`. Dix ventes simultanées et huit conversions simultanées d’une même commande sont validées sans survente, doublon ni écart de caisse. Le benchmark est également exclu de la suite quotidienne.
-
-Rapport de charge des notifications : `docs/RAPPORT_CHARGE_NOTIFICATIONS_2026-08-25.md`. Le benchmark à 4 workers et 1 000 livraisons a révélé puis permis de corriger une double revendication concurrente. Après correction : 0 doublon, 0 échec et environ 108 livraisons locales par seconde.
-
-Rapport des exports PDF : `docs/RAPPORT_EXPORTS_PDF_VOLUME_2026-08-26.md`. DomPDF dépassait 512 Mo sur plusieurs milliers de lignes. Les exports sont désormais bornés avant rendu à 300 produits, 500 mouvements ou 100 ventes ; les volumes supérieurs demandent un filtre plus précis.
-
-Rapport CSV/Excel : `docs/RAPPORT_EXPORTS_CSV_EXCEL_2026-08-26.md`. Produits, Inventaire et Historique disposent d’exports exhaustifs générés en flux, filtrés par compagnie et protégés contre l’injection de formules. Les boutons utilisent le loader serveur global.
+Les résultats de volume SQL, concurrence, charge des notifications, limites PDF et exports CSV/XLSX sont tous regroupés dans `docs/RAPPORT_GLOBAL_SAAS.md`. Les benchmarks restent exclus de la suite quotidienne et exigent une base `*_testing`.
 
 - Correctif téléchargement CSV/Excel : la PWA servait encore l’ancien `server-button-loader.js`, rendant `ServerButtonLoader.download()` indisponible. Le cache est maintenant `pro-seller-pwa-v3` et le script porte `?v=20260826-1` dans tous les layouts. Conserver le versionnement lors des prochaines modifications d’assets mis en cache.
 
@@ -418,7 +408,7 @@ Le travail est non commité et le dépôt était déjà sale avant la reprise. P
 - Les sept parcours mesurés restent sous 0,8 seconde lors du passage diagnostique final et sous 14 requêtes : tableau de bord 781 ms, POS 773 ms, produits 94 ms, clients 17 ms, utilisateurs 17 ms, commandes 14 ms et historique 696 ms. Un passage à froid peut atteindre environ 1,4 seconde sur les agrégations.
 - Les filtres `DATE(created_at)` du POS ont été remplacés par des plages indexables. Les agrégations de bénéfice ont été fusionnées, réduisant le POS de 15 à 14 requêtes et l’historique de 11 à 10.
 - La migration appliquée `2026_08_25_140000_add_sale_detail_period_performance_index.php` ajoute l’index `(company_id, created_at, product_id)` sur `sale_details`.
-- Rapport complet : `docs/RAPPORT_TEST_VOLUME_SAAS_2026-08-25.md`. La performance locale passe raisonnablement de 88 % à **90 %**. Prochaine étape : concurrence multi-utilisateurs et données réparties sur plusieurs mois.
+- Rapport consolidé : `docs/RAPPORT_GLOBAL_SAAS.md`.
 
 ## Mise à jour du 26 août 2026 — vrais exports Excel XLSX
 
@@ -476,7 +466,24 @@ Le travail est non commité et le dépôt était déjà sale avant la reprise. P
 - Webhook public : `POST /api/kprimepay/webhook`. Le contrôleur accepte le format V2 et le format V1 actuellement émis (`payment.web.checkout`). Un retour navigateur ne crédite rien. Tout succès est reconfirmé avec `/v2/transactions/debit-status`, puis montant/devise/statut sont comparés avant un crédit SQL atomique.
 - `transaction_id`, `idempotency_key` et `event_id` empêchent les doublons. La V1 ne fournissant pas d'`event_id`, le contrôleur génère une empreinte SHA-256 stable à partir de la transaction et du paiement. Un même webhook rejoué ne crédite pas deux fois.
 - La clé fournie dans la conversation est considérée exposée et n’a pas été enregistrée. Elle doit être régénérée avec `payments:write` et `read`.
-- Documentation : `docs/INTEGRATION_KPRIMEPAY_QUOTAS.md`. Après ajout du scénario webhook V1 et la non-régression complète : **138 tests, 785 assertions, 0 échec**.
+- Documentation : `docs/GUIDE_KPRIMEPAY.md`.
 - Expérience PWA KPrimePay : le checkout s’ouvre désormais dans une fenêtre séparée créée directement par le clic utilisateur. La page Quotas reste ouverte, garde le bouton bloqué avec son loader, surveille le statut local toutes les 3 secondes, ferme la fenêtre et se recharge après confirmation `paid`. Une redirection complète reste disponible si les pop-ups sont bloquées. Ne jamais remplacer ce contrôle local par une confiance dans la seule URL de retour.
 - Identité des e-mails : ventes, stock, inventaire hebdomadaire, invitations, accès utilisateur et commandes e-commerce présentent désormais la compagnie concernée comme nom d’expéditeur visible et dans le footer. L’adresse SMTP authentifiée reste celle de la plateforme pour préserver la délivrabilité. Le nom de l’application apparaît uniquement dans le copyright dynamique du footer partagé ; l’ancienne année fixe et la signature personnelle ont été supprimées.
 
+# Administration centrale SaaS
+
+Le cahier des charges de référence reste `docs/CAHIER_DES_CHARGES_ADMINISTRATION_SAAS.md`. La console plateforme est séparée des rôles `owner` et `admin` des compagnies et ne doit jamais reposer uniquement sur le champ historique `users.user_type`.
+
+Toute l’implémentation et son avancement sont désormais regroupés dans un seul document permanent : `docs/RAPPORT_ADMINISTRATION_SAAS.md`. Ne plus créer de rapport distinct par phase. Après chaque modification de la partie administrative, mettre à jour dans ce document la date, la fonctionnalité concernée, les contrôles de sécurité, les tests réalisés et, si nécessaire, les instructions de déploiement.
+
+État de référence au 28 août 2026 : garde `platform`, connexion dédiée, tableau de bord global, gestion et consultation des entreprises et utilisateurs, paiements et quotas KPrimePay, tarification et rentabilité SMS/WhatsApp, journal d’audit, santé du système, gestion des administrateurs et rôles Super-administrateur, Support, Finance et Technique. Les permissions protègent les menus et les routes. Dernière suite complète connue : **185 tests, 1 109 assertions, 0 échec**.
+
+Sécurité plateforme ajoutée le 28 août 2026 : double authentification par code e-mail hashé et expirant, renvoi limité, récupération du mot de passe par lien hashé à usage unique, invalidation des anciennes sessions, activation/désactivation individuelle et réinitialisation 2FA auditées depuis **Administrateurs**. Migration : `2026_08_28_200000_add_security_to_platform_admins.php`. Le suivi détaillé reste exclusivement dans `docs/RAPPORT_ADMINISTRATION_SAAS.md`.
+
+Alertes d’exploitation ajoutées le 28 août 2026 : commande `platform:check-alerts` toutes les cinq minutes, seuils configurables, destinataires plateforme, e-mails anti-spam, historique, prise en charge et résolution. Migration : `2026_08_28_210000_create_platform_operational_alerts.php`. Le cron O2switch `schedule:run` reste indispensable ; prévoir une surveillance externe pour détecter immédiatement son arrêt total.
+
+Communications globales ajoutées le 28 août 2026 : accès super-admin/technique, statistiques e-mail/SMS/WhatsApp, filtres SQL, pagination, destinataires masqués, consommation par entreprise, exports CSV/XLSX et relances atomiques/auditées uniquement pour les événements reconstruisibles sans risque avec les jobs existants.
+
+Paramètres généraux ajoutés le 28 août 2026 : identité et logo, support, valeurs par défaut, état masqué des configurations externes, activation réelle e-mail/SMS/WhatsApp/KPrimePay, délais invitation/2FA/paiement et maintenance applicative excluant console/API. Les composants Blade manquants ont été restaurés et `php artisan view:cache` passe.
+
+Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une entreprise via la connexion POS ; les deux gardes restent volontairement séparées.

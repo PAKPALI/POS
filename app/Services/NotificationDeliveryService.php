@@ -20,6 +20,9 @@ class NotificationDeliveryService
         int $userId,
         Closure $sender,
     ): bool {
+        if (!app(PlatformConfigurationService::class)->channelEnabled($channel)) {
+            return false;
+        }
         $activeMembershipExists = CompanyUser::query()
             ->where('company_id', $companyId)
             ->where('user_id', $userId)
