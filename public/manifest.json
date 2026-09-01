@@ -5,7 +5,7 @@
   "description": "Gestion de point de vente, de stock et de commandes pour votre entreprise.",
   "lang": "fr",
   "dir": "ltr",
-  "start_url": "/home",
+  "start_url": "/user_login?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

@@ -1,38 +1,9 @@
-@extends('layouts.layout')
-@push('css-scripts')
-<style>
-    #datatable tbody tr {
-        background-color: #f0f0f0;
-    }
-    #datatable tbody tr:hover {
-        background-color: #e0e0e0;
-    }
+@extends('layouts.saas')
+@section('title', 'Menus')
 
-    /* Transform button in circle */
-    .state {
-        display: inline-block;
-        width: 15px; /* circle width */
-        height: 15px; /* circle height */
-        border-radius: 50%; /* Rounded edges to make a circle */
-        animation: blink 1s infinite; /* Add blink animation */
-    }
-    .state1 {
-        display: inline-block;
-        width: 15px; /* circle width */
-        height: 15px; /* circle height */
-        border-radius: 50%; /* Rounded edges to make a circle */
-    }
-
-    /* Animation of blink */
-    @keyframes blink {
-        0%, 100% {
-        opacity: 1; /* Completely visible */
-        }
-        50% {
-        opacity: 0.5; /* Semi-transparent */
-        }
-    }
-</style>
+@push('styles')
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -41,21 +12,21 @@
             <div class="col-12">
                 <div class="row">
                     <div class="col-12">
-                        <ul class="breadcrumb">
-                            <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
-                            <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
-                        </ul>
-                        <h1 class="page-header">
-                            MENU
-                            <!-- <img src="{{ asset('images/1729538166.jpg') }}" alt="Image du produit"> -->
-                        </h1>
-                        <hr class="mb-4">
+                        <div class="saas-page-heading">
+                            <div>
+                                <h1>Menus</h1>
+                                <p>Composez des offres à partir des produits du catalogue.</p>
+                            </div>
+                            <button type="button" class="saas-btn saas-btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+                                <i class="bi bi-plus-lg"></i> Ajouter un menu
+                            </button>
+                        </div>
                         <!-- add modal -->
                         <div class="modal modal fade" id="addModal">
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
-                                    <div class="modal-header bg-primary">
-                                        <h3 class="modal-title">Ajouter menu</h3>
+                                    <div class="modal-header modal-header-accent">
+                                        <h3 class="modal-title">Ajouter un menu</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -115,8 +86,8 @@
                                                 <div class="form-group col-12 mb-3 text-center bg-light">
                                                     <label for="exampleInputText0"><h5 class="text-dark">informations produits</h5></label>
                                                 </div>
-                                                <button type="button" class="btn btn-info add-product-field mb-2">
-                                                    <i class="fa fa-plus"></i> Ajouter un produit
+                                                <button type="button" class="saas-btn saas-btn-outline add-product-field mb-2">
+                                                    <i class="bi bi-plus-lg"></i> Ajouter un produit
                                                 </button>
                                                 <div id="product-fields-container">
                                                     <!-- Dynamic field will be here -->
@@ -124,9 +95,8 @@
                                             </div>
                                         </div>
                                         <div class="card-footer mt-4">
-                                            <button type="submit" class="btn btn-primary">
-                                                <div id="loader" class="spinner-grow"></div>
-                                                <div id="submitText">Valider</div>
+                                            <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Création…">
+                                                <span>Créer le menu</span>
                                             </button> 
                                         </div>
                                     </form>
@@ -139,8 +109,8 @@
                         <div class="modal" id="editModal">
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
-                                    <div class="modal-header bg-warning">
-                                        <h3 class="modal-title text-dark ">Modifier menu</h3>
+                                    <div class="modal-header modal-header-accent modal-header-warning">
+                                        <h3 class="modal-title">Modifier le menu</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -154,8 +124,8 @@
                         <div class="modal fade" id="showModal">
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
-                                    <div class="modal-header bg-light">
-                                        <h3 class="modal-title text-dark ">Détail</h3>
+                                    <div class="modal-header modal-header-accent">
+                                        <h3 class="modal-title">Détail du menu</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -189,45 +159,34 @@
                         </template>
 
                         <div class="col-xl-12">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des menus</h4></span>
-                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
-                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
+                            <div class="saas-card">
+                                <div class="saas-card-head">
+                                    <div>
+                                        <h2>Liste des menus</h2>
+                                        <p class="saas-card-description">Consultez, modifiez ou archivez les compositions proposées à la vente.</p>
                                     </div>
-                                    <div class="table-responsive">
-                                        <table id="datatable" class="table text-nowrap w-100">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Etat</th>
-                                                    <th>Nom</th>
-                                                    <th>Catégorie</th>
-                                                    <th>Quantité</th>
-                                                    <th>Prix</th>
-                                                    <th>Status</th>
-                                                    <!-- <th>Créer par</th> -->
-                                                    <!-- <th>Créer le</th> -->
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="datatable" class="table text-nowrap w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>État</th>
+                                                <th>Nom</th>
+                                                <th>Catégorie</th>
+                                                <th>Quantité</th>
+                                                <th>Prix</th>
+                                                <th>Statut</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
                                 <div class="d-flex justify-content-center mt-3">
                                     
                                 </div>
 
-                                <div class="card-arrow">
-                                    <div class="card-arrow-top-left"></div>
-                                    <div class="card-arrow-top-right"></div>
-                                    <div class="card-arrow-bottom-left"></div>
-                                    <div class="card-arrow-bottom-right"></div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -244,19 +203,12 @@
         </div>
     </div>
 
-    <script src="{{asset('hub/assets/plugins/datatables.net/js/dataTables.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.colVis.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.flash.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.html5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.print.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
+    @push('scripts')
+    <script src="{{ asset('hub/assets/plugins/datatables.net/js/dataTables.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         $(function() {
@@ -282,7 +234,9 @@
                 responsive: true, 
                 language: {
                     "lengthMenu": "Afficher _MENU_ entrées",
-                    "zeroRecords": "Aucune donnée disponible",
+                    "zeroRecords": "Aucun résultat correspondant",
+                    "emptyTable": "Aucun menu composé pour le moment",
+                    "processing": "Chargement des menus…",
                     "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
                     "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
                     "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
@@ -295,35 +249,6 @@
                     }
                 },
                 
-                drawCallback: function() {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                    $('#datatable').css('width','100%');
-                    $('#datatable tbody tr').each(function() {
-                        $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
-                        $(this).css('color', 'white');
-                    });
-                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
-                    $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
-                    $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
-
-                    // Appliquer la couleur blanche au texte des labels
-                    $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
-                    $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
-                    
-                    // Appliquer les styles pour le dropdown et le champ de recherche
-                    $('.dataTables_length select').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
-
-                    $('.dataTables_filter input').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
-                    $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
-                    $('#datatable').css('width', '100%');
-                },
             });
 
             window.addEventListener('datatableUpdated', function() {
@@ -362,10 +287,8 @@
             });
 
             //Add menu
-            $('#add').submit(function () {
-                $('#loader').fadeIn();
-                $('#submitText').hide();
-
+            $('#add').submit(function (event) {
+                event.preventDefault();
                 let isValid = true; 
                 let products = [];
 
@@ -379,7 +302,6 @@
                     // }
 
                     if (!productSelect) {
-                        alert("Veuillez sélectionner un produit !")
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -395,7 +317,6 @@
                     }
 
                     if (!productQuantity || productQuantity <= 0) {
-                        alert("Veuillez saisir une quantité valide !")
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -418,8 +339,6 @@
 
                 // Vérifier si la validation a échoué ou si aucun produit n'a été ajouté
                 if (!isValid || products.length === 0) {
-                    $('#loader').hide();
-                    $('#submitText').fadeIn();
                     Swal.fire({
                         toast: true,
                         position: 'top',
@@ -452,8 +371,6 @@
                     contentType: false,
                     datatype: 'json',
                     success: function (data) {
-                        $('#loader').hide();
-                        $('#submitText').fadeIn();
                         if (data.status) {
                             Swal.fire({
                                 toast: true,
@@ -481,8 +398,6 @@
                         }
                     },
                     error: function (data) {
-                        $('#loader').hide();
-                        $('#submitText').fadeIn();
                         Swal.fire({
                             icon: "error",
                             title: "Erreur",
@@ -497,29 +412,39 @@
 
 
             $('body').on('click', '.editModal', function () {
+                const trigger = this;
                 var id = $(this).data("id");
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(trigger, 'Chargement…');
+                $('#edit_response').empty();
+                $('#editModal').modal('show');
                 $.ajax({
                     url:'{{url('component/menu')}}/'+id+'/edit',
                     dataType: 'html',
                     success:function(result)
                     {
                         $('#edit_response').html(result);
-                    }
+                    },
+                    error: function() { $('#editModal').modal('hide'); Swal.fire({icon: 'error', title: 'Chargement impossible', text: 'Impossible de charger ce menu.'}); },
+                    complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }
                 });
-                $('#editModal').modal('show');
             });
 
             $('body').on('click', '.view', function () {
+                const trigger = this;
                 var id = $(this).data("id");
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(trigger, 'Chargement…');
+                $('#show_response').empty();
+                $('#showModal').modal('show');
                 $.ajax({
                     url:'{{url('component/menu')}}/'+id,
                     dataType: 'html',
                     success:function(result)
                     {
                         $('#show_response').html(result);
-                    }
+                    },
+                    error: function() { $('#showModal').modal('hide'); Swal.fire({icon: 'error', title: 'Chargement impossible', text: 'Impossible de charger ce menu.'}); },
+                    complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }
                 });
-                $('#showModal').modal('show');
             });
 
             $('body').on('click', '.deleteUser', function () {
@@ -688,5 +613,6 @@
             });
         });
     </script>
+    @endpush
 
     @endsection

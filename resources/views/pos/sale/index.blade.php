@@ -1,186 +1,33 @@
-@extends('layouts.layout_sale')
-@push('css-scripts')
-<style>
-    #datatable tbody tr {
-        background-color: #f0f0f0;
-    }
+@extends('layouts.saas')
 
-    #datatable tbody tr:hover {
-        background-color: #e0e0e0;
-    }
+@section('title', 'Point de Vente')
+@section('eyebrow', 'Ventes')
+@section('page-title', 'Point de Vente')
+@section('body-class', 'pos-saas-body')
 
-    #pdfModal .modal-dialog {
-        max-width: 760px;
-    }
-
-    #pdfModal .modal-content {
-        height: min(92vh, 900px);
-    }
-
-    #pdfModal .modal-body {
-        overflow: auto;
-        padding: 1rem;
-        background: #e9ecef;
-    }
-
-    #pdfModal .modal-body canvas {
-        display: block;
-        width: auto;
-        max-width: 100%;
-        height: auto !important;
-        margin: 0 auto;
-        background: #fff;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
-    }
-
-    .pos-product-flyer {
-        position: fixed;
-        z-index: 2147483000;
-        pointer-events: none;
-        overflow: hidden;
-        border: 2px solid rgba(255, 255, 255, .9);
-        border-radius: 18px;
-        background-color: rgba(255, 255, 255, .92);
-        background-position: center;
-        background-size: cover;
-        box-shadow:
-            0 18px 38px rgba(0, 0, 0, .5),
-            0 0 0 5px rgba(13, 202, 240, .28);
-        filter: saturate(.9) contrast(1.08);
-        will-change: transform, opacity, filter;
-        transform-origin: center center;
-    }
-
-    .pos-product-click-origin {
-        position: fixed;
-        z-index: 2147483001;
-        width: 12px;
-        height: 12px;
-        margin: -6px 0 0 -6px;
-        pointer-events: none;
-        border: 2px solid #fff;
-        border-radius: 50%;
-        background: #0dcaf0;
-        box-shadow: 0 0 0 0 rgba(13, 202, 240, .7);
-        animation: product-click-origin .28s ease-out forwards;
-    }
-
-    @keyframes product-click-origin {
-        to {
-            opacity: 0;
-            box-shadow: 0 0 0 18px rgba(13, 202, 240, 0);
-            transform: scale(.35);
-        }
-    }
-
-    .cart-receive-pulse,
-    #orderCount.cart-receive-pulse {
-        animation: cart-receive-pulse .38s ease-out;
-    }
-
-    @keyframes cart-receive-pulse {
-        50% {
-            color: #fff;
-            text-shadow: 0 0 12px #0dcaf0;
-            transform: scale(1.5);
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .cart-receive-pulse,
-        #orderCount.cart-receive-pulse {
-            animation: none;
-        }
-    }
-
-    @media (max-width: 575.98px) {
-        .pos .pos-content-container {
-            padding: .5rem !important;
-        }
-
-        #product_list {
-            --bs-gutter-x: .5rem;
-        }
-
-        #product_list .product_list {
-            padding-bottom: .5rem !important;
-        }
-
-        #product_list .card-body.products {
-            padding: 2px !important;
-        }
-
-        #product_list .pos-product .img {
-            height: 105px !important;
-            min-height: 105px;
-        }
-
-        #product_list .pos-product .info {
-            padding: .45rem .35rem;
-        }
-
-        #product_list .pos-product .info .title,
-        #product_list .pos-product .info .price {
-            font-size: .72rem;
-            line-height: 1.25;
-        }
-
-        #product_list .pos-product:hover,
-        #product_list .pos-product.product-hover {
-            transform: none;
-        }
-
-        #pdfModal .modal-dialog {
-            width: 100%;
-            max-width: none;
-            height: 100%;
-            margin: 0;
-        }
-
-        #pdfModal .modal-content {
-            height: 100%;
-            border: 0;
-            border-radius: 0;
-        }
-
-        #pdfModal .modal-body {
-            padding: .5rem;
-        }
-
-        #pdfModal .modal-footer {
-            flex-wrap: nowrap;
-        }
-
-        #pdfModal .modal-footer .btn {
-            flex: 1;
-        }
-    }
-</style>
+@push('styles')
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260901-34" rel="stylesheet">
+    <style>
+        /* POS full-screen dans le shell SaaS */
+        .saas-shell { display: flex; flex-direction: column; }
+        .saas-shell .saas-sidebar, .saas-shell .saas-sidebar-backdrop, .saas-shell .saas-topbar { display: none !important; }
+        .saas-shell .saas-workspace { margin-left: 0 !important; }
+        .saas-shell .saas-content { padding: 0 !important; margin: 0 !important; max-height: 100vh; overflow: hidden; }
+        .saas-body { overflow: hidden; }
+        #datatable tbody tr { background-color: var(--ds-bg-elevated, #1a1f2e); }
+        #datatable tbody tr:hover { background-color: var(--ds-bg-canvas, #0d1117); }
+        .pos-product-flyer { position: fixed; z-index: 2147483000; pointer-events: none; overflow: hidden; border: 2px solid rgba(255,255,255,.9); border-radius: 18px; background-color: rgba(255,255,255,.92); background-position: center; background-size: cover; box-shadow: 0 18px 38px rgba(0,0,0,.5), 0 0 0 5px rgba(13,202,240,.28); filter: saturate(.9) contrast(1.08); will-change: transform, opacity, filter; transform-origin: center center; }
+        .pos-product-click-origin { position: fixed; z-index: 2147483001; width: 12px; height: 12px; margin: -6px 0 0 -6px; pointer-events: none; border: 2px solid #fff; border-radius: 50%; background: #0dcaf0; box-shadow: 0 0 0 0 rgba(13,202,240,.7); animation: product-click-origin .28s ease-out forwards; }
+        @keyframes product-click-origin { to { opacity: 0; box-shadow: 0 0 0 18px rgba(13,202,240,0); transform: scale(.35); } }
+        .cart-receive-pulse, #orderCount.cart-receive-pulse { animation: cart-receive-pulse .38s ease-out; }
+        @keyframes cart-receive-pulse { 50% { color: #fff; text-shadow: 0 0 12px #0dcaf0; transform: scale(1.5); } }
+        @media (prefers-reduced-motion: reduce) { .cart-receive-pulse, #orderCount.cart-receive-pulse { animation: none; } }
+        @media (max-width: 575.98px) { .pos .pos-content-container { padding: .5rem !important; } #product_list { --bs-gutter-x: .5rem; } #product_list .product_list { padding-bottom: .5rem !important; } #product_list .card-body.products { padding: 2px !important; } #product_list .pos-product .img { height: 105px !important; min-height: 105px; } #product_list .pos-product .info { padding: .45rem .35rem; } #product_list .pos-product .info .title, #product_list .pos-product .info .price { font-size: .72rem; line-height: 1.25; } #product_list .pos-product:hover, #product_list .pos-product.product-hover { transform: none; } }
+    </style>
 @endpush
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
-<style>
-    /* Liste déroulante des clients : fond blanc, nom en noir,
-       survol bleu avec texte blanc */
-    .select2-dropdown {
-        background-color: #ffffff !important;
-        border: 1px solid #ced4da !important;
-    }
-    .select2-container--default .select2-results__option {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-    }
-    .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #1e88e5 !important;
-        color: #ffffff !important;
-    }
-    .select2-container--default .select2-search--dropdown .select2-search__field {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-        border: 1px solid #ced4da !important;
-    }
-</style>
 <div id="content" class="app-content p-1 ps-xl-4 pe-xl-4 pt-xl-3 pb-xl-3">
 
     <div class="pos card" id="pos">
@@ -197,19 +44,15 @@
                 <!-- Menu body-->
                 <div class="nav-container">
                     <div data-scrollbar="true" data-height="100%" data-skip-mobile="true">
+                        <div class="pos-menu-section-label"><i class="bi bi-grid"></i> Catégories</div>
                         <ul class="nav nav-tabs">
                             <li class="nav-item">
                                 <a class="nav-link active" href="#" data-filter="all" data-category-id="">
                                     <div class="card">
                                         <div class="card-body">
-                                            <i class="fa fa-th-large"></i> Tous
-                                    ( <span>{{ $productCount }}</span> )
-                                        </div>
-                                        <div class="card-arrow">
-                                            <div class="card-arrow-top-left"></div>
-                                            <div class="card-arrow-top-right"></div>
-                                            <div class="card-arrow-bottom-left"></div>
-                                            <div class="card-arrow-bottom-right"></div>
+                                            <i class="bi bi-grid-3x3-gap"></i>
+                                            <span class="pos-category-name">Tous</span>
+                                            <span class="pos-category-count">{{ $productCount }}</span>
                                         </div>
                                     </div>
                                 </a>
@@ -220,14 +63,9 @@
                                 <a class="nav-link" href="#" data-filter="category" data-category-id="{{ $category->id }}">
                                     <div class="card">
                                         <div class="card-body">
-                                            <i class="fa fa-tags"></i> {{$category->name}}
-                                            ( <span>{{ $category->available_products_count }}</span> )
-                                        </div>
-                                        <div class="card-arrow">
-                                            <div class="card-arrow-top-left"></div>
-                                            <div class="card-arrow-top-right"></div>
-                                            <div class="card-arrow-bottom-left"></div>
-                                            <div class="card-arrow-bottom-right"></div>
+                                            <i class="bi bi-tag"></i>
+                                            <span class="pos-category-name">{{$category->name}}</span>
+                                            <span class="pos-category-count">{{ $category->available_products_count }}</span>
                                         </div>
                                     </div>
                                 </a>
@@ -241,8 +79,19 @@
             <!-- product -->
             <div class="pos-content">
                 <div class="pos-content-container h-100 p-4 text-center" data-scrollbar="true" data-height="100%">
+                    <div class="pos-catalog-header">
+                        <div>
+                            <span class="pos-catalog-eyebrow" id="posCatalogEyebrow"><i class="bi bi-lightning-charge-fill"></i> Vente rapide</span>
+                            <h1 id="posCatalogTitle">Choisir des produits</h1>
+                            <p id="posCatalogDescription">Recherchez, ajoutez au panier, puis finalisez la vente.</p>
+                        </div>
+                        <div class="pos-catalog-status" aria-label="Nombre de produits disponibles">
+                            <i class="bi bi-box-seam"></i>
+                            <span><strong>{{ $productCount }}</strong> produits</span>
+                        </div>
+                    </div>
                     <!-- search product -->
-                    <div class="row mb-3">
+                    <div class="row mb-3 pos-search-row">
                         <div class="col-12">
                             <input type="text" id="searchProduct" class="form-control" placeholder="Rechercher un produit...">
                         </div>
@@ -252,7 +101,7 @@
                         <!-- statistics of sale -->
 
                         <!-- sale total daily-->
-                        <h3><strong class="sale_list">Statistiques des ventes cette journée</strong></h3>
+                        <h3 class="sale_list">Statistiques des ventes aujourd’hui</h3>
                         <div class="row sale_list mb-5">
                             <!-- total sale -->
                             
@@ -260,30 +109,20 @@
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
-                                            <span class="flex-grow-0"><h5><strong>Total des Ventes</strong><h5></span>
+                                            <span class="flex-grow-1 pos-sale-stat-label">Total des ventes</span>
                                             <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
                                                 <i class="bi bi-fullscreen"></i></a> -->
                                         </div>
                                         <div class="row align-items-center mb-2">
-                                            <div class="col-7">
+                                            <div class="col-12">
                                                 <h3 class="mb-0">{{ $saleCount }}</h3>
-                                            </div>
-                                            <div class="col-5">
-                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
-                                                    data-height="30"></div>
                                             </div>
                                         </div>
                                         <!-- <div class="small text-inverse text-opacity-50 text-truncate">
-                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
-                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
-                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                            <i class="bi bi-chevron-up me-1"></i> 33.3% more than last week<br>
+                                            <i class="bi bi-person me-1"></i> 45.5% new visitors<br>
+                                            <i class="bi bi-x-circle me-1"></i> 3.25% bounce rate
                                         </div> -->
-                                    </div>
-                                    <div class="card-arrow">
-                                        <div class="card-arrow-top-left"></div>
-                                        <div class="card-arrow-top-right"></div>
-                                        <div class="card-arrow-bottom-left"></div>
-                                        <div class="card-arrow-bottom-right"></div>
                                     </div>
                                 </div>
                             </div>
@@ -292,30 +131,20 @@
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
-                                            <span class="flex-grow-0"><h5><strong>Total des produits</strong><h5></span>
+                                            <span class="flex-grow-1 pos-sale-stat-label">Produits vendus</span>
                                             <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
                                                 <i class="bi bi-fullscreen"></i></a> -->
                                         </div>
                                         <div class="row align-items-center mb-2">
-                                            <div class="col-7">
+                                            <div class="col-12">
                                                 <h3 class="mb-0">{{$product_count}}</h3>
-                                            </div>
-                                            <div class="col-5">
-                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
-                                                    data-height="30"></div>
                                             </div>
                                         </div>
                                         <!-- <div class="small text-inverse text-opacity-50 text-truncate">
-                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
-                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
-                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                            <i class="bi bi-chevron-up me-1"></i> 33.3% more than last week<br>
+                                            <i class="bi bi-person me-1"></i> 45.5% new visitors<br>
+                                            <i class="bi bi-x-circle me-1"></i> 3.25% bounce rate
                                         </div> -->
-                                    </div>
-                                    <div class="card-arrow">
-                                        <div class="card-arrow-top-left"></div>
-                                        <div class="card-arrow-top-right"></div>
-                                        <div class="card-arrow-bottom-left"></div>
-                                        <div class="card-arrow-bottom-right"></div>
                                     </div>
                                 </div>
                             </div>
@@ -324,30 +153,20 @@
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex fw-bold small mb-3">
-                                            <span class="flex-grow-0"><h5><strong>Somme totale</strong><h5></span>
+                                            <span class="flex-grow-1 pos-sale-stat-label">Chiffre d’affaires</span>
                                             <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
                                                 <i class="bi bi-fullscreen"></i></a> -->
                                         </div>
                                         <div class="row align-items-center mb-2">
-                                            <div class="col-7">
+                                            <div class="col-12">
                                                 <h3 class="mb-0">{{$total_amount}}</h3>
-                                            </div>
-                                            <div class="col-5">
-                                                <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
-                                                    data-height="30"></div>
                                             </div>
                                         </div>
                                         <!-- <div class="small text-inverse text-opacity-50 text-truncate">
-                                            <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
-                                            <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
-                                            <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                            <i class="bi bi-chevron-up me-1"></i> 33.3% more than last week<br>
+                                            <i class="bi bi-person me-1"></i> 45.5% new visitors<br>
+                                            <i class="bi bi-x-circle me-1"></i> 3.25% bounce rate
                                         </div> -->
-                                    </div>
-                                    <div class="card-arrow">
-                                        <div class="card-arrow-top-left"></div>
-                                        <div class="card-arrow-top-right"></div>
-                                        <div class="card-arrow-bottom-left"></div>
-                                        <div class="card-arrow-bottom-right"></div>
                                     </div>
                                 </div>
                             </div>
@@ -357,30 +176,20 @@
                                     <div class="card mb-3">
                                         <div class="card-body">
                                             <div class="d-flex fw-bold small mb-3">
-                                                <span class="flex-grow-0"><h5><strong>Bénefice journalier</strong><h5></span>
+                                                <span class="flex-grow-1 pos-sale-stat-label">Bénéfice journalier</span>
                                                 <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
                                                     <i class="bi bi-fullscreen"></i></a> -->
                                             </div>
                                             <div class="row align-items-center mb-2">
-                                                <div class="col-7">
+                                                <div class="col-12">
                                                     <h3 class="mb-0">{{$sale_total_profit}}</h3>
-                                                </div>
-                                                <div class="col-5">
-                                                    <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
-                                                        data-height="30"></div>
                                                 </div>
                                             </div>
                                             <!-- <div class="small text-inverse text-opacity-50 text-truncate">
-                                                <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
-                                                <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
-                                                <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate
+                                                <i class="bi bi-chevron-up me-1"></i> 33.3% more than last week<br>
+                                                <i class="bi bi-person me-1"></i> 45.5% new visitors<br>
+                                                <i class="bi bi-x-circle me-1"></i> 3.25% bounce rate
                                             </div> -->
-                                        </div>
-                                        <div class="card-arrow">
-                                            <div class="card-arrow-top-left"></div>
-                                            <div class="card-arrow-top-right"></div>
-                                            <div class="card-arrow-bottom-left"></div>
-                                            <div class="card-arrow-bottom-right"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -388,8 +197,14 @@
                         </div>
 
                         <!-- sale list daily-->
-                        <h3><strong class="sale_list">Liste des ventes effectuées cette journée avec les détails</strong></h3>
-                        <div class="card sale_list">
+                        <div class="sale_list pos-table-heading">
+                            <div>
+                                <span class="pos-section-eyebrow"><i class="bi bi-receipt"></i> Journal du jour</span>
+                                <h3>Détail des ventes aujourd’hui</h3>
+                                <p>Recherchez une vente, consultez son détail ou renvoyez sa facture.</p>
+                            </div>
+                        </div>
+                        <div class="card sale_list pos-datatable-shell">
                             <div class="card-body">
                                 <table id="datatable" class="table text-nowrap w-100">
                                     <thead>
@@ -411,15 +226,6 @@
                                         
                                     </tbody>
                                 </table>
-                            </div>
-                            <div class="card-arrow">
-                                <div class="card-arrow-top-left"></div>
-                                <div class="card-arrow-top-right"></div>
-                                <div class="card-arrow-bottom-left"></div>
-                                <div class="card-arrow-bottom-right"></div>
-                            </div>
-                            <div class="hljs-container">
-                                <pre><code class="xml" data-url="assets/data/table-plugins/code-1.json"></code></pre>
                             </div>
                         </div>
                         
@@ -453,28 +259,43 @@
                                 <i class="bi bi-chevron-left"></i>
                             </button>
                         </div>
-                        <div class="icon"><img src="assets/img/pos/icon-table-black.svg" class="invert-dark" alt></div>
-                        <div class="title">Table de vente <marquee class="bg-dark">{{Auth::user()->name}}</marquee ></div>
+                        <div class="icon"><i class="bi bi-bag-check"></i></div>
+                        <div class="title"><span>Panier actuel</span><small>{{ Auth::user()->name }}</small></div>
                         <!-- <div class="order">Order: <b>#0056</b></div> -->
                     </div>
 
                     <div class="pos-sidebar-nav">
                         <ul class="nav nav-tabs nav-fill">
                             <li class="nav-item nav-sale-command">
-                                <a class="nav-link active" href="#" data-bs-toggle="tab" data-bs-target="#newOrderTab">Commande (<span id="orderCount">0</span>)</a>
+                                <a class="nav-link active" href="#" role="tab" data-bs-toggle="tab" data-bs-target="#newOrderTab">
+                                    <i class="bi bi-bag-check" aria-hidden="true"></i>
+                                    <span>Commande</span>
+                                    <span id="orderCount">0</span>
+                                </a>
                             </li>
                             <li class="nav-item nav-sale">
-                                <a class="nav-link" href="#" data-bs-toggle="tab" data-bs-target="#orderHistoryTab">Produits vendus ({{$mostSoldProducts->count()}})</a>
+                                <a class="nav-link" href="#" role="tab" data-bs-toggle="tab" data-bs-target="#orderHistoryTab">
+                                    <i class="bi bi-bar-chart" aria-hidden="true"></i>
+                                    <span>Produits vendus</span>
+                                    <span class="pos-tab-count" id="topProductsCount">{{$mostSoldProducts->count()}}</span>
+                                </a>
                             </li>
                         </ul>
                     </div>
 
+                    <div class="pos-client-bar">
+                        <label for="clientSelect">Client de la vente</label>
+                        <select id="clientSelect" class="form-control">
+                            <option value="">Aucun client sélectionné</option>
+                        </select>
+                    </div>
+
                     <div class="pos-sidebar-body tab-content" data-scrollbar="true" data-height="100%">
                         <div class="tab-pane fade h-100 show active" id="newOrderTab">
-                            <div class="pos-order">
-                                <select id="clientSelect" class="form-control mb-2">
-                                    <option value="">Client de la vente (aucun)</option>
-                                </select>
+                            <div id="emptyCartState" class="pos-empty-cart" aria-live="polite">
+                                <i class="bi bi-bag"></i>
+                                <strong>Votre panier est vide</strong>
+                                <p>Choisissez un produit dans le catalogue pour démarrer une vente.</p>
                             </div>
 
                             <!-- <div class="pos-order">
@@ -485,9 +306,9 @@
                                         <div class="small">$12.99</div>
                                         <div class="small mb-2">- size: large</div>
                                         <div class="d-flex">
-                                            <a href="#" class="btn btn-outline-theme btn-sm"><i class="fa fa-minus"></i></a>
+                                            <a href="#" class="btn btn-outline-theme btn-sm"><i class="bi bi-dash-lg"></i></a>
                                             <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center" value="01">
-                                            <a href="#" class="btn btn-outline-theme btn-sm"><i class="fa fa-plus"></i></a>
+                                            <a href="#" class="btn btn-outline-theme btn-sm"><i class="bi bi-plus-lg"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -497,97 +318,8 @@
                             </div> -->
                         </div>
                         <div class="tab-pane fade h-100" id="orderHistoryTab">
-                            <div class="h-100 d-flex align-items-top justify-content-center text-center p-20">
-                                <div>
-                                    <!-- if product sold is verify -->
-                                    @if ($mostSoldProducts->count()>0)
-                                        <div class="col-12">
-                                            <div class="card mb-2 mt-3">
-                                                <div class="card-body">
-                                                    <div class="d-flex fw-bold small mb-3">
-                                                        <span class="flex-grow-1">TOP PRODUITS VENDUS AUJOURD'HUI</span>
-                                                        <a href="#" data-toggle="card-expand"
-                                                            class="text-inverse text-opacity-50 text-decoration-none"><i
-                                                                class="bi bi-fullscreen"></i></a>
-                                                    </div>
-                                                    <div class="table-responsive">
-                                                        <table class="w-100 mb-0 small align-middle text-nowrap">
-                                                            <tbody>
-                                                                @php
-                                                                    $n = 1;
-                                                                @endphp
-                                                                @foreach($mostSoldProducts as $productDetail)
-                                                                    @php
-                                                                        $soldProductImage = $productDetail->product
-                                                                            && $productDetail->product->image
-                                                                            && $productDetail->product->image !== 'null'
-                                                                            && file_exists(public_path('images/'.$productDetail->product->image))
-                                                                                ? asset('images/'.$productDetail->product->image)
-                                                                                : asset('icons/product-placeholder.svg');
-                                                                    @endphp
-                                                                    <tr>
-                                                                        <td>
-                                                                            <div class="d-flex">
-                                                                                <div class="position-relative mb-2">
-                                                                                    <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                                                        style="background-image: url('{{ $soldProductImage }}');">
-                                                                                    </div>
-                                                                                    <div class="position-absolute top-0 start-0">
-                                                                                        <span
-                                                                                            class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">{{$n++}}</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="flex-1 ps-3">
-                                                                                    <!-- <div class="mb-1"><small
-                                                                                            class="fs-9px fw-500 lh-1 d-inline-block rounded-0 badge bg-secondary bg-opacity-25 text-inverse text-opacity-75 pt-5px">SKU90400</small>
-                                                                                    </div> -->
-                                                                                    <div class="fw-500 text-inverse">{{ $productDetail->product->name ?? 'Produit supprimé' }}</div>
-                                                                                    {{ $productDetail->product->price_ttc ?? $productDetail->product->price }} FCFA
-                                                                                </div>
-                                                                            </div>
-                                                                        </td>
-                                                                        <td>
-                                                                            <table class="mb-2">
-                                                                                <tr>
-                                                                                    <td class="pe-3">QTY:</td>
-                                                                                    <td class="text-inverse text-opacity-75 fw-500">{{ $productDetail->total_quantity }}</td>
-                                                                                </tr>
-                                                                                <!-- <tr>
-                                                                                    <td class="pe-3">REVENUE:</td>
-                                                                                    <td class="text-inverse text-opacity-75 fw-500">$51,471</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <td class="pe-3 text-nowrap">PROFIT:</td>
-                                                                                    <td class="text-inverse text-opacity-75 fw-500">$15,441</td>
-                                                                                </tr> -->
-                                                                            </table>
-                                                                        </td>
-                                                                        <!-- <td><a href="#" class="text-decoration-none text-inverse"><iclass="bi bi-search"></i></a></td> -->
-                                                                    </tr>
-                                                                @endforeach
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-
-                                                </div>
-                                                <div class="card-arrow">
-                                                    <div class="card-arrow-top-left"></div>
-                                                    <div class="card-arrow-top-right"></div>
-                                                    <div class="card-arrow-bottom-left"></div>
-                                                    <div class="card-arrow-bottom-right"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @else
-                                        <div class="mb-3 mt-n5 no-sale">
-                                            <svg width="6em" height="6em" viewBox="0 0 16 16" class="text-gray-300" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd" d="M14 5H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5zM1 4v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4H1z" />
-                                                <path d="M8 1.5A2.5 2.5 0 0 0 5.5 4h-1a3.5 3.5 0 1 1 7 0h-1A2.5 2.5 0 0 0 8 1.5z" />
-                                            </svg>
-                                        </div>
-                                        <h5 class="no-sale">Aucune vente effectuée</h5>
-                                    @endif
-                                </div>
+                            <div id="topProductsPanel" class="pos-top-sales-panel" aria-live="polite">
+                                @include('pos.sale.partials.top-products', ['mostSoldProducts' => $mostSoldProducts])
                             </div>
                         </div>
                     </div>
@@ -602,8 +334,8 @@
                             <div class="flex-1 text-end h6 mb-0">$2.12</div>
                         </div> -->
                         <hr>
-                        <div class="d-flex align-items-center mb-2">
-                            <div>Total</div>
+                        <div class="pos-total-summary d-flex align-items-center mb-2">
+                            <div><span>Total à encaisser</span><small>Remise déjà déduite</small></div>
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
                         </div>
                         <!-- <div class="bg-light"> -->
@@ -613,14 +345,18 @@
                             
                             {{--<div class="d-flex gap-1 mb-2">
                                 <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
-                                <button class="btn btn-danger btn-sm" id="deletpromoinput" type=""><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></button>
+                                <button class="btn btn-danger btn-sm" id="deletpromoinput" type=""><i class="bi bi-trash"></i></button>
                             </div>--}}
-                            <div class="d-flex gap-1 mb-2">
-                                <input type="number" id="remiseInput" class="form-control" placeholder="Montant de la remise (FCFA)" min="0">
-                                <button class="btn btn-danger btn-sm" id="deletremiseinput" type=""><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></button>
+                            <div class="pos-discount-field mb-2">
+                                <label for="remiseInput">Remise sur la commande</label>
+                                <div class="d-flex gap-1">
+                                    <input type="number" id="remiseInput" class="form-control" placeholder="Montant (FCFA)" min="0">
+                                    <button class="btn btn-danger btn-sm" id="deletremiseinput" type="button" aria-label="Retirer la remise"><i class="bi bi-trash"></i></button>
+                                </div>
                             </div>
                         <!-- </form> -->
-                        <div class="mt-3">
+                        <div class="mt-3 pos-order-actions">
+                            <span class="pos-order-actions-label">Actions de la commande</span>
                             <div class="btn-group d-flex flex-wrap gap-1">
                                 @if ($company && $company->count() == 1)
                                     @if(!$mainCash)
@@ -640,16 +376,16 @@
                                         </a>
                                     @else
                                         <a href="#" id="savePendingOrder" class="btn btn-outline-primary rounded-0 flex-fill">
-                                            <i class="bi bi-save fa-lg"></i><br>
+                                            <i class="bi bi-save fa-lg"></i>
                                             <span class="small">Sauvegarder</span>
                                         </a>
                                         <a href="#" id="showPendingOrders" class="btn btn-outline-info rounded-0 flex-fill position-relative">
-                                            <i class="bi bi-clock-history fa-lg"></i><br>
+                                            <i class="bi bi-clock-history fa-lg"></i>
                                             <span class="small">En cours</span>
                                             <span id="pendingBadge" class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="display:none;">0</span>
                                         </a>
                                         <a href="#" id="confirmSale" class="btn btn-outline-theme rounded-0 flex-fill">
-                                            <i class="bi bi-send-check fa-lg"></i><br>
+                                            <i class="bi bi-send-check fa-lg"></i>
                                             <span class="small">Vendre</span>
                                         </a>
                                     @endif
@@ -670,35 +406,42 @@
             </div>
 
         </div>
-        <div class="card-arrow">
-            <div class="card-arrow-top-left"></div>
-            <div class="card-arrow-top-right"></div>
-            <div class="card-arrow-bottom-left"></div>
-            <div class="card-arrow-bottom-right"></div>
-        </div>
     </div>
 
     <!-- Modal pour afficher le PDF -->
     <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel"
         aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pdfModalLabel">Aperçu du reçu</h5>
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content pos-modal-content">
+                <div class="modal-header pos-modal-header">
+                    <div>
+                        <span class="pos-modal-eyebrow">Vente finalisée</span>
+                        <h5 class="modal-title" id="pdfModalLabel">Aperçu du reçu</h5>
+                    </div>
                     <button type="button" class="btn-close receipt-modal-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body" id="receiptPreview">
                     <div class="py-5 text-muted">Chargement du reçu...</div>
                 </div>
-                <div class="px-3 pb-3 d-none" id="invoiceDeliveryPanel">
+                <div class="px-3 pb-3 d-none pos-invoice-delivery" id="invoiceDeliveryPanel">
                     <div class="border rounded p-3">
-                        <label for="invoiceCountry" class="form-label">Pays du numéro</label>
-                        <select class="form-select country-select mb-3" id="invoiceCountry" data-placeholder="Rechercher un pays">
-                            @foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($company->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach
-                        </select>
-                        <label for="invoicePhone" class="form-label">Numéro local du client</label>
-                        <input type="tel" class="form-control mb-3" id="invoicePhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
-                        <div class="d-flex flex-wrap gap-3 mb-3">
+                        <div class="pos-invoice-delivery-heading">
+                            <span><i class="bi bi-send-check"></i> Envoi au client</span>
+                            <p>Choisissez au moins un canal et vérifiez le numéro avant l’envoi.</p>
+                        </div>
+                        <div class="pos-invoice-fields">
+                            <div class="pos-invoice-field">
+                                <label for="invoiceCountry" class="form-label">Pays du numéro</label>
+                                <select class="form-select country-select" id="invoiceCountry" data-placeholder="Rechercher un pays">
+                                    @foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($company->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach
+                                </select>
+                            </div>
+                            <div class="pos-invoice-field">
+                                <label for="invoicePhone" class="form-label">Numéro local du client</label>
+                                <input type="tel" class="form-control" id="invoicePhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
+                            </div>
+                        </div>
+                        <div class="pos-invoice-channels">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}>
                                 <label class="form-check-label" for="invoiceWhatsapp">WhatsApp (<span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span>)</label>
@@ -732,31 +475,41 @@
     </div>
 
     <!-- view modal -->
-    <div class="modal fade" id="showModal">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h3 class="modal-title text-dark ">Détail de la vente</h3>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="showModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content pos-modal-content">
+                <div class="modal-header pos-modal-header">
+                    <div>
+                        <span class="pos-modal-eyebrow">Activité des ventes</span>
+                        <h3 class="modal-title" id="showModalLabel">Détail de la vente</h3>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body">
                     <div id="show_response"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Pending Orders Modal -->
-    <div class="modal fade" id="pendingOrdersModal">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h3 class="modal-title text-dark">Commandes en cours</h3>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal fade" id="pendingOrdersModal" tabindex="-1" aria-labelledby="pendingOrdersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content pos-modal-content">
+                <div class="modal-header pos-modal-header">
+                    <div>
+                        <span class="pos-modal-eyebrow">Panier sauvegardé</span>
+                        <h3 class="modal-title" id="pendingOrdersModalLabel">Commandes en cours</h3>
+                        <p class="pos-modal-description">Reprenez un panier sauvegardé sans perdre la commande actuelle.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body">
                     <div id="pendingOrdersList">
-                        <div class="text-center text-muted py-4">Aucune commande en cours</div>
+                        <div class="pos-pending-empty"><i class="bi bi-clock-history" aria-hidden="true"></i><strong>Aucune commande en cours</strong><span>Les paniers sauvegardés apparaîtront ici.</span></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -766,30 +519,57 @@
         </div>
     </div>
 
-    <a href="#" class="pos-mobile-sidebar-toggler" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos">
+    <a href="#" class="pos-mobile-sidebar-toggler" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos" role="button" aria-label="Ouvrir le panier" aria-expanded="false">
         <i class="bi bi-bag"></i>
         <span id="mobileBadge" class="badge">0</span>
     </a>
 
 </div>
 
-<script src="{{asset('hub/assets/plugins/datatables.net/js/dataTables.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.colVis.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.flash.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.html5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.print.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+@push('scripts')
 <script>
     $(function() {
+        let posModalReturnFocus = null;
+
+        $(document).on('click', '#showPendingOrders, #confirmSale, .view, [title="Envoyer la facture"]', function() {
+            posModalReturnFocus = this;
+        });
+
+        $(document).on('shown.bs.modal', '.pos-saas-body .modal, .modal', function() {
+            const focusTarget = this.querySelector('.btn-close, [data-bs-dismiss="modal"], button, [href], input, select, textarea');
+            window.setTimeout(() => focusTarget?.focus(), 0);
+        });
+
+        $(document).on('hidden.bs.modal', '.pos-saas-body .modal, .modal', function() {
+            const returnFocusTarget = posModalReturnFocus;
+            if (returnFocusTarget && document.contains(returnFocusTarget)) {
+                window.setTimeout(() => returnFocusTarget.focus(), 0);
+            }
+            posModalReturnFocus = null;
+        });
+
+        // Le shell SaaS ne charge pas le script historique qui gérait data-toggle-class.
+        // On conserve le contrat HTML existant et on rend le panier mobile autonome.
+        $(document).on('click', '[data-toggle-class][data-toggle-target]', function(event) {
+            const toggleClass = this.dataset.toggleClass;
+            const target = document.querySelector(this.dataset.toggleTarget);
+
+            if (!toggleClass || !target) return;
+
+            event.preventDefault();
+            const isOpen = target.classList.toggle(toggleClass);
+            document.querySelectorAll('[data-toggle-class="' + toggleClass + '"][data-toggle-target="' + this.dataset.toggleTarget + '"]')
+                .forEach((toggle) => {
+                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    if (toggle.classList.contains('pos-mobile-sidebar-toggler')) {
+                        toggle.classList.toggle('is-cart-open', isOpen);
+                        toggle.setAttribute('aria-label', isOpen ? 'Fermer le panier' : 'Ouvrir le panier');
+                    }
+                });
+        });
+
+        // Chargement dynamique de DataTables + Select2 (évite les conflits de timing)
+        const initPage = () => {
         $('.sale_list').hide();
         $('#loader').hide();
         $('#saleLoader').hide();
@@ -824,20 +604,16 @@
                 <div class="col-6 col-xxl-3 col-xl-4 col-lg-6 col-md-4 col-sm-6 pb-4 product_list">
                     <div class="card h-100">
                         <div class="card-body products h-100 p-1">
-                            <a href="#" class="pos-product" data-bs-toggle="modal" data-bs-target="#modalPosItem"
+                            <button type="button" class="pos-product"
                                 data-id="${Number(product.id)}" data-name="${name}" data-price="${price}"
                                 data-image="${image}" data-qte="${quantity}">
                                 <div class="img" style="background-image:url('${image}');background-size:cover;background-repeat:no-repeat;background-position:center;width:100%;height:150px"></div>
                                 <div class="info">
-                                    <div class="title">Nom : ${name}&reg;</div>
-                                    <div class="title price">Prix : ${price} FCFA</div>
-                                    <div class="title qte">Quantité : ${quantity}</div>
+                                    <div class="title">${name}</div>
+                                    <div class="title price">${price} FCFA</div>
+                                    <div class="title qte"><i class="bi bi-box-seam"></i> Stock : ${quantity}</div>
                                 </div>
-                            </a>
-                        </div>
-                        <div class="card-arrow">
-                            <div class="card-arrow-top-left"></div><div class="card-arrow-top-right"></div>
-                            <div class="card-arrow-bottom-left"></div><div class="card-arrow-bottom-right"></div>
+                            </button>
                         </div>
                     </div>
                 </div>`;
@@ -1065,6 +841,11 @@
             $('.sale_list').fadeOut();
             $('#confirmSale').fadeIn();
             $('.no-sale').hide();
+            $('#catalogProducts').css('display', 'grid');
+            $('.pos-search-row, .pos-catalog-status').show();
+            $('#posCatalogEyebrow').html('<i class="bi bi-lightning-charge-fill"></i> Vente rapide');
+            $('#posCatalogTitle').text('Choisir des produits');
+            $('#posCatalogDescription').text('Recherchez, ajoutez au panier, puis finalisez la vente.');
 
             $('.pos-menu .nav-link[data-filter]').removeClass('active');
             $(this).addClass('active');
@@ -1087,8 +868,15 @@
         // Au clic sur élément de navigation de la liste des ventes
         $('.nav-sale').on('click', function(e) {
             e.preventDefault();
+            $('.pos-client-bar').hide();
             $('.product_list').hide();
-            $('.sale_list').fadeIn();
+            $('#catalogProducts, #catalogEmpty, #catalogLoadMore, #search_loader').hide();
+            $('.sale_list').show();
+            $('#product_list > .row.sale_list').css('display', 'flex');
+            $('.pos-search-row, .pos-catalog-status').hide();
+            $('#posCatalogEyebrow').html('<i class="bi bi-activity"></i> Résumé du jour');
+            $('#posCatalogTitle').text('Activité des ventes');
+            $('#posCatalogDescription').text('Suivez les indicateurs et les ventes enregistrées aujourd’hui.');
             $('#confirmSale').hide();
             $('.no-sale').show();
         });
@@ -1096,8 +884,16 @@
         // Au clic sur élément de commande dans la navigation laterale
         $('.nav-sale-command').on('click', function(e) {
             e.preventDefault();
+            $('.pos-client-bar').show();
             $('.sale_list').hide();
+            $('#catalogProducts').css('display', 'grid');
             $('.product_list').fadeIn();
+            $('#catalogEmpty').toggle($('#catalogProducts .product_list').length === 0);
+            $('#catalogLoadMore').toggle(catalogState.hasMore);
+            $('.pos-search-row, .pos-catalog-status').show();
+            $('#posCatalogEyebrow').html('<i class="bi bi-lightning-charge-fill"></i> Vente rapide');
+            $('#posCatalogTitle').text('Choisir des produits');
+            $('#posCatalogDescription').text('Recherchez, ajoutez au panier, puis finalisez la vente.');
             $('#confirmSale').fadeIn();
         });
 
@@ -1143,17 +939,17 @@
                         <div class="pos-order">
                             <div class="pos-order-product" data-product-id="${productId}">
                                 <div class="img" style="background-image: url(${productImage})"></div>
-                                <div class="flex-1">
+                                <div class="flex-1 pos-order-info">
                                     <div class="h6 mb-1">${productName}</div>
-                                    <div class="small">${productPrice} FCFA</div>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
-                                        <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}">
-                                        <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
+                                    <div class="small pos-unit-price">${productPrice} FCFA <span>l’unité</span></div>
+                                    <div class="d-flex pos-quantity-control" aria-label="Modifier la quantité">
+                                        <a href="#" class="btn btn-outline-theme btn-sm btn-minus" aria-label="Diminuer la quantité"><i class="bi bi-dash-lg"></i></a>
+                                        <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}" inputmode="numeric" aria-label="Quantité de ${productName}">
+                                        <a href="#" class="btn btn-outline-theme btn-sm btn-plus" aria-label="Augmenter la quantité"><i class="bi bi-plus-lg"></i></a>
                                     </div>
                                 </div>
                                 <div class="pos-order-price">${productPrice * productQte} FCFA</div>
-                                <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
+                                <div class="pos-order-remove"><a href="#" title="Supprimer le produit" aria-label="Supprimer ${productName} du panier" class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></a></div>
                             </div>
                         </div>
                     `;
@@ -1382,6 +1178,7 @@
                                             },
                                             success: function(data) {
                                                 if (data.status) {
+                                                    refreshTopProducts(data);
                                                     removeActivePendingOrder();
                                                     clearPersistedCart();
                                                     Swal.fire({
@@ -1477,6 +1274,7 @@
                                     },
                                     success: function(data) {
                                         if (data.status) {
+                                            refreshTopProducts(data);
                                             removeActivePendingOrder();
                                             clearPersistedCart();
                                             Swal.fire({
@@ -1582,6 +1380,13 @@
             $('#sendInvoice').prop('disabled', $('#invoiceWhatsapp').prop('disabled') && $('#invoiceSms').prop('disabled'));
         }
 
+        function refreshTopProducts(data) {
+            if (typeof data.topProductsHtml !== 'string') return;
+
+            $('#topProductsPanel').html(data.topProductsHtml);
+            $('#topProductsCount').text(Number(data.topProductsCount) || 0);
+        }
+
         $('body').on('click', '.deliver-invoice', async function() {
             const button = this;
             const url = '{{ route('sale.receipt', ['sale' => '__SALE__']) }}'.replace('__SALE__', $(button).data('id'));
@@ -1643,13 +1448,13 @@
         //                         <div class="h6 mb-1">${productName}</div>
         //                         <div class="small">${productPrice} FCFA</div>
         //                         <div class="d-flex">
-        //                             <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
+        //                             <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="bi bi-dash-lg"></i></a>
         //                             <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}">
-        //                             <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
+        //                             <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="bi bi-plus-lg"></i></a>
         //                         </div>
         //                     </div>
         //                     <div class="pos-order-price">${productPrice * productQte} FCFA</div>
-        //                     <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
+        //                     <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></a></div>
         //                 </div>
         //             </div>
         //         `;
@@ -1675,6 +1480,7 @@
             });
             let remiseMontant = parseFloat($('#remiseInput').val()) || 0;
             $('.total-amount').text((total - remiseMontant) + ' FCFA');
+            $('#emptyCartState').toggle($('.pos-order-product').length === 0);
             persistCurrentCart();
         }
 
@@ -1735,6 +1541,8 @@
             ],
             responsive: true, 
             language: {
+                "processing": "Chargement des ventes…",
+                "loadingRecords": "Chargement…",
                 "lengthMenu": "Afficher _MENU_ entrées",
                 "zeroRecords": "Aucune donnée disponible",
                 "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
@@ -1751,67 +1559,32 @@
             
             drawCallback: function() {
                 $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                $('#datatable').css('width','100%');
-                $('#datatable tbody tr').each(function() {
-                    $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
-                    $(this).css('color', 'white');
-                });
-                $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-                $('.dataTables_paginate .paginate_button a').css('color', 'white');
-                $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
-                $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
-
-                // Appliquer la couleur blanche au texte des labels
-                $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
-                $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
-                
-                // Appliquer les styles pour le dropdown et le champ de recherche
-                $('.dataTables_length select').css({
-                    'background-color': 'black', // Fond noir
-                    'color': 'white' // Texte en blanc
-                });
-
-                $('.dataTables_filter input').css({
-                    'background-color': 'black', // Fond noir
-                    'color': 'white' // Texte en blanc
-                });
-                $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
                 $('#datatable').css('width', '100%');
             },
         });
 
-        $('body').on('click', '.view', function () {
-            var id = $(this).data("id");
-            $.ajax({
-                url:'{{url('pos/sale')}}/'+id,
-                dataType: 'html',
-                success:function(result)
-                {
-                    $('#show_response').html(result);
-                }
+        $('body').on('click', '.view', async function (event) {
+            event.preventDefault();
+            const button = this;
+            const id = $(button).data('id');
+            const request = $.ajax({
+                url: '{{ url('pos/sale') }}/' + id,
+                dataType: 'html'
             });
-            $('#showModal').modal('show');
-        });
 
-        // Hover effect
-        $('.product_list .pos-product').hover(
-            function() {
-                $(this).addClass('product-hover');
-            },
-            function() {
-                $(this).removeClass('product-hover');
+            try {
+                const result = window.ServerButtonLoader
+                    ? await window.ServerButtonLoader.withLoader(button, request, 'Chargement…')
+                    : await request;
+                $('#show_response').html(result);
+                $('#showModal').modal('show');
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Détail indisponible',
+                    text: error?.responseJSON?.message || 'Impossible de charger cette vente.'
+                });
             }
-        );
-
-        // Click effect
-        $('.product_list .pos-product').on('click', function(e) {
-            e.preventDefault();
-            
-            // Removes the click effect of other products
-            $('.product_list .pos-product').removeClass('product-clicked');
-            
-            // Add the click effect of other products
-            $(this).addClass('product-clicked');
         });
 
         $("#deletpromoinput").on("click", function () {
@@ -2015,17 +1788,17 @@
                     <div class="pos-order">
                         <div class="pos-order-product" data-product-id="${productId}">
                             <div class="img" style="background-image: url('${productImage}')"></div>
-                            <div class="flex-1">
-                                <div class="h6 mb-1">${productName}</div>
-                                <div class="small">${unitPrice} FCFA</div>
-                                <div class="d-flex">
-                                    <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="fa fa-minus"></i></a>
-                                    <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${quantity}">
-                                    <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="fa fa-plus"></i></a>
+                                <div class="flex-1 pos-order-info">
+                                    <div class="h6 mb-1">${productName}</div>
+                                    <div class="small pos-unit-price">${unitPrice} FCFA <span>l’unité</span></div>
+                                    <div class="d-flex pos-quantity-control" aria-label="Modifier la quantité">
+                                        <a href="#" class="btn btn-outline-theme btn-sm btn-minus" aria-label="Diminuer la quantité"><i class="bi bi-dash-lg"></i></a>
+                                        <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${quantity}" inputmode="numeric" aria-label="Quantité de ${productName}">
+                                        <a href="#" class="btn btn-outline-theme btn-sm btn-plus" aria-label="Augmenter la quantité"><i class="bi bi-plus-lg"></i></a>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="pos-order-price">${unitPrice * quantity} FCFA</div>
-                            <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></a></div>
+                                <div class="pos-order-price">${unitPrice * quantity} FCFA</div>
+                                <div class="pos-order-remove"><a href="#" title="Supprimer le produit" aria-label="Supprimer ${productName} du panier" class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></a></div>
                         </div>
                     </div>
                 `;
@@ -2052,32 +1825,33 @@
             const container = $('#pendingOrdersList');
 
             if (orders.length === 0) {
-                container.html('<div class="text-center text-muted py-4">Aucune commande en cours</div>');
+                container.html('<div class="pos-pending-empty"><i class="bi bi-clock-history" aria-hidden="true"></i><strong>Aucune commande en cours</strong><span>Les paniers sauvegardés apparaîtront ici.</span></div>');
                 return;
             }
 
-            let html = '<div class="table-responsive"><table class="table table-dark table-hover">';
-            html += '<thead><tr><th>#</th><th>Libellé</th><th>Date</th><th>Articles</th><th>Total</th><th>Actions</th></tr></thead><tbody>';
+            let html = '<div class="pending-orders-grid">';
 
             orders.forEach(function(order, index) {
-                const label = order.label || 'Commande #' + order.id;
-                const date = order.date || '';
+                const label = escapeHtml(order.label || 'Commande #' + order.id);
+                const date = escapeHtml(order.date || '');
                 const itemsCount = order.products ? order.products.length : 0;
                 const total = order.total_amount || 0;
-                html += `<tr>
-                    <td>${index + 1}</td>
-                    <td>${label}</td>
-                    <td>${date}</td>
-                    <td>${itemsCount}</td>
-                    <td>${total} FCFA</td>
-                    <td>
-                        <button class="btn btn-success btn-sm load-order" data-id="${order.id}"><i class="fa fa-upload"></i> Charger</button>
-                        <button class="btn btn-danger btn-sm delete-order" data-id="${order.id}"><i class="fa fa-trash"></i></button>
-                    </td>
-                </tr>`;
+                html += `<article class="pending-order-card">
+                    <div class="pending-order-index">${index + 1}</div>
+                    <div class="pending-order-main">
+                        <h4>${label}</h4>
+                        <p><i class="bi bi-clock"></i> ${date || 'Date non disponible'}</p>
+                    </div>
+                    <div class="pending-order-total">${total} <small>FCFA</small></div>
+                    <div class="pending-order-meta"><i class="bi bi-bag-check"></i> ${itemsCount} article${itemsCount > 1 ? 's' : ''}</div>
+                    <div class="pending-order-actions">
+                        <button class="btn btn-primary btn-sm load-order" data-id="${order.id}"><i class="bi bi-arrow-up-right-circle"></i> Reprendre</button>
+                        <button class="btn btn-outline-danger btn-sm delete-order" data-id="${order.id}" aria-label="Supprimer ${label}"><i class="bi bi-trash"></i></button>
+                    </div>
+                </article>`;
             });
 
-            html += '</tbody></table></div>';
+            html += '</div>';
             container.html(html);
         }
 
@@ -2261,6 +2035,15 @@
             $('#receiptPreview').html('<div class="py-5 text-center text-muted">Chargement du reçu...</div>');
             refreshProductStocks();
         });
+
+    }; // fin initPage
+
+        // Lancer le chargement dynamique des dépendances
+        $.getScript('https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js')
+            .then(() => $.getScript('https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js'))
+            .then(() => $.getScript('https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js'))
+            .then(() => initPage())
+            .catch(err => console.warn('Script loading error:', err));
     });
 </script>
 
@@ -2354,6 +2137,5 @@
     });
 </script>
 
-
-
+@endpush
 @endsection

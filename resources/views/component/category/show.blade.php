@@ -1,37 +1,6 @@
-<div id="stripedRows" class="mb-5">
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-striped border mb-0">
-                <!-- <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">First</th>
-                        <th scope="col">Last</th>
-                        <th scope="col">Handle</th>
-                    </tr>
-                </thead> -->
-                <tbody>
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Nom : </td>
-                        <td>{{$Category->name}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2</th>
-                        <td>Creer par :</td>
-                        <td>{{$Category->user->name}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="card-arrow">
-            <div class="card-arrow-top-left"></div>
-            <div class="card-arrow-top-right"></div>
-            <div class="card-arrow-bottom-left"></div>
-            <div class="card-arrow-bottom-right"></div>
-        </div>
-        <div class="hljs-container">
-            <pre><code class="xml" data-url="assets/data/table-elements/code-3.json"></code></pre>
-        </div>
-    </div>
-</div>
+<dl class="saas-detail-list">
+    <div><dt>Nom</dt><dd>{{ $Category->name }}</dd></div>
+    <div><dt>Créée par</dt><dd>{{ $Category->user?->name ?? '—' }}</dd></div>
+    <div><dt>Créée le</dt><dd>{{ $Category->created_at?->format('d/m/Y à H:i') ?? '—' }}</dd></div>
+    <div><dt>Disponibilité</dt><dd><span class="saas-status-badge {{ $Category->status ? 'is-active' : 'is-inactive' }}">{{ $Category->status ? 'Active' : 'Archivée' }}</span></dd></div>
+</dl>

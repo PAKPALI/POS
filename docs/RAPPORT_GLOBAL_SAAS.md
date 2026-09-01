@@ -118,4 +118,4 @@ Ils sont configurables avec `PDF_PRODUCTS_MAX_ROWS`, `PDF_INVENTORIES_MAX_ROWS` 
 - KPrimePay : `GUIDE_KPRIMEPAY.md` ;
 - reprise technique : `FREEBUFF_HANDOFF.md` ;
 - audits de sécurité et d’isolation : fichiers `AUDIT_*.md` ;
-- conventions UI : `UI_CONVENTIONS.md`.
+- design system et conventions UI : `CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md`.

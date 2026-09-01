@@ -1,22 +1,26 @@
 <form id="update_form">
     @csrf
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col-12">
-                <label for="name">Nom</label>
-                <input type="text" name="name" class="form-control" id="name" value="{{$Client->name}}" placeholder="Nom">
-            </div>
-            <div class="form-group col-12 mt-3">
-                <label for="clientCountryEdit">Pays du numéro</label>
-                <select name="country_code" id="clientCountryEdit" class="form-select country-select" data-placeholder="Rechercher un pays" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($Client->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
-                <label for="phone" class="mt-3">Téléphone local</label>
-                <input type="tel" name="phone" class="form-control" id="phone" value="{{$Client->phone}}" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Ex. 90000000">
-            </div>
+    <div class="row">
+        <div class="col-md-6 saas-form-group">
+            <label for="name">Nom</label>
+            <input type="text" name="name" id="name" value="{{$Client->name}}" placeholder="Nom du client" required autofocus>
+        </div>
+        <div class="col-md-6 saas-form-group">
+            <label for="clientCountryEdit">Pays du numéro</label>
+            <select name="country_code" id="clientCountryEdit" class="form-select country-select" data-placeholder="Rechercher un pays" required>
+                @foreach(config('african_countries') as $iso => $countryName)
+                    <option value="{{ $iso }}" @selected($iso === ($Client->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-6 saas-form-group">
+            <label for="phone">Téléphone local</label>
+            <input type="tel" name="phone" id="phone" value="{{$Client->phone}}" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Ex. 90000000">
         </div>
     </div>
-    <div class="card-footer mt-4">
-        <button class="btn btn-warning" type="submit" data-loading-text="Modification en cours…">
-            Modifier
+    <div class="d-flex justify-content-end mt-3" style="border-top: 1px solid var(--ds-border-soft); padding-top: 16px;">
+        <button class="saas-btn saas-btn-warning" type="submit" data-loading-text="Modification en cours…">
+            <i class="bi bi-pencil" aria-hidden="true"></i><span>Modifier</span>
         </button>
     </div>
 </form>

@@ -71,15 +71,17 @@ class AuthNavigationTest extends TestCase
             ->assertRedirect(route('companies.select'));
     }
 
-    public function test_pwa_starts_on_the_authenticated_home_route(): void
+    public function test_pwa_starts_on_the_authentication_route(): void
     {
         $manifest = json_decode(file_get_contents(public_path('manifest.json')), true, flags: JSON_THROW_ON_ERROR);
 
-        $this->assertSame('/home', $manifest['start_url']);
-        $this->assertStringContainsString('pro-seller-pwa-v4', file_get_contents(public_path('sw.js')));
+        $this->assertSame('/user_login?source=pwa', $manifest['start_url']);
+        $this->assertStringContainsString('pro-seller-pwa-v5', file_get_contents(public_path('sw.js')));
         $this->assertStringContainsString('beforeinstallprompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('android-pwa-install-prompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('mobile-pwa-install-fallback', file_get_contents(public_path('pwa-register.js')));
-        $this->get('/home')->assertRedirect(route('user_login'));
+        $this->get('/user_login?source=pwa')
+            ->assertOk()
+            ->assertSee('SE CONNECTER');
     }
 }

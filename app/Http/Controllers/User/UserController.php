@@ -39,7 +39,7 @@ class UserController extends Controller
     public function dashboard()
     {
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
-        $Action = Action::whereDate('created_at', today())->latest()->paginate(10);
+        $Action = Action::with('user:id,name')->whereDate('created_at', today())->latest()->paginate(10);
         $categoryCount = Category::count();
         $productCount = Product::count();
         $salesSummary = Sale::query()
@@ -109,9 +109,9 @@ class UserController extends Controller
                 ->addColumn('role_name', fn ($user) => $user->active_role_name ?? 'Non attribué')
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
-                        $btn = ' <a  class="btn btn-success btn-sm">Actif</a>';
+                        $btn = '<span class="saas-status-badge is-active">Actif</span>';
                     }else{
-                        $btn = ' <a  class="btn btn-danger btn-sm">Inactif</a>';
+                        $btn = '<span class="saas-status-badge is-inactive">Inactif</span>';
                     }
                     return $btn;
                 })
@@ -473,6 +473,35 @@ class UserController extends Controller
             'redirect_to' => '0',
             'title' => 'ADRESSE E-MAIL MODIFIÉE',
             'msg' => 'Votre adresse e-mail a été mise à jour.',
+        ]);
+    }
+
+    public function updateAppearance(Request $request)
+    {
+        $validated = $request->validate([
+            'appearance_mode' => ['required', Rule::in(['light', 'dark', 'system'])],
+            'accent_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ], [
+            'appearance_mode.required' => 'Choisissez un mode d’affichage.',
+            'appearance_mode.in' => 'Le mode d’affichage sélectionné est invalide.',
+            'accent_color.required' => 'Choisissez une couleur dominante.',
+            'accent_color.regex' => 'La couleur dominante doit être une couleur hexadécimale valide.',
+        ]);
+
+        $accent = strtoupper($validated['accent_color']);
+        $request->user()->update([
+            'appearance_mode' => $validated['appearance_mode'],
+            'accent_color' => $accent,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'title' => 'APPARENCE ENREGISTRÉE',
+            'msg' => 'Votre thème personnel a été appliqué sur votre compte.',
+            'appearance' => [
+                'mode' => $validated['appearance_mode'],
+                'accent' => $accent,
+            ],
         ]);
     }
 

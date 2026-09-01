@@ -185,16 +185,16 @@ class OrderController extends Controller
     private function statusBadge(string $status): string
     {
         $statuses = [
-            'pending' => ['warning', 'En attente'],
-            'confirmed' => ['info', 'Confirmée'],
-            'converted' => ['success', 'Passée en vente'],
-            'cancelled' => ['danger', 'Annulée'],
-            'processing' => ['primary', 'En cours'],
-            'shipped' => ['secondary', 'Expédiée'],
-            'delivered' => ['success', 'Livrée'],
+            'pending' => ['is-pending', 'En attente'],
+            'confirmed' => ['is-info', 'Confirmée'],
+            'converted' => ['is-success', 'Passée en vente'],
+            'cancelled' => ['is-danger', 'Annulée'],
+            'processing' => ['is-info', 'En cours'],
+            'shipped' => ['is-neutral', 'Expédiée'],
+            'delivered' => ['is-success', 'Livrée'],
         ];
-        [$color, $label] = $statuses[$status] ?? ['secondary', ucfirst($status)];
+        [$color, $label] = $statuses[$status] ?? ['is-neutral', ucfirst($status)];
 
-        return '<span class="badge bg-'.$color.'">'.$label.'</span>';
+        return '<span class="saas-status-badge '.$color.'">'.$label.'</span>';
     }
 }

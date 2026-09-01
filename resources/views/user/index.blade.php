@@ -1,847 +1,650 @@
-@extends('layouts.layout')
-@push('css-scripts')
-<style>
-    #datatable tbody tr {
-        background-color: #f0f0f0;
-    }
-    #datatable tbody tr:hover {
-        background-color: #e0e0e0;
-    }
-</style>
+@extends('layouts.saas')
+
+@push('styles')
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
 @section('content')
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-12">
-                <div class="row">
-                    <div class="col-xl-12">
-                        <ul class="breadcrumb">
-                            <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
-                            <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
-                        </ul>
-                        <h1 class="page-header">
-                            UTILISATEURS
-                        </h1>
-                        <hr class="mb-4">
-                        <!-- add modal -->
-                        <div class="modal fade" id="addModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-primary">
-                                        <h3 class="modal-title">Ajouter utilisateur</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                    <form id="add">
-                                        @csrf
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText0">Nom</label>
-                                                    <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
-                                                </div>
-                                                <div class="form-group col-6">
-                                                    <label for="exampleInputText0">Email</label>
-                                                    <input type="email" name="email" class="form-control" id="exampleInputText0" placeholder="Email">
-                                                </div>
-                                                <div class="form-group col-6 mt-3">
-                                                    <label for="userCountry">Pays du numéro</label>
-                                                    <select name="country_code" id="userCountry" class="form-select country-select" data-placeholder="Rechercher un pays" required>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === (app(\App\Services\CompanyContext::class)->getCompanyOrNull()?->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
-                                                    <label for="phone" class="mt-3">Numéro de téléphone local</label>
-                                                    <input type="tel" name="phone" class="form-control" id="phone" inputmode="numeric" placeholder="Ex. 90859488">
-                                                </div>
-                                                <div class="form-group col-6 mt-3">
-                                                    <label for="role_id">Rôle dans cette compagnie</label>
-                                                    <select class="form-select" name="role_id" id="role_id" required>
-                                                        <option value="">Sélectionnez un rôle</option>
-                                                        @foreach($roles as $role)
-                                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer mt-4">
-                                            <button type="submit" class="btn btn-primary">
-                                                <div id="loader" class="spinner-grow"></div>
-                                                <div id="submitText">Valider</div>
-                                            </button>
-                                        </div>
-                                    </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    <div class="saas-page-heading">
+        <div>
+            <h1>Équipe</h1>
+            <p>Gérez les membres, invitations et accès de votre entreprise.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="saas-btn saas-btn-outline" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+                <i class="bi bi-envelope-plus"></i> Inviter par e-mail
+            </button>
+            <button type="button" class="saas-btn saas-btn-secondary" data-bs-toggle="modal" data-bs-target="#attachExistingModal">
+                <i class="bi bi-person-plus"></i> Utilisateur existant
+            </button>
+        </div>
+    </div>
 
-                        <div class="modal fade" id="inviteUserModal">
-                            <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
-                                <div class="modal-header bg-primary"><h3 class="modal-title"><i class="bi bi-envelope-plus me-2"></i>Inviter par e-mail</h3><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                                <form id="inviteUserForm">@csrf<div class="modal-body">
-                                    <div class="alert alert-info">L’accès ne sera créé qu’après acceptation. Le lien sécurisé est valable 48 heures et ne peut être utilisé qu’une fois.</div>
-                                    <div class="row g-3">
-                                        <div class="col-md-6"><label class="form-label">Adresse e-mail</label><input type="email" name="email" class="form-control" required></div>
-                                        <div class="col-md-6"><label class="form-label">Rôle proposé</label><select name="role_id" id="invitation_role" class="form-select" required><option value="">Sélectionnez un rôle</option>@foreach($roles as $role)<option value="{{ $role->id }}">{{ $role->name }}</option>@endforeach</select></div>
-                                    </div>
-                                </div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-primary"><span id="inviteUserLoader" class="spinner-border spinner-border-sm me-1 d-none"></span>Envoyer l’invitation</button></div></form>
-                            </div></div>
-                        </div>
-
-                        <!-- rattacher un compte déjà existant -->
-                        <div class="modal fade" id="attachExistingModal">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-success">
-                                        <h3 class="modal-title">Ajouter un utilisateur existant</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="alert alert-info">
-                                            Utilisez l’e-mail exact du compte. L’utilisateur conservera ses accès dans ses autres compagnies et pourra basculer entre elles.
-                                        </div>
-                                        <form id="attachExistingForm">
-                                            @csrf
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label for="existing_user_email" class="form-label">E-mail du compte existant</label>
-                                                    <input type="email" name="email" id="existing_user_email" class="form-control" required placeholder="utilisateur@exemple.com">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label for="existing_user_role" class="form-label">Rôle dans cette compagnie</label>
-                                                    <select name="role_id" id="existing_user_role" class="form-select" data-placeholder="Rechercher un rôle" required>
-                                                        <option value="">Sélectionnez un rôle</option>
-                                                        @foreach($roles as $role)
-                                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex justify-content-end gap-2 mt-4">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                <button type="submit" class="btn btn-success">
-                                                    <span id="attachExistingLoader" class="spinner-border spinner-border-sm me-1" style="display:none"></span>
-                                                    Rattacher à cette compagnie
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- update modal -->
-                        <div class="modal fade" id="cloneUserModal" tabindex="-1">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-info text-dark">
-                                        <h3 class="modal-title"><i class="fas fa-clone me-2"></i>Intégrer dans une compagnie</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form id="cloneUserForm">
-                                        @csrf
-                                        <div class="modal-body">
-                                            <div class="alert alert-info">
-                                                Vous allez donner à <strong id="cloneUserName"></strong> un accès supplémentaire. Son accès actuel sera conservé.
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="cloneCompany" class="form-label">Compagnie cible</label>
-                                                <select id="cloneCompany" name="company_id" class="form-select" required></select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="cloneRole" class="form-label">Rôle dans cette compagnie</label>
-                                                <select id="cloneRole" name="role_id" class="form-select" required disabled></select>
-                                                <div class="form-text">Le rôle ne prendra effet qu’après votre confirmation.</div>
-                                            </div>
-                                            <div id="cloneNoCompany" class="alert alert-warning d-none">
-                                                Aucune autre compagnie dans laquelle vous pouvez gérer les utilisateurs n’est disponible.
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                            <button type="submit" id="cloneSubmit" class="btn btn-info" disabled>
-                                                <span id="cloneLoader" class="spinner-border spinner-border-sm me-1 d-none"></span>
-                                                Vérifier et approuver
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- update modal -->
-                        <div class="modal fade" id="editModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-warning">
-                                        <h3 class="modal-title text-dark ">Modifier utilisateur</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div id="edit_response"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- admin list -->
-                        <div class="col-xl-12">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des utilisateurs</h4></span>
-                                        <button type="button" class="btn btn-outline-primary mb-1 me-2" data-bs-toggle="modal" data-bs-target="#inviteUserModal"><i class="bi bi-envelope-plus me-1"></i>Inviter par e-mail</button>
-                                        <button type="button" class="btn btn-success mb-1 me-3" data-bs-toggle="modal" data-bs-target="#attachExistingModal">Ajouter un utilisateur existant</button>
-                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table id="datatable" class="table text-nowrap w-100">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Nom</th>
-                                                    <th>Email</th>
-                                                    <th>Numéro</th>
-                                                    <th>Rôle</th>
-                                                    <th>Statut</th>
-                                                    <th>Créer le</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-center mt-3"></div>
-
-                                <div class="card-arrow">
-                                    <div class="card-arrow-top-left"></div>
-                                    <div class="card-arrow-top-right"></div>
-                                    <div class="card-arrow-bottom-left"></div>
-                                    <div class="card-arrow-bottom-right"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-12"><div class="card mb-3"><div class="card-body">
-                            <h4>Invitations</h4><p class="text-muted">Suivez les invitations, renvoyez un lien ou révoquez un accès en attente.</p>
-                            <div class="table-responsive"><table class="table table-striped align-middle">
-                                <thead><tr><th>E-mail</th><th>Rôle</th><th>Statut</th><th>Expiration</th><th>Invité par</th><th>Actions</th></tr></thead><tbody>
-                                @forelse($invitations as $invitation)
-                                <tr><td>{{ $invitation->email }}</td><td>{{ $invitation->role?->name ?? 'Rôle supprimé' }}</td>
-                                    <td><span class="badge bg-{{ $invitation->status_badge_class }}">{{ $invitation->status_label }}</span></td>
-                                    <td>{{ $invitation->expires_at->format('d/m/Y H:i') }}</td><td>{{ $invitation->inviter?->name ?? 'Système' }}</td><td>
-                                    @if(!$invitation->accepted_at && !$invitation->declined_at && !$invitation->revoked_at)
-                                        <button class="btn btn-info btn-sm resendInvitation" data-id="{{ $invitation->id }}" data-email="{{ $invitation->email }}" title="Renvoyer"><i class="bi bi-send"></i></button>
-                                        <button class="btn btn-danger btn-sm revokeInvitation" data-id="{{ $invitation->id }}" data-email="{{ $invitation->email }}" title="Révoquer"><i class="bi bi-x-circle"></i></button>
-                                    @else — @endif</td></tr>
-                                @empty<tr><td colspan="6" class="text-center text-muted">Aucune invitation envoyée.</td></tr>@endforelse
-                                </tbody></table></div>
-                        </div></div></div>
-                        <!-- employe list -->
-                        <!-- <div class="col-xl-12">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des employés</h4></span>
-                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
-                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table id="employeDatatable" class="table text-nowrap w-100">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Nom</th>
-                                                    <th>Email</th>
-                                                    <th>Statut</th>
-                                                    <th>Créer le</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-center mt-3"></div>
-
-                                <div class="card-arrow">
-                                    <div class="card-arrow-top-left"></div>
-                                    <div class="card-arrow-top-right"></div>
-                                    <div class="card-arrow-bottom-left"></div>
-                                    <div class="card-arrow-bottom-right"></div>
-                                </div>
-                            </div>
-                        </div> -->
+    {{-- Modale Invitation --}}
+    <div class="modal fade" id="inviteUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content saas-modal-content saas-modal-primary">
+                <div class="modal-header">
+                    <div>
+                        <p class="saas-modal-eyebrow">Invitation</p>
+                        <h3 class="modal-title">Inviter par e-mail</h3>
                     </div>
-                    {{-- <div class="col-xl-2">
-                        <nav id="sidebar-bootstrap" class="navbar navbar-sticky d-none d-xl-block">
-                            <nav class="nav">
-                                <a class="nav-link text-danger" href="#datatable" data-toggle="scroll-to"><strong> Lux Grill</strong></a>
-                                <!-- <a class="nav-link text-danger" href="#bootstrapTable" data-toggle="scroll-to">GRILL</a> -->
-                            </nav>
-                        </nav>
-                    </div> --}}
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <form id="inviteUserForm">
+                    @csrf
+                    <div class="modal-body">
+                        <p style="color: var(--ds-text-secondary); font-size: .82rem; margin-bottom: 16px;">
+                            L'accès ne sera créé qu'après acceptation. Le lien sécurisé est valable 48 heures.
+                        </p>
+                        <div class="saas-form-group">
+                            <label>Adresse e-mail</label>
+                            <input type="email" name="email" required placeholder="membre@exemple.com">
+                        </div>
+                        <div class="saas-form-group">
+                            <label>Rôle proposé</label>
+                            <select name="role_id" id="invitation_role" required>
+                                <option value="">Sélectionnez un rôle</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid var(--ds-border-soft);">
+                        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Envoi en cours…">
+                            <i class="bi bi-send"></i> Envoyer l'invitation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modale Rattacher existant --}}
+    <div class="modal fade" id="attachExistingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content saas-modal-content saas-modal-primary">
+                <div class="modal-header">
+                    <div>
+                        <p class="saas-modal-eyebrow">Rattachement</p>
+                        <h3 class="modal-title">Ajouter un utilisateur existant</h3>
+                    </div>
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <form id="attachExistingForm">
+                    @csrf
+                    <div class="modal-body">
+                        <p style="color: var(--ds-text-secondary); font-size: .82rem; margin-bottom: 16px;">
+                            Utilisez l'e-mail exact du compte. L'utilisateur conservera ses accès dans ses autres compagnies.
+                        </p>
+                        <div class="saas-form-group">
+                            <label>E-mail du compte existant</label>
+                            <input type="email" name="email" id="existing_user_email" required placeholder="utilisateur@exemple.com">
+                        </div>
+                        <div class="saas-form-group">
+                            <label>Rôle dans cette compagnie</label>
+                            <select name="role_id" id="existing_user_role" required>
+                                <option value="">Sélectionnez un rôle</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid var(--ds-border-soft);">
+                        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Rattachement…">
+                            <i class="bi bi-person-check"></i> Rattacher à cette compagnie
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modale Intégrer dans une autre compagnie --}}
+    <div class="modal fade" id="cloneUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content saas-modal-content">
+                <div class="modal-header">
+                    <div>
+                        <p class="saas-modal-eyebrow">Intégration</p>
+                        <h3 class="modal-title">Intégrer dans une compagnie</h3>
+                    </div>
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <form id="cloneUserForm">
+                    @csrf
+                    <div class="modal-body">
+                        <p style="color: var(--ds-text-secondary); font-size: .82rem; margin-bottom: 16px;">
+                            Vous allez donner à <strong id="cloneUserName" style="color: var(--ds-text-primary);"></strong> un accès supplémentaire. Son accès actuel sera conservé.
+                        </p>
+                        <div class="saas-form-group">
+                            <label>Compagnie cible</label>
+                            <select id="cloneCompany" name="company_id" required>
+                                <option value="">Chargement…</option>
+                            </select>
+                        </div>
+                        <div class="saas-form-group">
+                            <label>Rôle dans cette compagnie</label>
+                            <select id="cloneRole" name="role_id" required disabled>
+                                <option value="">Sélectionnez d'abord une compagnie</option>
+                            </select>
+                        </div>
+                        <div id="cloneNoCompany" class="saas-alert saas-alert-danger" style="display: none;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span>Aucune autre compagnie gérable n'est disponible.</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid var(--ds-border-soft);">
+                        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" id="cloneSubmit" class="saas-btn saas-btn-primary" disabled data-loading-text="Intégration…">
+                            <i class="bi bi-check-lg"></i> Approuver
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modale Modifier --}}
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content saas-modal-content saas-modal-warning">
+                <div class="modal-header">
+                    <div>
+                        <p class="saas-modal-eyebrow">Modification</p>
+                        <h3 class="modal-title">Modifier l'utilisateur</h3>
+                    </div>
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="edit_response"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="{{asset('hub/assets/plugins/datatables.net/js/dataTables.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.colVis.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.flash.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.html5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.print.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
+    {{-- Liste des utilisateurs --}}
+    <div class="saas-card">
+        <div class="saas-card-head">
+            <div>
+                <h2>Membres actifs</h2>
+                <p class="saas-card-description">Utilisateurs ayant accès à cette compagnie.</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="datatable" class="table text-nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Rôle</th>
+                        <th>Statut</th>
+                        <th>Créé le</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
-    <script>
-        $(function() {
-            // hide loader
-            $('#loader').hide();
-            $('.pre_loader').hide();
+    {{-- Liste des invitations --}}
+    <div class="saas-card">
+        <div class="saas-card-head">
+            <div>
+                <h2>Invitations</h2>
+                <p class="saas-card-description">Suivez les invitations, renvoyez un lien ou révoquez un accès en attente.</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="invitationsTable" class="table text-nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>E-mail</th>
+                        <th>Rôle</th>
+                        <th>Statut</th>
+                        <th>Expiration</th>
+                        <th>Invité par</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($invitations as $invitation)
+                        <tr>
+                            <td style="font-weight: 600;">{{ $invitation->email }}</td>
+                            <td>{{ $invitation->role?->name ?? 'Rôle supprimé' }}</td>
+                            <td>
+                                <span class="saas-status-badge {{ $invitation->status === 'pending' ? 'is-pending' : ($invitation->status === 'accepted' ? 'is-active' : 'is-inactive') }}">
+                                    {{ $invitation->status_label }}
+                                </span>
+                            </td>
+                            <td>{{ $invitation->expires_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ $invitation->inviter?->name ?? 'Système' }}</td>
+                            <td>
+                                @if(!$invitation->accepted_at && !$invitation->declined_at && !$invitation->revoked_at)
+                                    <div class="saas-action-group">
+                                        <button class="saas-action-btn resendInvitation" data-id="{{ $invitation->id }}" data-email="{{ $invitation->email }}" title="Renvoyer">
+                                            <i class="bi bi-send"></i>
+                                        </button>
+                                        <button class="saas-action-btn btn-action-danger revokeInvitation" data-id="{{ $invitation->id }}" data-email="{{ $invitation->email }}" title="Révoquer">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                @else
+                                    <span style="color: var(--ds-text-muted);">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+@endsection
 
-            // admin datatable
-            var Datatable = $('#datatable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ route('user.index')}}",
-                columns: [
-                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                    {data: 'name',name: 'name'},
-                    {data: 'email',name: 'email'},
-                    {data: 'phone',name: 'phone'},
-                    {data: 'role_name', name: 'active_role.name'},
-                    {data: 'status',name: 'status'},
-                    {data: 'created_at',name: 'created_at'},
-                    {data: 'action', name: 'action', orderable: false, searchable: false},
-                ],
-                responsive: true, 
-                language: {
-                    "lengthMenu": "Afficher _MENU_ entrées",
-                    "zeroRecords": "Aucune donnée disponible",
-                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-                    "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
-                    "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
-                    "search": "Rechercher:",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "next": "Suivant",
-                        "previous": "Précédent"
-                    }
-                },
-                
-                drawCallback: function() {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                    $('#datatable').css('width','100%');
-                    $('#datatable tbody tr').each(function() {
-                        $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
-                        $(this).css('color', 'white');
-                    });
-                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
-                    $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
-                    $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
+@push('scripts')
+<script src="{{ asset('hub/assets/plugins/datatables.net/js/dataTables.min.js') }}"></script>
+<script src="{{ asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+<script src="{{ asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(function() {
+    // --- DataTable ---
+    var Datatable = $('#datatable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('user.index') }}",
+        columns: [
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+            { data: 'name', name: 'name' },
+            { data: 'email', name: 'email' },
+            { data: 'phone', name: 'phone' },
+            { data: 'role_name', name: 'active_role.name' },
+            { data: 'status', name: 'status', orderable: false, searchable: false },
+            { data: 'created_at', name: 'created_at' },
+            { data: 'action', name: 'action', orderable: false, searchable: false },
+        ],
+        responsive: true,
+        language: {
+            lengthMenu: "Afficher _MENU_ entrées",
+            zeroRecords: "Aucun membre trouvé",
+            info: "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+            infoEmpty: "Affichage de 0 à 0 sur 0 entrée",
+            infoFiltered: "(filtré à partir de _MAX_ entrées au total)",
+            search: "Rechercher :",
+            paginate: { first: "Premier", last: "Dernier", next: "Suivant", previous: "Précédent" }
+        },
+    });
 
-                    // Appliquer la couleur blanche au texte des labels
-                    $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
-                    $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
-                    
-                    // Appliquer les styles pour le dropdown et le champ de recherche
-                    $('.dataTables_length select').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
+    window.addEventListener('datatableUpdated', function() {
+        Datatable.ajax.reload(null, false);
+    });
 
-                    $('.dataTables_filter input').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
-                    $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
-                    $('#datatable').css('width', '100%');
-                },
-            });
+    // --- Invitations DataTable (client-side) ---
+    var invitationsTable = $('#invitationsTable').DataTable({
+        processing: false,
+        serverSide: false,
+        pageLength: 10,
+        lengthMenu: [10, 25, 50],
+        order: [[3, 'desc']],
+        responsive: true,
+        language: {
+            lengthMenu: "Afficher _MENU_ entrées",
+            zeroRecords: "Aucune invitation",
+            info: "Affichage de _START_ à _END_ sur _TOTAL_ invitations",
+            infoEmpty: "Aucune invitation",
+            infoFiltered: "(filtré à partir de _MAX_ invitations)",
+            search: "Rechercher :",
+            paginate: { first: "Premier", last: "Dernier", next: "Suivant", previous: "Précédent" }
+        },
+    });
 
-            let cloneCompanies = [];
-            let clonedUserId = null;
+    // --- Select2 pour les selects de rôle (dropdownParent = modal pour z-index) ---
+    $('#invitation_role').select2({
+        width: '100%',
+        placeholder: 'Sélectionnez un rôle',
+        allowClear: true,
+        dropdownParent: $('#inviteUserModal'),
+        language: 'fr'
+    });
+    $('#existing_user_role').select2({
+        width: '100%',
+        placeholder: 'Sélectionnez un rôle',
+        allowClear: true,
+        dropdownParent: $('#attachExistingModal'),
+        language: 'fr'
+    });
+    $('#cloneRole').select2({
+        width: '100%',
+        placeholder: 'Sélectionnez un rôle',
+        allowClear: true,
+        dropdownParent: $('#cloneUserModal'),
+        language: 'fr'
+    });
 
-            $(document).on('click', '.cloneUser', function() {
-                clonedUserId = $(this).data('id');
-                $('#cloneUserName').text($(this).data('name'));
-                $('#cloneCompany').html('<option value="">Chargement...</option>');
-                $('#cloneRole').html('<option value="">Sélectionnez d’abord une compagnie</option>').prop('disabled', true);
-                $('#cloneSubmit').prop('disabled', true);
-                $('#cloneNoCompany').addClass('d-none');
-                $('#cloneUserModal').modal('show');
+    // --- Invitation ---
+    $('#inviteUserForm').on('submit', function(event) {
+        event.preventDefault();
+        var form = this;
+        var email = $(form).find('[name="email"]').val().trim();
+        var role = $('#invitation_role option:selected').text();
+        var safeEmail = $('<div>').text(email).html();
+        var safeRole = $('<div>').text(role).html();
 
-                $.get("{{ url('user') }}/" + clonedUserId + '/transfer-options')
-                    .done(function(data) {
-                        cloneCompanies = data.companies || [];
-                        let options = '<option value="">Sélectionnez une compagnie</option>';
-                        cloneCompanies.forEach(function(company) {
-                            options += '<option value="' + company.id + '" ' + (company.already_member ? 'disabled' : '') + '>' +
-                                $('<div>').text(company.name).html() + (company.already_member ? ' — déjà membre' : '') + '</option>';
-                        });
-                        $('#cloneCompany').html(options);
-                        $('#cloneNoCompany').toggleClass('d-none', cloneCompanies.length > 0);
-                    })
-                    .fail(function(xhr) {
-                        $('#cloneUserModal').modal('hide');
-                        Swal.fire({icon: 'error', title: 'Erreur', text: xhr.responseJSON?.message || 'Impossible de charger les compagnies.'});
-                    });
-            });
-
-            $('#cloneCompany').on('change', function() {
-                const company = cloneCompanies.find(item => String(item.id) === String(this.value));
-                let options = '<option value="">Sélectionnez un rôle</option>';
-                (company?.roles || []).forEach(function(role) {
-                    options += '<option value="' + role.id + '">' + $('<div>').text(role.name).html() + '</option>';
-                });
-                $('#cloneRole').html(options).prop('disabled', !company || company.already_member);
-                $('#cloneSubmit').prop('disabled', true);
-            });
-
-            $('#cloneRole').on('change', function() {
-                $('#cloneSubmit').prop('disabled', !this.value);
-            });
-
-            $('#cloneUserForm').on('submit', function(event) {
-                event.preventDefault();
-                const companyName = $('#cloneCompany option:selected').text();
-                const roleName = $('#cloneRole option:selected').text();
+        Swal.fire({
+            icon: 'question',
+            title: 'Envoyer cette invitation ?',
+            html: 'Adresse : <strong>' + safeEmail + '</strong><br>Rôle : <strong>' + safeRole + '</strong>',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, envoyer',
+            cancelButtonText: 'Vérifier',
+            buttonsStyling: false,
+            customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' }
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            var button = form.querySelector('[type="submit"]');
+            window.ServerButtonLoader.withLoader(button, function() {
+                return $.post("{{ route('user.invitations.store') }}", $(form).serialize());
+            }, 'Envoi en cours…').then(function(data) {
                 Swal.fire({
-                    icon: 'question',
-                    title: 'Approuver cette intégration ?',
-                    html: 'Compagnie : <strong>' + $('<div>').text(companyName).html() + '</strong><br>Rôle : <strong>' + $('<div>').text(roleName).html() + '</strong>',
-                    showCancelButton: true,
-                    confirmButtonText: 'Oui, intégrer',
-                    cancelButtonText: 'Annuler'
-                }).then(function(result) {
-                    if (!result.isConfirmed) return;
-                    $('#cloneLoader').removeClass('d-none');
-                    $('#cloneSubmit').prop('disabled', true);
-                    $.post("{{ url('user') }}/" + clonedUserId + '/transfer-company', $('#cloneUserForm').serialize())
-                        .done(function(data) {
-                            if (data.status) $('#cloneUserModal').modal('hide');
-                            Swal.fire({icon: data.status ? 'success' : 'warning', title: data.title, text: data.msg});
-                        })
-                        .fail(function(xhr) {
-                            Swal.fire({icon: 'error', title: 'Erreur', text: xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Intégration impossible.'});
-                        })
-                        .always(function() {
-                            $('#cloneLoader').addClass('d-none');
-                            $('#cloneSubmit').prop('disabled', !$('#cloneRole').val());
-                        });
-                });
-            });
-
-            // employe datatable
-            // var employeDatatable = $('#employeDatatable').DataTable({
-            //     processing: true,
-            //     serverSide: true,
-            //     ajax: "{{ route('user.index')}}",
-            //     columns: [
-            //         {data: 'id',name: 'id'},
-            //         {data: 'name',name: 'name'},
-            //         {data: 'email',name: 'email'},
-            //         {data: 'status',name: 'status'},
-            //         {data: 'created_at',name: 'created_at'},
-            //         {data: 'action', name: 'action', orderable: false, searchable: false},
-            //     ],
-            //     responsive: true, 
-            //     language: {
-            //         "lengthMenu": "Afficher _MENU_ entrées",
-            //         "zeroRecords": "Aucune donnée disponible",
-            //         "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
-            //         "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
-            //         "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
-            //         "search": "Rechercher:",
-            //         "paginate": {
-            //             "first": "Premier",
-            //             "last": "Dernier",
-            //             "next": "Suivant",
-            //             "previous": "Précédent"
-            //         }
-            //     },
-                
-            //     drawCallback: function() {
-            //         $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-            //         $('#datatable').css('width','100%');
-            //         $('#datatable tbody tr').each(function() {
-            //             $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
-            //             $(this).css('color', 'white');
-            //         });
-            //         $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-            //         $('.dataTables_paginate .paginate_button a').css('color', 'white');
-            //         $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
-            //         $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
-
-            //         // Appliquer la couleur blanche au texte des labels
-            //         $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
-            //         $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
-                    
-            //         // Appliquer les styles pour le dropdown et le champ de recherche
-            //         $('.dataTables_length select').css({
-            //             'background-color': 'black', // Fond noir
-            //             'color': 'white' // Texte en blanc
-            //         });
-
-            //         $('.dataTables_filter input').css({
-            //             'background-color': 'black', // Fond noir
-            //             'color': 'white' // Texte en blanc
-            //         });
-            //         $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
-            //         $('#datatable').css('width', '100%');
-            //     },
-            // });
-            // window.addEventListener('datatableUpdated', function() {
-            //     Datatable.ajax.reload(null, false);
-            //     employeDatatable.ajax.reload(null, false);
-            // });
-
-            $('#inviteUserForm').on('submit', function(event) {
-                event.preventDefault();
-                const form = this;
-                const email = $(form).find('[name="email"]').val().trim();
-                const role = $('#invitation_role option:selected').text();
-                const safeEmail = $('<div>').text(email).html();
-                const safeRole = $('<div>').text(role).html();
-
+                    icon: 'success', title: data.title, text: data.msg,
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }
+                }).then(function() { window.location.reload(); });
+            }).catch(function(xhr) {
+                var msg = xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Une erreur est survenue.';
                 Swal.fire({
-                    icon: 'question',
-                    title: 'Envoyer cette invitation ?',
-                    html: 'Adresse : <strong>' + safeEmail + '</strong><br>Rôle : <strong>' + safeRole + '</strong>',
-                    showCancelButton: true,
-                    confirmButtonText: 'Oui, envoyer',
-                    cancelButtonText: 'Vérifier l’adresse'
-                }).then(function(result) {
-                    if (!result.isConfirmed) return;
-
-                    $('#inviteUserLoader').removeClass('d-none');
-                    $.post("{{ route('user.invitations.store') }}", $(form).serialize())
-                        .done(function(data) {
-                            Swal.fire({icon: 'success', title: data.title, text: data.msg}).then(function() { window.location.reload(); });
-                        })
-                        .fail(function(xhr) {
-                            Swal.fire({icon: 'error', title: 'Invitation impossible', text: xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Une erreur est survenue.'});
-                        })
-                        .always(function() { $('#inviteUserLoader').addClass('d-none'); });
+                    icon: 'error', title: 'Invitation impossible', text: msg,
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }
                 });
-            });
-
-            $(document).on('click', '.resendInvitation', function() {
-                const id = $(this).data('id');
-                const email = $(this).data('email');
-                Swal.fire({
-                    icon: 'question',
-                    title: 'Renvoyer cette invitation ?',
-                    text: 'Un nouveau lien sera envoyé à ' + email + ' et l’ancien lien sera invalidé.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Oui, renvoyer',
-                    cancelButtonText: 'Annuler',
-                    showLoaderOnConfirm: true,
-                    allowOutsideClick: function() { return !Swal.isLoading(); },
-                    allowEscapeKey: function() { return !Swal.isLoading(); },
-                    preConfirm: function() {
-                        const cancelButton = Swal.getCancelButton();
-                        if (cancelButton) cancelButton.disabled = true;
-
-                        return new Promise(function(resolve) {
-                            $.post("{{ url('user/invitations') }}/" + id + '/resend', {_token: "{{ csrf_token() }}"})
-                                .done(function(data) { resolve(data); })
-                                .fail(function(xhr) {
-                                    if (cancelButton) cancelButton.disabled = false;
-                                    Swal.showValidationMessage(xhr.responseJSON?.message || 'Renvoi impossible.');
-                                    resolve(false);
-                                });
-                        });
-                    }
-                })
-                    .then(function(result) {
-                        if (!result.isConfirmed || !result.value) return;
-                        const data = result.value;
-                        Swal.fire({icon:'success', title:data.title, text:data.msg}).then(function(){ window.location.reload(); });
-                    });
-            });
-
-            $(document).on('click', '.revokeInvitation', function() {
-                const id = $(this).data('id');
-                const email = $(this).data('email');
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Révoquer cette invitation ?',
-                    text: 'Le lien envoyé à ' + email + ' deviendra définitivement inutilisable.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Oui, révoquer',
-                    cancelButtonText: 'Annuler',
-                    showLoaderOnConfirm: true,
-                    allowOutsideClick: function() { return !Swal.isLoading(); },
-                    allowEscapeKey: function() { return !Swal.isLoading(); },
-                    preConfirm: function() {
-                        const cancelButton = Swal.getCancelButton();
-                        if (cancelButton) cancelButton.disabled = true;
-
-                        return new Promise(function(resolve) {
-                            $.ajax({
-                                url: "{{ url('user/invitations') }}/" + id,
-                                type: 'DELETE',
-                                data: {_token: "{{ csrf_token() }}"}
-                            })
-                                .done(function(data) { resolve(data); })
-                                .fail(function(xhr) {
-                                    if (cancelButton) cancelButton.disabled = false;
-                                    Swal.showValidationMessage(xhr.responseJSON?.message || 'Révocation impossible.');
-                                    resolve(false);
-                                });
-                        });
-                    }
-                })
-                    .then(function(result) {
-                        if (!result.isConfirmed || !result.value) return;
-                        const data = result.value;
-                        Swal.fire({icon:'success', title:data.title, text:data.msg}).then(function(){ window.location.reload(); });
-                    });
-            });
-
-            $('#attachExistingForm').submit(function(event) {
-                event.preventDefault();
-                $('#attachExistingLoader').show();
-
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ route('user.attach-existing') }}",
-                    data: $(this).serialize(),
-                    dataType: 'json',
-                    success: function(data) {
-                        $('#attachExistingLoader').hide();
-                        if (data.status) {
-                            $('#attachExistingModal').modal('hide');
-                            $('#attachExistingForm')[0].reset();
-                            $('#existing_user_role').val(null).trigger('change');
-                            Datatable.ajax.reload(null, false);
-                        }
-                        Swal.fire({
-                            icon: data.status ? 'success' : 'warning',
-                            title: data.title,
-                            text: data.msg,
-                            confirmButtonText: "D'accord"
-                        });
-                    },
-                    error: function(xhr) {
-                        $('#attachExistingLoader').hide();
-                        const message = xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Impossible de rattacher cet utilisateur.';
-                        Swal.fire({ icon: 'error', title: 'Erreur', text: message });
-                    }
-                });
-            });
-
-            //Add user
-            $('#add').submit(function() {
-                event.preventDefault();
-                $('#loader').fadeIn();
-                $('#submitText').hide();
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ route('user.store') }}",
-                    //enctype: 'multipart/form-data',
-                    data: $('#add').serialize(),
-                    datatype: 'json',
-                    success: function(data) {
-                        console.log(data)
-                        if (data.status) {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
-                            Swal.fire({
-                                toast: true,
-                                position: 'top',
-                                icon: "success",
-                                title: data.title,
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                text: data.msg,
-                            });
-                            $('#addModal').modal('hide');
-                            Datatable.draw();
-                            $('#add')[0].reset();
-                        } else {
-                            $('#loader').hide();
-                            $('#submitText').fadeIn();
-                            Swal.fire({
-                                title: data.title,
-                                text: data.msg,
-                                icon: 'error',
-                                confirmButtonText: "D'accord",
-                                confirmButtonColor: '#A40000',
-                            })
-                        }
-                    },
-                    error: function(data) {
-                        console.log(data)
-                        $('#loader').hide();
-                        $('#submitText').fadeIn();
-                        Swal.fire({
-                            icon: "error",
-                            title: "erreur",
-                            text: "Impossible de communiquer avec le serveur.",
-                            timer: 3600,
-                        })
-                    }
-                });
-                return false;
-            });
-
-            $('body').on('click', '.editModal', function () {
-                var id = $(this).data("id");
-                $.ajax({
-                    url:'{{url('user')}}/'+id+'/edit',
-                    dataType: 'html',
-                    success:function(result)
-                    {
-                        $('#edit_response').html(result);
-                        // Le formulaire arrive par AJAX après l'ouverture du modal.
-                        if (typeof initSearchableSelects === 'function') {
-                            initSearchableSelects(document.getElementById('edit_response'));
-                        }
-                    }
-                });
-                $('#editModal').modal('show');
-            });
-
-            $('body').on('click', '.viewUser', function (e) {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data('id');
-                $('#view_response').empty();
-                $.ajax({
-                    url:'classroom/view/'+id,
-                    dataType: 'html',
-                    success:function(result)
-                    {
-                        $('#view_response').html(result);
-                    }
-                });
-                $('#modal-view').modal('show');
-            });
-
-            $(document).on('click','.editUser',function(e){
-                var modalHeader = $("#modal-header-edit");
-                modalHeader.attr("class", "modal-header bg-success text-light");
-                e.preventDefault();
-            });
-
-            $('body').on('click', '.archive', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data("id");
-                
-                Swal.fire({
-                    icon: "question",
-                    title: "Etes vous sur de vouloir archiver cet utilisateur?",
-                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
-                    confirmButtonText: "Oui",
-                    confirmButtonColor: 'red',
-                    showCancelButton: true,
-                    cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "post",
-                            url: 'user/'+id,
-                            type: "DELETE",
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    Datatable.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
-                                }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
-                        });
-                    }
-                })
-            });
-
-            $('body').on('click', '.restore', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data("id");
-                
-                Swal.fire({
-                    icon: "question",
-                    title: "Etes vous sur de vouloir restaurer cet utilisateur?",
-                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
-                    confirmButtonText: "Oui",
-                    confirmButtonColor: 'green',
-                    showCancelButton: true,
-                    cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "post",
-                            url: 'user/'+id,
-                            type: "DELETE",
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    Datatable.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
-                                }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
-                        });
-                    }
-                })
             });
         });
-    </script>
+    });
 
-    @endsection
+    // --- Renvoi invitation ---
+    $(document).on('click', '.resendInvitation', function() {
+        var id = $(this).data('id');
+        var email = $(this).data('email');
+        Swal.fire({
+            icon: 'question',
+            title: 'Renvoyer cette invitation ?',
+            text: 'Un nouveau lien sera envoyé à ' + email + ' et l\'ancien sera invalidé.',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, renvoyer',
+            cancelButtonText: 'Annuler',
+            showLoaderOnConfirm: true,
+            allowOutsideClick: function() { return !Swal.isLoading(); },
+            allowEscapeKey: function() { return !Swal.isLoading(); },
+            buttonsStyling: false,
+            customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' },
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    $.post("{{ url('user/invitations') }}/" + id + '/resend', {_token: "{{ csrf_token() }}"})
+                        .done(function(data) { resolve(data); })
+                        .fail(function(xhr) {
+                            Swal.showValidationMessage(xhr.responseJSON?.message || 'Renvoi impossible.');
+                            resolve(false);
+                        });
+                });
+            }
+        }).then(function(result) {
+            if (!result.isConfirmed || !result.value) return;
+            Swal.fire({icon:'success', title:result.value.title, text:result.value.msg,
+                buttonsStyling: false,
+                customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }
+            }).then(function(){ window.location.reload(); });
+        });
+    });
+
+    // --- Révocation invitation ---
+    $(document).on('click', '.revokeInvitation', function() {
+        var id = $(this).data('id');
+        var email = $(this).data('email');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Révoquer cette invitation ?',
+            text: 'Le lien envoyé à ' + email + ' deviendra définitivement inutilisable.',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, révoquer',
+            cancelButtonText: 'Annuler',
+            showLoaderOnConfirm: true,
+            allowOutsideClick: function() { return !Swal.isLoading(); },
+            allowEscapeKey: function() { return !Swal.isLoading(); },
+            buttonsStyling: false,
+            customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    $.ajax({ url: "{{ url('user/invitations') }}/" + id, type: 'DELETE', data: {_token: "{{ csrf_token() }}"} })
+                        .done(function(data) { resolve(data); })
+                        .fail(function(xhr) {
+                            Swal.showValidationMessage(xhr.responseJSON?.message || 'Révocation impossible.');
+                            resolve(false);
+                        });
+                });
+            }
+        }).then(function(result) {
+            if (!result.isConfirmed || !result.value) return;
+            Swal.fire({icon:'success', title:result.value.title, text:result.value.msg,
+                buttonsStyling: false,
+                customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }
+            }).then(function(){ window.location.reload(); });
+        });
+    });
+
+    // --- Rattacher existant ---
+    $('#attachExistingForm').submit(function(event) {
+        event.preventDefault();
+        var form = this;
+        var button = form.querySelector('[type="submit"]');
+        window.ServerButtonLoader.withLoader(button, function() {
+            return $.ajax({ type: 'POST', url: "{{ route('user.attach-existing') }}", data: $(form).serialize(), dataType: 'json' });
+        }, 'Rattachement…').then(function(data) {
+            if (data.status) {
+                $('#attachExistingModal').modal('hide');
+                $(form)[0].reset();
+                $('#existing_user_role').val(null).trigger('change');
+                Datatable.ajax.reload(null, false);
+            }
+            Swal.fire({ icon: data.status ? 'success' : 'warning', title: data.title, text: data.msg,
+                buttonsStyling: false,
+                customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }
+            });
+        }).catch(function(xhr) {
+            var msg = xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Impossible de rattacher cet utilisateur.';
+            Swal.fire({ icon: 'error', title: 'Erreur', text: msg,
+                buttonsStyling: false,
+                customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }
+            });
+        });
+    });
+
+    // --- Intégrer dans une autre compagnie ---
+    var cloneCompanies = [];
+    var clonedUserId = null;
+
+    $(document).on('click', '.cloneUser', function() {
+        clonedUserId = $(this).data('id');
+        $('#cloneUserName').text($(this).data('name'));
+        $('#cloneCompany').html('<option value="">Chargement…</option>');
+        $('#cloneRole').html('<option value="">Sélectionnez d\'abord une compagnie</option>').prop('disabled', true);
+        $('#cloneSubmit').prop('disabled', true);
+        $('#cloneNoCompany').hide();
+        $('#cloneUserModal').modal('show');
+
+        $.get("{{ url('user') }}/" + clonedUserId + '/transfer-options')
+            .done(function(data) {
+                cloneCompanies = data.companies || [];
+                var options = '<option value="">Sélectionnez une compagnie</option>';
+                cloneCompanies.forEach(function(company) {
+                    options += '<option value="' + company.id + '" ' + (company.already_member ? 'disabled' : '') + '>' +
+                        $('<div>').text(company.name).html() + (company.already_member ? ' — déjà membre' : '') + '</option>';
+                });
+                $('#cloneCompany').html(options);
+                if (cloneCompanies.length === 0) $('#cloneNoCompany').show();
+            })
+            .fail(function(xhr) {
+                $('#cloneUserModal').modal('hide');
+                Swal.fire({icon: 'error', title: 'Erreur', text: xhr.responseJSON?.message || 'Impossible de charger les compagnies.',
+                    buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }});
+            });
+    });
+
+    $('#cloneCompany').on('change', function() {
+        var company = cloneCompanies.find(function(item) { return String(item.id) === String(this.value); }.bind(this));
+        var options = '<option value="">Sélectionnez un rôle</option>';
+        (company?.roles || []).forEach(function(role) {
+            options += '<option value="' + role.id + '">' + $('<div>').text(role.name).html() + '</option>';
+        });
+        $('#cloneRole').html(options).prop('disabled', !company || company.already_member);
+        $('#cloneSubmit').prop('disabled', true);
+    });
+
+    $('#cloneRole').on('change', function() {
+        $('#cloneSubmit').prop('disabled', !this.value);
+    });
+
+    $('#cloneUserForm').on('submit', function(event) {
+        event.preventDefault();
+        var companyName = $('#cloneCompany option:selected').text();
+        var roleName = $('#cloneRole option:selected').text();
+        Swal.fire({
+            icon: 'question',
+            title: 'Approuver cette intégration ?',
+            html: 'Compagnie : <strong>' + $('<div>').text(companyName).html() + '</strong><br>Rôle : <strong>' + $('<div>').text(roleName).html() + '</strong>',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, intégrer',
+            cancelButtonText: 'Annuler',
+            buttonsStyling: false,
+            customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' }
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            var button = document.getElementById('cloneSubmit');
+            window.ServerButtonLoader.withLoader(button, function() {
+                return $.post("{{ url('user') }}/" + clonedUserId + '/transfer-company', $('#cloneUserForm').serialize());
+            }, 'Intégration…').then(function(data) {
+                if (data.status) $('#cloneUserModal').modal('hide');
+                Swal.fire({icon: data.status ? 'success' : 'warning', title: data.title, text: data.msg,
+                    buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }});
+            }).catch(function(xhr) {
+                Swal.fire({icon: 'error', title: 'Erreur', text: xhr.responseJSON?.message || 'Intégration impossible.',
+                    buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }});
+            });
+        });
+    });
+
+    // --- Modifier utilisateur ---
+    $('body').on('click', '.editModal', function() {
+        var id = $(this).data("id");
+        $.ajax({
+            url: '{{ url("user") }}/' + id + '/edit',
+            dataType: 'html',
+            success: function(result) {
+                $('#edit_response').html(result);
+                // Init Select2 après chargement AJAX
+                $('#edit_role_id').select2({
+                    width: '100%',
+                    placeholder: 'Sélectionnez un rôle',
+                    allowClear: true,
+                    dropdownParent: $('#editModal'),
+                    language: 'fr'
+                });
+            }
+        });
+        $('#editModal').modal('show');
+    });
+
+    // --- Archiver ---
+    $('body').on('click', '.archive', function() {
+        var id = $(this).data("id");
+        Swal.fire({
+            icon: "question",
+            title: "Désactiver cet utilisateur ?",
+            text: "L'utilisateur perdra l'accès à cette compagnie mais conservera ses autres adhésions.",
+            confirmButtonText: "Oui, désactiver",
+            showCancelButton: true,
+            cancelButtonText: "Annuler",
+            buttonsStyling: false,
+            customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },
+            showLoaderOnConfirm: true,
+            allowOutsideClick: function() { return !Swal.isLoading(); },
+            allowEscapeKey: function() { return !Swal.isLoading(); },
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        type: "DELETE", url: 'user/' + id, dataType: 'json'
+                    }).done(function(data) { resolve(data); })
+                    .fail(function(xhr) {
+                        Swal.showValidationMessage(xhr.responseJSON?.message || 'Désactivation impossible.');
+                        resolve(false);
+                    });
+                });
+            }
+        }).then(function(result) {
+            if (!result.isConfirmed || !result.value) return;
+            var data = result.value;
+            if (data.status) {
+                Datatable.ajax.reload(null, false);
+            }
+            Swal.fire({ icon: data.status ? 'success' : 'error', title: data.title, text: data.msg,
+                buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }});
+        });
+    });
+
+    // --- Restaurer ---
+    $('body').on('click', '.restore', function() {
+        var id = $(this).data("id");
+        Swal.fire({
+            icon: "question",
+            title: "Restaurer cet utilisateur ?",
+            text: "L'utilisateur retrouvera l'accès à cette compagnie avec son rôle précédent.",
+            confirmButtonText: "Oui, restaurer",
+            showCancelButton: true,
+            cancelButtonText: "Annuler",
+            buttonsStyling: false,
+            customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' },
+            showLoaderOnConfirm: true,
+            allowOutsideClick: function() { return !Swal.isLoading(); },
+            allowEscapeKey: function() { return !Swal.isLoading(); },
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        type: "DELETE", url: 'user/' + id, dataType: 'json'
+                    }).done(function(data) { resolve(data); })
+                    .fail(function(xhr) {
+                        Swal.showValidationMessage(xhr.responseJSON?.message || 'Restauration impossible.');
+                        resolve(false);
+                    });
+                });
+            }
+        }).then(function(result) {
+            if (!result.isConfirmed || !result.value) return;
+            var data = result.value;
+            if (data.status) {
+                Datatable.ajax.reload(null, false);
+            }
+            Swal.fire({ icon: data.status ? 'success' : 'error', title: data.title, text: data.msg,
+                buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }});
+        });
+    });
+});
+</script>
+@endpush

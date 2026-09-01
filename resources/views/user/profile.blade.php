@@ -1,236 +1,177 @@
-@extends('layouts.layout')
-@push('css-scripts')
-<style>
-    #datatable tbody tr {
-        background-color: #f0f0f0;
-    }
-    #datatable tbody tr:hover {
-        background-color: #e0e0e0;
-    }
-</style>
-@endpush
+@extends('layouts.saas')
+
+@section('title', 'Mon profil')
+@section('eyebrow', 'Compte personnel')
+@section('page-title', 'Mon profil')
 
 @section('content')
-<div class="card">
-    <div class="card-body p-0">
-        <div class="profile">
-            <div class="profile-container">
-                <div class="profile-sidebar">
-                    <div class="desktop-sticky-top">
-                        <div class="profile-img">
-                            <img src="assets/img/user/profile.jpg" alt>
-                        </div>
+@php
+    $user = auth()->user();
+    $mode = in_array($user->appearance_mode, ['system', 'dark', 'light'], true) ? $user->appearance_mode : 'system';
+    $accent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $user->accent_color) ? strtoupper($user->accent_color) : '#FF9F43';
+@endphp
 
-                        <h4>{{auth()->user()->name}}</h4>
-                        <!-- <div class="mb-3 text-inverse text-opacity-50 fw-bold mt-n2">@johnsmith</div> -->
-                        <p>
-                            Email : {{auth()->user()->email}}
-                        </p>
-                        <div class="mb-1">
-                            <i class="fa fa-map-marker-alt fa-fw text-inverse text-opacity-50"></i> Lomé , TOGO
-                        </div>
-                        <div class="mb-3">
-                            <i class="fa fa-link fa-fw text-inverse text-opacity-50"></i>{{ config('app.name') }}
-                        </div>
-                        <hr class="mt-4 mb-4">
-                    </div>
-                </div>
+<section class="saas-page-heading profile-page-heading">
+    <div><h1>Paramètres du compte</h1><p>Gérez vos accès et personnalisez votre environnement de travail.</p></div>
+</section>
 
+<div id="profileFeedback" class="profile-feedback" role="status" aria-live="polite" hidden></div>
 
-                <div class="profile-content">
-                    <div id="pills" class="mb-5">
-                        <p class="p-1"><strong> Nom: </strong>{{auth()->user()->name}}<p>
-                        <p class="p-1"><strong> Email: </strong>{{auth()->user()->email}}</p>
-                        <!-- <p class="p-1"><strong> <i class="fa fa-link fa-fw text-inverse text-opacity-50"></i> </strong>{{auth()->user()->email}}</p> -->
-                        <div class="card">
-                            <div class="card-body">
-                                <ul class="nav nav-pills mb-3" id="pills-tab">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="pills-home-tab" data-bs-toggle="pill"
-                                            href="#pills-home">Modifier Email</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="pills-profile-tab" data-bs-toggle="pill"
-                                            href="#pills-profile">Modifier Mot de passe</a>
-                                    </li>
-                                    <!-- <li class="nav-item">
-                                        <a class="nav-link" id="pills-contact-tab" data-bs-toggle="pill"
-                                            href="#pills-contact">Contact</a>
-                                    </li> -->
-                                </ul>
-                                <div class="tab-content" id="pills-tabContent">
-                                    <div class="tab-pane fade show active" id="pills-home">
-                                        <form  id="updateEmail" class="p-3">
-                                            @csrf
-                                            <h1 class="text-center">Modifier Email</h1>
-                                            <p class="text-inverse text-opacity-50 text-center"></p>
-                                            <div class="mb-3">
-                                                <label class="form-label">Ancien Email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" value="{{auth()->user()->email}}" readonly>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Nouveau email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" name="NE" placeholder="nouveau email" value>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Confirmer email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" name="CE" placeholder="confirmer email" value>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Mot de passe actuel <span class="text-danger">*</span></label>
-                                                <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" name="current_password" autocomplete="current-password" placeholder="Votre mot de passe actuel" required>
-                                            </div>
-                                            <div class="mt-5">
-                                                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100" data-loading-text="Modification…">Modifier</button>
-                                            </div>
-                                            <!-- <div class="text-inverse text-opacity-50 text-center">Already have an Admin ID? <a href="page_login.html">Sign In</a> -->
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="tab-pane fade" id="pills-profile">
-                                        <form  id="updatePassword" class="p-3">
-                                            @csrf
-                                            <h1 class="text-center">Modifier Mot de passe</h1>
-                                            <p class="text-inverse text-opacity-50 text-center"></p>
-                                            <div class="mb-3">
-                                                <label class="form-label">Ancien Mot de passe <span class="text-danger">*</span></label>
-                                                <div class="input-group">
-                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="currentPassword" name="AM" autocomplete="current-password" placeholder="mot de passe" required>
-                                                    <span class="input-group-text password-toggle" data-target="currentPassword" style="cursor: pointer;">
-                                                        <i class="bi bi-eye"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Nouveau Mot de passe <span class="text-danger">*</span></label>
-                                                <div class="input-group">
-                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="newPassword" name="NM" autocomplete="new-password" placeholder="nouveau mot de passe" required minlength="8">
-                                                    <span class="input-group-text password-toggle" data-target="newPassword" style="cursor: pointer;">
-                                                        <i class="bi bi-eye"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Confirmez Mot de passe <span class="text-danger">*</span></label>
-                                                <div class="input-group">
-                                                    <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="confirmPassword" name="CM" autocomplete="new-password" placeholder="confirmez mot de passe" required minlength="8">
-                                                    <span class="input-group-text password-toggle" data-target="confirmPassword" style="cursor: pointer;">
-                                                        <i class="bi bi-eye"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="mt-5">
-                                                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100" data-loading-text="Modification…">Modifier</button>
-                                            </div>
-                                            <!-- <div class="text-inverse text-opacity-50 text-center">Already have an Admin ID? <a href="page_login.html">Sign In</a> -->
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <!-- <div class="tab-pane fade" id="pills-contact">
-                                        Est quis nulla laborum officia ad nisi ex nostrud culpa Lorem
-                                        excepteur aliquip dolor aliqua irure ex. Nulla ut duis ipsum nisi
-                                        elit fugiat commodo sunt reprehenderit laborum veniam eu veniam.
-                                        Eiusmod minim exercitation fugiat irure ex labore incididunt do
-                                        fugiat commodo aliquip sit id deserunt reprehenderit aliquip
-                                        nostrud. Amet ex cupidatat excepteur aute veniam incididunt mollit
-                                        cupidatat esse irure officia elit do ipsum ullamco Lorem. Ullamco ut
-                                        ad minim do mollit labore ipsum laboris ipsum commodo sunt tempor
-                                        enim incididunt. Commodo quis sunt dolore aliquip aute tempor irure
-                                        magna enim minim reprehenderit. Ullamco consectetur culpa veniam
-                                        sint cillum aliqua incididunt velit ullamco sunt ullamco quis quis
-                                        commodo voluptate. Mollit nulla nostrud adipisicing aliqua cupidatat
-                                        aliqua pariatur mollit voluptate voluptate consequat non.
-                                    </div> -->
-                                </div>
-                            </div>
-                            <div class="card-arrow">
-                                <div class="card-arrow-top-left"></div>
-                                <div class="card-arrow-top-right"></div>
-                                <div class="card-arrow-bottom-left"></div>
-                                <div class="card-arrow-bottom-right"></div>
-                            </div>
-                            <div class="hljs-container">
-                                <pre><code class="xml" data-url="assets/data/ui-tabs-accordions/code-4.json"></code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
+<div class="profile-layout">
+    <aside class="profile-summary saas-panel">
+        <div class="profile-avatar-large">{{ strtoupper(substr(trim($user->name), 0, 1)) }}</div>
+        <h2>{{ $user->name }}</h2>
+        <p>{{ $user->email }}</p>
+        <div class="profile-company"><span><i class="bi bi-buildings"></i>Entreprise active</span><strong>{{ $activeCompany->name ?? 'Non sélectionnée' }}</strong></div>
+        <div class="profile-company"><span><i class="bi bi-shield-check"></i>Rôle actuel</span><strong>{{ $currentMembership?->role?->name ?? 'Membre' }}</strong></div>
+        <a href="{{ route('companies.select') }}" class="profile-company-link"><i class="bi bi-arrow-left-right"></i>Changer d’entreprise</a>
+    </aside>
+
+    <section class="profile-settings saas-panel">
+        <div class="profile-tabs" role="tablist" aria-label="Paramètres du profil">
+            <button type="button" class="profile-tab is-active" id="profileTabEmail" data-profile-tab="email" role="tab" aria-selected="true" aria-controls="profilePanelEmail"><i class="bi bi-envelope"></i><span>Adresse e-mail</span></button>
+            <button type="button" class="profile-tab" id="profileTabPassword" data-profile-tab="password" role="tab" aria-selected="false" aria-controls="profilePanelPassword"><i class="bi bi-key"></i><span>Mot de passe</span></button>
+            <button type="button" class="profile-tab" id="profileTabAppearance" data-profile-tab="appearance" role="tab" aria-selected="false" aria-controls="profilePanelAppearance"><i class="bi bi-palette"></i><span>Apparence</span></button>
         </div>
-    </div>
-    <div class="card-arrow">
-        <div class="card-arrow-top-left"></div>
-        <div class="card-arrow-top-right"></div>
-        <div class="card-arrow-bottom-left"></div>
-        <div class="card-arrow-bottom-right"></div>
-    </div>
+
+        <div class="profile-panel is-active" id="profilePanelEmail" data-profile-panel="email" role="tabpanel" aria-labelledby="profileTabEmail">
+            <div class="profile-panel-heading"><span class="profile-panel-icon"><i class="bi bi-envelope-check"></i></span><div><h2>Modifier l’adresse e-mail</h2><p>Cette adresse sert à vous connecter et à recevoir les informations de votre compte.</p></div></div>
+            <form id="profileEmailForm" class="profile-form" action="{{ route('profile.email.update') }}" method="POST">
+                @csrf
+                <div class="profile-field"><label for="currentEmail">Adresse actuelle</label><input id="currentEmail" type="email" value="{{ $user->email }}" readonly></div>
+                <div class="profile-form-grid">
+                    <div class="profile-field"><label for="newEmail">Nouvelle adresse e-mail</label><input id="newEmail" name="NE" type="email" autocomplete="email" required placeholder="nom@exemple.com"></div>
+                    <div class="profile-field"><label for="confirmEmail">Confirmer l’adresse</label><input id="confirmEmail" name="CE" type="email" autocomplete="email" required placeholder="Répétez la nouvelle adresse"></div>
+                </div>
+                <div class="profile-field"><label for="emailCurrentPassword">Mot de passe actuel</label><div class="profile-password-control"><input id="emailCurrentPassword" name="current_password" type="password" autocomplete="current-password" required placeholder="Confirmez votre identité"><button type="button" data-password-toggle="emailCurrentPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
+                <div class="profile-form-actions"><button type="submit" class="saas-primary-action" data-loading-text="Modification…"><i class="bi bi-check2"></i>Modifier mon e-mail</button></div>
+            </form>
+        </div>
+
+        <div class="profile-panel" id="profilePanelPassword" data-profile-panel="password" role="tabpanel" aria-labelledby="profileTabPassword" hidden>
+            <div class="profile-panel-heading"><span class="profile-panel-icon"><i class="bi bi-shield-lock"></i></span><div><h2>Modifier le mot de passe</h2><p>Utilisez au moins huit caractères avec une majuscule, une minuscule et un chiffre.</p></div></div>
+            <form id="profilePasswordForm" class="profile-form" action="{{ route('profile.password.update') }}" method="POST">
+                @csrf
+                <div class="profile-field"><label for="currentPassword">Mot de passe actuel</label><div class="profile-password-control"><input id="currentPassword" name="AM" type="password" autocomplete="current-password" required><button type="button" data-password-toggle="currentPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
+                <div class="profile-form-grid">
+                    <div class="profile-field"><label for="newPassword">Nouveau mot de passe</label><div class="profile-password-control"><input id="newPassword" name="NM" type="password" autocomplete="new-password" minlength="8" required><button type="button" data-password-toggle="newPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
+                    <div class="profile-field"><label for="confirmPassword">Confirmer le nouveau mot de passe</label><div class="profile-password-control"><input id="confirmPassword" name="CM" type="password" autocomplete="new-password" minlength="8" required><button type="button" data-password-toggle="confirmPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
+                </div>
+                <div class="profile-form-actions"><button type="submit" class="saas-primary-action" data-loading-text="Modification…"><i class="bi bi-shield-check"></i>Modifier mon mot de passe</button></div>
+            </form>
+        </div>
+
+        <div class="profile-panel" id="profilePanelAppearance" data-profile-panel="appearance" role="tabpanel" aria-labelledby="profileTabAppearance" hidden>
+            <div class="profile-panel-heading"><span class="profile-panel-icon"><i class="bi bi-stars"></i></span><div><h2>Personnaliser l’interface</h2><p>Ces préférences sont personnelles et vous suivent sur ordinateur, mobile et PWA.</p></div></div>
+            <form id="profileAppearanceForm" class="profile-form" action="{{ route('profile.appearance.update') }}" method="POST">
+                @csrf
+                @method('PUT')
+                <details class="profile-appearance-collapse">
+                    <summary><span class="profile-collapse-icon"><i class="bi bi-circle-half"></i></span><span class="profile-collapse-copy"><strong>Mode d’affichage</strong><small>Choisissez la luminosité générale de l’application.</small></span><span class="profile-collapse-value" id="profileModeSummary">{{ ['system' => 'Selon l’appareil', 'dark' => 'Sombre', 'light' => 'Clair'][$mode] }}</span><i class="bi bi-chevron-down profile-collapse-chevron"></i></summary>
+                    <fieldset class="profile-fieldset"><legend class="visually-hidden">Mode d’affichage</legend><div class="profile-mode-grid">
+                        @foreach([
+                            'system' => ['bi-circle-half', 'Selon l’appareil', 'Suit automatiquement les réglages de votre téléphone ou ordinateur.'],
+                            'dark' => ['bi-moon-stars', 'Sombre', 'Réduit la luminosité tout en gardant les informations bien contrastées.'],
+                            'light' => ['bi-sun', 'Clair', 'Utilise des surfaces lumineuses et des contrastes doux pour la journée.'],
+                        ] as $value => [$icon, $label, $description])
+                            <label class="profile-mode {{ $mode === $value ? 'is-selected' : '' }}"><input class="visually-hidden" type="radio" name="appearance_mode" value="{{ $value }}" data-mode-label="{{ $label }}" @checked($mode === $value)><i class="bi {{ $icon }}"></i><span class="profile-mode-copy"><strong>{{ $label }}</strong><small>{{ $description }}</small></span><span class="profile-mode-check"><i class="bi bi-check"></i></span></label>
+                        @endforeach
+                    </div></fieldset>
+                </details>
+                <details class="profile-appearance-collapse">
+                    <summary><span class="profile-collapse-icon"><i class="bi bi-palette"></i></span><span class="profile-collapse-copy"><strong>Couleur dominante</strong><small>Personnalisez les actions et les éléments actifs.</small></span><span class="profile-collapse-color" id="profileColorSummary" style="--summary-color:{{ $accent }}"><i></i>{{ $accent }}</span><i class="bi bi-chevron-down profile-collapse-chevron"></i></summary>
+                    <fieldset class="profile-fieldset"><legend class="visually-hidden">Couleur dominante</legend><p>Cette couleur ne modifie pas les couleurs fonctionnelles des succès, avertissements ou erreurs.</p>
+                        <div class="ds-color-grid profile-color-grid" id="profileAccentSwatches">
+                            @foreach(['#7C5CFC', '#20BFA9', '#3B82F6', '#FF9F43', '#E94F86', '#62A744'] as $color)
+                                <button type="button" class="ds-color-swatch {{ $accent === $color ? 'is-selected' : '' }}" style="--swatch:{{ $color }}" data-accent="{{ $color }}" aria-label="Choisir la couleur {{ $color }}" aria-pressed="{{ $accent === $color ? 'true' : 'false' }}"></button>
+                            @endforeach
+                        </div>
+                        <div class="profile-accent-row">
+                            <div class="profile-field"><label for="profileAccentText">Couleur personnalisée</label><div class="profile-color-control"><input type="color" id="profileAccentPicker" value="{{ $accent }}" aria-label="Sélectionner une couleur"><input type="text" id="profileAccentText" name="accent_color" value="{{ $accent }}" maxlength="7" pattern="#[0-9A-Fa-f]{6}" required></div></div>
+                            <div class="profile-theme-preview"><div><strong>Aperçu du thème</strong><small id="profileContrastStatus">Contraste calculé automatiquement.</small></div><button type="button" class="saas-primary-action">Action principale</button></div>
+                        </div>
+                    </fieldset>
+                </details>
+                <div class="profile-form-actions profile-form-actions-split"><button type="button" class="profile-secondary-button" id="profileResetAppearance"><i class="bi bi-arrow-counterclockwise"></i>Couleur par défaut</button><button type="submit" class="saas-primary-action" data-loading-text="Enregistrement…"><i class="bi bi-check2-circle"></i>Enregistrer mon apparence</button></div>
+            </form>
+        </div>
+    </section>
 </div>
+@endsection
 
-    <script src="{{asset('hub/assets/plugins/datatables.net/js/dataTables.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.colVis.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.flash.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.html5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.print.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const feedback = document.getElementById('profileFeedback');
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+    const tabs = [...document.querySelectorAll('[data-profile-tab]')];
+    const panels = [...document.querySelectorAll('[data-profile-panel]')];
 
-    <script>
-        $(function() {
-            $('.password-toggle').on('click', function() {
-                const input = document.getElementById($(this).data('target'));
-                const icon = $(this).find('i');
-                input.type = input.type === 'password' ? 'text' : 'password';
-                icon.toggleClass('bi-eye bi-eye-slash');
-            });
+    function showFeedback(type, message) {
+        feedback.hidden = false;
+        feedback.className = `profile-feedback is-${type}`;
+        feedback.innerHTML = `<i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle'}"></i><span></span>`;
+        feedback.querySelector('span').textContent = message;
+        feedback.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+    }
 
-            function showRequestError(xhr) {
-                const data = xhr.responseJSON || {};
-                Swal.fire({
-                    icon: 'error',
-                    title: data.title || 'Modification impossible',
-                    text: data.msg || 'Impossible de communiquer avec le serveur.',
-                    confirmButtonText: "D'accord",
-                    confirmButtonColor: '#A40000',
-                });
-            }
+    function activateTab(name, updateHash = true) {
+        tabs.forEach((tab) => { const active = tab.dataset.profileTab === name; tab.classList.toggle('is-active', active); tab.setAttribute('aria-selected', String(active)); });
+        panels.forEach((panel) => { const active = panel.dataset.profilePanel === name; panel.classList.toggle('is-active', active); panel.hidden = !active; });
+        if (updateHash) history.replaceState(null, '', `#${name}`);
+    }
+    tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.profileTab)));
+    const initialTab = ({ '#pills-appearance': 'appearance', '#pills-profile': 'password', '#pills-home': 'email' })[location.hash] || location.hash.slice(1);
+    if (['email', 'password', 'appearance'].includes(initialTab)) activateTab(initialTab, false);
 
-            $('#updateEmail').submit(function(event) {
-                event.preventDefault();
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ route('profile.email.update') }}",
-                    data: $('#updateEmail').serialize(),
-                    dataType: 'json',
-                    success: function(data) {
-                        Swal.fire({ icon: 'success', title: data.title, text: data.msg })
-                            .then(() => window.location.reload());
-                    },
-                    error: showRequestError,
-                });
-            });
+    document.querySelectorAll('[data-password-toggle]').forEach((button) => button.addEventListener('click', () => {
+        const input = document.getElementById(button.dataset.passwordToggle);
+        const visible = input.type === 'text';
+        input.type = visible ? 'password' : 'text';
+        button.querySelector('i').className = `bi ${visible ? 'bi-eye' : 'bi-eye-slash'}`;
+        button.setAttribute('aria-label', visible ? 'Afficher le mot de passe' : 'Masquer le mot de passe');
+    }));
 
-            $('#updatePassword').submit(function(event) {
-                event.preventDefault();
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ route('profile.password.update') }}",
-                    data: $('#updatePassword').serialize(),
-                    dataType: 'json',
-                    success: function(data) {
-                        Swal.fire({ icon: 'success', title: data.title, text: data.msg })
-                            .then(() => window.location.reload());
-                    },
-                    error: showRequestError,
-                });
-            });
-        });
-    </script>
+    async function submitJson(form, successCallback) {
+        const response = await fetch(form.action, { method: 'POST', credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf }, body: new FormData(form) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status === false) throw new Error(data.msg || data.message || Object.values(data.errors || {})[0]?.[0] || 'La modification n’a pas pu être enregistrée.');
+        successCallback?.(data);
+        showFeedback('success', data.msg || 'Vos modifications ont été enregistrées.');
+    }
 
-    @endsection
+    document.getElementById('profileEmailForm').addEventListener('submit', function (event) {
+        event.preventDefault(); const button = event.submitter;
+        window.ServerButtonLoader.withLoader(button, () => submitJson(this, () => setTimeout(() => location.reload(), 900)), 'Modification…').catch((error) => showFeedback('error', error.message));
+    });
+    document.getElementById('profilePasswordForm').addEventListener('submit', function (event) {
+        event.preventDefault(); const button = event.submitter;
+        window.ServerButtonLoader.withLoader(button, () => submitJson(this, () => this.reset()), 'Modification…').catch((error) => showFeedback('error', error.message));
+    });
+
+    const appearanceForm = document.getElementById('profileAppearanceForm');
+    const accentText = document.getElementById('profileAccentText');
+    const accentPicker = document.getElementById('profileAccentPicker');
+    const currentMode = () => appearanceForm.querySelector('input[name="appearance_mode"]:checked')?.value || 'system';
+    const appearanceCollapses = [...appearanceForm.querySelectorAll('.profile-appearance-collapse')];
+    appearanceCollapses.forEach((collapse) => collapse.addEventListener('toggle', () => {
+        if (collapse.open) appearanceCollapses.filter((item) => item !== collapse).forEach((item) => { item.open = false; });
+    }));
+    function preview(color) {
+        const accent = window.DesignSystem.normaliseHex(color); accentText.value = accent; accentPicker.value = accent;
+        window.DesignSystem.apply({ mode: currentMode(), accent });
+        const colorSummary = document.getElementById('profileColorSummary');
+        colorSummary.style.setProperty('--summary-color', accent); colorSummary.lastChild.textContent = accent;
+        document.querySelectorAll('#profileAccentSwatches [data-accent]').forEach((swatch) => { const active = swatch.dataset.accent === accent; swatch.classList.toggle('is-selected', active); swatch.setAttribute('aria-pressed', String(active)); });
+        const text = window.DesignSystem.contrastText(window.DesignSystem.hexToRgb(accent));
+        document.getElementById('profileContrastStatus').textContent = `Texte ${text === '#FFFFFF' ? 'blanc' : 'sombre'} appliqué automatiquement pour garantir la lisibilité.`;
+    }
+    appearanceForm.querySelectorAll('input[name="appearance_mode"]').forEach((input) => input.addEventListener('change', () => { document.querySelectorAll('.profile-mode').forEach((choice) => choice.classList.toggle('is-selected', choice.contains(input))); document.getElementById('profileModeSummary').textContent = input.dataset.modeLabel; preview(accentText.value); }));
+    document.querySelectorAll('#profileAccentSwatches [data-accent]').forEach((swatch) => swatch.addEventListener('click', () => preview(swatch.dataset.accent)));
+    accentPicker.addEventListener('input', () => preview(accentPicker.value)); accentText.addEventListener('change', () => preview(accentText.value));
+    document.getElementById('profileResetAppearance').addEventListener('click', () => preview('#FF9F43'));
+    appearanceForm.addEventListener('submit', function (event) { event.preventDefault(); const button = event.submitter; window.ServerButtonLoader.withLoader(button, () => submitJson(this, (data) => window.DesignSystem.apply({ mode: data.appearance.mode, accent: data.appearance.accent })), 'Enregistrement…').catch((error) => showFeedback('error', error.message)); });
+    preview(accentText.value);
+});
+</script>
+@endpush

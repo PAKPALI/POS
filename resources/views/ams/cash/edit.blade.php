@@ -1,98 +1,61 @@
 <form id="update_form">
     @csrf
-
-    <div class="card-body text-center">
-
-        <!-- NOM CAISSE -->
-        <div class="row">
-
-            <div class="col-md-12 mb-3">
-                <label>Nom de la caisse</label>
-                <input type="text" name="name" value="{{ $cashAccount->name }}" class="form-control" required>
-            </div>
-
-            <!-- TOGGLE DEFAULT -->
-            <div class="col-md-4 mt-3">
-                <label class="form-label">Caisse principale</label>
-                <div class="d-flex justify-content-center align-items-center">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input cash-role-toggle"
-                            type="checkbox"
-                            name="is_default"
-                            value="1"
-                            {{ isset($cashAccount) && $cashAccount->is_default ? 'checked' : '' }}>
-                    </div>
-                </div>
-                <!-- <div class="text-center small text-muted mt-1">
-                    Activer comme caisse par défaut
-                </div> -->
-            </div>
-
-            <!-- TOGGLE TAX -->
-            <div class="col-md-4 mt-3">
-                <label class="form-label">Caisse de taxe</label>
-                <div class="d-flex justify-content-center align-items-center">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1"
-                            {{ isset($cashAccount) && $cashAccount->is_tax ? 'checked' : '' }}>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TOGGLE STATUS -->
-            <div class="col-md-4 mt-3">
-                <label class="form-label">Statut</label>
-                <div class="d-flex justify-content-center align-items-center">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input"
-                            type="checkbox"
-                            name="status"
-                            value="1"
-                            {{ isset($cashAccount) && $cashAccount->status ? 'checked' : '' }}>
-                    </div>
-                </div>
-                <!-- <div class="text-center small text-muted mt-1">
-                    Caisse active / inactive
-                </div> -->
-            </div>
-
-            <!-- DESCRIPTION -->
-            <div class="col-md-12 mt-3">
-                <label>Description</label>
-                <textarea name="description" class="form-control">{{ $cashAccount->description }}</textarea>
+    <div class="row">
+        <div class="col-md-12 saas-form-group">
+            <label for="cash-name">Nom de la caisse</label>
+            <input id="cash-name" type="text" name="name" value="{{ $cashAccount->name }}" required autofocus>
+        </div>
+        <div class="col-md-4 saas-form-group">
+            <label>Caisse principale</label>
+            <div class="form-check form-switch" style="margin-top: 6px;">
+                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_default" value="1"
+                    {{ $cashAccount->is_default ? 'checked' : '' }}>
             </div>
         </div>
-
+        <div class="col-md-4 saas-form-group">
+            <label>Caisse de taxe</label>
+            <div class="form-check form-switch" style="margin-top: 6px;">
+                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1"
+                    {{ $cashAccount->is_tax ? 'checked' : '' }}>
+            </div>
+        </div>
+        <div class="col-md-4 saas-form-group">
+            <label>Statut</label>
+            <div class="form-check form-switch" style="margin-top: 6px;">
+                <input class="form-check-input" type="checkbox" name="status" value="1"
+                    {{ $cashAccount->status ? 'checked' : '' }}>
+            </div>
+        </div>
+        <div class="col-md-12 saas-form-group mt-3">
+            <label>Description</label>
+            <textarea name="description">{{ $cashAccount->description }}</textarea>
+        </div>
     </div>
-
-    <!-- BUTTON -->
-    <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning" type="submit">
-            <div class="loader spinner-grow" style="display:none;"></div>
-            <span id="submit_text">Modifier</span>
+    <div class="d-flex justify-content-end mt-3" style="border-top: 1px solid var(--ds-border-soft); padding-top: 16px;">
+        <button class="saas-btn saas-btn-warning" type="submit" data-loading-text="Modification en cours…">
+            <i class="bi bi-pencil" aria-hidden="true"></i><span>Modifier</span>
         </button>
     </div>
 </form>
 
 <script>
 $(function() {
-
-    $('.loader').hide();
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    $(document).on('change', '.cash-role-toggle', function () {
+        if (this.checked) {
+            const otherName = this.name === 'is_default' ? 'is_tax' : 'is_default';
+            $(this).closest('form').find('input[name="' + otherName + '"]').prop('checked', false);
         }
     });
 
-    $('#submit').click(function(e) {
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+    });
+
+    $('#update_form').submit(function(e) {
         e.preventDefault();
-
-        $('.loader').fadeIn();
-        $('#submit_text').hide();
-
-        var formData = new FormData($('#update_form')[0]);
-
+        var form = this;
+        var button = $(form).find('[type="submit"]');
+        var formData = new FormData(form);
         formData.append('_token', '{{ csrf_token() }}');
         formData.append('_method', 'PUT');
 
@@ -103,57 +66,25 @@ $(function() {
             processData: false,
             contentType: false,
             dataType: "json",
-
+            beforeSend: function() {
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(button[0], 'Modification en cours…');
+            },
             success: function(data) {
-
-                $('.loader').fadeOut();
-                $('#submit_text').fadeIn();
-
                 if (data.status) {
-
-                    Swal.fire({
-                        toast: true,
-                        position: 'top',
-                        icon: "success",
-                        title: data.title,
-                        text: data.msg,
-                        timer: 3000,
-                        showConfirmButton: false,
-                    });
-
+                    Swal.fire({ toast: true, position: 'top', icon: "success", title: data.title, text: data.msg, timer: 3000, showConfirmButton: false });
                     $('#editModal').modal('hide');
-
                     window.dispatchEvent(new Event('datatableUpdated'));
-
                 } else {
-
-                    Swal.fire({
-                        toast: true,
-                        position: 'top',
-                        icon: "error",
-                        title: data.title,
-                        text: data.msg,
-                        timer: 3000,
-                        showConfirmButton: false,
-                    });
+                    Swal.fire({ toast: true, position: 'top', icon: "error", title: data.title, text: data.msg, timer: 3000, showConfirmButton: false });
                 }
             },
-
             error: function() {
-
-                $('.loader').fadeOut();
-                $('#submit_text').fadeIn();
-
-                Swal.fire({
-                    toast: true,
-                    position: 'top',
-                    icon: "error",
-                    title: "Erreur",
-                    text: "Impossible de mettre à jour la caisse",
-                });
+                Swal.fire({ toast: true, position: 'top', icon: "error", title: "Erreur", text: "Impossible de mettre à jour la caisse." });
+            },
+            complete: function() {
+                if (window.ServerButtonLoader) window.ServerButtonLoader.stop(button[0]);
             }
         });
     });
-
 });
 </script>

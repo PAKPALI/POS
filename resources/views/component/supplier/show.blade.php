@@ -1,54 +1,18 @@
-<div id="stripedRows" class="mb-5">
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-striped border mb-0">
-                <tbody>
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Nom : </td>
-                        <td>{{$Supplier->name}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2</th>
-                        <td>Contact : </td>
-                        <td>{{$Supplier->contact ?? '-'}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">3</th>
-                        <td>Téléphone : </td>
-                        <td>{{$Supplier->phone ?? '-'}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">4</th>
-                        <td>WhatsApp : </td>
-                        <td>{{$Supplier->whatsapp ?? '-'}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">5</th>
-                        <td>Nombre de produits : </td>
-                        <td>{{$Supplier->products->count()}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">6</th>
-                        <td>Créer par :</td>
-                        <td>{{$Supplier->user->name}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">7</th>
-                        <td>Créer le :</td>
-                        <td>{{$Supplier->created_at->format('d-m-Y H:i:s')}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="card-arrow">
-            <div class="card-arrow-top-left"></div>
-            <div class="card-arrow-top-right"></div>
-            <div class="card-arrow-bottom-left"></div>
-            <div class="card-arrow-bottom-right"></div>
-        </div>
-        <div class="hljs-container">
-            <pre><code class="xml" data-url="assets/data/table-elements/code-3.json"></code></pre>
-        </div>
+<div class="saas-detail-hero is-compact">
+    <div class="saas-detail-icon"><i class="bi bi-truck" aria-hidden="true"></i></div>
+    <div class="saas-detail-summary">
+        <span class="saas-modal-eyebrow">Fournisseur</span>
+        <h3>{{ $Supplier->name }}</h3>
+        <p>{{ $Supplier->products->count() }} produit{{ $Supplier->products->count() > 1 ? 's' : '' }} associé{{ $Supplier->products->count() > 1 ? 's' : '' }}</p>
+        <span class="saas-status-badge {{ $Supplier->status ? 'is-active' : 'is-inactive' }}">{{ $Supplier->status ? 'Actif' : 'Archivé' }}</span>
     </div>
 </div>
+
+<dl class="saas-detail-list saas-detail-grid">
+    <div><dt>Contact / Adresse</dt><dd>{{ $Supplier->contact ?? '—' }}</dd></div>
+    <div><dt>Téléphone</dt><dd>{{ $Supplier->phone ?? '—' }}</dd></div>
+    <div><dt>WhatsApp</dt><dd>{{ $Supplier->whatsapp ?? '—' }}</dd></div>
+    <div><dt>Produits associés</dt><dd>{{ $Supplier->products->count() }}</dd></div>
+    <div><dt>Créé par</dt><dd>{{ $Supplier->user->name }}</dd></div>
+    <div><dt>Créé le</dt><dd>{{ $Supplier->created_at->format('d/m/Y à H:i') }}</dd></div>
+</dl>

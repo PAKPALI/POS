@@ -43,9 +43,9 @@ class SupplierController extends Controller
                 })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
-                        $btn = ' <a class="btn btn-success btn-sm">Actif</a>';
+                        $btn = '<span class="saas-status-badge is-active">Actif</span>';
                     }else{
-                        $btn = ' <a class="btn btn-danger btn-sm">Inactif</a>';
+                        $btn = '<span class="saas-status-badge is-inactive">Inactif</span>';
                     }
                     return $btn;
                 })
@@ -89,9 +89,9 @@ class SupplierController extends Controller
                 })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
-                        $btn = ' <a class="btn btn-success btn-sm">Actif</a>';
+                        $btn = '<span class="saas-status-badge is-active">Actif</span>';
                     }else{
-                        $btn = ' <a class="btn btn-danger btn-sm">Inactif</a>';
+                        $btn = '<span class="saas-status-badge is-inactive">Inactif</span>';
                     }
                     return $btn;
                 })

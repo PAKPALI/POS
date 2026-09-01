@@ -1,0 +1,122 @@
+:root {
+    color-scheme: dark;
+    --ds-bg-canvas: #070b14;
+    --ds-bg-elevated: #0d1422;
+    --ds-glass-1: rgba(18, 27, 45, .76);
+    --ds-glass-2: rgba(24, 35, 56, .88);
+    --ds-border-soft: rgba(255, 255, 255, .09);
+    --ds-border-strong: rgba(255, 255, 255, .17);
+    --ds-text-primary: #f4f7fb;
+    --ds-text-secondary: #a9b5c8;
+    --ds-text-muted: #74839a;
+    --ds-accent: #ff9f43;
+    --ds-accent-rgb: 255, 159, 67;
+    --ds-accent-hover: #ffad5c;
+    --ds-accent-active: #ed8931;
+    --ds-accent-soft: rgba(var(--ds-accent-rgb), .14);
+    --ds-accent-contrast: #111827;
+    --ds-focus-ring: rgba(var(--ds-accent-rgb), .36);
+    --ds-shadow-card: 0 14px 36px rgba(0, 0, 0, .2);
+    --ds-radius-control: 11px;
+    --ds-radius-card: 16px;
+    --ds-motion-fast: 140ms;
+    --ds-motion-normal: 220ms;
+}
+
+html[data-ds-theme="light"] {
+    color-scheme: light;
+    --ds-bg-canvas: #f3f6fa;
+    --ds-bg-elevated: #ffffff;
+    --ds-glass-1: rgba(255, 255, 255, .82);
+    --ds-glass-2: rgba(255, 255, 255, .94);
+    --ds-border-soft: rgba(35, 48, 68, .12);
+    --ds-border-strong: rgba(35, 48, 68, .22);
+    --ds-text-primary: #182235;
+    --ds-text-secondary: #526176;
+    --ds-text-muted: #718096;
+    --ds-shadow-card: 0 12px 30px rgba(41, 55, 78, .1);
+}
+
+html, body { background: var(--ds-bg-canvas); }
+body { color: var(--ds-text-primary); }
+
+.ds-surface {
+    background: var(--ds-glass-1);
+    border: 1px solid var(--ds-border-soft);
+    border-radius: var(--ds-radius-card);
+    box-shadow: var(--ds-shadow-card);
+    backdrop-filter: blur(12px) saturate(115%);
+    -webkit-backdrop-filter: blur(12px) saturate(115%);
+}
+
+.ds-heading { color: var(--ds-text-primary); }
+.ds-muted { color: var(--ds-text-secondary); }
+
+.ds-btn-primary,
+.btn-theme,
+.btn-outline-theme:hover {
+    color: var(--ds-accent-contrast) !important;
+    background: var(--ds-accent) !important;
+    border-color: var(--ds-accent) !important;
+    box-shadow: 0 0 0 0 var(--ds-accent-soft);
+}
+
+.ds-btn-primary:hover,
+.btn-theme:hover { background: var(--ds-accent-hover) !important; }
+.ds-btn-primary:active,
+.btn-theme:active { transform: scale(.985); background: var(--ds-accent-active) !important; }
+.btn-outline-theme { color: var(--ds-accent) !important; border-color: var(--ds-accent) !important; }
+.text-theme { color: var(--ds-accent) !important; }
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid var(--ds-focus-ring) !important;
+    outline-offset: 2px;
+}
+
+.ds-choice {
+    position: relative;
+    min-height: 48px;
+    padding: 12px 14px;
+    color: var(--ds-text-primary);
+    background: var(--ds-glass-2);
+    background: color-mix(in srgb, var(--ds-glass-2) 92%, transparent);
+    border: 1px solid var(--ds-border-soft);
+    border-radius: var(--ds-radius-control);
+    cursor: pointer;
+    transition: transform var(--ds-motion-fast) ease, border-color var(--ds-motion-fast) ease, background var(--ds-motion-fast) ease;
+}
+.ds-choice:hover { transform: translateY(-1px); border-color: var(--ds-border-strong); }
+.ds-choice.is-selected { border-color: var(--ds-accent); background: var(--ds-accent-soft); }
+
+.ds-color-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.ds-color-swatch {
+    width: 44px;
+    height: 44px;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    background: var(--swatch);
+    box-shadow: 0 0 0 1px var(--ds-border-strong);
+    transition: transform var(--ds-motion-fast) ease, box-shadow var(--ds-motion-fast) ease;
+}
+.ds-color-swatch:hover { transform: scale(1.06); }
+.ds-color-swatch.is-selected { box-shadow: 0 0 0 3px var(--ds-bg-elevated), 0 0 0 6px var(--ds-accent); }
+
+.ds-theme-preview {
+    background: linear-gradient(135deg, var(--ds-accent-soft), transparent 55%), var(--ds-bg-elevated);
+    border: 1px solid var(--ds-border-soft);
+    border-radius: var(--ds-radius-card);
+    color: var(--ds-text-primary);
+}
+
+@media (max-width: 767.98px) {
+    .ds-surface { border-radius: 14px; backdrop-filter: blur(8px) saturate(108%); -webkit-backdrop-filter: blur(8px) saturate(108%); }
+    .ds-color-swatch { width: 48px; height: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+    .ds-surface { background: var(--ds-bg-elevated); }
+}

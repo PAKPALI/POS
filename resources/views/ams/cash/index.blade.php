@@ -1,435 +1,208 @@
-@extends('layouts.layout')
-@push('css-scripts')
-<style>
-    #datatable tbody tr {
-        background-color: #f0f0f0;
-    }
-    #datatable tbody tr:hover {
-        background-color: #e0e0e0;
-    }
+@extends('layouts.saas')
 
-    /* Transform button in circle */
-    .badge-warning {
-        background: #ffc107;
-        color: #000;
-    }
-
-    .blink-badge {
-        animation: glowBlink 1.5s infinite;
-        font-weight: bold;
-        padding: 6px 10px;
-        border-radius: 10px;
-    }
-
-    /* effet lumineux */
-    @keyframes glowBlink {
-        0% {
-            box-shadow: 0 0 5px #ffc107;
-            opacity: 1;
-            transform: scale(1);
-        }
-        50% {
-            box-shadow: 0 0 20px #ffc107, 0 0 30px #ffdb58;
-            opacity: 0.85;
-            transform: scale(1.05);
-        }
-        100% {
-            box-shadow: 0 0 5px #ffc107;
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-    /* Switch OFF (rouge) */
-    .form-check-input {
-        width: 3em;
-        height: 1.5em;
-        cursor: pointer;
-        background-color: #dc3545 !important; /* rouge */
-        border: none;
-    }
-
-    /* Switch ON (vert) */
-    .form-check-input:checked {
-        background-color: #28a745 !important; /* vert */
-        border: none;
-    }
-
-    /* Smooth animation */
-    .form-check-input {
-        transition: all 0.2s ease-in-out;
-    }
-
-    .card-white-shadow {
-        background: #1e1e2f; /* optionnel si fond sombre */
-        box-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        transition: all 0.3s ease;
-    }
-
-    .card-white-shadow:hover {
-        box-shadow: 0 0 30px rgba(255, 255, 255, 0.35);
-        transform: translateY(-3px);
-    }
-    
-</style>
+@push('styles')
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
 @endpush
 
 @section('content')
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-12">
-                <div class="row">
-                    <!-- TOTAL CAISSES -->
-                    <div class="col-xl-4 col-lg-6">
-                        <div class="card border-color mb-3 card-white-shadow">
-                            <div class="card-body">
-                                <div class="d-flex fw-bold small mb-3">
-                                    <span class="flex-grow-1">TOTAL CAISSES</span>
-                                </div>
+    <div class="saas-page-heading">
+        <div>
+            <h1>Caisse</h1>
+            <p>Gestion des comptes de caisse, soldes et rôles (principale, taxe).</p>
+        </div>
+        <button type="button" class="saas-btn saas-btn-primary" data-bs-toggle="modal" data-bs-target="#addModal" aria-controls="addModal">
+            <i class="bi bi-plus-lg"></i> Ajouter une caisse
+        </button>
+    </div>
 
-                                <div class="row align-items-center mb-2">
-                                    <div class="col-7">
-                                        <h3 class="mb-0">{{ $totalCash->count }}</h3>
-                                        <span class="badge blink-badge">
-                                            {{ $totalCash ? number_format($totalCashSum, 2, ',', ' ') : 0 }} F CFA
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    {{-- Statistiques --}}
+    <section class="saas-metric-grid mb-4" aria-label="Résumé caisses">
+        <div class="saas-metric">
+            <div class="saas-metric-head"><span class="saas-metric-label">Total caisses</span><span class="saas-metric-icon"><i class="bi bi-wallet2"></i></span></div>
+            <strong class="saas-metric-value">{{ $totalCash->count }}</strong>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $totalCash ? number_format($totalCashSum, 0, ',', ' ') : '0' }} FCFA</span>
+        </div>
+        <div class="saas-metric">
+            <div class="saas-metric-head"><span class="saas-metric-label">Caisses actives</span><span class="saas-metric-icon"><i class="bi bi-check-circle"></i></span></div>
+            <strong class="saas-metric-value">{{ $activeCash->count }}</strong>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $activeCash ? number_format($activeCashSum, 0, ',', ' ') : '0' }} FCFA</span>
+        </div>
+        <div class="saas-metric">
+            <div class="saas-metric-head"><span class="saas-metric-label">Caisses inactives</span><span class="saas-metric-icon"><i class="bi bi-x-circle"></i></span></div>
+            <strong class="saas-metric-value">{{ $inactiveCash->count }}</strong>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $inactiveCash ? number_format($inactiveCashSum, 0, ',', ' ') : '0' }} FCFA</span>
+        </div>
+    </section>
+
+    {{-- Modale Ajout --}}
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content saas-modal-content">
+                <div class="modal-header">
+                    <div>
+                        <p class="saas-modal-eyebrow">Comptabilité</p>
+                        <h3 class="modal-title">Ajouter une caisse</h3>
                     </div>
-
-                    <!-- CAISSES ACTIVES -->
-                    <div class="col-xl-4 col-lg-6">
-                        <div class="card border-color mb-3 card-white-shadow">
-                            <div class="card-body">
-                                <div class="d-flex fw-bold small mb-3">
-                                    <span class="flex-grow-1">CAISSES ACTIVES</span>
-                                </div>
-
-                                <div class="row align-items-center mb-2">
-                                    <div class="col-7">
-                                        <h3 class="mb-0">{{ $activeCash->count }}</h3>
-                                        <span class="badge blink-badge">
-                                            {{ $activeCash ? number_format($activeCashSum, 2, ',', ' ') : 0 }} F CFA
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CAISSES INACTIVES -->
-                    <div class="col-xl-4 col-lg-6">
-                        <div class="card border-color mb-3 card-white-shadow">
-                            <div class="card-body">
-                                <div class="d-flex fw-bold small mb-3">
-                                    <span class="flex-grow-1">CAISSES INACTIVES</span>
-                                </div>
-
-                                <div class="row align-items-center mb-2">
-                                    <div class="col-7">
-                                        <h3 class="mb-0">{{ $inactiveCash->count }}</h3>
-                                        <span class="badge blink-badge">
-                                            {{ $inactiveCash ? number_format($inactiveCashSum, 2, ',', ' ') : 0 }} F CFA
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CAISSE PRINCIPALE -->
-                    <div class="col-xl-6 col-lg-6">
-                        <div class="card border-color mb-3 card-white-shadow">
-                            <div class="card-body">
-                                <div class="d-flex fw-bold small mb-3">
-                                    <span class="flex-grow-1">CAISSE PRINCIPALE</span>
-                                </div>
-
-                                <div class="row align-items-center mb-2">
-                                    <div class="col-7">
-                                        <h3 class="mb-0">{{ $defaultCashName ?? 'Aucune' }}</h3>
-                                        <span class="badge blink-badge">
-                                            {{ $defaultCash ? number_format($defaultCash->balance, 2, ',', ' ') : 0 }} F CFA
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- TAXE --}}
-                    <div class="col-xl-6 col-lg-6">
-                        <div class="card border-color mb-3 card-white-shadow">
-                            <div class="card-body">
-                                <div class="d-flex fw-bold small mb-3">
-                                    <span class="flex-grow-1">CAISSE TAXE</span>
-                                </div>
-
-                                <div class="row align-items-center mb-2">
-                                    <div class="col-7">
-                                        <h3 class="mb-0">{{ $taxCash ? $taxCash->name : 'Aucune' }}</h3>
-                                        <span class="badge blink-badge">
-                                            {{ $taxCash ? number_format($taxCash->balance, 2, ',', ' ') : 0 }} FCFA
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
                 </div>
-                <div class="row">
-                    <div class="col-xl-12">
-                        <ul class="breadcrumb">
-                            <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
-                            <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
-                        </ul>
-                        <h1 class="page-header">
-                            CAISSES
-                            <!-- <img src="{{ asset('images/1729538166.jpg') }}" alt="Image du produit"> -->
-                        </h1>
-                        <hr class="mb-4">
-                        <!-- add modal -->
-                        <div class="modal modal fade" id="addModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-primary">
-                                        <h3 class="modal-title">Ajouter caisse</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form id="add">
-                                            @csrf
-                                            <div class="card-body">
-                                                <div class="row text-center">
-
-                                                    <div class="col-md-12 mb-4">
-                                                        <label>Nom de la caisse</label>
-                                                        <input type="text" name="name" class="form-control" required>
-                                                    </div>
-
-                                                    <!-- TOGGLE DEFAULT -->
-                                                    <div class="col-md-4 mt-3">
-                                                        <label class="form-label">Caisse principale</label>
-                                                        <div class="d-flex justify-content-center align-items-center">
-                                                            <div class="form-check form-switch">
-                                                                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_default" value="1">
-                                                                <!-- <label class="form-check-label">Activer comme caisse par défaut</label> -->
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- TOGGLE TAX -->
-                                                    <div class="col-md-4 mt-3">
-                                                        <label class="form-label">Caisse de taxe</label>
-                                                        <div class="d-flex justify-content-center align-items-center">
-                                                            <div class="form-check form-switch">
-                                                                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- TOGGLE STATUS -->
-                                                    <div class="col-md-4 mt-3">
-                                                        <label class="form-label">Statut</label>
-                                                        <div class="d-flex justify-content-center align-items-center">
-                                                            <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox" name="status" value="1" checked>
-                                                                <!-- <label class="form-check-label">Caisse active</label> -->
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-md-12 mt-4">
-                                                        <label>Description</label>
-                                                        <textarea name="description" class="form-control"></textarea>
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-                                            <div class="card-footer mt-4">
-                                                <button type="submit" class="btn btn-primary">
-                                                    <div id="loader" class="spinner-grow"></div>
-                                                    <div id="submitText">Valider</div>
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
+                <div class="modal-body">
+                    <form id="add">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12 saas-form-group">
+                                <label>Nom de la caisse</label>
+                                <input type="text" name="name" placeholder="Ex. Caisse principale, Caisse de taxe…" required>
+                            </div>
+                            <div class="col-md-4 saas-form-group">
+                                <label>Caisse principale</label>
+                                <div class="form-check form-switch" style="margin-top: 6px;">
+                                    <input class="form-check-input cash-role-toggle" type="checkbox" name="is_default" value="1">
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- update modal -->
-                        <div class="modal" id="editModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-warning">
-                                        <h3 class="modal-title text-dark ">Modifier produit</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div id="edit_response"></div>
-                                    </div>
+                            <div class="col-md-4 saas-form-group">
+                                <label>Caisse de taxe</label>
+                                <div class="form-check form-switch" style="margin-top: 6px;">
+                                    <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1">
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- view modal -->
-                        <div class="modal fade" id="showModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-light">
-                                        <h3 class="modal-title text-dark ">Détail</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div id="show_response"></div>
-                                    </div>
+                            <div class="col-md-4 saas-form-group">
+                                <label>Statut</label>
+                                <div class="form-check form-switch" style="margin-top: 6px;">
+                                    <input class="form-check-input" type="checkbox" name="status" value="1" checked>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="col-xl-12">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des caisses</h4></span>
-                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
-                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table id="datatable" class="table text-nowrap w-100">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Code</th>
-                                                    <th>Nom</th>
-                                                    <th>Solde</th>
-                                                    <!-- <th>Devise</th> -->
-                                                    <th>Principale</th>
-                                                    <th>Status</th>
-                                                    <th>Créé par</th>
-                                                    <th>Créé le</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-center mt-3">
-                                    
-                                </div>
-
-                                <div class="card-arrow">
-                                    <div class="card-arrow-top-left"></div>
-                                    <div class="card-arrow-top-right"></div>
-                                    <div class="card-arrow-bottom-left"></div>
-                                    <div class="card-arrow-bottom-right"></div>
-                                </div>
+                            <div class="col-md-12 saas-form-group mt-3">
+                                <label>Description</label>
+                                <textarea name="description" placeholder="Description facultative…"></textarea>
                             </div>
                         </div>
-                    </div>
-                    {{-- <div class="col-xl-2">
-                        <nav id="sidebar-bootstrap" class="navbar navbar-sticky d-none d-xl-block">
-                            <nav class="nav">
-                                <a class="nav-link text-danger" href="#datatable" data-toggle="scroll-to"><strong> Lux Grill</strong></a>
-                                <!-- <a class="nav-link text-danger" href="#bootstrapTable" data-toggle="scroll-to">GRILL</a> -->
-                            </nav>
-                        </nav>
-                    </div> --}}
+                        <div class="d-flex justify-content-end mt-3" style="border-top: 1px solid var(--ds-border-soft); padding-top: 16px;">
+                            <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Création…">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i><span>Créer la caisse</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="{{asset('hub/assets/plugins/datatables.net/js/dataTables.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.colVis.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.flash.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.html5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.print.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
+    {{-- Modale Modification --}}
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content saas-modal-content saas-modal-warning">
+                <div class="modal-header" style="border-left: 4px solid var(--ds-warning, #F5B942);">
+                    <div>
+                        <p class="saas-modal-eyebrow" style="color: var(--ds-warning, #F5B942);">Comptabilité</p>
+                        <h3 class="modal-title">Modifier la caisse</h3>
+                    </div>
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="edit_response" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    {{-- Modale Détail --}}
+    <div class="modal fade" id="showModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content saas-modal-content">
+                <div class="modal-header">
+                    <div>
+                        <p class="saas-modal-eyebrow">Comptabilité</p>
+                        <h3 class="modal-title">Détail de la caisse</h3>
+                    </div>
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="show_response" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tableau --}}
+    <div class="saas-card">
+        <div class="saas-card-head">
+            <div>
+                <h2>Comptes de caisse</h2>
+                <p class="saas-card-description">Liste des caisses avec soldes, rôles et statuts.</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="datatable" class="table text-nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Code</th>
+                        <th>Nom</th>
+                        <th>Solde</th>
+                        <th>Principale</th>
+                        <th>Statut</th>
+                        <th>Créé par</th>
+                        <th>Créé le</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script src="{{ asset('hub/assets/plugins/datatables.net/js/dataTables.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
     <script>
         $(function() {
+            function ajaxErrorMessage(xhr, fallback) {
+                return xhr && xhr.responseJSON
+                    ? (xhr.responseJSON.msg || xhr.responseJSON.message || fallback)
+                    : fallback;
+            }
+
             $(document).on('change', '.cash-role-toggle', function () {
                 if (this.checked) {
                     const otherName = this.name === 'is_default' ? 'is_tax' : 'is_default';
-                    $(this).closest('form').find(`input[name="${otherName}"]`).prop('checked', false);
+                    $(this).closest('form').find('input[name="' + otherName + '"]').prop('checked', false);
                 }
             });
-            // hide loader
-            $('#loader').hide();
 
             var Datatable = $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('cash-account.index')}}",
+                ajax: "{{ route('cash-account.index') }}",
                 columns: [
-                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                    {data: 'code', name: 'code'},
-                    {data: 'name', name: 'name'},
-                    {data: 'balance', name: 'balance'},
-                    // {data: 'currency', name: 'currency'},
-                    {data: 'is_default', name: 'is_default'},
-                    {data: 'status', name: 'status'},
-                    {data: 'created_by', name: 'created_by'},
-                    {data: 'created_at', name: 'created_at'},
-                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'code', name: 'code' },
+                    { data: 'name', name: 'name' },
+                    { data: 'balance', name: 'balance' },
+                    { data: 'is_default', name: 'is_default' },
+                    { data: 'status', name: 'status' },
+                    { data: 'created_by', name: 'created_by' },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false },
                 ],
-                responsive: true, 
+                responsive: true,
                 language: {
                     "lengthMenu": "Afficher _MENU_ entrées",
                     "zeroRecords": "Aucune donnée disponible",
+                    "emptyTable": "Aucune caisse créée pour le moment",
+                    "processing": "Chargement des caisses…",
                     "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
                     "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
                     "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
-                    "search": "Rechercher:",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "next": "Suivant",
-                        "previous": "Précédent"
-                    }
-                },
-                
-                drawCallback: function() {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                    $('#datatable').css('width','100%');
-                    $('#datatable tbody tr').each(function() {
-                        $(this).css('background-color', 'black');  // Appliquer un fond personnalisé
-                        $(this).css('color', 'white');
-                    });
-                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
-                    $('.dataTables_length select option').css('color', 'black'); // Mettre la couleur noire pour les options
-                    $('.dataTables_length select option').css('background-color', 'white'); // Fond blanc pour les options
-
-                    // Appliquer la couleur blanche au texte des labels
-                    $('.dataTables_length label').css('color', 'white'); // Couleur blanche pour "Afficher _MENU_ entrées"
-                    $('.dataTables_filter label').css('color', 'white'); // Couleur blanche pour "Rechercher:"
-                    
-                    // Appliquer les styles pour le dropdown et le champ de recherche
-                    $('.dataTables_length select').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
-
-                    $('.dataTables_filter input').css({
-                        'background-color': 'black', // Fond noir
-                        'color': 'white' // Texte en blanc
-                    });
-                    $('.dataTables_filter input::placeholder').css('color', 'white'); // Placeholder en blanc
-                    $('#datatable').css('width', '100%');
+                    "search": "Rechercher :",
+                    "paginate": { "first": "Premier", "last": "Dernier", "next": "Suivant", "previous": "Précédent" }
                 },
             });
 
@@ -437,190 +210,169 @@
                 Datatable.ajax.reload(null, false);
             });
 
-            //Add cash
-            $('#add').submit(function() {
-                $('#loader').fadeIn();
-                $('#submitText').hide();
-
-                var formData = new FormData($('#add')[0]);
-
+            $('#add').submit(function(event) {
+                event.preventDefault();
+                var form = this;
+                var button = $(form).find('[type="submit"]');
+                var formData = new FormData(form);
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('cash-account.store') }}",
                     data: formData,
                     processData: false,
                     contentType: false,
-
-                    success: function(data) {
-                        $('#loader').hide();
-                        $('#submitText').fadeIn();
-                        if (!data.status) {
-                            Swal.fire({
-                                icon: "error",
-                                title: data.title || "Erreur",
-                                text: data.msg || "Impossible d'enregistrer la caisse",
-                            });
-                            return;
-                        }
-                        Swal.fire({
-                            toast: true,
-                            position: 'top',
-                            icon: "success",
-                            title: "Succès",
-                            text: "Caisse créée avec succès",
-                            timer: 3000,
-                            showConfirmButton: false,
-                        });
-                        $('#addModal').modal('hide');
-                        $('#add')[0].reset();
-                        Datatable.ajax.reload(null, false);
+                    datatype: 'json',
+                    beforeSend: function() {
+                        if (window.ServerButtonLoader) window.ServerButtonLoader.start(button[0], 'Création…');
                     },
-
-                    error: function() {
-                        $('#loader').hide();
-                        $('#submitText').fadeIn();
-
-                        Swal.fire({
-                            icon: "error",
-                            title: "Erreur",
-                            text: "Impossible d'enregistrer la caisse",
-                        });
+                    success: function(data) {
+                        if (data.status) {
+                            Swal.fire({ toast: true, position: 'top', icon: "success", title: data.title || "Succès", text: data.msg || "Caisse créée avec succès", showConfirmButton: false, timer: 3000, timerProgressBar: true });
+                            $('#addModal').modal('hide');
+                            form.reset();
+                            Datatable.draw();
+                        } else {
+                            Swal.fire({ toast: true, position: 'top', icon: "error", title: data.title || "Erreur", text: data.msg || "Impossible d'enregistrer la caisse", showConfirmButton: false, timer: 3000, timerProgressBar: true });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({ icon: "error", title: "Erreur", text: ajaxErrorMessage(xhr, "Impossible d'enregistrer la caisse."), timer: 3600 });
+                    },
+                    complete: function() {
+                        if (window.ServerButtonLoader) window.ServerButtonLoader.stop(button[0]);
                     }
                 });
-
                 return false;
             });
 
-            $('body').on('click', '.editModal', function () {
+            $('body').on('click', '.editModal', function() {
+                const trigger = this;
                 var id = $(this).data("id");
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(trigger, 'Chargement…');
+                $('#edit_response').empty();
                 $.ajax({
-                    url:'{{url('ams/cash-account')}}/'+id+'/edit',
+                    url: '{{ url("ams/cash-account") }}/' + id + '/edit',
                     dataType: 'html',
-                    success:function(result)
-                    {
+                    success: function(result) {
                         $('#edit_response').html(result);
+                        $('#editModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        $('#editModal').modal('hide');
+                        Swal.fire({ icon: 'error', title: 'Chargement impossible', text: ajaxErrorMessage(xhr, 'Impossible de charger ce compte.') });
+                    },
+                    complete: function() {
+                        if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger);
                     }
                 });
-                $('#editModal').modal('show');
             });
 
-            $('body').on('click', '.view', function () {
+            $('body').on('click', '.view', function() {
+                const trigger = this;
                 var id = $(this).data("id");
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(trigger, 'Chargement…');
+                $('#show_response').empty();
                 $.ajax({
-                    url:'{{url('ams/cash-account')}}/'+id,
+                    url: '{{ url("ams/cash-account") }}/' + id,
                     dataType: 'html',
-                    success:function(result)
-                    {
+                    success: function(result) {
                         $('#show_response').html(result);
+                        $('#showModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        $('#showModal').modal('hide');
+                        Swal.fire({ icon: 'error', title: 'Chargement impossible', text: ajaxErrorMessage(xhr, 'Impossible de charger ce compte.') });
+                    },
+                    complete: function() {
+                        if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger);
                     }
                 });
-                $('#showModal').modal('show');
-            });
-            
-            $('body').on('click', '.archive', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
-                var id = $(this).data("id");   
-                
-                Swal.fire({
-                    icon: "question",
-                    title: "Etes vous sur de vouloir archiver cette caisse?",
-                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
-                    confirmButtonText: "Oui",
-                    confirmButtonColor: 'red',
-                    showCancelButton: true,
-                    cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "post",
-                            url: 'cash-account/'+id,
-                            type: "DELETE",
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    Datatable.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
-                                }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
-                        });
-                    }
-                })
             });
 
-            $('body').on('click', '.restore', function () {
-                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+            $('body').on('click', '.archive', function() {
                 var id = $(this).data("id");
-                
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
                 Swal.fire({
-                    icon: "question",
-                    title: "Etes vous sur de vouloir restaurer cette caisse?",
-                    // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
-                    confirmButtonText: "Oui",
-                    confirmButtonColor: 'green',
+                    icon: 'warning',
+                    title: "Archiver cette caisse ?",
+                    html: '<p class="saas-confirm-copy">La caisse sera désactivée et ne pourra plus recevoir de transactions. Vous pourrez la restaurer ultérieurement.</p>',
+                    confirmButtonText: 'Archiver',
                     showCancelButton: true,
-                    cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
-                }).then((result) => {
-                    if (result.isConfirmed){
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            type: "post",
-                            url: 'cash-account/'+id,
-                            type: "DELETE",
-                            datatype: 'json',
-                            success: function (data) {
-                                if(data.status){
-                                    Swal.fire({
-                                        toast: true,
-                                        position: 'top',
-                                        icon: "success",
-                                        title: data.title,
-                                        showConfirmButton: false,
-                                        timer: 5000,
-                                        timerProgressBar: true,
-                                        text: data.msg,
-                                    });
-                                    Datatable.draw();
-                                }else{
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: data.title,
-                                        text: data.msg,
-                                    })
+                    cancelButtonText: 'Conserver',
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal saas-swal-danger', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        return new Promise(function(resolve) {
+                            $.ajax({
+                                headers: { 'X-CSRF-TOKEN': csrfToken },
+                                type: 'DELETE',
+                                url: 'cash-account/' + id,
+                                dataType: 'json'
+                            }).done(function(data) {
+                                if (!data || !data.status) {
+                                    Swal.showValidationMessage((data && data.msg) || "Impossible d'archiver cette caisse.");
+                                    resolve(false);
+                                    return;
                                 }
-                            },
-                            error: function (data) {
-                                console.log('Error:', data);
-                            }
+                                resolve(data);
+                            }).fail(function(xhr) {
+                                Swal.showValidationMessage(ajaxErrorMessage(xhr, "Impossible d'archiver cette caisse."));
+                                resolve(false);
+                            });
                         });
-                    }
-                })
+                    },
+                }).then(function(result) {
+                    if (!result.isConfirmed || !result.value) return;
+                    Swal.fire({ toast: true, position: 'top', icon: 'success', title: result.value.title, showConfirmButton: false, timer: 5000, timerProgressBar: true, text: result.value.msg });
+                    Datatable.draw();
+                });
+            });
+
+            $('body').on('click', '.restore', function() {
+                var id = $(this).data("id");
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Restaurer cette caisse ?',
+                    html: '<p class="saas-confirm-copy">Elle redeviendra disponible pour les opérations financières.</p>',
+                    confirmButtonText: 'Restaurer',
+                    showCancelButton: true,
+                    cancelButtonText: 'Annuler',
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' },
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: function() { return !Swal.isLoading(); },
+                    allowEscapeKey: function() { return !Swal.isLoading(); },
+                    preConfirm: function() {
+                        return new Promise(function(resolve) {
+                            $.ajax({
+                                headers: { 'X-CSRF-TOKEN': csrfToken },
+                                type: 'DELETE',
+                                url: 'cash-account/' + id,
+                                dataType: 'json'
+                            }).done(function(data) {
+                                if (!data || !data.status) {
+                                    Swal.showValidationMessage((data && data.msg) || 'Impossible de restaurer cette caisse.');
+                                    resolve(false);
+                                    return;
+                                }
+                                resolve(data);
+                            }).fail(function(xhr) {
+                                Swal.showValidationMessage(ajaxErrorMessage(xhr, 'Impossible de restaurer cette caisse.'));
+                                resolve(false);
+                            });
+                        });
+                    },
+                }).then(function(result) {
+                    if (!result.isConfirmed || !result.value) return;
+                    Swal.fire({ toast: true, position: 'top', icon: 'success', title: result.value.title, showConfirmButton: false, timer: 5000, timerProgressBar: true, text: result.value.msg });
+                    Datatable.draw();
+                });
             });
         });
     </script>
-
-    @endsection
+    @endpush
+@endsection

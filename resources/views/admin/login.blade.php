@@ -55,9 +55,9 @@
                     type: 'POST',
                     url: @json(route('login', [], false)),
                     data: $('#form_login').serialize(),
-                    datatype: 'json',
-                    success: function (data){
-                        console.log(data)
+                    dataType: 'json',
+                    headers: { 'Accept': 'application/json' },
+                    success: function (data) {
                         if (data.status) {
                             $('#form_login').slideUp(3000);
                             // Swal.fire({
@@ -94,7 +94,16 @@
                             });
                         }
                     },
-                    error: function (xhr){
+                    error: function (xhr) {
+                        // Une session peut être créée avant qu'un middleware ne renvoie
+                        // une page HTML. Vérifier alors la session au lieu d'afficher
+                        // une alerte vide ou de demander une seconde connexion.
+                        if (xhr.status >= 200 && xhr.status < 300 && typeof xhr.responseText === 'string'
+                            && /<html[\s>]/i.test(xhr.responseText)) {
+                            window.location.assign(@json(route('dashboard', [], false)));
+                            return;
+                        }
+
                         const response = xhr.responseJSON || {};
                         let message = response.msg || response.message || "Impossible de communiquer avec le serveur.";
                         if (xhr.status === 419) message = "Votre session de connexion a expiré. Rechargez l’application puis réessayez.";

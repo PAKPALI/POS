@@ -104,15 +104,7 @@ class SaleController extends Controller
         $sale_total_profit = $canViewFinancials ? (float) $salesSummary->total_profit : 0;
         $product_count = SaleDetail::whereBetween('created_at', [$dayStart, $dayEnd])->count();
 
-        $mostSoldProducts = SaleDetail::query()
-            ->select('product_id')
-            ->selectRaw('SUM(quantity) as total_quantity')
-            ->with('product:id,name,image,price')
-            ->whereBetween('created_at', [$dayStart, $dayEnd])
-            ->groupBy('product_id')
-            ->orderByDesc('total_quantity')
-            ->take(10)
-            ->get();
+        $mostSoldProducts = $this->topProductsForToday();
 
         // Send data to view
         return view('pos.sale.index',
@@ -263,6 +255,8 @@ class SaleController extends Controller
                 'saleDetails' => $sale->saleDetails,
                 'company' => $company,
             ])->render();
+            $mostSoldProducts = $this->topProductsForToday();
+
             return response()->json([
                 "status" => true,
                 "reload" => true,
@@ -271,6 +265,8 @@ class SaleController extends Controller
                 'receiptHtml' => $receiptHtml,
                 'saleId' => $sale->id,
                 'hasClient' => (bool) $sale->client_id,
+                'topProductsCount' => $mostSoldProducts->count(),
+                'topProductsHtml' => view('pos.sale.partials.top-products', compact('mostSoldProducts'))->render(),
             ]);
         } catch (\Throwable $th) {
             return response()->json([
@@ -278,6 +274,20 @@ class SaleController extends Controller
                 "msg" => "Erreur survenue lors de la vente liée au produit ou au menu. " . $th->getMessage(),
             ]);
         }
+    }
+
+    private function topProductsForToday()
+    {
+        return SaleDetail::query()
+            ->select('product_id')
+            ->selectRaw('SUM(quantity) as total_quantity')
+            ->with('product:id,name,image,price')
+            ->whereBetween('created_at', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->orderBy('product_id')
+            ->take(10)
+            ->get();
     }
 
     public function sendInvoice(Request $request, Sale $sale, SaleInvoiceDeliveryService $delivery)
@@ -600,14 +610,12 @@ class SaleController extends Controller
                     $query->whereHas('client', fn ($client) => $client->where('name', 'like', "%{$keyword}%"));
                 })
                 ->addColumn('action', function ($row) use ($hasCompany) {
-                    $buttons = '<a data-id="'.$row->id.'" class="btn btn-dark btn-sm view">
-                        <i class="fas fa-lg fa-fw me-0 fa-eye"></i>
-                    </a>';
+                    $buttons = '<div class="saas-action-group"><button type="button" data-id="'.$row->id.'" class="saas-action-btn view" title="Voir la vente" aria-label="Voir la vente"><i class="bi bi-eye"></i></button>';
 
                     if ($hasCompany) {
-                        $buttons .= ' <a data-id="'.$row->id.'" data-toggle="modal" data-target="#pdf" class="btn btn-info btn-sm pdf"> <i class="fas fa-file-pdf"></i> PDF</a>';
+                        $buttons .= '<button type="button" data-id="'.$row->id.'" class="saas-action-btn pdf" title="Télécharger le PDF" aria-label="Télécharger le PDF"><i class="bi bi-filetype-pdf"></i></button>';
                     }
-                    $buttons .= ' <button type="button" data-id="'.$row->id.'" data-phone="'.e($row->client?->phone ?? '').'" data-country="'.e($row->client?->country_code ?? '').'" class="btn btn-success btn-sm deliver-invoice" title="Envoyer par WhatsApp ou SMS"><i class="bi bi-whatsapp"></i></button>';
+                    $buttons .= '<button type="button" data-id="'.$row->id.'" data-phone="'.e($row->client?->phone ?? '').'" data-country="'.e($row->client?->country_code ?? '').'" class="saas-action-btn deliver-invoice" title="Envoyer la facture" aria-label="Envoyer la facture"><i class="bi bi-send"></i></button></div>';
                     return $buttons;
                 })
                 ->editColumn('created_at', function ($Object) {

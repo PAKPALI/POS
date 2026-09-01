@@ -309,7 +309,13 @@ class SalesFlowTest extends TestCase
     /** Creating a sale creates sale details */
     public function test_sale_creates_details(): void
     {
-        $this->makeSale()->assertJson(['status' => true]);
+        $response = $this->makeSale();
+
+        $response
+            ->assertJson(['status' => true, 'topProductsCount' => 1])
+            ->assertJsonPath('topProductsCount', 1)
+            ->assertSee('Test Product')
+            ->assertSee('Produits les plus vendus');
 
         $sale = Sale::latest()->first();
         $this->assertEquals(1, $sale->saleDetails->count());

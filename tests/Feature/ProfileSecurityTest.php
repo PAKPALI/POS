@@ -14,6 +14,19 @@ class ProfileSecurityTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_profile_uses_the_new_saas_shell(): void
+    {
+        $this->authenticatedUsers();
+
+        $this->get(route('profil'))
+            ->assertOk()
+            ->assertSee('Paramètres du compte')
+            ->assertSee('saas-shell', false)
+            ->assertSee('navbarAppearanceModal', false)
+            ->assertSee('Personnaliser l’interface')
+            ->assertDontSee('app-theme-panel', false);
+    }
+
     public function test_forged_user_id_cannot_change_another_users_email(): void
     {
         [$user, $victim, $company] = $this->authenticatedUsers();
@@ -83,6 +96,39 @@ class ProfileSecurityTest extends TestCase
         ])->assertUnprocessable()->assertJson(['status' => false]);
 
         $this->assertSame($originalPassword, $user->fresh()->password);
+    }
+
+    public function test_user_can_save_personal_appearance_preferences(): void
+    {
+        [$user, $victim] = $this->authenticatedUsers();
+
+        $this->putJson(route('profile.appearance.update'), [
+            'appearance_mode' => 'light',
+            'accent_color' => '#7c5cfc',
+            'user_id' => $victim->id,
+        ])->assertOk()->assertJson([
+            'status' => true,
+            'appearance' => ['mode' => 'light', 'accent' => '#7C5CFC'],
+        ]);
+
+        $this->assertSame('light', $user->fresh()->appearance_mode);
+        $this->assertSame('#7C5CFC', $user->fresh()->accent_color);
+        $this->assertSame('system', $victim->fresh()->appearance_mode);
+        $this->assertSame('#FF9F43', $victim->fresh()->accent_color);
+    }
+
+    public function test_appearance_preferences_reject_invalid_values(): void
+    {
+        [$user] = $this->authenticatedUsers();
+
+        $this->putJson(route('profile.appearance.update'), [
+            'appearance_mode' => 'neon',
+            'accent_color' => 'orange',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['appearance_mode', 'accent_color']);
+
+        $this->assertSame('system', $user->fresh()->appearance_mode);
+        $this->assertSame('#FF9F43', $user->fresh()->accent_color);
     }
 
     private function authenticatedUsers(): array

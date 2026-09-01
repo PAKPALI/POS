@@ -189,6 +189,7 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
     Route::post('updateEmail', 'updateEmail')->middleware('throttle:10,1')->name('profile.email.update');
     // update password
     Route::post('updatePassword', 'updatePassword')->middleware('throttle:10,1')->name('profile.password.update');
+    Route::put('profile/appearance', 'updateAppearance')->middleware('throttle:20,1')->name('profile.appearance.update');
 
     // chart
     Route::post('/statistics/top-products', [UserController::class, 'topSellingProducts'])
@@ -290,6 +291,7 @@ Route::prefix('ecommerce')->middleware(['auth', 'company.resolve', 'company.sele
     Route::post('managers/add', [App\Http\Controllers\Ecommerce\SettingController::class, 'addManager'])->name('ecommerce.managers.add');
     Route::delete('managers/{id}', [App\Http\Controllers\Ecommerce\SettingController::class, 'removeManager'])->name('ecommerce.managers.remove');
     Route::get('managers/list', [App\Http\Controllers\Ecommerce\SettingController::class, 'managersList'])->name('ecommerce.managers.list');
+    Route::get('users/search', [App\Http\Controllers\Ecommerce\SettingController::class, 'searchUsers'])->name('ecommerce.users.search');
     Route::get('orders', [App\Http\Controllers\Ecommerce\OrderController::class, 'index'])->name('ecommerce.orders.index');
     Route::get('orders/{id}', [App\Http\Controllers\Ecommerce\OrderController::class, 'show'])->name('ecommerce.orders.show');
     Route::post('orders/{id}/execute', [App\Http\Controllers\Ecommerce\OrderController::class, 'execute'])

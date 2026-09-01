@@ -326,7 +326,7 @@ Cette fonctionnalité ne fait pas partie du premier MVP recommandé.
 - états vides, erreurs et chargements clairement affichés ;
 - badges cohérents : vert succès/actif, orange attente, rouge échec/suspendu ;
 - boutons d'export regroupés dans un accordéon ou menu dédié ;
-- toute attente serveur affiche le loader global et bloque les doubles clics conformément à `docs/UI_CONVENTIONS.md`.
+- toute attente serveur affiche le loader global et bloque les doubles clics conformément à `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md`.
 
 ## 11. Exigences de performance
 

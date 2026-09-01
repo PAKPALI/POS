@@ -1,382 +1,240 @@
-@extends('layouts.layout')
-@push('css-scripts')
-<style>
-    #datatable tbody tr {
-        background-color: #f0f0f0;
-    }
-    #datatable tbody tr:hover {
-        background-color: #e0e0e0;
-    }
-</style>
+@extends('layouts.saas')
+@section('title', 'Fournisseurs')
+
+@push('styles')
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
 @endpush
 
 @section('content')
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-12">
-                <div class="row">
-                    <div class="col-xl-12">
-                        <ul class="breadcrumb">
-                            <!-- <li class="breadcrumb-item"><a href="#">TABLES</a></li>
-                            <li class="breadcrumb-item active">TABLE PLUGINS</li> -->
-                        </ul>
-                        <h1 class="page-header">
-                            FOURNISSEURS
-                        </h1>
-                        <hr class="mb-4">
-                        <!-- add modal -->
-                        <div class="modal modal fade" id="addModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-primary">
-                                        <h3 class="modal-title">Ajouter fournisseur</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                    <form id="add">
-                                        @csrf
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Nom</label>
-                                                    <input type="text" name="name" class="form-control" id="exampleInput0"
-                                                        placeholder="Nom">
-                                                </div>
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="contact">Contact / Adresse</label>
-                                                    <input type="text" name="contact" class="form-control" id="contact"
-                                                        placeholder="Contact ou adresse">
-                                                </div>
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="phone">Téléphone</label>
-                                                    <input type="text" name="phone" class="form-control" id="phone"
-                                                        placeholder="Téléphone">
-                                                </div>
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="whatsapp">WhatsApp</label>
-                                                    <input type="text" name="whatsapp" class="form-control" id="whatsapp"
-                                                        placeholder="Numéro WhatsApp">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer mt-4">
-                                            <button type="submit" class="btn btn-primary" data-loading-text="Enregistrement…">
-                                                Valider
-                                            </button>
-                                        </div>
-                                    </form>
-                                    </div>
-                                </div>
+    <div class="saas-page-heading">
+        <div>
+            <h1>Fournisseurs</h1>
+            <p>Centralisez les partenaires d’approvisionnement et leurs coordonnées professionnelles.</p>
+        </div>
+        <button type="button" class="saas-btn saas-btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-lg"></i> Ajouter un fournisseur
+        </button>
+    </div>
+
+    {{-- Modale Ajout --}}
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-header-accent">
+                    <h3 class="modal-title">Ajouter un fournisseur</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-6 saas-form-group">
+                                <label>Nom</label>
+                                <input type="text" name="name" placeholder="Nom">
+                            </div>
+                            <div class="col-md-6 saas-form-group">
+                                <label>Contact / Adresse</label>
+                                <input type="text" name="contact" placeholder="Contact ou adresse">
+                            </div>
+                            <div class="col-md-6 saas-form-group">
+                                <label>Téléphone</label>
+                                <input type="text" name="phone" placeholder="Téléphone">
+                            </div>
+                            <div class="col-md-6 saas-form-group">
+                                <label>WhatsApp</label>
+                                <input type="text" name="whatsapp" placeholder="Numéro WhatsApp">
                             </div>
                         </div>
-
-                        <!-- update modal -->
-                        <div class="modal" id="editModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-warning">
-                                        <h3 class="modal-title text-dark ">Modifier fournisseur</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div id="edit_response"></div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Création…">Créer le fournisseur</button>
                         </div>
-
-                        <!-- view modal -->
-                        <div class="modal fade" id="showModal">
-                            <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-light">
-                                        <h3 class="modal-title text-dark ">Détail</h3>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div id="show_response"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-12">
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des fournisseurs</h4></span>
-                                        <button type="button" class="btn btn-primary mb-1 me-3 text-right" data-bs-toggle="modal" data-bs-target="#addModal">Ajouter</button>
-                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
-                                    </div>
-                                    <div class="table-responsive">
-                                    <table id="datatable" class="table text-nowrap w-100">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Nom</th>
-                                                <th>Contact</th>
-                                                <th>Téléphone</th>
-                                                <th>WhatsApp</th>
-                                                <th>Créer par</th>
-                                                <th>Créer le</th>
-                                                <th>Status</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            
-                                        </tbody>
-                                    </table>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-center mt-3">
-                                    
-                                </div>
-
-                                <div class="card-arrow">
-                                    <div class="card-arrow-top-left"></div>
-                                    <div class="card-arrow-top-right"></div>
-                                    <div class="card-arrow-bottom-left"></div>
-                                    <div class="card-arrow-bottom-right"></div>
-                                </div>
-                            </div>
-
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex fw-bold small mb-3">
-                                        <span class="flex-grow-1"><h4>Listes des fournisseurs inactifs</h4></span>
-                                        <a href="#" data-toggle="card-expand" class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
-                                    </div>
-                                    <div class="table-responsive">
-                                    <table id="disabled_datatable" class="table text-nowrap w-100">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Nom</th>
-                                                <th>Contact</th>
-                                                <th>Téléphone</th>
-                                                <th>WhatsApp</th>
-                                                <th>Créer par</th>
-                                                <th>Créer le</th>
-                                                <th>Status</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            
-                                        </tbody>
-                                    </table>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-center mt-3">
-                                    
-                                </div>
-
-                                <div class="card-arrow">
-                                    <div class="card-arrow-top-left"></div>
-                                    <div class="card-arrow-top-right"></div>
-                                    <div class="card-arrow-bottom-left"></div>
-                                    <div class="card-arrow-bottom-right"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="{{asset('hub/assets/plugins/datatables.net/js/dataTables.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.colVis.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.flash.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.html5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons/js/buttons.print.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/plugins/bootstrap-table/dist/bootstrap-table.min.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/table-plugins.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
-    <script src="{{asset('hub/assets/js/demo/sidebar-scrollspy.demo.js')}}" type="3e072b31e4d62a351cb180e3-text/javascript"></script>
+    {{-- Modale Modification --}}
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-header-accent modal-header-warning">
+                    <h3 class="modal-title">Modifier fournisseur</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="edit_response"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    {{-- Modale Détail --}}
+    <div class="modal fade" id="showModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-header-accent">
+                    <h3 class="modal-title">Détail</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="show_response"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Fournisseurs actifs --}}
+    <div class="saas-card">
+        <div class="saas-card-head">
+            <div><h2>Fournisseurs actifs</h2><p class="saas-card-description">Partenaires disponibles pour les produits et les mouvements de stock.</p></div>
+        </div>
+        <div class="table-responsive">
+            <table id="datatable" class="table text-nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th>Contact</th>
+                        <th>Téléphone</th>
+                        <th>WhatsApp</th>
+                        <th>Créer par</th>
+                        <th>Créer le</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Fournisseurs inactifs --}}
+    <div class="saas-card">
+        <div class="saas-card-head">
+            <div><h2>Fournisseurs archivés</h2><p class="saas-card-description">Partenaires conservés dans l’historique et disponibles pour restauration.</p></div>
+        </div>
+        <div class="table-responsive">
+            <table id="disabled_datatable" class="table text-nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th>Contact</th>
+                        <th>Téléphone</th>
+                        <th>WhatsApp</th>
+                        <th>Créer par</th>
+                        <th>Créer le</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script src="{{ asset('hub/assets/plugins/datatables.net/js/dataTables.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
     <script>
         $(function() {
             function ajaxErrorMessage(xhr, fallback) {
                 if (xhr && xhr.responseJSON) {
                     return xhr.responseJSON.msg || xhr.responseJSON.message || fallback;
                 }
-
                 return fallback;
             }
 
             function showSupplierSuccess(data) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top',
-                    icon: 'success',
-                    title: data.title,
-                    showConfirmButton: false,
-                    timer: 5000,
-                    timerProgressBar: true,
-                    text: data.msg,
-                });
+                Swal.fire({ toast: true, position: 'top', icon: 'success', title: data.title, showConfirmButton: false, timer: 5000, timerProgressBar: true, text: data.msg });
             }
 
             function requestSupplierStatus(id, fallbackMessage) {
                 const cancelButton = Swal.getCancelButton();
-                if (cancelButton) {
-                    cancelButton.disabled = true;
-                }
+                if (cancelButton) cancelButton.disabled = true;
 
                 return new Promise(function(resolve) {
                     $.ajax({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         type: 'DELETE',
-                        url: '{{url('component/supplier')}}/' + id,
+                        url: '{{ url("component/supplier") }}/' + id,
                         dataType: 'json'
                     })
-                        .done(function(data) {
-                            if (!data || !data.status) {
-                                if (cancelButton) {
-                                    cancelButton.disabled = false;
-                                }
-                                Swal.showValidationMessage((data && data.msg) || fallbackMessage);
-                                resolve(false);
-                                return;
-                            }
-
-                            resolve(data);
-                        })
-                        .fail(function(xhr) {
-                            if (cancelButton) {
-                                cancelButton.disabled = false;
-                            }
-                            Swal.showValidationMessage(ajaxErrorMessage(xhr, fallbackMessage));
+                    .done(function(data) {
+                        if (!data || !data.status) {
+                            if (cancelButton) cancelButton.disabled = false;
+                            Swal.showValidationMessage((data && data.msg) || fallbackMessage);
                             resolve(false);
-                        });
+                            return;
+                        }
+                        resolve(data);
+                    })
+                    .fail(function(xhr) {
+                        if (cancelButton) cancelButton.disabled = false;
+                        Swal.showValidationMessage(ajaxErrorMessage(xhr, fallbackMessage));
+                        resolve(false);
+                    });
                 });
             }
 
             var DatatableActive = $('#datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('supplier.index')}}",
+                ajax: "{{ route('supplier.index') }}",
                 columns: [
-                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                    {data: 'name',name: 'name'},
-                    {data: 'contact',name: 'contact'},
-                    {data: 'phone',name: 'phone'},
-                    {data: 'whatsapp',name: 'whatsapp'},
-                    {data: 'created_by',name: 'created_by'},
-                    {data: 'created_at',name: 'created_at'},
-                    {data: 'status',name: 'status'},
-                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'name', name: 'name' },
+                    { data: 'contact', name: 'contact' },
+                    { data: 'phone', name: 'phone' },
+                    { data: 'whatsapp', name: 'whatsapp' },
+                    { data: 'created_by', name: 'created_by' },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'status', name: 'status' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false },
                 ],
-                responsive: true, 
+                responsive: true,
                 language: {
                     "lengthMenu": "Afficher _MENU_ entrées",
-                    "zeroRecords": "Aucune donnée disponible",
+                    "zeroRecords": "Aucun résultat correspondant",
+                    "emptyTable": "Aucun fournisseur actif pour le moment",
+                    "processing": "Chargement des fournisseurs…",
                     "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
                     "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
                     "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
-                    "search": "Rechercher:",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "next": "Suivant",
-                        "previous": "Précédent"
-                    }
-                },
-                
-                drawCallback: function() {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                    $('#datatable').css('width','100%');
-                    $('#datatable tbody tr').each(function() {
-                        $(this).css('background-color', 'black');
-                        $(this).css('color', 'white');
-                    });
-                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
-                    $('.dataTables_length select option').css('color', 'black');
-                    $('.dataTables_length select option').css('background-color', 'white');
-
-                    $('.dataTables_length label').css('color', 'white');
-                    $('.dataTables_filter label').css('color', 'white');
-                    
-                    $('.dataTables_length select').css({
-                        'background-color': 'black',
-                        'color': 'white'
-                    });
-
-                    $('.dataTables_filter input').css({
-                        'background-color': 'black',
-                        'color': 'white'
-                    });
-                    $('.dataTables_filter input::placeholder').css('color', 'white');
-                    $('#datatable').css('width', '100%');
+                    "search": "Rechercher :",
+                    "paginate": { "first": "Premier", "last": "Dernier", "next": "Suivant", "previous": "Précédent" }
                 },
             });
 
             var DatatableInactive = $('#disabled_datatable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('supplier.disabled.listing')}}",
+                ajax: "{{ route('supplier.disabled.listing') }}",
                 columns: [
-                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                    {data: 'name',name: 'name'},
-                    {data: 'contact',name: 'contact'},
-                    {data: 'phone',name: 'phone'},
-                    {data: 'whatsapp',name: 'whatsapp'},
-                    {data: 'created_by',name: 'created_by'},
-                    {data: 'created_at',name: 'created_at'},
-                    {data: 'status',name: 'status'},
-                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'name', name: 'name' },
+                    { data: 'contact', name: 'contact' },
+                    { data: 'phone', name: 'phone' },
+                    { data: 'whatsapp', name: 'whatsapp' },
+                    { data: 'created_by', name: 'created_by' },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'status', name: 'status' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false },
                 ],
-                responsive: true, 
+                responsive: true,
                 language: {
                     "lengthMenu": "Afficher _MENU_ entrées",
-                    "zeroRecords": "Aucune donnée disponible",
+                    "zeroRecords": "Aucun résultat correspondant",
+                    "emptyTable": "Aucun fournisseur archivé",
+                    "processing": "Chargement des fournisseurs archivés…",
                     "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
                     "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
                     "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
-                    "search": "Rechercher:",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "next": "Suivant",
-                        "previous": "Précédent"
-                    }
-                },
-                
-                drawCallback: function() {
-                    $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
-                    $('#disabled_datatable').css('width','100%');
-                    $('#disabled_datatable tbody tr').each(function() {
-                        $(this).css('background-color', 'black');
-                        $(this).css('color', 'white');
-                    });
-                    $('.dataTables_info, .dataTables_paginate').css('color', 'white');
-                    $('.dataTables_paginate .paginate_button a').css('color', 'white');
-                    $('.dataTables_length select option').css('color', 'black');
-                    $('.dataTables_length select option').css('background-color', 'white');
-
-                    $('.dataTables_length label').css('color', 'white');
-                    $('.dataTables_filter label').css('color', 'white');
-                    
-                    $('.dataTables_length select').css({
-                        'background-color': 'black',
-                        'color': 'white'
-                    });
-
-                    $('.dataTables_filter input').css({
-                        'background-color': 'black',
-                        'color': 'white'
-                    });
-                    $('.dataTables_filter input::placeholder').css('color', 'white');
-                    $('#disabled_datatable').css('width', '100%');
+                    "search": "Rechercher :",
+                    "paginate": { "first": "Premier", "last": "Dernier", "next": "Suivant", "previous": "Précédent" }
                 },
             });
 
@@ -385,144 +243,71 @@
                 DatatableInactive.ajax.reload(null, false);
             });
 
-            //Add supplier
             $('#add').submit(function(event) {
                 event.preventDefault();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('supplier.store') }}",
-                    //enctype: 'multipart/form-data',
                     data: $('#add').serialize(),
                     datatype: 'json',
                     success: function(data) {
                         if (data.status) {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top',
-                                icon: "success",
-                                title: data.title,
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                text: data.msg,
-                            });
-                            
+                            Swal.fire({ toast: true, position: 'top', icon: "success", title: data.title, showConfirmButton: false, timer: 3000, timerProgressBar: true, text: data.msg });
                             $('#addModal').modal('hide');
                             DatatableActive.draw();
                         } else {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top',
-                                icon: "error",
-                                title: data.title,
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                text: data.msg,
-                            });
+                            Swal.fire({ toast: true, position: 'top', icon: "error", title: data.title, showConfirmButton: false, timer: 3000, timerProgressBar: true, text: data.msg });
                         }
                     },
                     error: function(xhr) {
-                        Swal.fire({
-                            icon: "error",
-                            title: "erreur",
-                            text: ajaxErrorMessage(xhr, "Impossible de communiquer avec le serveur."),
-                            timer: 3600,
-                        })
+                        Swal.fire({ icon: "error", title: "Erreur", text: ajaxErrorMessage(xhr, "Impossible de communiquer avec le serveur."), timer: 3600 });
                     }
                 });
                 return false;
             });
 
-            $('body').on('click', '.editModal', function () {
+            $('body').on('click', '.editModal', function() {
                 const trigger = this;
                 var id = $(this).data("id");
-                if (window.ServerButtonLoader) {
-                    window.ServerButtonLoader.start(trigger, 'Chargement…');
-                }
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(trigger, 'Chargement…');
                 $('#edit_response').empty();
                 $('#editModal').modal('show');
-
                 $.ajax({
-                    url:'{{url('component/supplier')}}/'+id+'/edit',
+                    url: '{{ url("component/supplier") }}/' + id + '/edit',
                     dataType: 'html',
-                    success:function(result)
-                    {
-                        $('#edit_response').html(result);
-                    },
-                    error:function(xhr)
-                    {
+                    success: function(result) { $('#edit_response').html(result); },
+                    error: function(xhr) {
                         $('#editModal').modal('hide');
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Chargement impossible',
-                            text: ajaxErrorMessage(xhr, 'Impossible de charger ce fournisseur.'),
-                        });
+                        Swal.fire({ icon: 'error', title: 'Chargement impossible', text: ajaxErrorMessage(xhr, 'Impossible de charger ce fournisseur.') });
                     },
-                    complete:function()
-                    {
-                        if (window.ServerButtonLoader) {
-                            window.ServerButtonLoader.stop(trigger);
-                        }
-                    }
+                    complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }
                 });
             });
 
-            $('body').on('click', '.view', function () {
+            $('body').on('click', '.view', function() {
                 const trigger = this;
                 var id = $(this).data("id");
-                if (window.ServerButtonLoader) {
-                    window.ServerButtonLoader.start(trigger, 'Chargement…');
-                }
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(trigger, 'Chargement…');
                 $('#show_response').empty();
                 $('#showModal').modal('show');
-
                 $.ajax({
-                    url:'{{url('component/supplier')}}/'+id,
+                    url: '{{ url("component/supplier") }}/' + id,
                     dataType: 'html',
-                    success:function(result)
-                    {
-                        $('#show_response').html(result);
-                    },
-                    error:function(xhr)
-                    {
+                    success: function(result) { $('#show_response').html(result); },
+                    error: function(xhr) {
                         $('#showModal').modal('hide');
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Chargement impossible',
-                            text: ajaxErrorMessage(xhr, 'Impossible de charger ce fournisseur.'),
-                        });
+                        Swal.fire({ icon: 'error', title: 'Chargement impossible', text: ajaxErrorMessage(xhr, 'Impossible de charger ce fournisseur.') });
                     },
-                    complete:function()
-                    {
-                        if (window.ServerButtonLoader) {
-                            window.ServerButtonLoader.stop(trigger);
-                        }
-                    }
+                    complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }
                 });
             });
 
-            // archive object
-            $('body').on('click', '.archive', function () {
+            $('body').on('click', '.archive', function() {
                 var id = $(this).data("id");
-                
                 Swal.fire({
                     icon: "warning",
                     title: "Confirmer l'opération",
-                    html: `
-                        <div style="
-                            background:#dc3545;
-                            color:white;
-                            padding:15px;
-                            border-radius:8px;
-                            font-size:15px;
-                            font-weight:bold;
-                            text-align:left;
-                        ">
-                            ⚠️ ATTENTION<br><br>
-                            Ce fournisseur sera <strong>ARCHIVÉ</strong>.
-                        </div>
-                    `,
+                    html: '<div style="background:#dc3545;color:white;padding:15px;border-radius:8px;font-size:15px;font-weight:bold;text-align:left;">ATTENTION<br><br>Ce fournisseur sera <strong>ARCHIVÉ</strong>.</div>',
                     confirmButtonText: "Oui",
                     confirmButtonColor: "#dc3545",
                     showCancelButton: true,
@@ -531,49 +316,37 @@
                     showLoaderOnConfirm: true,
                     allowOutsideClick: function() { return !Swal.isLoading(); },
                     allowEscapeKey: function() { return !Swal.isLoading(); },
-                    preConfirm: function() {
-                        return requestSupplierStatus(id, "Impossible d'archiver ce fournisseur.");
-                    }
+                    preConfirm: function() { return requestSupplierStatus(id, "Impossible d'archiver ce fournisseur."); }
                 }).then(function(result) {
-                    if (!result.isConfirmed || !result.value) {
-                        return;
-                    }
-
+                    if (!result.isConfirmed || !result.value) return;
                     showSupplierSuccess(result.value);
                     DatatableActive.draw();
                     DatatableInactive.draw();
                 });
             });
 
-            // restore object
-            $('body').on('click', '.restore', function () {
+            $('body').on('click', '.restore', function() {
                 var id = $(this).data("id");
-                
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir restaurer ce fournisseur?",
+                    title: "Êtes-vous sûr de vouloir restaurer ce fournisseur ?",
                     confirmButtonText: "Oui",
                     confirmButtonColor: 'green',
                     showCancelButton: true,
                     cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
+                    cancelButtonColor: '#0d6efd',
                     showLoaderOnConfirm: true,
                     allowOutsideClick: function() { return !Swal.isLoading(); },
                     allowEscapeKey: function() { return !Swal.isLoading(); },
-                    preConfirm: function() {
-                        return requestSupplierStatus(id, "Impossible de restaurer ce fournisseur.");
-                    }
+                    preConfirm: function() { return requestSupplierStatus(id, "Impossible de restaurer ce fournisseur."); }
                 }).then(function(result) {
-                    if (!result.isConfirmed || !result.value) {
-                        return;
-                    }
-
+                    if (!result.isConfirmed || !result.value) return;
                     showSupplierSuccess(result.value);
                     DatatableActive.draw();
                     DatatableInactive.draw();
                 });
             });
-        }); 
+        });
     </script>
-
-    @endsection
+    @endpush
+@endsection

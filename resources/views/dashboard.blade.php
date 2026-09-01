@@ -1,741 +1,180 @@
-@extends('layouts.layout')
-{{-- css --}}
-@push('css-scripts')
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-    <style>
-        .quota-status-icon {
-            animation: quotaIconPulse 2.8s ease-in-out infinite;
-            transform-origin: center;
-        }
+@extends('layouts.saas')
 
-        .quota-status-icon.whatsapp {
-            animation-delay: .7s;
-        }
-
-        @keyframes quotaIconPulse {
-            0%, 100% {
-                opacity: .45;
-                transform: scale(.92);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.08);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .quota-status-icon {
-                animation: none;
-                opacity: 1;
-            }
-        }
-    </style>
+@push('styles')
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 @endpush
 
+@section('title', 'Tableau de bord')
+@section('eyebrow', $activeCompany->name ?? 'Entreprise active')
+@section('page-title', 'Tableau de bord')
+
 @section('content')
-<div class="row">
+@php
+    $can = fn (string $permission) => $currentMembership?->hasPermission($permission) ?? false;
+    $metrics = [
+        ['label' => 'Chiffre d’affaires', 'value' => number_format($sale_total_revenue, 0, ',', ' ').' FCFA', 'note' => 'Remises : '.number_format($sale_total_discount, 0, ',', ' ').' FCFA', 'icon' => 'bi-graph-up-arrow', 'href' => $can('sales.manage') ? route('history') : null],
+        ['label' => 'Ventes', 'value' => number_format($saleCount, 0, ',', ' '), 'note' => 'Transactions enregistrées', 'icon' => 'bi-receipt', 'href' => $can('sales.manage') ? route('history') : null],
+        ['label' => 'Produits', 'value' => number_format($productCount, 0, ',', ' '), 'note' => 'Références au catalogue', 'icon' => 'bi-box-seam', 'href' => $can('catalog.manage') ? route('product.index') : null],
+        ['label' => 'Catégories', 'value' => number_format($categoryCount, 0, ',', ' '), 'note' => 'Familles de produits', 'icon' => 'bi-tags', 'href' => $can('catalog.manage') ? route('category.index') : null],
+        ['label' => 'Clients', 'value' => number_format($clientCount, 0, ',', ' '), 'note' => 'Clients enregistrés', 'icon' => 'bi-people', 'href' => $can('clients.manage') ? route('client.index') : null],
+        ['label' => 'Fournisseurs', 'value' => number_format($supplierCount, 0, ',', ' '), 'note' => 'Partenaires enregistrés', 'icon' => 'bi-truck', 'href' => $can('catalog.manage') ? route('supplier.index') : null],
+    ];
+    if ($canViewFinancials) {
+        array_splice($metrics, 2, 0, [[
+            'label' => 'Bénéfice', 'value' => number_format($sale_total_profit, 0, ',', ' ').' FCFA',
+            'note' => 'Marge cumulée', 'icon' => 'bi-piggy-bank', 'href' => $can('sales.manage') ? route('history') : null,
+        ]]);
+    }
+@endphp
 
-    <div class="col-xl-4 col-lg-6">
-        <a href="{{ route('category.index') }}">
-            <div class="card border-color mb-3">
-                <div class="card-body">
-                    <div class="d-flex fw-bold small mb-3">
-                        <span class="flex-grow-0">CATEGORIES</span>
-                        <!-- <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none">
-                            <i class="bi bi-fullscreen"></i></a> -->
-                    </div>
-                    <div class="row align-items-center mb-2">
-                        <div class="col-7">
-                            <h3 class="mb-0">{{ $categoryCount }}</h3>
-                        </div>
-                        <div class="col-5">
-                            <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
-                                data-height="30"></div>
-                        </div>
-                    </div>
-                    <div class="small text-inverse text-opacity-50 text-truncate">
-                        <!-- <i class="fa fa-chevron-up fa-fw me-1"></i> 33.3% more than last week<br>
-                        <i class="far fa-user fa-fw me-1"></i> 45.5% new visitors<br>
-                        <i class="far fa-times-circle fa-fw me-1"></i> 3.25% bounce rate -->
-                    </div>
-                </div>
-                <div class="card-arrow">
-                    <div class="card-arrow-top-left"></div>
-                    <div class="card-arrow-top-right"></div>
-                    <div class="card-arrow-bottom-left"></div>
-                    <div class="card-arrow-bottom-right"></div>
-                </div>
-            </div>
-        </a>
+<section class="saas-page-heading">
+    <div>
+        <h1>Bonjour {{ explode(' ', trim(auth()->user()->name))[0] }}</h1>
+        <p>Voici l’activité de {{ $activeCompany->name ?? 'votre entreprise' }} en un coup d’œil.</p>
     </div>
-
-    <div class="col-xl-4 col-lg-6">
-        <a href="{{ route('product.index') }}">
-            <div class="card border-color mb-3">
-                <div class="card-body">
-                    <div class="d-flex fw-bold small mb-3">
-                        <span class="flex-grow-1">PRODUITS </span>
-                        <!-- <a href="#" data-toggle="card-expand"
-                            class="text-inverse text-opacity-50 text-decoration-none"><i
-                                class="bi bi-fullscreen"></i></a> -->
-                    </div>
-                    <div class="row align-items-center mb-2">
-                        <div class="col-7">
-                            <h3 class="mb-0">{{ $productCount }}</h3>
-                        </div>
-                        <div class="col-5">
-                            <div class="mt-n2" data-render="apexchart" data-type="bar" data-title="Visitors"
-                                data-height="30"></div>
-                        </div>
-                    </div>
-                    <div class="small text-inverse text-opacity-50 text-truncate">
-                        <!-- <i class="fa fa-chevron-up fa-fw me-1"></i> 20.4% more than last week<br>
-                        <i class="fa fa-shopping-bag fa-fw me-1"></i> 33.5% new orders<br>
-                        <i class="fa fa-dollar-sign fa-fw me-1"></i> 6.21% conversion rate -->
-                    </div>
-                </div>
-                <div class="card-arrow">
-                    <div class="card-arrow-top-left"></div>
-                    <div class="card-arrow-top-right"></div>
-                    <div class="card-arrow-bottom-left"></div>
-                    <div class="card-arrow-bottom-right"></div>
-                </div>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-xl-4 col-lg-6">
-        <div class="card border-color mb-3">
-            <div class="card-body">
-                <div class="d-flex fw-bold small mb-3">
-                    <span class="flex-grow-1">VENTES</span>
-                    <a href="#" data-toggle="card-expand"
-                        class="text-inverse text-opacity-50 text-decoration-none"><i
-                            class="bi bi-fullscreen"></i></a>
-                </div>
-                <div class="row align-items-center mb-2">
-                    <div class="col-7">
-                        <h3 class="mb-0">{{ $saleCount }}</h3>
-                    </div>
-                    <div class="col-5">
-                        <div class="mt-n3 mb-n2" data-render="apexchart" data-type="bar"
-                            data-title="Visitors" data-height="45"></div>
-                    </div>
-                </div>
-                <div class="small text-inverse text-opacity-50 text-truncate">
-                    <!-- <i class="fa fa-chevron-up fa-fw me-1"></i> 59.5% more than last week<br>
-                    <i class="fab fa-facebook-f fa-fw me-1"></i> 45.5% from facebook<br>
-                    <i class="fab fa-youtube fa-fw me-1"></i> 15.25% from youtube -->
-                </div>
-            </div>
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-4 col-lg-6">
-        <a href="{{ route('client.index') }}" class="text-decoration-none">
-            <div class="card border-color mb-3">
-                <div class="card-body">
-                    <div class="d-flex align-items-center fw-bold small mb-3">
-                        <span class="flex-grow-1">CLIENTS</span>
-                        <i class="bi bi-people-fill text-info fs-4"></i>
-                    </div>
-                    <div class="row align-items-center mb-2">
-                        <div class="col-8"><h3 class="mb-0">{{ number_format($clientCount, 0, ',', ' ') }}</h3></div>
-                        <div class="col-4 text-end text-inverse text-opacity-50">Enregistrés</div>
-                    </div>
-                </div>
-                <div class="card-arrow">
-                    <div class="card-arrow-top-left"></div><div class="card-arrow-top-right"></div>
-                    <div class="card-arrow-bottom-left"></div><div class="card-arrow-bottom-right"></div>
-                </div>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-xl-4 col-lg-6">
-        <a href="{{ route('supplier.index') }}" class="text-decoration-none">
-            <div class="card border-color mb-3">
-                <div class="card-body">
-                    <div class="d-flex align-items-center fw-bold small mb-3">
-                        <span class="flex-grow-1">FOURNISSEURS</span>
-                        <i class="bi bi-truck text-warning fs-4"></i>
-                    </div>
-                    <div class="row align-items-center mb-2">
-                        <div class="col-8"><h3 class="mb-0">{{ number_format($supplierCount, 0, ',', ' ') }}</h3></div>
-                        <div class="col-4 text-end text-inverse text-opacity-50">Enregistrés</div>
-                    </div>
-                </div>
-                <div class="card-arrow">
-                    <div class="card-arrow-top-left"></div><div class="card-arrow-top-right"></div>
-                    <div class="card-arrow-bottom-left"></div><div class="card-arrow-bottom-right"></div>
-                </div>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-xl-6 col-lg-6">
-        <div class="card border-color mb-3">
-            <div class="card-body">
-                <div class="d-flex align-items-center fw-bold small mb-3">
-                    <span class="flex-grow-1">CHIFFRE D'AFFAIRES</span>
-                    <i class="bi bi-file-text-fill text-success fs-4 quota-status-icon"></i>
-                </div>
-                <div class="row align-items-center mb-2">
-                    <div class="col-8">
-                        <h3 class="mb-0">{{$sale_total_revenue}} FCFA</h3>
-                        <div class="small text-inverse text-opacity-50">
-                            Remise : <span class="text-danger">{{$sale_total_discount}} FCFA</span>
-                        </div>
-                    </div>
-                    <!-- <div class="col-4 text-end text-inverse text-opacity-50">
-                        Revenue
-                    </div> -->
-                </div>
-            </div>
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
-        </div>
-    </div>
-
-    @if ($canViewFinancials)
-    <div class="col-xl-6 col-lg-6">
-        <div class="card border-color mb-3">
-            <div class="card-body">
-                <div class="d-flex fw-bold small mb-3">
-                    <span class="flex-grow-1">BENEFICES</span>
-                    <i class="bi bi-file-text-fill text-success fs-4 quota-status-icon"></i>
-                    <!-- <a href="#" data-toggle="card-expand"
-                        class="text-inverse text-opacity-50 text-decoration-none"><i
-                            class="bi bi-fullscreen"></i></a> -->
-                </div>
-                <div class="row align-items-center mb-2">
-                    <div class="col-7">
-                        <h3 class="mb-0">{{$sale_total_profit}} FCFA</h3>
-                    </div>
-                    <div class="small text-inverse text-opacity-0">
-                        0
-                    </div>
-                </div>
-                <div class="small text-inverse text-opacity-50 text-truncate">
-                    <!-- <i class="fa fa-chevron-up fa-fw me-1"></i> 5.3% more than last week<br>
-                    <i class="far fa-hdd fa-fw me-1"></i> 10.5% from total usage<br>
-                    <i class="far fa-hand-point-up fa-fw me-1"></i> 2MB per visit -->
-                </div>
-            </div>
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
-        </div>
-    </div>
+    @if($can('sales.manage'))
+        <a class="saas-primary-action" href="{{ route('sale.index') }}"><i class="bi bi-cart-plus"></i>Nouvelle vente</a>
     @endif
+</section>
 
-    <div class="w-100"></div>
+<section class="saas-metric-grid" aria-label="Indicateurs principaux">
+    @foreach($metrics as $metric)
+        @if($metric['href'])<a class="saas-metric" href="{{ $metric['href'] }}">@else<div class="saas-metric">@endif
+            <div class="saas-metric-head"><span class="saas-metric-label">{{ $metric['label'] }}</span><span class="saas-metric-icon"><i class="bi {{ $metric['icon'] }}"></i></span></div>
+            <strong class="saas-metric-value">{{ $metric['value'] }}</strong>
+            <small class="saas-metric-note">{{ $metric['note'] }}</small>
+        @if($metric['href'])</a>@else</div>@endif
+    @endforeach
+</section>
 
-    <div class="col-xl-6 col-lg-6">
-        <div class="card border-color mb-3">
-            <div class="card-body">
-                <div class="d-flex align-items-center fw-bold small mb-3">
-                    <span class="flex-grow-1">SMS CLASSIQUES RESTANTS</span>
-                    <i class="bi bi-chat-text-fill text-secondary fs-4 quota-status-icon"></i>
-                </div>
-                <div class="row align-items-center mb-2">
-                    <div class="col-8">
-                        <h3 class="mb-0">{{ number_format($company->sms_count ?? 0, 0, ',', ' ') }}</h3>
+<section class="saas-dashboard-grid">
+    <div>
+        <article class="saas-panel">
+            <div class="saas-panel-head">
+                <div><h2>Produits les plus vendus</h2><p>Classement des quantités vendues sur la période choisie.</p></div>
+                <div class="saas-chart-filters" id="dashboardChartFilters">
+                    <div class="saas-daterangepicker-wrap">
+                        <i class="bi bi-calendar3 saas-dp-icon" aria-hidden="true"></i>
+                        <input type="text" id="dashboardDateRange" class="form-control" readonly>
                     </div>
-                    <div class="col-4 text-end text-inverse text-opacity-50">
-                        SMS
-                    </div>
+                    <input type="hidden" id="dashboardStartDate">
+                    <input type="hidden" id="dashboardEndDate">
                 </div>
             </div>
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
-        </div>
+            <div id="topProductsChart" class="saas-chart" aria-label="Graphique des produits les plus vendus"></div>
+        </article>
     </div>
 
-    <div class="col-xl-6 col-lg-6">
-        <div class="card border-color mb-3">
-            <div class="card-body">
-                <div class="d-flex align-items-center fw-bold small mb-3">
-                    <span class="flex-grow-1">WHATSAPP RESTANTS</span>
-                    <i class="bi bi-whatsapp text-success fs-4 quota-status-icon whatsapp"></i>
-                </div>
-                <div class="row align-items-center mb-2">
-                    <div class="col-8">
-                        <h3 class="mb-0">{{ number_format($company->whatsapp_count ?? 0, 0, ',', ' ') }}</h3>
-                    </div>
-                    <div class="col-4 text-end text-inverse text-opacity-50">
-                        SMS
-                    </div>
-                </div>
-            </div>
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
+    <aside>
+        <div class="saas-quota-grid" aria-label="Quotas de communication">
+            <div class="saas-quota"><span><i class="bi bi-chat-text"></i>SMS disponibles</span><strong>{{ number_format($company->sms_count ?? 0, 0, ',', ' ') }}</strong></div>
+            <div class="saas-quota"><span><i class="bi bi-whatsapp"></i>WhatsApp disponibles</span><strong>{{ number_format($company->whatsapp_count ?? 0, 0, ',', ' ') }}</strong></div>
         </div>
-    </div>
-
-    <div class="col-xl-8">
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex fw-bold small mb-3">
-                    <span class="flex-grow-1">
-                        SERVER STATS
-                        <a href="#" data-toggle="card-expand"class="text-inverse text-opacity-50 text-decoration-none"><i class="bi bi-fullscreen"></i></a>
-                    </span>
-                    <div class="card-body">
-                        <div class="row item-align-left">
-                            <label class="form-label"><h6>Choisir la date</h6></label>
-                            <!-- <input id="reportrange" class="btn btn-outline-theme d-flex align-items-center text-start"> -->
-                            <input id="reportrange" type="text" class="form-control">
-                        </div>
+        <article class="saas-panel">
+            <div class="saas-panel-head"><div><h2>Activité récente</h2><p>Actions enregistrées aujourd’hui.</p></div></div>
+            <div class="saas-activity-list">
+                @forelse($Action as $action)
+                    <div class="saas-activity">
+                        <span class="saas-activity-icon"><i class="bi bi-activity"></i></span>
+                        <span class="saas-activity-copy"><strong>{{ $action->text ?: $action->function }}</strong><small>{{ $action->user?->name ?? 'Système' }}</small></span>
+                        <time datetime="{{ $action->created_at->toIso8601String() }}">{{ $action->created_at->format('H:i') }}</time>
                     </div>
-                </div>
-                <div class="ratio ratio-21x9 mb-0">
-                    {{-- <div id="chart-server"></div> --}}
-                    <div id="top-products-chart"></div>
-                </div>
-
-                <div class="row">
-                    <div class="col-lg-6 mb-5 mb-lg-0">
-                        {{-- <div class="d-flex align-items-center">
-                            <div class="w-50px h-50px">
-                                <div data-render="apexchart" data-type="donut" data-title="Visitors"
-                                    data-height="50"></div>
-                            </div>
-                            <div class="ps-3 flex-1">
-                                <div class="fs-10px fw-bold text-inverse text-opacity-50 mb-1">DISK USAGE
-                                </div>
-                                <div class="mb-2 fs-5 text-truncate">20.04 / 256 GB</div>
-                                <div class="progress h-3px bg-secondary-transparent-2 mb-1">
-                                    <div class="progress-bar bg-theme" style="width: 20%"></div>
-                                </div>
-                                <div class="fs-11px text-inverse text-opacity-50 mb-2 text-truncate">
-                                    Last updated 1 min ago
-                                </div>
-                                <div class="d-flex align-items-center small">
-                                    <i class="bi bi-circle-fill fs-6px me-2 text-theme"></i>
-                                    <div class="flex-1">DISK C</div>
-                                    <div>19.56GB</div>
-                                </div>
-                                <div class="d-flex align-items-center small">
-                                    <i class="bi bi-circle-fill fs-6px me-2 text-theme text-opacity-50"></i>
-                                    <div class="flex-1">DISK D</div>
-                                    <div>0.50GB</div>
-                                </div>
-                            </div>
-                        </div> --}}
-                    </div>
-
-                    <div class="col-lg-6">
-                        {{-- <div class="d-flex">
-                            <div class="w-50px pt-3">
-                                <div data-render="apexchart" data-type="donut" data-title="Visitors"
-                                    data-height="50"></div>
-                            </div>
-                            <div class="ps-3 flex-1">
-                                <div class="fs-10px fw-bold text-inverse text-opacity-50 mb-1">BANDWIDTH
-                                </div>
-                                <div class="mb-2 fs-5 text-truncate">83.76GB / 10TB</div>
-                                <div class="progress h-3px bg-secondary-transparent-2 mb-1">
-                                    <div class="progress-bar bg-theme" style="width: 10%"></div>
-                                </div>
-                                <div class="fs-11px text-inverse text-opacity-50 mb-2 text-truncate">
-                                    Last updated 1 min ago
-                                </div>
-                                <div class="d-flex align-items-center small">
-                                    <i class="bi bi-circle-fill fs-6px me-2 text-theme"></i>
-                                    <div class="flex-1">HTTP</div>
-                                    <div>35.47GB</div>
-                                </div>
-                                <div class="d-flex align-items-center small">
-                                    <i class="bi bi-circle-fill fs-6px me-2 text-theme text-opacity-50"></i>
-                                    <div class="flex-1">FTP</div>
-                                    <div>1.25GB</div>
-                                </div>
-                            </div>
-                        </div> --}}
-                    </div>
-                </div>
+                @empty
+                    <div class="saas-empty"><i class="bi bi-clock-history d-block fs-3 mb-2"></i>Aucune activité enregistrée aujourd’hui.</div>
+                @endforelse
             </div>
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-4">
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex fw-bold small mb-3">
-                    <span class="flex-grow-1">TOP PRODUITS VENDUS</span>
-                    <a href="#" data-toggle="card-expand"
-                        class="text-inverse text-opacity-50 text-decoration-none"><i
-                            class="bi bi-fullscreen"></i></a>
-                </div>
-
-                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                    <table class="w-100 mb-0 small align-middle text-nowrap">
-                        <tbody>
-                            @php
-                                $n = 1;
-                            @endphp
-                            @foreach($mostSoldProducts as $productDetail)
-                                <tr>
-                                    <td>
-                                        <div class="d-flex">
-                                            <div class="position-relative mb-2">
-                                                <div class="bg-position-center bg-size-cover bg-repeat-no-repeat w-80px h-60px"
-                                                    style="background-image: url({{ asset('images/' . $productDetail->product->image) }});">
-                                                </div>
-                                                <div class="position-absolute top-0 start-0">
-                                                    <span
-                                                        class="badge bg-theme text-theme-900 rounded-0 d-flex align-items-center justify-content-center w-20px h-20px">{{$n++}}</span>
-                                                </div>
-                                            </div>
-                                            <div class="flex-1 ps-3">
-                                                <div class="fw-500 text-inverse">{{ $productDetail->product->name ?? 'Produit supprimé' }}</div>
-                                                {{ $productDetail->product->price }} FCFA
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <table class="mb-2">
-                                            <tr>
-                                                <td class="pe-3">QTY:</td>
-                                                <td class="text-inverse text-opacity-75 fw-500">{{ $productDetail->total_quantity }}</td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-            <div class="d-flex justify-content-center mt-3">
-                {{ $mostSoldProducts->links('pagination::bootstrap-4')}}
-            </div>
-
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-8">
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex fw-bold small mb-3">
-                    <span class="flex-grow-1">ACTIVITES</span>
-                    <a href="#" data-toggle="card-expand"
-                        class="text-inverse text-opacity-50 text-decoration-none"><i
-                            class="bi bi-fullscreen"></i></a>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-borderless mb-2px small text-nowrap">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Fonction</th>
-                                <th>Acteur</th>
-                                <th>Action</th>
-                                <th>Creer le</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($Action as $action)
-                                <tr>
-                                    <td>
-                                        <span class="d-flex align-items-center">
-                                            <i class="bi bi-circle-fill fs-6px text-theme me-2"></i>
-                                        </span>
-                                    </td>
-                                    <td>{{$action->function}}</td>
-                                    <td><span class="badge d-block bg-theme text-theme-900 rounded-0 pt-5px w-70px"style="min-height: 18px;">
-                                        {{$action->user?$action->user->name:'-'}}</span>
-                                    </td>
-                                    <td>{{$action->user?$action->text:'-'}}</td>
-                                    <td>{{$action->user?$action->created_at->format('d-m-Y H:i:s'):'-'}}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="d-flex justify-content-center mt-3">
-                {{ $Action->links('pagination::bootstrap-4')}}
-            </div>
-
-            <div class="card-arrow">
-                <div class="card-arrow-top-left"></div>
-                <div class="card-arrow-top-right"></div>
-                <div class="card-arrow-bottom-left"></div>
-                <div class="card-arrow-bottom-right"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
-<script>
-    $(function() {
-        // Configurer Moment.js en français
-        moment.locale('fr');
-        
-        var start = moment().subtract(29, 'days');
-        var end = moment();
-
-        function cb(start, end) {
-            $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-        }
-
-        $('#reportrange').daterangepicker({
-            startDate: start,
-            endDate: end,
-            ranges: {
-                "Ajourd'hui": [moment(), moment()],
-                'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                '7 derniers jours': [moment().subtract(6, 'days'), moment()],
-                '30 derniers jours': [moment().subtract(29, 'days'), moment()],
-                'Ce mois': [moment().startOf('month'), moment().endOf('month')],
-                'Mois passé': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-            },
-            locale: {
-                format: 'DD-MM-YYYY',
-                customRangeLabel: "Choisir votre date",
-                applyLabel: "Appliquer",
-                cancelLabel: "Annuler",
-                fromLabel: "De",
-                toLabel: "À",
-                daysOfWeek: moment.weekdaysMin(), // Jours abrégés
-                monthNames: moment.months(),     // Noms des mois
-                firstDay: 1                      // Lundi comme premier jour de la semaine
-            }
-        }, cb);
-        cb(start, end);
-
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
-        // console.log(getCookie('app-theme'));
-
-        const theme = getCookie('app-theme'); // Ex: "theme-red"
-        let primaryColor;
-
-        const colors = {
-            primary: '#0d6efd',
-            secondary: '#6c757d',
-            success: '#198754',
-            danger: '#dc3545',
-            warning: '#FFA500',
-            info: '#0dcaf0',
-            light: '#f8f9fa',
-            yellow: '#ffc107',
-            pink: '#d63384',
-            purple: '#6f42c1',
-            indigo: '#6610f2',
-        };
-
-        // Définis les couleurs selon le thème
-        switch (theme) {
-            case 'theme-pink':primaryColor = colors.pink;break;   case 'theme-red':primaryColor = colors.danger;break;
-            case 'theme-warning':primaryColor = colors.warning;break;  case 'theme-yellow':primaryColor = colors.yellow;break;
-            case 'theme-green':primaryColor = colors.success;break;  case 'theme-info':primaryColor = colors.info;break;
-            case 'theme-primary':primaryColor = colors.primary;break;  case 'theme-purple':primaryColor = colors.purple;break;
-            case 'theme-indigo':primaryColor = colors.indigo;break;  case 'theme-gray-200':primaryColor = colors.secondary;break;
-            // case 'theme-blue':primaryColor = colors.danger;break;  case 'theme-blue':primaryColor = colors.danger;break;
-            default:
-                primaryColor = '#333333'; // Couleur par défaut
-        }
-
-        $('#reportrange').on('apply.daterangepicker', function () {
-            updateChart();
-        });
-
-        // Déclarez `chart` en dehors de la fonction pour conserver son état
-        let chart = null;
-
-        function updateChart() {
-            // Récupérer la plage de dates
-            const daterange = $('#reportrange').val();
-
-            if (daterange) {
-                // Extraire les dates
-                const dates = daterange.split(' - ');
-                const date1 = moment(dates[0], 'DD-MM-YYYY');
-                const date2 = moment(dates[1], 'DD-MM-YYYY');
-
-                // Validation des dates
-                if (date1.isAfter(date2)) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top',
-                        icon: "error",
-                        title: "Erreur de date",
-                        showConfirmButton: false,
-                        timer: 5000,
-                        text: 'La date de début doit être inférieure ou égale à la date de fin !',
-                    });
-                    return;
-                }
-            }
-
-            // Envoi des données au serveur
-            fetch("{{ route('statistics.topProducts') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({ daterange })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Data received:", data);
-
-                const productNames = data.map(item => item.name);
-                const quantities = data.map(item => item.total_quantity);
-
-                // Initialisation ou mise à jour du graphique
-                if (!chart) {
-                    // Initialisation
-                    const options = {
-                        series: [{
-                            name: 'Quantité Vendue',
-                            data: quantities
-                        }],
-                        chart: {
-                            type: 'bar',
-                            height: 200,
-                            responsive: [{
-                                breakpoint: 768, // Pour les écrans < 768px
-                                options: {
-                                    chart: {
-                                        height: 150 // Ajuste la hauteur
-                                    },
-                                    plotOptions: {
-                                        bar: {
-                                            columnWidth: '30%' // Réduit la largeur des colonnes
-                                        }
-                                    },
-                                    legend: {
-                                        position: 'bottom' // Déplace la légende
-                                    }
-                                }
-                            }]
-                        },
-                        plotOptions: {
-                            bar: {
-                                horizontal: false,
-                                columnWidth: '10%',
-                                endingShape: 'rounded'
-                            }
-                        },
-                        colors: [primaryColor],
-                        dataLabels: { enabled: false },
-                        stroke: { show: true, width: 2, colors: ['transparent'] },
-                        xaxis: { categories: productNames },
-                        yaxis: { 
-                            title: { text: 'Quantité' ,
-                                style: {
-                                    color: '#ffffff', // Définit la couleur en blanc
-                                    fontSize: '14px', // Optionnel : ajuste la taille de la police
-                                    fontWeight: 'bold', // Optionnel : rend le texte gras
-                                }
-                            } 
-                        },
-                        fill: { opacity: 1 },
-                        tooltip: {
-                            y: {
-                                formatter: function (val) {
-                                    return val + "";
-                                }
-                            }
-                        }
-                    };
-
-                    chart = new ApexCharts(document.querySelector("#top-products-chart"), options);
-                    chart.render();
-                } else {
-                    // Mise à jour
-                    chart.updateOptions({
-                        series: [{
-                            name: 'Quantité Vendue',
-                            data: quantities
-                        }],
-                        xaxis: {
-                            categories: productNames
-                        }
-                    });
-                }
-            })
-            .catch(error => console.error('Erreur:', error));
-        }
-
-        updateChart()
-
-        window.addEventListener('resize', () => {
-            if (chart) {
-                chart.resize();
-            }
-        });
-
-        // Hover effect
-        $('.border-color').hover(
-            function() {
-                $(this).addClass('border-color-change');
-            },
-            function() {
-                $(this).removeClass('border-color-change');
-            }
-        );
-
-        // Click effect
-        $('.product_list .pos-product').on('click', function(e) {
-            e.preventDefault();
-            
-            // Removes the click effect of other products
-            $('.product_list .pos-product').removeClass('product-clicked');
-            
-            // Add the click effect of other products
-            $(this).addClass('product-clicked');
-        });
-    });
-</script>
+        </article>
+    </aside>
+</section>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('hub/assets/plugins/apexcharts/dist/apexcharts.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chartElement = document.getElementById('topProductsChart');
+    const startInput = document.getElementById('dashboardStartDate');
+    const endInput = document.getElementById('dashboardEndDate');
+    let chart;
+
+    // Init daterangepicker
+    const drp = $('#dashboardDateRange').daterangepicker({
+        startDate: moment().subtract(29, 'days'),
+        endDate: moment(),
+        opens: 'right',
+        alwaysShowCalendars: true,
+        ranges: {
+            "Aujourd'hui": [moment(), moment()],
+            'Hier': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            '7 derniers jours': [moment().subtract(6, 'days'), moment()],
+            '30 derniers jours': [moment().subtract(29, 'days'), moment()],
+            'Ce mois': [moment().startOf('month'), moment().endOf('month')],
+            'Mois passé': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        },
+        locale: {
+            format: 'DD-MM-YYYY',
+            customRangeLabel: 'Plage personnalisée',
+            applyLabel: 'Appliquer',
+            cancelLabel: 'Annuler',
+            fromLabel: 'Du',
+            toLabel: 'Au',
+            daysOfWeek: moment.weekdaysMin(),
+            monthNames: moment.months(),
+            firstDay: 1
+        }
+    });
+    // Sync hidden inputs on apply
+    drp.on('apply.daterangepicker', function(ev, picker) {
+        startInput.value = picker.startDate.format('YYYY-MM-DD');
+        endInput.value = picker.endDate.format('YYYY-MM-DD');
+        refreshChart().catch((error) => { chartElement.innerHTML = '<div class="saas-empty">' + error.message + '</div>'; });
+    });
+    // Set initial values
+    startInput.value = moment().subtract(29, 'days').format('YYYY-MM-DD');
+    endInput.value = moment().format('YYYY-MM-DD');
+
+    const frenchDate = (value) => value.split('-').reverse().join('-');
+    const chartColors = () => {
+        const styles = getComputedStyle(document.documentElement);
+        return {
+            accent: styles.getPropertyValue('--ds-accent').trim(),
+            text: styles.getPropertyValue('--ds-text-secondary').trim(),
+            border: styles.getPropertyValue('--ds-border-soft').trim(),
+        };
+    };
+
+    async function refreshChart() {
+        if (!startInput.value || !endInput.value) throw new Error('Sélectionnez les deux dates.');
+        if (startInput.value > endInput.value) throw new Error('La date de début doit précéder la date de fin.');
+
+        const response = await fetch(@json(route('statistics.topProducts')), {
+            method: 'POST', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()) },
+            body: JSON.stringify({ daterange: `${frenchDate(startInput.value)} - ${frenchDate(endInput.value)}` }),
+        });
+        if (!response.ok) throw new Error('Impossible de charger le classement des produits.');
+        const data = await response.json();
+        const colors = chartColors();
+        const options = {
+            series: [{ name: 'Quantité vendue', data: data.map((item) => Number(item.total_quantity)) }],
+            chart: { type: 'bar', height: 290, toolbar: { show: false }, animations: { enabled: !matchMedia('(prefers-reduced-motion: reduce)').matches } },
+            colors: [colors.accent], plotOptions: { bar: { borderRadius: 6, columnWidth: '42%' } }, dataLabels: { enabled: false },
+            grid: { borderColor: colors.border, strokeDashArray: 4 },
+            xaxis: { categories: data.map((item) => item.name), labels: { style: { colors: colors.text } }, axisBorder: { show: false }, axisTicks: { show: false } },
+            yaxis: { min: 0, forceNiceScale: true, labels: { style: { colors: colors.text } } },
+            tooltip: { theme: document.documentElement.dataset.dsTheme },
+            noData: { text: 'Aucune vente sur cette période', style: { color: colors.text } },
+        };
+        if (chart) await chart.updateOptions(options, true, true);
+        else { chart = new ApexCharts(chartElement, options); await chart.render(); }
+    }
+
+
+    window.addEventListener('designsystem:change', () => { if (chart) refreshChart().catch(() => {}); });
+    refreshChart().catch((error) => { chartElement.innerHTML = `<div class="saas-empty">${error.message}</div>`; });
+});
+</script>
+@endpush

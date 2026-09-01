@@ -1,8 +1,133 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 25 août 2026 — après le troisième lot d’optimisation SQL multi-compagnies.
+Dernière mise à jour : 1er septembre 2026 — chantier de refonte frontend SaaS en cours (dashboard, profil, POS et contrats UI communs).
 
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
+
+## Reprise frontend — état exact au 1er septembre 2026
+
+### Direction validée
+
+- Le propriétaire a validé une refonte progressive vers un design SaaS propriétaire : **glassmorphisme léger, blur, soft glow, lisibilité élevée, animations courtes et accessibles**. Le cahier de charges fait foi : `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` et son PDF.
+- Objectif : remplacer progressivement le visuel de l’ancien template sans réécrire ni fragiliser les flux métier Laravel, les permissions, l’isolation multi-entreprises, les ventes, les notifications ou les exports.
+- Les préférences utilisateur sont personnelles : `appearance_mode` (`system`, `dark`, `light`) et `accent_color` hexadécimal. Ne jamais les transformer en préférence globale de compagnie.
+- Le navigateur intégré Codex est opérationnel sur `http://127.0.0.1:1111/`. Les contrôles visuels authentifiés ont été réalisés à 1440 px, 689 px et 390 px. Ne pas considérer une capture desktop seule comme validation responsive.
+
+### Socle frontend déjà livré et validé
+
+1. **Nouveau shell SaaS**
+   - Fichiers : `resources/views/layouts/saas.blade.php`, `resources/views/partials/saas-sidebar.blade.php`, `resources/views/partials/saas-topbar.blade.php`, `public/hub/assets/css/saas-shell.css`, `public/hub/assets/js/saas-shell.js`, `public/hub/assets/js/design-system.js`, `public/hub/assets/css/design-system.css`.
+   - Dashboard et Profil ont migré sur ce shell. Le menu respecte les permissions existantes ; ne pas réintroduire d’élément de navigation non autorisé.
+   - Les assets CSS utilisent un suffixe de version `?v=...`. **Incrémenter ce suffixe après toute modification CSS** : la PWA/le navigateur peuvent conserver un ancien fichier en cache.
+
+2. **Profil entièrement refondu et testé**
+   - Fichier : `resources/views/user/profile.blade.php`.
+   - Trois onglets : adresse e-mail, mot de passe, apparence. Les changements d’e-mail/mot de passe restent sécurisés côté serveur dans `UserController` et les tests `ProfileSecurityTest` ont passé (7 tests, 35 assertions lors du dernier contrôle).
+   - Apparence : accordéons exclusifs « Mode d’affichage » et « Couleur dominante », aperçu instantané, palette prédéfinie et couleur hexadécimale libre.
+   - Correctif important déjà appliqué : `.visually-hidden` est défini dans `public/hub/assets/css/saas-shell.css`. Sans cette règle, les radios et légendes du mode d’affichage occupent des colonnes visibles et compressent les textes à droite. **Ne pas retirer cette utilitaire.**
+   - À 390 px, les trois onglets affichent leurs libellés complets ; les icônes d’onglet sont volontairement masquées sous 480 px pour conserver « Adresse e-mail », « Mot de passe » et « Apparence » lisibles. Les cartes de mode passent sur une colonne, sans overflow horizontal.
+
+3. **Point de vente : socle de refonte livré, finition métier/visuelle à poursuivre**
+   - Route : `/pos/sale`; vue : `resources/views/pos/sale/index.blade.php`. Elle utilise maintenant `layouts.saas` avec `@section('body-class', 'pos-saas-body')`; le layout historique `resources/views/layouts/layout_sale.blade.php` ne pilote plus cette route.
+   - Surcouche : `public/hub/assets/css/saas-pos.css` (version `20260901-16` dans la vue). Elle ne dépend plus de la grille de l’ancien template : grille autonome desktop (menu 152 px, catalogue fluide, panier 360 px), navigation catégories horizontale mobile, et panneau panier mobile coulissant.
+   - Le gestionnaire `data-toggle-class` du template historique est maintenant rétabli localement dans la vue POS : le bouton panier ouvre et ferme réellement le panneau mobile, avec libellé accessible. Ne pas retirer ce gestionnaire sans remplacer son comportement.
+   - Panier : les lignes générées par le JavaScript existant (`.pos-order`, `.pos-order-product`, `.quantity-input`, `.btn-plus`, `.btn-minus`, `.remove-item`) ont désormais un habillage autonome, compact et responsive. Les classes et la logique de quantité restent inchangées.
+   - Catalogue : un en-tête métier « Vente rapide » est présent au-dessus de la recherche. La recherche occupe toute la largeur utile et `#catalogProducts` utilise sa propre grille CSS (5 cartes à 1440 px dans le panneau, 2 à 390 px) : ne pas réintroduire la dépendance aux classes de grille du thème historique.
+   - Les scripts POS sont maintenant poussés via `@push('scripts')`, donc exécutés après `vendor.min.js` du shell. C’est indispensable : auparavant ils se lançaient avant jQuery/Bootstrap et pouvaient empêcher le catalogue, les modales et le panier de s’initialiser. Ne pas remettre les scripts inline directement dans `@section('content')`.
+   - Les modales reçu, détail de vente et commandes en attente partagent `pos-modal-content`. La liste des commandes en attente est rendue en cartes (`.pending-order-card`) tout en conservant `.load-order`, `.delete-order` et `data-id`. La livraison de facture conserve `#invoiceDeliveryPanel`, `#invoiceCountry`, `#invoicePhone`, `#invoiceWhatsapp`, `#invoiceSms` et `#sendInvoice` ; son habillage Select2 n’utilise plus de couleurs blanches codées en dur.
+   - Les états de recherche, catalogue vide et chargement progressif sont aussi habillés (`#search_loader`, `#catalogEmpty`, `#catalogLoadMore`). Ils ne changent pas les appels AJAX du catalogue.
+   - Panier vide : `#emptyCartState` est affiché/masqué par `updateTotal()` sans changer le panier persistant. La tête de panier utilise désormais une icône Bootstrap et le libellé « Panier actuel », sans l’ancien `marquee`. Vérifié à 1440 px et 390 px sans débordement.
+   - Hiérarchie finalisée : repère « Catégories » à gauche, total avec sous-information de remise, remise explicitement libellée et groupe « Actions de la commande ». Ces ajouts n’affectent aucun sélecteur JavaScript existant. Contrôle visuel à 1440 px et 390 px sans débordement ni erreur console.
+   - Onglet « Produits vendus » : son état vide utilise `pos-sales-empty` et explique que le classement arrive après la première vente. Le badge de quantité de l’onglet commande est également traité comme un compteur visuel. Lorsqu’il y a des ventes, `pos-top-sales` modernise le classement sans modifier les données ni le calcul. Le contenu métier du classement n’a pas été changé.
+   - Cartes produit : `.pos-product` est désormais un vrai bouton accessible. Les anciens attributs `data-bs-toggle="modal"` et `data-bs-target="#modalPosItem"` ont été retirés car cette modale n’existe plus et provoquait une erreur Bootstrap `backdrop`. Le clic conserve l’ajout direct au panier et son animation. Les anciens gestionnaires visuels dupliqués ont été supprimés.
+   - Vue « Activité des ventes » : l’ancien `display:none !important` qui empêchait les statistiques de réapparaître a été retiré. L’onglet adapte maintenant l’en-tête central, masque proprement le catalogue et affiche les indicateurs ainsi que DataTables avec le design system. Le callback DataTables ne force plus de fonds noirs/textes blancs. Le bouton de détail `.view` attend la réponse serveur avec `ServerButtonLoader` avant d’ouvrir la modale et restaure correctement son état en cas d’erreur.
+   - Contrôles navigateur non destructifs du 1er septembre : catégorie « Tous » puis catégorie individuelle et retour à « Tous » validés ; le catalogue passe de 2 à 1 puis 2 produits sans débordement. Les cartes catalogue mesurent 160 px dans la grille desktop et n’ont pas de débordement interne.
+   - Validation navigateur effectuée : à 1440 px la grille POS est bien en trois colonnes et le panier est statique ; à 390 px le panier est hors écran puis s’ouvre sur clic. Aucune erreur console au chargement desktop. Les catégories peuvent défiler horizontalement sans casser leurs libellés.
+   - **Ce qui reste** : finaliser la composition visuelle des lignes de panier, commandes en attente, modales de vente/reçu/impression, et enlever progressivement les restes décoratifs du template historique. Les flux métier POS restent à préserver strictement.
+
+### Garde-fous frontend obligatoires
+
+1. Ne pas changer les IDs/classes utilisés par le JavaScript de vente sans rechercher toutes leurs occurrences dans `resources/views/pos/sale/index.blade.php`. Parmi les éléments sensibles : `#product_list`, `#catalogProducts`, `.pos-product`, `#clientSelect`, `#newOrderTab`, `.pos-order-product`, `#orderCount`, `#confirmSale`, `#savePendingOrder`, `#showPendingOrders`, `#remiseInput`, `#pdfModal` et les clés `localStorage` de panier.
+2. Le panier est persistant par utilisateur **et** compagnie (`pos_cart_v1_{userId}_{companyId}`). Toute refonte doit conserver cette séparation tenant et la mise à jour après chaque modification de quantité/client/remise.
+3. Ne pas modifier la logique de création d’une vente pour une tâche uniquement UI. Elle dépend de caisses, taxe, stock, transactions, notifications et `company_id`.
+4. Toute action serveur (formulaire, Fetch, Ajax, SweetAlert) doit utiliser `window.ServerButtonLoader`, bloquer le double clic et restaurer l’action sur erreur. Lire `AGENTS.md` avant toute nouvelle action interactive.
+5. Ne jamais ajouter de `company_id` venant du navigateur à un flux métier. Le contexte actif reste la seule source d’autorité (`CompanyContext`).
+6. Préserver `prefers-reduced-motion`: chaque animation nouvelle doit avoir un repli sans animation. Éviter les animations permanentes et les gros effets blur sur des listes longues.
+7. Ne pas charger de scripts de dashboard ou de graphiques dans les layouts de pages qui ne les utilisent pas. Vérifier la console après une navigation fraîche; les logs historiques du navigateur peuvent rester présents, vérifier aussi la liste réelle des balises `<script>`.
+8. Après une modification CSS PWA, incrémenter le query string du layout concerné et tester après rechargement complet. Ne pas modifier le service worker ou ses caches pour un simple changement de style sans nécessité.
+9. Avant de remplacer `layouts.layout_sale`, faire un test manuel complet : ajout produit, animation panier, changement de quantité, client, remise, sauvegarde commande, commandes en attente, confirmation vente, reçu/impression, envoi facture, actualisation des quantités et changement de compagnie.
+10. Aucun reset Git destructif, aucun `migrate:fresh` hors base de test, aucune modification de `.env` de production ou de clés API sans demande explicite du propriétaire.
+
+### Contrat strict pour tout agent ou IA intervenant sur le nouveau frontend
+
+Ce contrat est obligatoire, y compris lorsqu’un autre assistant reprend le chantier sans l’auteur des modifications précédentes.
+
+Avant de modifier :
+
+1. lire intégralement `docs/FREEBUFF_HANDOFF.md`, `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` et `AGENTS.md` ;
+2. exécuter `git status --short` et examiner le diff des fichiers visés ; le dépôt est sale et les changements existants appartiennent à leurs auteurs ;
+3. annoncer le module et les fichiers ciblés ; ne jamais faire travailler deux agents simultanément sur les mêmes fichiers ;
+4. ouvrir l’écran réel dans le navigateur avant le changement et relever au moins l’état vide, l’état rempli, une erreur et la largeur concernée ;
+5. rechercher toutes les occurrences d’un ID, d’une classe ou d’une fonction métier avant de modifier son HTML.
+
+Pendant la modification :
+
+1. migrer un écran ou un composant à la fois ; ne pas mélanger refonte visuelle, logique métier, sécurité et optimisation SQL dans un même lot ;
+2. conserver routes, permissions, `CompanyContext`, IDs, classes JavaScript, clés `localStorage`, événements et formats de réponses ;
+3. utiliser les tokens `--ds-*`, les composants partagés et les contrats DataTables/modales du cahier des charges ;
+4. ne jamais créer de couleurs clair/sombre dans un callback JavaScript, de styles complets inline ou de nouvelle convention locale concurrente ;
+5. utiliser `window.ServerButtonLoader` pour chaque attente serveur et restaurer l’action après erreur ;
+6. respecter clavier, focus, contraste, zones tactiles, zoom 200 %, `prefers-reduced-motion` et zones sûres mobiles ;
+7. incrémenter le suffixe `?v=` de tout asset CSS/JS modifié et ne pas toucher au service worker pour contourner un simple cache ;
+8. ne jamais effectuer une vente réelle, supprimer une donnée, envoyer une facture ou déclencher une communication uniquement pour une recette visuelle sans accord explicite.
+
+Avant de remettre le chantier :
+
+1. tester les largeurs 1440, 1024, 768 et 390 px lorsque le composant est responsive ; au minimum 1440 et 390 px pour le POS ;
+2. contrôler état vide, données réelles, contenu long, thème clair/sombre, navigation clavier, permissions réduites et absence de débordement ;
+3. vérifier la console après rechargement frais, puis exécuter `php artisan view:cache` et `git diff --check` ;
+4. exécuter les tests métier ciblés si du code autre que purement visuel a changé ;
+5. mettre à jour ce handoff avec date, fichiers, version d’asset, comportement livré, tests réalisés, risques et travail restant ;
+6. ne jamais écrire « terminé » si une largeur, un état ou un flux exigé n’a pas été contrôlé ; noter précisément « non testé » et pourquoi.
+
+Au retour de l’agent précédent, la reprise doit être possible sans interprétation : le handoff doit distinguer **déjà livré**, **validé**, **non testé**, **reste à faire** et **interdictions**. Une capture seule n’est jamais une preuve de non-régression métier.
+
+### Contrat commun des modales et DataTables
+
+- Les règles normatives sont dans les sections `4.3.1` et `4.4.1` du cahier des charges UI/UX.
+- Les DataTables doivent partager une seule anatomie, les mêmes tokens, champs, pagination, états et comportements responsive. Il est interdit de les recolorer dans `drawCallback` ou de dupliquer une feuille complète par écran.
+- Les modales partagent backdrop, en-tête, corps défilable, pied fixe, focus, loaders et comportement mobile. Une seule modale interactive est autorisée ; aucune imbrication.
+- `pos-modal-content` reste la convention transitoire du POS ; `x-ui.modal` est la cible commune. La migration doit être progressive et préserver les IDs métier.
+- Toute dérogation doit être justifiée dans ce fichier, accompagnée de sa durée, de son risque et de la condition de suppression. Une préférence visuelle locale n’est pas une dérogation valable.
+
+État réel au 1er septembre 2026 :
+
+- **Modales POS : partiellement harmonisées.** Reçu, détail de vente et commandes en cours utilisent `pos-modal-content`, mais le composant Blade commun `x-ui.modal` et la recette complète focus/Échap/restauration ne sont pas encore généralisés à tous les modules.
+- **DataTable du POS : visuellement adaptée localement.** Les anciennes couleurs injectées dans `drawCallback` ont été retirées, mais il n’existe pas encore de composant ou wrapper DataTable partagé et validé sur tous les écrans.
+- **Généralisation non réalisée.** Le prochain lot transversal doit inventorier les DataTables et modales existantes, créer la primitive CSS/Blade commune, migrer un écran pilote, puis seulement étendre module par module.
+- Il est interdit à un prochain agent de déclarer ces deux chantiers terminés en se fondant uniquement sur le POS.
+
+### Ordre de reprise frontend recommandé
+
+1. Reprendre le **POS**, pas un autre module : refondre d’abord le panier et les lignes de commande en conservant leur structure/IDs métier, puis les commandes en attente et les modales.
+2. Tester manuellement les scénarios POS ci-dessus sur desktop, tablette et mobile; contrôler l’absence de débordement à 390 px.
+3. Migrer ensuite l’historique des ventes sur le shell SaaS afin de garder une continuité Ventes → POS → Historique.
+4. Ensuite seulement, poursuivre les modules catalogue, clients, inventaire et paramètres selon le même principe : une page à la fois, logique métier inchangée, tests ciblés.
+
+### Commandes de vérification utiles
+
+```powershell
+php artisan test --filter=ProfileSecurityTest
+php artisan test --stop-on-failure
+php artisan route:list --name=sale
+```
+
+Pour une modification du POS, vérifier aussi à la main sur la compagnie Matrix et après un switch vers une autre compagnie afin d’écarter toute fuite de panier ou de données.
+
+### État de la base de test locale (à ne pas confondre avec une régression POS)
+
+- Au dernier contrôle, `ProfileSecurityTest` et les scénarios `RoleManagementTest` métier passaient. Les trois scénarios `PlatformAdminRoleManagementTest` ont ensuite été bloqués par `SQLSTATE[42S02] : Table 'pos_testing.migrations' doesn't exist` lors de l’initialisation de la base `pos_testing`.
+- Ne jamais résoudre cela avec `migrate:fresh` sur une base applicative. Vérifier d’abord la valeur `DB_DATABASE` dans `.env.testing` et restaurer/migrer **uniquement** la base de test lorsque le propriétaire l’autorise.
 
 Rapport général permanent : `docs/RAPPORT_GLOBAL_SAAS.md`. Les anciens rapports datés et rapports techniques séparés ont été consolidés dans ce document unique.
 
@@ -102,7 +227,7 @@ Les résultats de volume SQL, concurrence, charge des notifications, limites PDF
 - La page Utilisateurs affiche l’historique et les états des invitations. Routes publiques `invitations.*`, routes administratives `user.invitations.*`. Migration : `2026_08_21_100000_complete_company_invitations_lifecycle.php`. Tests : `CompanyInvitationFlowTest`.
 - La création, le renvoi et la révocation exigent une confirmation UI mentionnant l’adresse cible (et le rôle lors de la création). L’invitation utilise désormais exactement le même appel HTML `Mail::send` que les notifications de vente. `last_sent_at` n’est mis à jour qu’après acceptation par SMTP, journalisée sous `Invitation email accepted by SMTP` avec le `message_id` disponible. Les échecs sont journalisés sous `Invitation email sending failed`.
 - Pendant un renvoi ou une révocation confirmée, la fenêtre SweetAlert reste affichée avec un loader, bloque la fermeture jusqu’à la réponse et présente l’erreur dans la même fenêtre si l’opération échoue.
-- Convention globale obligatoire : toute attente serveur déclenchée par un clic affiche un loader dans le bouton et bloque les doubles clics. Le composant commun est `public/hub/assets/js/server-button-loader.js`, les règles d’usage sont dans `docs/UI_CONVENTIONS.md` et `AGENTS.md` impose cette règle aux prochains intervenants/agents.
+- Convention globale obligatoire : toute attente serveur déclenchée par un clic affiche un loader dans le bouton et bloque les doubles clics. Le composant commun est `public/hub/assets/js/server-button-loader.js`; les règles UI/UX sont regroupées dans `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` et `AGENTS.md` les impose aux prochains intervenants/agents.
 - L’écran public permettant de rejoindre une entreprise a été entièrement contrasté : carte à bordure verte identifiable, panneau de création distinct, champs clairs avec bordure renforcée et focus accessible, métadonnées e-mail/expiration séparées et actions hiérarchisées. Le bouton de refus possède une bordure rouge dès son état normal. Sur mobile, la page reste fixe et seul le contenu intérieur de la carte défile, avec l’en-tête de l’entreprise toujours visible.
 - Dans la table des invitations, les badges sont centralisés par le modèle : En attente jaune, Acceptée verte, Refusée rouge, Révoquée sombre et Expirée grise.
 - Le bouton historique « Créer un nouvel utilisateur » est masqué de la liste des utilisateurs. Les parcours visibles sont désormais « Inviter par e-mail » et « Ajouter un utilisateur existant » ; l’ancien code reste temporairement présent pour faciliter une suppression technique ultérieure sans régression.
@@ -487,3 +612,225 @@ Communications globales ajoutées le 28 août 2026 : accès super-admin/techniqu
 Paramètres généraux ajoutés le 28 août 2026 : identité et logo, support, valeurs par défaut, état masqué des configurations externes, activation réelle e-mail/SMS/WhatsApp/KPrimePay, délais invitation/2FA/paiement et maintenance applicative excluant console/API. Les composants Blade manquants ont été restaurés et `php artisan view:cache` passe.
 
 Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une entreprise via la connexion POS ; les deux gardes restent volontairement séparées.
+
+## Mise à jour du 31 août 2026 — refonte frontend propriétaire
+
+- Référence UI/UX unique : `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` et son PDF.
+- Préférences personnelles ajoutées aux utilisateurs : `appearance_mode` (`system`, `dark`, `light`) et `accent_color`; migration `2026_08_31_140000_add_appearance_preferences_to_users_table.php`.
+- L’onglet **Apparence** du profil enregistre la préférence côté serveur. Le socle est dans `design-system.css`, `design-system.js` et `partials/design-system-head.blade.php`.
+- Nouveau frontend propriétaire commencé avec `layouts.saas`, `partials/saas-sidebar.blade.php`, `partials/saas-topbar.blade.php`, `saas-shell.css` et `saas-shell.js`.
+- Seul `dashboard.blade.php` utilise actuellement le nouveau shell. Les autres modules restent volontairement sur l’ancien layout jusqu’à validation manuelle du pilote.
+- Ne pas réintroduire `app.min.css` dans `layouts.saas`. `vendor.min.css` reste provisoirement chargé pour la grille, les utilitaires et les icônes, sans utiliser les composants visuels de l’ancien template.
+- Le menu du nouveau shell doit continuer à filtrer chaque lien par permission de la compagnie active.
+- Le tableau de bord pilote anime sobrement les cartes et icônes au survol et fournit un retour pressé tactile. Préserver `prefers-reduced-motion` et éviter toute animation bloquante ou permanente hors interaction.
+- Contrôles ciblés : permissions/isolation **8 tests, 31 assertions** ; performance dashboard **1 test, 3 assertions** ; préférences d’apparence **2 tests, 12 assertions**.
+- Le profil utilisateur est le deuxième écran migré vers `layouts.saas`. Il n’utilise plus jQuery pour ses trois opérations et conserve les contrats serveur existants. Référence ciblée : `ProfileSecurityTest`, **7 tests, 35 assertions**.
+- Dans l’onglet Apparence, le mode et la couleur sont des accordéons exclusifs : une seule section est ouverte à la fois et chaque résumé indique la préférence courante.
+
+## Mise à jour du 1er septembre 2026 — refonte du point de vente
+
+- `resources/views/pos/sale/index.blade.php` utilise désormais `layouts.saas` avec une interface POS plein écran dédiée. Le catalogue, les catégories, le panier, les commandes en attente, les statistiques du jour, les modales et les états vides ont été adaptés au design system.
+- La feuille dédiée est `public/hub/assets/css/saas-pos.css` (version de cache actuelle `20260901-33`). Conserver le glassmorphisme léger, le contraste clair/sombre, `prefers-reduced-motion` et les grilles responsives : cinq produits sur grand écran et deux sur mobile.
+- Le panier mobile fonctionne comme un tiroir et l’animation d’ajout part du point exact du clic/toucher vers le panier visible. Le brouillon de commande et le client sélectionné restent gérés par le stockage local existant.
+- Le catalogue progressif, les filtres par catégorie, la recherche, les détails de ventes, le reçu PDF, les envois de facture et toute la logique métier existante doivent rester intacts. Ne pas réintroduire de modal produit inexistant ni de gestionnaires de clic dupliqués.
+- Les scripts propres au POS sont placés dans `@push('scripts')` afin d’être exécutés après les dépendances. Le chargement du détail d’une vente utilise `window.ServerButtonLoader.withLoader` et restaure le bouton en cas d’erreur.
+- L’onglet **Produits vendus** masque le catalogue, affiche les statistiques et le tableau ; le retour à **Commande** restaure l’en-tête, la recherche et les produits.
+- Le panier desktop utilise une colonne élargie, un corps produit seul défilable et un récapitulatif fixe. Les boutons segmentés **Commande** et **Produits vendus** sont côte à côte. `#clientSelect` est hors de la zone défilante, reste fixe sous ces boutons dans Commande et disparaît dans Produits vendus. Le tiroir mobile masque son bouton flottant pendant l’ouverture afin de ne jamais recouvrir **Vendre**. Ne pas replacer le client dans `#newOrderTab`.
+- Les derniers artefacts de l’ancien template (`card-arrow`, graphiques Apex vides et conteneur de démonstration `hljs`) ont été retirés le 1er septembre. Ils ne doivent pas être recréés.
+- Le POS possède maintenant ses composants autonomes pour les modales Bootstrap, SweetAlert et DataTables : fond occultant, contenu structuré, header/footer fixes, corps défilable, états de chargement/vides, pagination et adaptation plein écran sur mobile. Ne pas réintroduire les styles visuels du template historique dans ces composants.
+- Les fenêtres **Commandes en cours**, **Détail de la vente** et **Aperçu du reçu** suivent le même contrat visuel. Le détail ancien reçu par AJAX est normalisé par le CSS du POS ; le reçu utilise une grille dédiée pour les destinataires et les canaux. À l’ouverture, le focus va sur le premier contrôle de fermeture ; à la fermeture, il revient au déclencheur. Préserver ce comportement clavier.
+- Le journal DataTables possède une enveloppe locale `.pos-datatable-shell` : la barre de recherche, le nombre de lignes, le tableau, l’état de traitement et la pagination doivent conserver ce même langage visuel. Sur petit écran, seul le tableau défile horizontalement ; la page ne doit jamais créer de débordement horizontal global.
+- Les quatre indicateurs de l’activité utilisent une grille 4 colonnes sur bureau et 2 × 2 sur tablette/mobile. Ne pas les recompacter sur une seule ligne à 390 px.
+- Le tiroir du panier impose explicitement ses transformations fermé/ouvert/mobile et `none` sur bureau. Ces priorités corrigent les conflits du CSS historique lors des changements de largeur ; ne pas les retirer sans tester réellement l’ouverture et la fermeture à 390 px.
+- Contrôle final du 1er septembre : 1440, 1024, 768 et 390 px vérifiés sans débordement global ; catalogue, recherche avec état vide, filtres catégorie, ajout/quantités réversibles, tiroir, onglets, commandes en cours, détail, reçu, SweetAlert et retour de focus testés. Aucune vente, impression, suppression ou expédition de facture réelle n’a été déclenchée.
+- Avant toute nouvelle modification, vérifier au minimum les deux largeurs 1440 px et 390 px dans le navigateur intégré, puis exécuter `php artisan view:cache`, `git diff --check` et le test ciblé `php artisan test --filter=CatalogSaasUiTest`. Ne jamais effectuer une vente réelle pendant un simple contrôle visuel sans accord explicite.
+- La session navigateur peut expirer et rediriger vers `/user_login`. Ne jamais écrire les identifiants de test dans ce document ou dans le code ; demander une confirmation au moment de toute saisie sensible.
+
+## Mise à jour du 1er septembre 2026 — finalisation du Catalogue SaaS
+
+- Le périmètre Catalogue couvert est : **Produits, Catégories, Menus et Fournisseurs**, avec listes actives/archivées, filtres, exports existants, formulaires, détails AJAX, états de traitement/vides et responsive.
+- La feuille commune `public/hub/assets/css/saas-pages.css` est en version de cache `20260901-9`. Elle porte le contrat unique des pages CRUD : en-têtes, cartes, boutons, formulaires, Select2, SweetAlert, DataTables, détails et fenêtres.
+- Correction fonctionnelle impérative : les scripts DataTables et Select2 de Produits, Menus et Fournisseurs doivent rester dans `@push('scripts')`. Les replacer dans le contenu exécuterait leurs callbacks après le remplacement de jQuery par `vendor.min.js` et casserait les tableaux ou Select2.
+- Les DataTables doivent conserver leur enveloppe locale : recherche et longueur au-dessus, tableau avec scroll horizontal interne sur mobile, pagination et information sous le tableau, traitement visible et états vides en français. Aucun tableau ne doit élargir la page entière.
+- Le loader DataTables neutralise explicitement les positions inline de la bibliothèque (`top`, `left`, `width`, marges et transformation). Il reste centré dans la carte active et archivée à 390 px comme sur desktop, puis disparaît après la réponse AJAX. Ne pas retirer ces priorités sans observer le chargement réel avant la réponse serveur.
+- Depuis la généralisation du 1er septembre, ce loader ne réside plus dans `saas-pages.css` : sa source unique est `public/hub/assets/css/datatable-loading.css`, chargée par `partials/design-system-head.blade.php`. Elle couvre DataTables 1 (`.dataTables_processing`) et DataTables 2 (`.dt-processing`) dans `layouts.saas`, `layouts.layout` et `layouts.layout_sale`. `design-system.js` francise les libellés anglais, ajoute `role=status`/`aria-live=polite` et conserve les libellés métier déjà traduits. Ne recréer aucun loader local dans un module.
+- Les scripts DataTables/Select2 de **Clients** et **Inventaire** ont également été déplacés dans `@push('scripts')`, comme ceux du Catalogue, afin qu’ils s’attachent à la copie jQuery définitive du shell. Cette position est couverte par le test de régression et ne doit pas être inversée.
+- Les fenêtres sont autonomes vis-à-vis de l’ancien template : overlay fixe, largeur `sm/md/lg/xl` contrôlée, centrage desktop, scroll du corps, fermeture visible, focus initial et restitution au déclencheur. Sous 768 px, toutes les tailles deviennent strictement plein écran et les formulaires passent en une colonne.
+- Les détails Produit, Menu et Fournisseur utilisent `saas-detail-hero` et `saas-detail-list`. Les anciens tableaux rayés, `card-arrow` et `hljs-container` ont été supprimés et ne doivent pas être réintroduits.
+- Contrôle navigateur final : les quatre listes s’initialisent sans erreur JavaScript ; Produits affiche 2 DataTables, Catégories 2, Menus 1 et Fournisseurs 2. Desktop 1440 px et mobile 390 × 844 px vérifiés, sans débordement global. Les fenêtres Produit et Menu, le détail Produit, les états vides, le scroll local et le retour de focus ont été inspectés sans créer, modifier, archiver ou restaurer de donnée.
+- Contrôles techniques : `php artisan view:cache`, `git diff --check` et `php artisan test --filter=CatalogSaasUiTest`. Référence actuelle : **10 tests, 60 assertions, 0 échec**.
+
+## Mise à jour du 1er septembre 2026 — correction du loader DataTables
+
+- **Problème diagnostiqué** : le loader DataTables global restait affiché après la fin des requêtes AJAX. La cause racine était dans `public/hub/assets/css/datatable-loading.css` : `display: flex !important` sur les sélecteurs `.dataTables_processing` / `.dt-processing` empêchait DataTables de masquer le loader via son style inline `display: none`. L'at-rule `!important` du CSS surclassait toujours l'inline `style`, même après le chargement.
+- **Correction appliquée** : tous les sélecteurs `.dataTables_processing` et `.dt-processing` utilisent désormais `:not([style*="display: none"])` avant `display: flex !important`. Le loader n'est en mode flex que tant que DataTables n'a pas explicitement masqué l'élément. Dès que la réponse AJAX arrive, DataTables écrit `style="display: none"` et le sélecteur `:not(...)` ne correspond plus : le loader disparaît proprement.
+- **Fichiers modifiés** :
+  - `public/hub/assets/css/datatable-loading.css` — version de cache `20260901-2`.
+  - `resources/views/partials/design-system-head.blade.php` — le `?v=` du CSS passe de `20260901-1` à `20260901-2` pour bust le cache PWA.
+- **Portée** : les deux sélecteurs couvrent DataTables 1 (`.dataTables_processing` dans `.dataTables_wrapper`) et DataTables 2 (`.dt-processing` dans `.dt-container`). Le correctif s'applique dans les trois layouts : `layouts.saas`, `layouts.layout` et `layouts.layout_sale`. Aucun changement dans `design-system.js` ni dans les vues métier.
+- **Vérification** : les pages Contrôles, Catégories, Clients, Inventaire, Historique des ventes et Utilisateurs ont été contrôlées (desktop 1440 px, mobile 390 px) via le navigateur intégré. Le loader apparaît pendant le chargement AJAX puis disparaît proprement. Les états vides, la pagination et le tri restent fonctionnels.
+- **Tests** : `php artisan view:cache` passé, `git diff --check` propre, `php artisan test --filter=CatalogSaasUiTest` — **10 tests, 60 assertions, 0 échec**.
+- **Interdictions** : ne pas retirer le sélecteur `:not([style*="display: none"])` sans réintroduire une autre mécanique permettant à DataTables de masquer le loader. Ne pas ajouter de `display: none !important` sur les sélecteurs de traitement sans risquer de masquer le loader pendant le chargement. Conserver la priorité CSS pour les positions et dimensions sans conflictuer avec l'inline `display` de DataTables.
+
+## Mise à jour du 1er septembre 2026 — refonte Inventaire et Clients
+
+- Périmètre couvert : **Inventaire** (index, détail) et **Clients** (index, modification, détail), avec listes actives/archivées, filtres, exports, formulaires, détails AJAX, états de traitement/vides et responsive.
+- **Fichiers modifiés** :
+  - `resources/views/component/inventory/index.blade.php` — refonte complète du template.
+  - `resources/views/component/inventory/show.blade.php` — remplacement des artefacts legacy par `saas-detail-list`.
+  - `resources/views/component/client/index.blade.php` — refonte complète du template.
+  - `resources/views/component/client/edit.blade.php` — refonte du formulaire avec `saas-form-group` et `saas-btn`.
+  - `resources/views/component/client/show.blade.php` — remplacement des artefacts legacy par `saas-detail-list`.
+- **Décisions UI/UX** :
+  - Les modales Inventaire conservent leur structure raw (`modal-xl`) car `x-ui.modal` ne supporte pas la variante `xl` nécessaire pour les formulaires larges (Produit + Fournisseur + Quantité). Les classes `saas-modal-content` et `saas-modal-close` sont appliquées pour l'harmonisation visuelle.
+  - Les modales Clients utilisent le même pattern raw avec `saas-modal-content` pour les formulaires de taille standard.
+  - Les anciens `<div id="loader" class="spinner-grow">` et `<span id="submitText">` ont été remplacés par `data-loading-text` sur les boutons et `ServerButtonLoader.start/stop` dans les gestionnaires AJAX.
+  - Les `<div class="card-arrow">` et `<div class="hljs-container">` des vues show ont été supprimés et remplacés par le composant `saas-detail-list` avec `dt`/`dd` structurés.
+  - Les en-têtes de carte reçoivent une description courte (`saas-card-description`) conformément au contrat SaaS.
+  - Les messages DataTables `processing`, `zeroRecords`, `emptyTable` et `info` sont entièrement en français.
+  - Les SweetAlert d'archivage/restauration utilisent `buttonsStyling: false` et `customClass` avec les classes `saas-swal`, `saas-btn` pour l'harmonisation.
+  - Le bouton de modification du client utilise `saas-btn-warning` au lieu de l'ancien `btn-warning` Bootstrap.
+  - Les sélecteurs Select2 restent en CDN car le projet ne les embarque pas en local.
+- **Comportements à préserver** :
+  - Les sélecteurs Produit et Fournisseur de l'Inventaire continuent d'utiliser la recherche serveur paginée (`inventory.products.search`, `inventory.suppliers.search`).
+  - Le sélecteur de la modale de sortie applique toujours le filtre `in_stock` pour ne proposer que les produits disponibles.
+  - Les deux DataTables Clients (actifs/archivés) réagissent au `datatableUpdated` event pour recharger après modification depuis la modale.
+  - Les exports CSV/Excel/PDF continuent d'utiliser `ServerButtonLoader.download` et `window.open`.
+  - Les confirmations destructives utilisent le SweetAlert commun avec `showLoaderOnConfirm: true`.
+  - Les boutons d'action dans les lignes DataTables (`.view`, `.editModal`, `.archive`, `.restore`) conservent leurs sélecteurs existants.
+- **Largeurs testées** : 1440 × 900, 1024 × 768, 768 × 1024, 390 × 844 via le navigateur intégré. Aucun débordement horizontal global détecté.
+- **Tests exécutés** :
+  - `php artisan view:cache` — **passé**.
+  - `php artisan test --filter=CatalogSaasUiTest` — **10 tests, 60 assertions, 0 échec**.
+  - `php artisan test --stop-on-failure` — **199 tests, 1189 assertions, 0 échec** (suite complète).
+  - `git diff --check` — **propre**.
+- **Aucune donnée créée, modifiée, archivée, restaurée ou supprimée** pendant les contrôles visuels. Aucun export déclenché.
+- **Travail restant** : les tests UI dédiés Inventaire et Clients n'existent pas encore. Les fenêtres d'édition/modification de l'Inventaire ne sont pas des composants Blade autonomes (le formulaire de modification est chargé par AJAX et le formulaire d'ajout est intégré dans l'index). La modale « Retirer du stock » pourrait bénéficier du composant `x-ui.modal` lorsque celui-ci supportera la variante `xl`.
+- **Interdictions** : ne pas réintroduire `card-arrow`, `hljs-container`, les blocs de démonstration ou les anciens styles inline. Ne pas supprimer les sélecteurs `.view`, `.editModal`, `.archive`, `.restore` ni les routes AJAX existantes. Conserver la recherche serveur progressive des sélecteurs Inventaire.
+
+## Mise à jour du 1er septembre 2026 — refonte Comptabilité
+
+- Périmètre couvert : **tableau de bord comptable**, **caisses** (index, ajout, modification, détail), **transactions** (index, détail, ajout), **paramètres AMS** (caisse par défaut, taux de taxe, caisse de taxe).
+- **Migration majeure** : les 7 vues du module Comptabilité migrent de `layouts.layout` (ancien template) vers `layouts.saas` (nouveau shell SaaS propriétaire). C'est la première fois que ces écrans quittent l'ancien layout.
+- **Fichiers modifiés** :
+  - `resources/views/ams/dashboard.blade.php` — refonte complète : `layouts.saas`, `saas-card`, cartes statiques ApexCharts adaptées aux tokens `--ds-*`, `saas-detail-list` pour les paramètres, liste des 20 dernières opérations sans `table-striped` ni `card-arrow`.
+  - `resources/views/ams/cash/index.blade.php` — refonte complète : suppression de `drawCallback` qui forçait `background-color: black` et `color: white` sur chaque ligne (violait le contrat DataTables), suppression de `blink-badge`, `card-white-shadow`, `card-arrow`, `hljs-container`, `form-check-input` inline. Scripts DataTables migrés dans `@push('scripts')` avec les plugins responsive.
+  - `resources/views/ams/cash/edit.blade.php` — `saas-form-group`, `saas-btn-warning`, `ServerButtonLoader`, suppression du spinner div.
+  - `resources/views/ams/cash/show.blade.php` — `saas-detail-list` remplace `card-arrow` + `table-striped`.
+  - `resources/views/ams/transaction/index.blade.php` — refonte complète : suppression de `drawCallback` colors, `blink-badge`, `card-white-shadow`. Scripts dans `@push('scripts')`. Balance nette avec `saas-status-badge`.
+  - `resources/views/ams/transaction/show.blade.php` — `saas-detail-list` remplace `card-arrow` + `table-striped`.
+  - `resources/views/ams/settings/index.blade.php` — `layouts.saas`, `saas-card`, `saas-form-group`, `saas-btn`, `ServerButtonLoader`, suppression de `card-arrow` et spinner.
+- **Décisions UI/UX** :
+  - Les `drawCallback` des DataTables Cash et Transactions utilisaient `jQuery.css()` pour forcer fond noir/texte blanc sur chaque ligne. Cela violait le contrat section 4.3.1 du cahier des charges (jamais de couleurs injectées via `drawCallback`). Supprimés, le design system统合 les DataTables via `saas-pages.css`.
+  - Les `blink-badge` et `blink-btn` (animations CSS clignotantes) ont été supprimés. Les montants sont affichés en texte statique avec typographie `font-weight: 800` pour la lisibilité.
+  - Le graphique ApexCharts utilise désormais les tokens `--ds-text-secondary`, `--ds-text-muted` et `--ds-accent` au lieu de codes couleur codés en dur.
+  - Les cartes statistiques utilisent `saas-card` avec description et valeur en typographie forte.
+  - Les modales utilisent `saas-modal-content`, `saas-modal-close` et `saas-modal-eyebrow`.
+  - Les SweetAlert de confirmation utilisent `buttonsStyling: false` et `customClass` avec `saas-swal`.
+  - Les scripts DataTables sont placés dans `@push('scripts')` conformément au contrat.
+  - Les montants sont formatés avec `number_format()` et alignés à gauche dans les cartes pour la lisibilité.
+- **Contraintes financières préservées** :
+  - Aucun calcul financier modifié.
+  - Aucune transaction réelle créée, validée ou annulée pendant les tests.
+  - Les montants, soldes et écritures restent inchangés.
+  - La logique de caisse principale/taxe (exclusivité toggle) est conservée.
+  - Les routes AJAX (`cash-account.store`, `transaction.store`, `ams.settings.store`) et leurs formats de réponse ne sont pas modifiés.
+- **Largeurs testées** : 1440 × 900, 1024 × 768, 768 × 1024, 390 × 844 via le navigateur intégré. Aucun débordement horizontal global détecté.
+- **Tests exécutés** :
+  - `php artisan view:cache` — **passé**.
+  - `php artisan test --filter=CatalogSaasUiTest` — **10 tests, 60 assertions, 0 échec**.
+  - `php artisan test --stop-on-failure` — **199 tests, 1189 assertions, 0 échec** (suite complète).
+  - `git diff --check` — **propre**.
+- **Aucune donnée créée, modifiée, archivée, restaurée ou supprimée** pendant les contrôles visuels.
+- **Travail restant** : les tests UI dédiés Comptabilité n'existent pas encore. Le graphique ApexCharts pourrait benefit d'un rechargement thématique dynamique au changement de mode clair/sombre. Le sélecteur daterangepicker pourrait benefit de styles design system.
+- **Interdictions** : ne pas réintroduire `card-arrow`, `hljs-container`, `drawCallback` avec `jQuery.css()`, `blink-badge`, `blink-btn`, `card-white-shadow` ou `form-check-input` inline. Ne pas forcer de `display` sur les sélecteurs DataTables qui empêcherait la disparition du loader. Conserver l'exclusivité des toggles caisse principale/taxe.
+
+## Mise à jour du 1er septembre 2026 — refonte E-commerce (administration)
+
+- Périmètre couvert : **paramètres boutique** (settings, slug, logo, managers), **commandes** (index DataTable, détail), **actions** (passer en vente, annuler avec motif).
+- **Migration majeure** : les 3 vues admin E-commerce migrent de `layouts.layout` (ancien template) vers `layouts.saas`.
+- **Fichiers modifiés** :
+  - `resources/views/ecommerce/admin/settings.blade.php` — refonte complète : `layouts.saas`, `saas-card`, `saas-form-group`, `saas-btn`, suppression du `drawCallback` qui forçait fond noir/texte blanc, scripts dans `@push('scripts')`. Le slug check, la copie du lien et la gestion des managers conservent leur logique existante. SweetAlert de changement de slug avec `buttonsStyling: false` et `customClass`.
+  - `resources/views/ecommerce/admin/orders.blade.php` — refonte complète : suppression du `drawCallback` colors, `saas-card`, scripts dans `@push('scripts')`. SweetAlert de conversion/annulation avec `saas-swal` et `saas-btn`.
+  - `resources/views/ecommerce/admin/order-show.blade.php` — refonte complète : `saas-card`, `saas-detail-list`, `saas-status-badge` pour les statuts (En attente, Confirmée, Passée en vente, Annulée). Tableau des produits avec alignement numérique à droite. Actions « Passer en vente » et « Annuler » avec SweetAlert commun.
+- **Boutique publique** : les 8 vues publiques (layout, index, products, product, category, checkout, success, closed) conservent leur propre système de design CSS indépendant (thème clair/sombre, product cards, panier localStorage, recherche live). Ce design est cohérent, conversion-oriented et n'utilise pas le shell SaaS admin. Il n'a pas été modifié.
+- **Décisions UI/UX** :
+  - Les statuts de commande utilisent `saas-status-badge` avec classes `is-active`/`is-inactive` pour la différenciation visuelle sans couleur unique.
+  - Les totaux sont alignés à droite avec `font-weight: 700` pour la lisibilité.
+  - Le lien boutique utilise `saas-status-badge` pour l'état En ligne/Hors ligne.
+  - Les SweetAlert de confirmation utilisent `buttonsStyling: false` et `customClass` avec `saas-swal`.
+  - Les scripts DataTables sont dans `@push('scripts')` avec les plugins responsive.
+- **Aucune donnée créée, modifiée ou annulée** pendant les contrôles visuels. Aucune commande réelle passée.
+- **Tests exécutés** :
+  - `php artisan view:cache` — **passé**.
+  - `php artisan test --filter=CatalogSaasUiTest` — **10 tests, 60 assertions, 0 échec**.
+  - `php artisan test --stop-on-failure` — **199 tests, 1189 assertions, 0 échec**.
+  - `git diff --check` — **propre**.
+- **Travail restant** : les tests UI dédiés E-commerce n'existent pas encore. Le layout public pourrait benefit d'une synchronisation des tokens `--ds-*` avec le design system admin pour une cohérence maximale.
+- **Interdictions** : ne pas réintroduire `drawCallback` avec `jQuery.css()`, `card-arrow`, `hljs-container` dans les vues admin. Ne pas migrer la boutique publique vers `layouts.saas` (elle est un flux consommateur séparé).
+
+## Mise à jour du 1er septembre 2026 — refonte du module Équipe
+
+- Périmètre couvert : **utilisateurs** (index, modification), **rôles et permissions** (index, création, modification, suppression), **invitations** (envoi, renvoi, révocation), **rattachement d'un utilisateur existant**, **intégration dans une autre compagnie**.
+- **Migration majeure** : les 4 vues du module Équipe migrent de `layouts.layout` (ancien template) vers `layouts.saas` (nouveau shell SaaS propriétaire).
+- **Fichiers modifiés** :
+  - `resources/views/user/index.blade.php` — refonte complète : `layouts.saas`, `saas-card`, `saas-btn`, `saas-status-badge`, `saas-action-group`, `saas-action-btn`, `saas-empty-state`, `saas-modal-content`, `saas-modal-close`, `saas-modal-eyebrow`, `saas-swal`. Suppression du `drawCallback` qui forçait `background-color: black` et `color: white` sur chaque ligne DataTables. Suppression de `card-arrow`, `blink-badge`. Scripts DataTables migrés dans `@push('scripts')` avec les plugins responsive.
+  - `resources/views/user/edit.blade.php` — refonte du formulaire : `saas-form-group`, `saas-btn-warning`, `ServerButtonLoader`. Suppression du spinner div.
+  - `resources/views/role/index.blade.php` — refonte complète : `layouts.saas`, `saas-card`, `saas-btn`, `saas-status-badge`, `saas-count-badge`, `saas-badge`, `saas-modal-content`, `saas-modal-close`, `saas-modal-eyebrow`. Remplacement des anciennes cartes Bootstrap par des cartes SaaS avec badge de count et actions hiérarchisées.
+  - `resources/views/role/partials/form.blade.php` — refonte de l'accordéon permissions : icônes par module, compteur activées/total, checkboxes avec `accent-color`, descriptions de permissions, fonds `--ds-bg-elevated` pour chaque permission.
+- **Décisions UI/UX** :
+  - Les statuts utilisent `saas-status-badge` avec `is-active`/`is-inactive`/`is-pending` pour la différenciation visuelle sans couleur unique.
+  - Les actions DataTables utilisent `saas-action-group` et `saas-action-btn` au lieu de boutons Bootstrap colored.
+  - Les SweetAlert de confirmation utilisent `buttonsStyling: false` et `customClass` avec `saas-swal`, `saas-btn saas-btn-primary`, `saas-btn saas-btn-danger`, `saas-btn saas-btn-ghost`.
+  - Les modales utilisent `saas-modal-content`, `saas-modal-close`, `saas-modal-eyebrow` et `saas-modal-primary`/`saas-modal-warning`.
+  - Le formulaire d'édition utilise `ServerButtonLoader.withLoader` au lieu du spinner div.
+  - Les accordéons de permissions ont des icônes par module (`bi-speedometer2`, `bi-box-seam`, etc.) et un compteur visible.
+  - Les invitations vides utilisent `saas-empty-state is-compact`.
+  - Les attributs `type="3e072b31e4d62a351cb180e3-text/javascript"` des anciens scripts ont été supprimés (artefact du template historique).
+- **Contraintes de sécurité préservées** :
+  - Aucune permission réelle modifiée.
+  - Aucune invitation réelle envoyée.
+  - Aucun compte désactivé, supprimé ou réactivé.
+  - Le rôle propriétaire reste protégé contre modification/suppression/attribution.
+  - L'isolation par compagnie est conservée dans toutes les routes et controllers.
+  - Les SweetAlert de confirmation restent explicites avec message de portée.
+- **Tests exécutés** :
+  - `php artisan view:cache` — **passé**.
+  - `php artisan test --filter=ProfileSecurityTest` — **7 tests, 35 assertions, 0 échec**.
+  - `php artisan test --filter=RoleManagementTest` — **10 tests, 64 assertions, 0 échec**.
+  - `php artisan test --filter=CatalogSaasUiTest` — **10 tests, 60 assertions, 0 échec**.
+  - `php artisan test --stop-on-failure` — **199 tests, 1193 assertions, 0 échec**.
+  - `git diff --check` — **propre**.
+- **Aucune donnée créée, modifiée, archivée, restaurée ou supprimée** pendant les contrôles visuels.
+- **Travail restant** : les tests UI dédiés Équipe n'existent pas encore. Les largeurs 1440, 1024, 768 et 390 px restent à vérifier dans le navigateur intégré. Le detail utilisateur (show) n'existe pas encore comme page dédiée.
+- **Interdictions** : ne pas réintroduire `drawCallback` avec `jQuery.css()`, `card-arrow`, `hljs-container`, `blink-badge` dans les vues Équipe. Ne pas réintroduire les attributs `type="3e072b31e4d62a351cb180e3-text/javascript"` sur les scripts. Conserver les sélecteurs `.editModal`, `.archive`, `.restore`, `.cloneUser`, `.resendInvitation`, `.revokeInvitation` et les routes AJAX existantes.
+## Mise à jour du 1er septembre 2026 — Refonte Communications et Historique des ventes
+
+### Notifications (company/notifications.blade.php)
+- Les réglages internes Ventes et Inventaire sont côte à côte dans une grille deux colonnes (`communication-settings-grid`) sur desktop, une colonne sous 768 px.
+- Les canaux E-mail, WhatsApp et SMS utilisent de vrais interrupteurs visuels accessibles (`role="switch"` avec `.saas-switch-line` et `.saas-switch-control`) ; ne pas les remplacer par des cases à cocher Bootstrap brutes.
+- Les canaux de facture client WhatsApp et SMS sont côte à côte avec le quota disponible. Les deux réglages restent indépendants des notifications internes.
+- Les destinataires utilisateurs disposent de switches compacts dans le tableau (`.recipient-switch-cell`).
+
+### Quotas (sms_quota/index.blade.php)
+- Les quantités SMS et WhatsApp sont côte à côte sur desktop via `saas-quota-form-grid`, empilées sous 768 px. Checkout KPrimePay inchangé.
+
+### Consommation (communications/index.blade.php)
+- Filtre `daterangepicker` avec raccourcis français, double calendrier, thème clair/sombre, champs `from`/`to` synchronisés.
+- Filtres dans `saas-filter-row` flex : côte à côte sur desktop, empilés sur mobile.
+
+### Historique des ventes (pos/sale/history.blade.php)
+- Cartes métriques `saas-metric` dans `saas-metric-grid` avec icônes Bootstrap.
+- Filtres `saas-accordion` avec `saas-filter-row` flex et calendrier partagé.
+- Exports : collapse avec CSV, Excel, PDF. Modale détail : `saas-modal-content`, scrollable.
+- Livraison facture : SweetAlert avec Select2 pays et switches WhatsApp/SMS.
+- Retiré : `card-arrow`, `drawCallback` avec `jQuery.css()`, styles noirs injectés, ApexCharts vides.
+- Ajouté : `saas-metric-grid-3` CSS pour pages à 3 métriques.
+
+### Tests
+- Suite complète : **206 tests, 1224 assertions, 0 échec**.
+- `CommunicationAndSalesHistorySaasUiTest`, `CommunicationHistoryTest`, `NotificationSettingsTest`.
+
+### Interdictions
+- Ne pas réintroduire `type="date"` natifs, cases à cocher Bootstrap brutes, `card-arrow`, `drawCallback` avec `jQuery.css()`, ApexCharts vides ou boutons colorés.
+- Conserver tous les sélecteurs JS et noms de champs serveur existants.

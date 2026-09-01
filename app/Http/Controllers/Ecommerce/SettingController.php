@@ -28,15 +28,9 @@ class SettingController extends Controller
     {
         $companyId = $this->context->getCompanyId();
         $company = CompanySetting::findOrFail($companyId);
-        $users = User::where('status', 1)
-            ->whereHas('memberships', fn ($query) => $query
-                ->where('company_id', $companyId)
-                ->where('status', 'active'))
-            ->orderBy('name')
-            ->get();
         $managers = $company->managerUsers;
 
-        return view('ecommerce.admin.settings', compact('company', 'users', 'managers'));
+        return view('ecommerce.admin.settings', compact('company', 'managers'));
     }
 
     public function updateSettings(Request $request)
@@ -180,6 +174,40 @@ class SettingController extends Controller
             'status' => true,
             'title' => 'RETRAIT RÉUSSI',
             'msg' => 'Le manager a été retiré.',
+        ]);
+    }
+
+    public function searchUsers(Request $request)
+    {
+        $companyId = $this->context->getCompanyId();
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $search = trim((string) ($validated['q'] ?? ''));
+        $managerUserIds = EcommerceManager::where('company_id', $companyId)->pluck('user_id');
+
+        $users = User::select(['id', 'name', 'email'])
+            ->where('status', 1)
+            ->where('id', '!=', auth()->id())
+            ->whereNotIn('id', $managerUserIds)
+            ->whereHas('memberships', fn ($query) => $query
+                ->where('company_id', $companyId)
+                ->where('status', 'active'))
+            ->when($search !== '', fn ($query) => $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            }))
+            ->orderBy('name')
+            ->paginate(20);
+
+        return response()->json([
+            'results' => $users->getCollection()->map(fn (User $user) => [
+                'id' => $user->id,
+                'text' => $user->name . ' (' . $user->email . ')',
+            ])->values(),
+            'pagination' => ['more' => $users->hasMorePages()],
         ]);
     }
 

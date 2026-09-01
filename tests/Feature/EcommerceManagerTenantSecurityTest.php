@@ -49,6 +49,9 @@ class EcommerceManagerTenantSecurityTest extends TestCase
         $this->actingAs($owner)->withSession(['active_company_id' => $companyA->id]);
 
         $this->get(route('ecommerce.settings'))
+            ->assertOk();
+
+        $this->getJson(route('ecommerce.users.search', ['q' => 'member']), ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()
             ->assertSee('member-alpha@test.local')
             ->assertDontSee('member-beta@test.local');

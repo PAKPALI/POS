@@ -1,79 +1,38 @@
-<div id="stripedRows" class="mb-5">
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-striped border mb-0">
-                <!-- <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">First</th>
-                        <th scope="col">Last</th>
-                        <th scope="col">Handle</th>
-                    </tr>
-                </thead> -->
-                <tbody>
-
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Type : </td>
-                        <td><span class="badge bg-{{ $Inventory->type === 1 ? 'primary' : 'danger' }}">{{ $Inventory->type === 1 ? 'Entrée' : 'Sortie' }}</span></td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2</th>
-                        <td>Nom : </td>
-                        <td>{{$Inventory->product->name}}</td>
-                    </tr>
-                    
-                    <tr>
-                        <th scope="row">3</th>
-                        <td>Quantité avant :</td>
-                        <td>{{$Inventory->qte_before}}</td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">4</th>
-                        <td>Quantité ajoutée :</td>
-                        <td>{{$Inventory->qte_added}}</td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">5</th>
-                        <td>Fournisseur :</td>
-                        <td>{{$Inventory->supplier ? $Inventory->supplier->name : '-'}}</td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">6</th>
-                        <td>Quantité après :</td>
-                        <td>{{$Inventory->qte_after}}</td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">7</th>
-                        <td>Note :</td>
-                        <td>{{$Inventory->note}}</td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">8</th>
-                        <td>Créé par :</td>
-                        <td>{{$Inventory->user->name}}</td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">9</th>
-                        <td>Créé le :</td>
-                        <td>{{$Inventory->created_at}}</td>
-                </tbody>
-            </table>
-        </div>
-        <div class="card-arrow">
-            <div class="card-arrow-top-left"></div>
-            <div class="card-arrow-top-right"></div>
-            <div class="card-arrow-bottom-left"></div>
-            <div class="card-arrow-bottom-right"></div>
-        </div>
-        <div class="hljs-container">
-            <pre><code class="xml" data-url="assets/data/table-elements/code-3.json"></code></pre>
-        </div>
+<div class="saas-detail-list">
+    <div>
+        <dt>Type</dt>
+        <dd><span class="saas-status-badge {{ $Inventory->type === 1 ? 'is-active' : 'is-inactive' }}">{{ $Inventory->type === 1 ? 'Entrée' : 'Sortie' }}</span></dd>
+    </div>
+    <div>
+        <dt>Produit</dt>
+        <dd>{{ $Inventory->product->name }}</dd>
+    </div>
+    <div>
+        <dt>Fournisseur</dt>
+        <dd>{{ $Inventory->supplier ? $Inventory->supplier->name : '—' }}</dd>
+    </div>
+    <div>
+        <dt>Quantité avant</dt>
+        <dd>{{ $Inventory->qte_before }}</dd>
+    </div>
+    <div>
+        <dt>Quantité saisie</dt>
+        <dd>{{ $Inventory->qte_added }}</dd>
+    </div>
+    <div>
+        <dt>Quantité après</dt>
+        <dd>{{ $Inventory->qte_after }}</dd>
+    </div>
+    <div>
+        <dt>Note</dt>
+        <dd>{{ $Inventory->note ?: '—' }}</dd>
+    </div>
+    <div>
+        <dt>Créé par</dt>
+        <dd>{{ $Inventory->user->name }}</dd>
+    </div>
+    <div>
+        <dt>Créé le</dt>
+        <dd>{{ $Inventory->created_at }}</dd>
     </div>
 </div>
