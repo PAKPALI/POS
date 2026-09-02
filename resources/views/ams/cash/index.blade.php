@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -56,22 +56,13 @@
                                 <input type="text" name="name" placeholder="Ex. Caisse principale, Caisse de taxe…" required>
                             </div>
                             <div class="col-md-4 saas-form-group">
-                                <label>Caisse principale</label>
-                                <div class="form-check form-switch" style="margin-top: 6px;">
-                                    <input class="form-check-input cash-role-toggle" type="checkbox" name="is_default" value="1">
-                                </div>
+                                <label class="saas-switch-line" for="add-cash-is-default"><span><strong>Caisse principale</strong></span><input class="saas-switch-input cash-role-toggle" type="checkbox" name="is_default" id="add-cash-is-default" value="1"><span class="saas-switch-control" aria-hidden="true"></span></label>
                             </div>
                             <div class="col-md-4 saas-form-group">
-                                <label>Caisse de taxe</label>
-                                <div class="form-check form-switch" style="margin-top: 6px;">
-                                    <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1">
-                                </div>
+                                <label class="saas-switch-line" for="add-cash-is-tax"><span><strong>Caisse de taxe</strong></span><input class="saas-switch-input cash-role-toggle" type="checkbox" name="is_tax" id="add-cash-is-tax" value="1"><span class="saas-switch-control" aria-hidden="true"></span></label>
                             </div>
                             <div class="col-md-4 saas-form-group">
-                                <label>Statut</label>
-                                <div class="form-check form-switch" style="margin-top: 6px;">
-                                    <input class="form-check-input" type="checkbox" name="status" value="1" checked>
-                                </div>
+                                <label class="saas-switch-line" for="add-cash-status"><span><strong>Statut</strong></span><input class="saas-switch-input" type="checkbox" name="status" id="add-cash-status" value="1" checked><span class="saas-switch-control" aria-hidden="true"></span></label>
                             </div>
                             <div class="col-md-12 saas-form-group mt-3">
                                 <label>Description</label>

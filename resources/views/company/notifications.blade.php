@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 @section('title', 'Configuration des communications')
 @push('styles')
-<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-16" rel="stylesheet">
 <style>
     .recipient-switch-cell { text-align: center; vertical-align: middle; }
     .recipient-toggle { display: inline-flex; align-items: center; justify-content: center; position: relative; cursor: pointer; padding: 4px 0; }

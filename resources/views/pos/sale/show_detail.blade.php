@@ -1,78 +1,10 @@
-<div id="stripedRows" class="mb-5">
-    <div class="card">
-        <div class="card-body text-center">
-            <table class="table table-striped border mb-0 text-center">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Image</th>
-                        <th scope="col">Produit</th>
-                        <th scope="col">Quantité</th>
-                        <th scope="col">prix unitaire</th>
-                        <th scope="col">prix total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $n = 1;
-                    @endphp
-                    @foreach ($Sale->saleDetails as $detail)
-                        <tr style="text-align: center;">
-                            <th scope="row">{{$n++}}</th>
-                            <th scope="row">
-                                @if ($detail->product->image)
-                                    <img class="mb-0" src="{{ asset('images/' . $detail->product->image) }}" alt="Image du produit" style="width: 75px; height: auto;">
-                                @else
-                                    Pas d'image
-                                @endif
-                            </th>
-                            <td>{{$detail->product->name}}</td>
-                            <td>{{$detail->quantity}}</td>
-                            <td>{{$detail->unit_price}}</td>
-                            <td>{{$detail->total_price}}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="card-body text-center">
-            <table class="table table-striped border mb-0 text-center">
-                <tbody>
-                    <tr>
-                        <th>Client</th>
-                        <td>{{ $Sale->client->name ?? 'Aucun' }}</td>
-                    </tr>
-                    <tr>
-                        <th>Montant initial</th>
-                        <td>{{ $Sale->amount_init }} FCFA</td>
-                    </tr>
-                    <tr>
-                        <th>Remise</th>
-                        <td>{{ $Sale->discount }} FCFA</td>
-                    </tr>
-                    <tr>
-                        <th>Montant payé</th>
-                        <td>{{ $Sale->total_amount }} FCFA</td>
-                    </tr>
-                    <tr>
-                        <th>Montant reçu</th>
-                        <td>{{ $Sale->received_amount }} FCFA</td>
-                    </tr>
-                    <tr>
-                        <th>Monnaie rendue</th>
-                        <td>{{ $Sale->remaining_amount }} FCFA</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="card-arrow">
-            <div class="card-arrow-top-left"></div>
-            <div class="card-arrow-top-right"></div>
-            <div class="card-arrow-bottom-left"></div>
-            <div class="card-arrow-bottom-right"></div>
-        </div>
-        <div class="hljs-container">
-            <pre><code class="xml" data-url="assets/data/table-elements/code-3.json"></code></pre>
-        </div>
-    </div>
-</div>
+<section class="pos-sale-detail">
+    <div class="pos-datatable-shell"><div class="table-responsive"><table class="table align-middle"><thead><tr><th scope="col">#</th><th scope="col">Image</th><th scope="col">Produit</th><th scope="col">Quantité</th><th scope="col">Prix unitaire</th><th scope="col">Prix total</th></tr></thead><tbody>
+        @foreach($Sale->saleDetails as $detail)
+            <tr><th scope="row">{{ $loop->iteration }}</th><td>@if($detail->product->image)<img class="pos-detail-product-image" src="{{ asset('images/'.$detail->product->image) }}" alt="Image de {{ $detail->product->name }}" width="64" height="64">@else<span class="saas-status-badge is-neutral">Sans image</span>@endif</td><td>{{ $detail->product->name }}</td><td>{{ $detail->quantity }}</td><td>{{ number_format($detail->unit_price, 0, ',', ' ') }} FCFA</td><td>{{ number_format($detail->total_price, 0, ',', ' ') }} FCFA</td></tr>
+        @endforeach
+    </tbody></table></div></div>
+    <dl class="saas-detail-list pos-sale-summary">
+        <div><dt>Client</dt><dd>{{ $Sale->client->name ?? 'Aucun' }}</dd></div><div><dt>Montant initial</dt><dd>{{ number_format($Sale->amount_init, 0, ',', ' ') }} FCFA</dd></div><div><dt>Remise</dt><dd>{{ number_format($Sale->discount, 0, ',', ' ') }} FCFA</dd></div><div><dt>Montant payé</dt><dd>{{ number_format($Sale->total_amount, 0, ',', ' ') }} FCFA</dd></div><div><dt>Montant reçu</dt><dd>{{ number_format($Sale->received_amount, 0, ',', ' ') }} FCFA</dd></div><div><dt>Monnaie rendue</dt><dd>{{ number_format($Sale->remaining_amount, 0, ',', ' ') }} FCFA</dd></div>
+    </dl>
+</section>

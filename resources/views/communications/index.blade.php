@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 @section('title', 'Consommation des communications')
 @push('styles')
-<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-20" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
 @endpush
 
@@ -89,8 +89,8 @@
         </div>
         <span class="saas-count-badge">{{ $logs->total() }}</span>
     </div>
-    <div class="table-responsive">
-        <table class="saas-data-table">
+    <div class="table-responsive communication-log-table-wrap">
+        <table class="saas-data-table communication-log-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -105,16 +105,16 @@
                 @forelse($logs as $log)
                     @php($functionLabel = ['sale' => 'Vente', 'inventory' => 'Inventaire', 'invoice' => 'Facture', 'other' => 'Autre'][$log->function] ?? $log->function)
                     <tr>
-                        <td>{{ $log->sent_at->format('d/m/Y H:i:s') }}</td>
+                        <td class="communication-log-date">{{ $log->sent_at->format('d/m/Y H:i:s') }}</td>
                         <td>
                             <span class="saas-status-badge {{ $log->channel === 'whatsapp' ? 'is-success' : 'is-info' }}">
-                                <i class="bi {{ $log->channel === 'whatsapp' ? 'bi-whatsapp' : 'bi-chat-text' }}"></i>
+                                <i class="bi {{ $log->channel === 'whatsapp' ? 'bi-whatsapp' : 'bi-chat-text' }}" aria-hidden="true"></i>
                                 {{ strtoupper($log->channel) }}
                             </span>
                         </td>
                         <td><span class="saas-status-badge is-neutral">{{ $functionLabel }}</span></td>
-                        <td>{{ $log->country_code ?: '—' }}</td>
-                        <td>{{ $log->recipient }}</td>
+                        <td class="communication-log-country">{{ $log->country_code ?: '—' }}</td>
+                        <td class="communication-log-recipient">{{ $log->recipient }}</td>
                         <td class="text-end"><strong>{{ $log->units }}</strong></td>
                     </tr>
                 @empty
@@ -132,7 +132,7 @@
     </div>
     <div class="saas-pagination-row">
         <span>Affichage de {{ $logs->firstItem() ?? 0 }} à {{ $logs->lastItem() ?? 0 }} sur {{ $logs->total() }} envoi(s)</span>
-        <div>{{ $logs->onEachSide(1)->links('pagination::bootstrap-5') }}</div>
+        <div class="communication-log-pagination dt-container">{{ $logs->onEachSide(1)->links('pagination::communication') }}</div>
     </div>
 </section>
 @endsection

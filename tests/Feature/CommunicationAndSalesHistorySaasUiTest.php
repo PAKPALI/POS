@@ -61,5 +61,31 @@ class CommunicationAndSalesHistorySaasUiTest extends TestCase
         $this->assertStringContainsString('saas-quota-form-grid', $quota);
         $this->assertStringContainsString('saas-daterangepicker-wrap', $consumption);
         $this->assertStringContainsString("$('#communication-period').daterangepicker", $consumption);
+        $this->assertStringContainsString('communication-log-table-wrap', $consumption);
+        $this->assertStringContainsString('communication-log-table', $consumption);
+        $this->assertStringContainsString('communication-log-pagination', $consumption);
+        $this->assertStringContainsString("pagination::communication", $consumption);
+    }
+
+    public function test_communication_journal_uses_stable_readable_columns(): void
+    {
+        $styles = file_get_contents(public_path('hub/assets/css/saas-pages.css'));
+
+        $this->assertStringContainsString('.communication-log-table { width: 100%; min-width: 840px; table-layout: fixed; }', $styles);
+        $this->assertStringContainsString('width: 16.6667%; text-align: left;', $styles);
+        $this->assertStringContainsString('.communication-log-table .communication-log-recipient', $styles);
+        $this->assertStringContainsString('.communication-log-table th:nth-child(6)', $styles);
+        $this->assertStringContainsString('.communication-log-pagination .page-link', $styles);
+        $this->assertStringContainsString('.communication-log-pagination .page-item.active .page-link', $styles);
+        $this->assertStringContainsString('.communication-log-pagination .page-item.disabled .page-link', $styles);
+        $this->assertStringContainsString('flex-wrap: nowrap;', $styles);
+
+        $pagination = file_get_contents(resource_path('views/vendor/pagination/communication.blade.php'));
+        $this->assertStringContainsString('Précédent', $pagination);
+        $this->assertStringContainsString('Suivant', $pagination);
+        $this->assertStringContainsString('aria-label="Pagination du journal des envois"', $pagination);
+        $this->assertStringContainsString('dt-paging paging_full_numbers', $pagination);
+        $this->assertStringContainsString('page-link first', $pagination);
+        $this->assertStringContainsString('page-link last', $pagination);
     }
 }

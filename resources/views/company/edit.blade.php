@@ -1,158 +1,18 @@
-<form id="update_form">
+<form id="update_form" enctype="multipart/form-data">
     @csrf
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col-6">
-                <label for="exampleInputText0">Nom</label>
-                <input type="text" name="name" value="{{$Company->name}}" class="form-control" id="exampleInputText0" placeholder="Nom">
-            </div>
-            <div class="form-group col-6">
-                <label for="exampleInputText1">Email</label>
-                <input type="text" name="email" value="{{$Company->email}}" class="form-control" id="exampleInputText1" placeholder="Email">
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="form-group col-6">
-                <label for="exampleInputText2">Numéro 1</label>
-                <input type="text" name="number1" value="{{$Company->number1}}" class="form-control" id="exampleInputText2" placeholder="Numéro 1">
-            </div>
-            <div class="form-group col-6">
-                <label for="exampleInputText3">Numéro 2</label>
-                <input type="text" name="number2" value="{{$Company->number2}}" class="form-control" id="exampleInputText3" placeholder="Numéro 2">
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="form-group col-6">
-                <label for="exampleInputText4">Adresse</label>
-                <input type="text" name="adress" value="{{$Company->adress}}" class="form-control" id="exampleInputText4" placeholder="Adresse">
-            </div>
-            <div class="form-group col-6">
-                <label for="exampleInputText5">Message</label>
-                <input type="text" name="message" value="{{$Company->message}}" class="form-control" id="exampleInputText5" placeholder="Message">
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="form-group col-6">
-                <label for="logo">Logo</label>
-                <input type="file" name="logo" class="form-control" id="logo" accept="image/*">
-                @if($Company->logo)
-                    <div class="mt-2">
-                        <img src="{{asset($Company->logo)}}" alt="Logo" style="max-height:60px;">
-                    </div>
-                @endif
-            </div>
-            <div class="form-group col-6">
-                <label for="ecommerce_active" class="d-block">Boutique en ligne</label>
-                <div class="form-check form-switch mt-2">
-                    <input type="checkbox" name="ecommerce_active" class="form-check-input" id="ecommerce_active" value="1" {{$Company->ecommerce_active ? 'checked' : ''}}>
-                    <label class="form-check-label" for="ecommerce_active">Activer</label>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="form-group col-12">
-                <label for="description">Description (pour le site ecommerce)</label>
-                <textarea name="description" class="form-control" id="description" rows="3" placeholder="Description de l'entreprise">{{$Company->description}}</textarea>
-            </div>
-        </div>
-
+    <div class="saas-form-grid">
+        <div class="saas-form-group"><label for="company_name">Nom de l’entreprise</label><input id="company_name" name="name" value="{{ $Company->name }}" required></div>
+        <div class="saas-form-group"><label for="company_email">E-mail</label><input id="company_email" name="email" type="email" value="{{ $Company->email }}" required></div>
+        <div class="saas-form-group"><label for="company_number1">Téléphone principal</label><input id="company_number1" name="number1" value="{{ $Company->number1 }}" required></div>
+        <div class="saas-form-group"><label for="company_number2">Téléphone secondaire</label><input id="company_number2" name="number2" value="{{ $Company->number2 }}"></div>
+        <div class="saas-form-group"><label for="company_address">Adresse</label><input id="company_address" name="adress" value="{{ $Company->adress }}"></div>
+        <div class="saas-form-group"><label for="company_message">Message d’accueil</label><input id="company_message" name="message" value="{{ $Company->message }}"></div>
+        <div class="saas-form-group"><label for="company_logo">Logo <span class="saas-help">PNG, JPG ou WebP, 2 Mo maximum</span></label><input id="company_logo" name="logo" type="file" accept="image/*">@if($Company->logo)<img class="saas-company-logo-preview" src="{{ asset($Company->logo) }}" alt="Logo actuel de {{ $Company->name }}">@endif</div>
+        <div class="saas-form-group"><label class="saas-switch-line" for="ecommerce_active"><span><strong>Boutique E-commerce</strong><small>Rendre la boutique publique accessible</small></span><input class="saas-switch-input" type="checkbox" name="ecommerce_active" id="ecommerce_active" value="1" {{ $Company->ecommerce_active ? 'checked' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label></div>
+        <div class="saas-form-group saas-form-group-wide"><label for="company_description">Description de la boutique</label><textarea id="company_description" name="description" rows="3">{{ $Company->description }}</textarea></div>
     </div>
-    <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning" type="submit">
-            <div class="loader spinner-grow" style="display: none;"></div>
-            <span id="submit_text">Modifier</span>
-        </button>
-    </div>
+    <div class="saas-modal-actions"><button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button><button id="submit" class="saas-btn saas-btn-primary" type="submit" data-loading-text="Enregistrement…"><i class="bi bi-check-lg" aria-hidden="true"></i> Enregistrer</button></div>
 </form>
-
 <script>
-    $(function() {
-        // Cache le loader au chargement de la page
-        $('.loader').hide();
-
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-
-        $('#submit').click(function(e) {
-            e.preventDefault();
-
-            // Affiche le loader et remplace le texte du bouton
-            $('.loader').fadeIn();
-            $('#submit_text').hide();
-            
-            var formData = new FormData($('#update_form')[0]);
-            formData.append('_method', 'PUT');
-            $.ajax({
-                data: formData,
-                url: '{{ url('setting/company/' . $Company->id) }}',
-                type: "POST",
-                dataType: 'json',
-                contentType: false,
-                processData: false,
-                success: function(data) {
-                    if (data.status) {
-                        console.log(data);
-                        // Cache le loader et remet le texte "Modifier"
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
-                        Swal.fire({
-                            toast: true,
-                            position: 'top',
-                            icon: "success",
-                            title: data.title,
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                            text: data.msg,
-                        });
-
-                        $('#editModal').modal('hide');
-                        // Le nom, l'e-mail et le logo sont aussi affichés dans les cartes du haut.
-                        // Recharger garantit que les deux représentations restent synchronisées.
-                        setTimeout(function() { window.location.reload(); }, 500);
-                    } else {
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
-                        Swal.fire({
-                            toast: true,
-                            position: 'top',
-                            icon: "error",
-                            title: data.title,
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                            text: data.msg,
-                        });
-                        $('#submit').html('Modifier');
-                    }
-                },
-                error: function(data) {
-                    console.log('Error:', data);
-                    $('.loader').fadeOut();
-                    $('#submit_text').fadeIn();
-
-                    Swal.fire({
-                        toast: true,
-                        position: 'top',
-                        icon: "error",
-                        title: 'Erreur',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true,
-                        text: 'Une erreur est survenue, veuillez réessayer.',
-                    });
-                    $('#submit').html('Modifier');
-                }
-            });
-        });
-    });
+$('#update_form').on('submit',function(e){e.preventDefault();const form=this,button=document.getElementById('submit'),data=new FormData(form);data.append('_method','PUT');window.ServerButtonLoader.withLoader(button,fetch('{{ url('setting/company/' . $Company->id) }}',{method:'POST',body:data,headers:{Accept:'application/json'}}).then(r=>r.json()).then(result=>{if(!result.status)throw new Error(result.msg||'Enregistrement impossible');return Swal.fire({toast:true,position:'top',icon:'success',title:'Enregistré',text:result.msg,showConfirmButton:false,timer:1800}).then(()=>location.reload())})).catch(error=>Swal.fire({icon:'error',title:'Enregistrement impossible',text:error.message}))});
 </script>

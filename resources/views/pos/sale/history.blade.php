@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 @section('title', 'Historique des ventes')
 @push('styles')
-<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
 <link href="{{ asset('hub/assets/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet">
 <link href="{{ asset('hub/assets/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css') }}" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
@@ -277,7 +277,7 @@ $(function() {
     $('#exportSalesPdf').on('click', function() {
         var tableInfo = Datatable.page.info();
         if (!tableInfo || tableInfo.recordsDisplay === 0) {
-            Swal.fire({ icon: 'info', title: 'Aucune donnée à exporter', text: 'Aucune vente ne correspond aux filtres sélectionnés.', confirmButtonText: "D'accord", confirmButtonColor: '#0dcaf0' });
+            Swal.fire({ icon: 'info', title: 'Aucune donnée à exporter', text: 'Aucune vente ne correspond aux filtres sélectionnés.', confirmButtonText: "D'accord", buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' } });
             return;
         }
         var params = new URLSearchParams({

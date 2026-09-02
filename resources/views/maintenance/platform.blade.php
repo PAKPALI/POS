@@ -1,1 +1,10 @@
-<!doctype html><html lang="fr" data-bs-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maintenance — {{ config('app.name') }}</title><link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet"><link href="{{ asset('hub/assets/css/app.min.css') }}" rel="stylesheet"><style>body{min-height:100vh;background:#080d18}.wrap{min-height:100vh;display:grid;place-items:center;padding:20px}.card{max-width:620px;text-align:center;background:#111827;border:1px solid #334155;border-radius:22px;padding:42px}.icon{font-size:60px;color:#ff9f43}</style></head><body><div class="wrap"><main class="card"><div class="icon"><i class="bi bi-tools"></i></div><h1>Maintenance en cours</h1><p class="text-secondary fs-5">{{ $message }}</p>@if($supportEmail)<a href="mailto:{{ $supportEmail }}" class="btn btn-outline-warning">Contacter le support</a>@endif</main></div></body></html>
+@extends('layouts.public-auth')
+@section('title', 'Maintenance')
+@section('content')
+<div class="auth-flow text-center">
+    <div class="maintenance-icon" aria-hidden="true"><i class="bi bi-tools"></i></div>
+    <div class="auth-flow-heading"><p class="auth-flow-kicker">Intervention planifiée</p><h1>Maintenance en cours</h1><p>{{ $message }}</p></div>
+    @if($supportEmail)<a href="mailto:{{ $supportEmail }}" class="saas-btn saas-btn-secondary">Contacter le support</a>@endif
+</div>
+@endsection
+@push('styles')<link href="{{ asset('hub/assets/css/error-pages.css') }}?v=20260902-1" rel="stylesheet">@endpush

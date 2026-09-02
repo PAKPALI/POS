@@ -49,6 +49,43 @@ class CatalogSaasUiTest extends TestCase
         $this->assertStringContainsString("customClass: { popup: 'saas-swal saas-swal-danger'", $contents);
     }
 
+    public function test_product_and_supplier_edit_modals_use_shared_saas_actions(): void
+    {
+        foreach (['product', 'supplier'] as $view) {
+            $index = file_get_contents(resource_path("views/component/{$view}/index.blade.php"));
+            $edit = file_get_contents(resource_path("views/component/{$view}/edit.blade.php"));
+
+            $this->assertStringContainsString('saas-modal-content', $index);
+            $this->assertStringContainsString('saas-modal-header', $index);
+            $this->assertStringContainsString('saas-modal-close', $index);
+            $this->assertStringContainsString('saas-btn saas-btn-ghost', $edit);
+            $this->assertStringContainsString('saas-btn saas-btn-warning', $edit);
+            $this->assertStringContainsString('saas-modal-actions', $edit);
+            $this->assertStringContainsString('data-loading-text="Enregistrement…"', $edit);
+            $this->assertStringNotContainsString('spinner-grow', $edit);
+            $this->assertStringNotContainsString('submit_text', $edit);
+        }
+    }
+
+    public function test_update_forms_use_cancel_then_save_actions(): void
+    {
+        foreach ([
+            'component/client/edit.blade.php',
+            'component/menu/edit.blade.php',
+            'ams/cash/edit.blade.php',
+            'code/edit.blade.php',
+            'user/edit.blade.php',
+        ] as $view) {
+            $contents = file_get_contents(resource_path("views/{$view}"));
+
+            $this->assertStringContainsString('saas-modal-actions', $contents, "{$view} must use the shared modal action row.");
+            $this->assertStringContainsString('saas-btn saas-btn-ghost', $contents, "{$view} must expose Annuler.");
+            $this->assertStringContainsString('>Annuler</button>', preg_replace('/\s+/', '', $contents));
+            $this->assertStringContainsString('Enregistrer', $contents, "{$view} must expose Enregistrer.");
+            $this->assertStringContainsString('data-loading-text="Enregistrement…"', $contents, "{$view} must expose server loading feedback.");
+        }
+    }
+
     public function test_catalog_styles_include_mobile_full_screen_modals(): void
     {
         $contents = file_get_contents(public_path('hub/assets/css/saas-pages.css'));
@@ -56,6 +93,9 @@ class CatalogSaasUiTest extends TestCase
         $this->assertStringContainsString('.saas-body .modal:not(.show)', $contents);
         $this->assertStringContainsString('@media (max-width: 767px)', $contents);
         $this->assertStringContainsString('min-height: 100dvh', $contents);
+        $this->assertStringContainsString('Short modals keep their natural height', $contents);
+        $this->assertStringContainsString('max-height: calc(100dvh - 8rem)', $contents);
+        $this->assertStringContainsString('height: auto;', $contents);
     }
 
     public function test_catalog_plugins_are_loaded_after_the_saas_vendor_bundle(): void

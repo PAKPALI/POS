@@ -11,11 +11,13 @@
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
-    <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260901-9" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260902-10" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     @stack('styles')
 </head>
 <body class="saas-body @yield('body-class')">
+    @include('partials.navigation-loader')
     <div class="saas-shell" id="saasShell">
         @include('partials.saas-sidebar')
         <button class="saas-sidebar-backdrop" type="button" data-saas-sidebar-close aria-label="Fermer le menu"></button>
@@ -39,8 +41,9 @@
 
     <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
     <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
-    <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260901-3"></script>
+    <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
     <script src="{{ asset('hub/assets/js/saas-shell.js') }}?v=20260901-3"></script>
+    <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="{{ asset('pwa-register.js') }}" defer></script>
     @stack('scripts')

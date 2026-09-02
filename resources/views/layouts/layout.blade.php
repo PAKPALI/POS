@@ -14,6 +14,7 @@
 		<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
+		<link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
 		@include('partials.design-system-head')
 		<!-- <link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet"> -->
 		<!-- DataTables CSS -->
@@ -108,6 +109,7 @@
 </head>
 
 	<body>
+		@include('partials.navigation-loader')
 		<div id="page-preloader">
 			<img src="{{asset('hub/assets/img/logo.png')}}" alt="Chargement...">
 		</div>
@@ -335,7 +337,8 @@
 		<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"8a3d40de7d4c8877","version":"2024.6.1","r":1,"serverTiming":{"name":{"cfL4":true}},"token":"4db8c6ef997743fda032d4f73cfeff63","b":1}' crossorigin="anonymous"></script>
 		<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 		<script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
-		<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260901-3"></script>
+		<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
+		<script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-1"></script>
 		<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 		<!-- DataTables JS -->
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>

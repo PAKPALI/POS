@@ -6,6 +6,7 @@ use App\Http\Controllers\AMS\SettingController;
 use App\Http\Controllers\AMS\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
+use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\CodePromo\CodePromoController;
 use App\Http\Controllers\Company\CompanyController;
 use App\Http\Controllers\Company\SwitchCompanyController;
@@ -112,7 +113,24 @@ Route::prefix('platform')->name('platform.')->group(function () {
 /*manage user*/
 
 // register
-Route::get('', function () {
+Route::get('/', [MarketingController::class, 'home'])->name('marketing.home');
+
+Route::get('/fonctionnalites', fn () => app(MarketingController::class)->page('fonctionnalites'))->name('marketing.features');
+Route::get('/factures-sms-whatsapp', fn () => app(MarketingController::class)->page('factures-sms-whatsapp'))->name('marketing.invoices');
+Route::get('/secteurs', fn () => app(MarketingController::class)->page('secteurs'))->name('marketing.sectors');
+Route::get('/tarifs', fn () => view('marketing.pricing', ['pricing' => config('marketing.plans'), 'pricingNote' => config('marketing.pricing_note')]))->name('marketing.pricing');
+Route::get('/securite', fn () => app(MarketingController::class)->page('securite'))->name('marketing.security');
+Route::get('/aide', fn () => app(MarketingController::class)->page('aide'))->name('marketing.help');
+Route::get('/mentions-legales', fn () => app(MarketingController::class)->page('mentions-legales'))->name('marketing.legal');
+Route::redirect('/connexion', '/user_login')->name('marketing.login');
+Route::redirect('/inscription', '/register')->name('marketing.register');
+Route::get('/sitemap.xml', function () {
+    $paths = ['', 'fonctionnalites', 'factures-sms-whatsapp', 'secteurs', 'tarifs', 'securite', 'aide', 'mentions-legales'];
+    return response()->view('marketing.sitemap', ['urls' => array_map(fn ($path) => url('/'.ltrim($path, '/')), $paths)], 200, ['Content-Type' => 'application/xml']);
+})->name('marketing.sitemap');
+Route::get('/robots.txt', fn () => response("User-agent: *\nAllow: /\nSitemap: ".route('marketing.sitemap')."\n", 200, ['Content-Type' => 'text/plain']))->name('marketing.robots');
+
+Route::get('/old-entry', function () {
     if (!User::exists()) {
         return view('admin/register');
     }

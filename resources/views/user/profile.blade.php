@@ -7,8 +7,8 @@
 @section('content')
 @php
     $user = auth()->user();
-    $mode = in_array($user->appearance_mode, ['system', 'dark', 'light'], true) ? $user->appearance_mode : 'system';
-    $accent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $user->accent_color) ? strtoupper($user->accent_color) : '#FF9F43';
+    $mode = in_array($user->appearance_mode, ['system', 'dark', 'light'], true) ? $user->appearance_mode : 'dark';
+    $accent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $user->accent_color) ? strtoupper($user->accent_color) : '#3B82F6';
 @endphp
 
 <section class="saas-page-heading profile-page-heading">
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const appearanceForm = document.getElementById('profileAppearanceForm');
     const accentText = document.getElementById('profileAccentText');
     const accentPicker = document.getElementById('profileAccentPicker');
-    const currentMode = () => appearanceForm.querySelector('input[name="appearance_mode"]:checked')?.value || 'system';
+    const currentMode = () => appearanceForm.querySelector('input[name="appearance_mode"]:checked')?.value || 'dark';
     const appearanceCollapses = [...appearanceForm.querySelectorAll('.profile-appearance-collapse')];
     appearanceCollapses.forEach((collapse) => collapse.addEventListener('toggle', () => {
         if (collapse.open) appearanceCollapses.filter((item) => item !== collapse).forEach((item) => { item.open = false; });
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     appearanceForm.querySelectorAll('input[name="appearance_mode"]').forEach((input) => input.addEventListener('change', () => { document.querySelectorAll('.profile-mode').forEach((choice) => choice.classList.toggle('is-selected', choice.contains(input))); document.getElementById('profileModeSummary').textContent = input.dataset.modeLabel; preview(accentText.value); }));
     document.querySelectorAll('#profileAccentSwatches [data-accent]').forEach((swatch) => swatch.addEventListener('click', () => preview(swatch.dataset.accent)));
     accentPicker.addEventListener('input', () => preview(accentPicker.value)); accentText.addEventListener('change', () => preview(accentText.value));
-    document.getElementById('profileResetAppearance').addEventListener('click', () => preview('#FF9F43'));
+    document.getElementById('profileResetAppearance').addEventListener('click', () => preview('#3B82F6'));
     appearanceForm.addEventListener('submit', function (event) { event.preventDefault(); const button = event.submitter; window.ServerButtonLoader.withLoader(button, () => submitJson(this, (data) => window.DesignSystem.apply({ mode: data.appearance.mode, accent: data.appearance.accent })), 'Enregistrement…').catch((error) => showFeedback('error', error.message)); });
     preview(accentText.value);
 });

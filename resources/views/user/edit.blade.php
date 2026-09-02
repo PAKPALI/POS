@@ -27,7 +27,8 @@
             </select>
         </div>
     </div>
-    <div class="d-flex justify-content-end mt-3" style="border-top: 1px solid var(--ds-border-soft); padding-top: 16px;">
+    <div class="saas-modal-actions">
+        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
         <button id="submit" class="saas-btn saas-btn-warning" type="submit" data-loading-text="Enregistrement…">
             <i class="bi bi-check-lg"></i> Enregistrer
         </button>

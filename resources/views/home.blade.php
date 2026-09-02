@@ -1,23 +1,6 @@
-@extends('layouts.app')
-
+@extends('layouts.saas')
+@section('title', 'Accueil')
+@section('page-title', 'Accueil')
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Dashboard') }}</div>
-
-                <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    {{ __('You are logged in!') }}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<x-ui.empty-state icon="bi-arrow-right-circle" title="Votre espace est prêt" description="Utilisez la navigation pour accéder à la première fonctionnalité autorisée."><a class="saas-btn saas-btn-primary" href="{{ route('dashboard') }}">Ouvrir le tableau de bord</a></x-ui.empty-state>
 @endsection

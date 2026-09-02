@@ -2,7 +2,7 @@
 @section('title', 'Menus')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
@@ -108,7 +108,7 @@
                         <!-- update modal -->
                         <div class="modal" id="editModal">
                             <div class="modal-dialog modal-xl">
-                                <div class="modal-content">
+                                <div class="modal-content saas-modal-content saas-modal-warning">
                                     <div class="modal-header modal-header-accent modal-header-warning">
                                         <h3 class="modal-title">Modifier le menu</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -456,10 +456,10 @@
                     title: "Etes vous sur de vouloir désactiver cet utilisateur?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
-                    confirmButtonColor: 'red',
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal saas-swal-danger', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },
                     showCancelButton: true,
                     cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
                 }).then((result) => {
                     if (result.isConfirmed){
                         $.ajax({
@@ -517,10 +517,10 @@
                     title: "Etes vous sur de vouloir archiver ce menu?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
-                    confirmButtonColor: 'red',
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal saas-swal-danger', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },
                     showCancelButton: true,
                     cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
                 }).then((result) => {
                     if (result.isConfirmed){
                         $.ajax({
@@ -569,10 +569,10 @@
                     title: "Etes vous sur de vouloir restaurer ce menu?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
-                    confirmButtonColor: 'green',
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' },
                     showCancelButton: true,
                     cancelButtonText: "Non",
-                    cancelButtonColor: 'blue',
                 }).then((result) => {
                     if (result.isConfirmed){
                         $.ajax({

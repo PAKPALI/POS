@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -190,7 +190,7 @@
                 inputAttributes: {maxlength: 500},
                 inputValidator: value => !value?.trim() ? 'Indiquez le motif de l\'annulation.' : undefined,
                 showCancelButton: true, confirmButtonText: 'Oui, annuler', cancelButtonText: 'Retour',
-                confirmButtonColor: '#dc3545', showLoaderOnConfirm: true,
+                buttonsStyling: false, customClass: { popup: 'saas-swal saas-swal-danger', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' }, showLoaderOnConfirm: true,
                 allowOutsideClick: () => !Swal.isLoading(), allowEscapeKey: () => !Swal.isLoading(),
                 preConfirm: function(reason) {
                     return $.post("{{ route('ecommerce.orders.cancel', $order->id) }}", {_token: "{{ csrf_token() }}", reason: reason})

@@ -1,48 +1,10 @@
-<div id="stripedRows" class="mb-5">
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-striped border mb-0">
-                <div class=" mb-5 bg-light text-center">
-                    <img src="{{ asset('storage/' . $CodePromo->qr_code) }}" alt="Code Barre">
-                </div>
-                
-                <tbody>
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Nom : </td>
-                        <td>{{$CodePromo->name}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Code : </td>
-                        <td>{{$CodePromo->code}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Pourcentage : </td>
-                        <td>{{$CodePromo->percents}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Description : </td>
-                        <td>{{$CodePromo->comments}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2</th>
-                        <td>Créer par :</td>
-                        <td>{{$CodePromo->user->name}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="card-arrow">
-            <div class="card-arrow-top-left"></div>
-            <div class="card-arrow-top-right"></div>
-            <div class="card-arrow-bottom-left"></div>
-            <div class="card-arrow-bottom-right"></div>
-        </div>
-        <div class="hljs-container">
-            <pre><code class="xml" data-url="assets/data/table-elements/code-3.json"></code></pre>
-        </div>
-    </div>
-</div>
+<section class="saas-detail-hero">
+    <div class="saas-detail-media"><img src="{{ asset('storage/'.$CodePromo->qr_code) }}" alt="Code QR du code promotionnel {{ $CodePromo->code }}" width="180" height="180"></div>
+    <dl class="saas-detail-list">
+        <div><dt>Nom</dt><dd>{{ $CodePromo->name }}</dd></div>
+        <div><dt>Code</dt><dd><code>{{ $CodePromo->code }}</code></dd></div>
+        <div><dt>Pourcentage</dt><dd>{{ $CodePromo->percents }} %</dd></div>
+        <div><dt>Description</dt><dd>{{ $CodePromo->comments ?: 'Aucune description' }}</dd></div>
+        <div><dt>Créé par</dt><dd>{{ $CodePromo->user->name }}</dd></div>
+    </dl>
+</section>

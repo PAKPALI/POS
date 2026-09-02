@@ -6,34 +6,23 @@
             <input id="cash-name" type="text" name="name" value="{{ $cashAccount->name }}" required autofocus>
         </div>
         <div class="col-md-4 saas-form-group">
-            <label>Caisse principale</label>
-            <div class="form-check form-switch" style="margin-top: 6px;">
-                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_default" value="1"
-                    {{ $cashAccount->is_default ? 'checked' : '' }}>
-            </div>
+            <label class="saas-switch-line" for="cash-is-default"><span><strong>Caisse principale</strong><small>Utilisée par défaut pour les ventes</small></span><input class="saas-switch-input cash-role-toggle" type="checkbox" name="is_default" id="cash-is-default" value="1" {{ $cashAccount->is_default ? 'checked' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
         </div>
         <div class="col-md-4 saas-form-group">
-            <label>Caisse de taxe</label>
-            <div class="form-check form-switch" style="margin-top: 6px;">
-                <input class="form-check-input cash-role-toggle" type="checkbox" name="is_tax" value="1"
-                    {{ $cashAccount->is_tax ? 'checked' : '' }}>
-            </div>
+            <label class="saas-switch-line" for="cash-is-tax"><span><strong>Caisse de taxe</strong><small>Réservée aux opérations de taxe</small></span><input class="saas-switch-input cash-role-toggle" type="checkbox" name="is_tax" id="cash-is-tax" value="1" {{ $cashAccount->is_tax ? 'checked' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
         </div>
         <div class="col-md-4 saas-form-group">
-            <label>Statut</label>
-            <div class="form-check form-switch" style="margin-top: 6px;">
-                <input class="form-check-input" type="checkbox" name="status" value="1"
-                    {{ $cashAccount->status ? 'checked' : '' }}>
-            </div>
+            <label class="saas-switch-line" for="cash-status"><span><strong>Statut</strong><small>Autoriser l’utilisation de cette caisse</small></span><input class="saas-switch-input" type="checkbox" name="status" id="cash-status" value="1" {{ $cashAccount->status ? 'checked' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
         </div>
         <div class="col-md-12 saas-form-group mt-3">
             <label>Description</label>
             <textarea name="description">{{ $cashAccount->description }}</textarea>
         </div>
     </div>
-    <div class="d-flex justify-content-end mt-3" style="border-top: 1px solid var(--ds-border-soft); padding-top: 16px;">
-        <button class="saas-btn saas-btn-warning" type="submit" data-loading-text="Modification en cours…">
-            <i class="bi bi-pencil" aria-hidden="true"></i><span>Modifier</span>
+    <div class="saas-modal-actions">
+        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
+        <button class="saas-btn saas-btn-warning" type="submit" data-loading-text="Enregistrement…">
+            <i class="bi bi-check-lg" aria-hidden="true"></i><span>Enregistrer</span>
         </button>
     </div>
 </form>

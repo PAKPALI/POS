@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
@@ -225,11 +225,20 @@
                 </thead>
                 <tbody>
                     @foreach($invitations as $invitation)
+                        @php
+                            $invitationStatusClass = match (true) {
+                                $invitation->isAccepted() => 'is-active',
+                                (bool) $invitation->declined_at => 'is-danger',
+                                (bool) $invitation->revoked_at => 'is-neutral',
+                                $invitation->isExpired() => 'is-expired',
+                                default => 'is-pending',
+                            };
+                        @endphp
                         <tr>
                             <td style="font-weight: 600;">{{ $invitation->email }}</td>
                             <td>{{ $invitation->role?->name ?? 'Rôle supprimé' }}</td>
                             <td>
-                                <span class="saas-status-badge {{ $invitation->status === 'pending' ? 'is-pending' : ($invitation->status === 'accepted' ? 'is-active' : 'is-inactive') }}">
+                                <span class="saas-status-badge {{ $invitationStatusClass }}">
                                     {{ $invitation->status_label }}
                                 </span>
                             </td>

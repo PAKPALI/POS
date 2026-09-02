@@ -113,8 +113,8 @@ class ProfileSecurityTest extends TestCase
 
         $this->assertSame('light', $user->fresh()->appearance_mode);
         $this->assertSame('#7C5CFC', $user->fresh()->accent_color);
-        $this->assertSame('system', $victim->fresh()->appearance_mode);
-        $this->assertSame('#FF9F43', $victim->fresh()->accent_color);
+        $this->assertSame('dark', $victim->fresh()->appearance_mode);
+        $this->assertSame('#3B82F6', $victim->fresh()->accent_color);
     }
 
     public function test_appearance_preferences_reject_invalid_values(): void
@@ -127,8 +127,8 @@ class ProfileSecurityTest extends TestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['appearance_mode', 'accent_color']);
 
-        $this->assertSame('system', $user->fresh()->appearance_mode);
-        $this->assertSame('#FF9F43', $user->fresh()->accent_color);
+        $this->assertSame('dark', $user->fresh()->appearance_mode);
+        $this->assertSame('#3B82F6', $user->fresh()->accent_color);
     }
 
     private function authenticatedUsers(): array

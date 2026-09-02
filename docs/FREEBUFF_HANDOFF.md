@@ -804,6 +804,49 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - **Aucune donnée créée, modifiée, archivée, restaurée ou supprimée** pendant les contrôles visuels.
 - **Travail restant** : les tests UI dédiés Équipe n'existent pas encore. Les largeurs 1440, 1024, 768 et 390 px restent à vérifier dans le navigateur intégré. Le detail utilisateur (show) n'existe pas encore comme page dédiée.
 - **Interdictions** : ne pas réintroduire `drawCallback` avec `jQuery.css()`, `card-arrow`, `hljs-container`, `blink-badge` dans les vues Équipe. Ne pas réintroduire les attributs `type="3e072b31e4d62a351cb180e3-text/javascript"` sur les scripts. Conserver les sélecteurs `.editModal`, `.archive`, `.restore`, `.cloneUser`, `.resendInvitation`, `.revokeInvitation` et les routes AJAX existantes.
+## Mise à jour du 2 septembre 2026 — correctif de défilement des modales
+
+- **Problème** : les modales contenant beaucoup de contenu pouvaient rester figées sur mobile, car la chaîne de hauteur flex n’était pas complète et les contraintes `min-height`/`max-height` se contredisaient.
+- **Correctif** : `public/hub/assets/css/design-system.css` impose désormais `dialog → content → body` en flex, avec `min-height: 0`, corps seul défilable, défilement tactile iOS et `overscroll-behavior: contain`. Sous 768 px, la modale occupe `100dvh` sans empêcher le défilement interne.
+- **Portée** : layouts SaaS, legacy et POS via `partials/design-system-head.blade.php`. Le POS conserve ses règles spécialisées de footer/header et bénéficie du contrat global.
+- **Version cache** : `design-system.css?v=20260902-2` dans `resources/views/partials/design-system-head.blade.php`.
+- **Validation** : `php artisan view:cache`, `git diff --check`, `SettingsSaasUiTest` — 4 tests, 22 assertions, 0 échec. Aucun formulaire, upload, paiement ou appel fournisseur déclenché.
+- **Non testé visuellement** : navigateur authentifié mobile, faute de session disponible ; prévoir une vérification réelle à 390×844 avec contenu long et fermeture par bouton/Échap.
+
+## Mise à jour du 2 septembre 2026 — refonte du hub Paramètres
+
+- **Périmètre livré** : hub Paramètres entreprise, sélection d’entreprise, identité/coordonnées, création, édition et détail AJAX ; liens distincts vers communications, comptabilité, E-commerce et préférences personnelles.
+- **Fichiers modifiés** : `resources/views/company/index.blade.php`, `resources/views/company/create.blade.php`, `resources/views/company/edit.blade.php`, `resources/views/company/show.blade.php`, `public/hub/assets/css/saas-pages.css`, plus les versions CSS des vues notifications, comptabilité et E-commerce.
+- **Décisions UI/UX** : migration du hub sur `layouts.saas`, cartes d’entreprise, grille des domaines, tableau dans une enveloppe à défilement local, modales structurées et formulaires responsives ; scripts DataTables dans `@push('scripts')` et loader partagé.
+- **Sécurité préservée** : contrats de routes/champs/IDs conservés, compagnie active toujours résolue côté serveur, aucun logo/fichier réel téléversé, aucun secret affiché, aucune action métier ou communication déclenchée.
+- **Tests** : `php artisan view:cache` passé ; `git diff --check` passé ; `SettingsSaasUiTest` — 3 tests, 18 assertions, 0 échec. Les tests métier lancés en parallèle ont rencontré l’état déjà documenté de la base `pos_testing` (`migrations` absente / tables concurrentes) et doivent être relancés séquentiellement après restauration autorisée de la base de test uniquement.
+- **Non testé** : contrôle navigateur manuel authentifié aux quatre dimensions demandé (1440×900, 1024×768, 768×1024, 390×844), car aucune session navigateur/outillage visuel exploitable n’était disponible dans cette session. Aucun test visuel n’a enregistré de paramètre, téléversé de fichier, appelé un fournisseur externe ou déclenché paiement/communication.
+- **Risque restant** : les pages plateforme gardent leur layout plateforme dédié ; elles ne doivent pas être fusionnées avec le contexte compagnie. Les partials d’édition compagnie sont injectés dans des modales et doivent être contrôlés au clavier lors de la prochaine recette navigateur.
+
+## Mise à jour du 2 septembre 2026 — harmonisation des modales Produit et Fournisseur
+
+- Les modales d’édition Produit et Fournisseur utilisent maintenant le même conteneur SaaS, l’en-tête accessible et les actions `saas-btn` que Catégorie.
+- Les actions affichent Annuler/Enregistrer avec icône, état de chargement partagé et styles warning cohérents ; les anciens spinners Bootstrap et le footer divergent ont été retirés.
+- Les routes, noms de champs, sélecteurs AJAX et isolation métier sont inchangés. Aucun formulaire, upload ou appel externe n’a été déclenché.
+- Validation : `php artisan view:cache`, `php artisan test --filter=CatalogSaasUiTest` — 11 tests, 78 assertions, 0 échec ; `git diff --check` passé.
+
+## Mise à jour du 2 septembre 2026 — hauteur naturelle des modales
+
+- Les modales SaaS courtes ne forcent plus une hauteur plein écran : elles s’arrêtent désormais quelques pixels après le dernier contenu utile.
+- Les modales longues conservent un défilement interne du corps, avec une hauteur maximale adaptée à la fenêtre et aux mobiles (`100dvh`).
+- Le cache CSS a été versionné en `20260902-17` sur les écrans SaaS concernés afin que le correctif soit pris en compte partout.
+- Aucun formulaire, fichier, secret, paiement, e-mail, SMS, WhatsApp ou connexion externe n’a été déclenché pendant le contrôle.
+
+## Mise à jour du 2 septembre 2026 — formatage du Journal des envois
+
+- La table paginée de Communications → Consommation utilise désormais des colonnes stables : date et pays non coupés, badges de canal/fonction lisibles, destinataire avec retour à la ligne contrôlé et unités alignées à droite.
+- Sur mobile, la largeur minimale est contenue dans une enveloppe avec défilement horizontal local ; la page ne déborde pas.
+- Le correctif est limité à la présentation et n’altère ni la pagination, ni les filtres, ni les données de communication. Aucun envoi n’a été déclenché.
+- Validation : `php artisan view:cache`, `php artisan test --filter=CommunicationAndSalesHistorySaasUiTest`, `git diff --check`.
+- La pagination serveur du journal reprend maintenant le rendu DataTables des listes Produit : boutons Précédent/Suivant et pages avec dimensions, bordures, états actif/désactivé et alignement cohérents.
+- Après vérification visuelle authentifiée, le markup reprend aussi les six contrôles DataTables v2 (`Premier`, `Précédent`, pages, `Suivant`, `Dernier`) et reste sur une seule ligne à 390 px avec défilement horizontal local de la pagination.
+- Vérification visuelle complémentaire : les six colonnes du journal ont désormais une largeur égale (`16.6667%`) ; à 1440/1280 px comme à 390 px, la colonne Unités ne prend plus d’espace disproportionné. Le tableau conserve un scroll horizontal local mobile.
+
 ## Mise à jour du 1er septembre 2026 — Refonte Communications et Historique des ventes
 
 ### Notifications (company/notifications.blade.php)
@@ -834,3 +877,52 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 ### Interdictions
 - Ne pas réintroduire `type="date"` natifs, cases à cocher Bootstrap brutes, `card-arrow`, `drawCallback` avec `jQuery.css()`, ApexCharts vides ou boutons colorés.
 - Conserver tous les sélecteurs JS et noms de champs serveur existants.
+
+## Mise à jour du 2 septembre 2026 — actions cohérentes des modals d’édition
+
+- Les formulaires d’édition Client, Menu, Caisse, Code promo et Utilisateur utilisent maintenant la même rangée d’actions : **Annuler** puis **Enregistrer**.
+- Les libellés ambigus « Modifier » et les anciens spinners locaux ont été retirés des formulaires concernés ; les attentes serveur utilisent le loader partagé lorsqu’il était nécessaire.
+- Les routes, méthodes HTTP, noms de champs, IDs JavaScript, validations et événements `datatableUpdated` sont inchangés.
+- Le modal de modification du Code promo reprend également le conteneur SaaS afin d’aligner son en-tête avec les autres écrans.
+- Validation technique : test UI ciblé, `php artisan view:cache` et `git diff --check`. Contrôle navigateur authentifié non réalisé dans cette session ; aucune donnée métier n’a été modifiée.
+
+## Mise à jour du 2 septembre 2026 — généralisation des boutons switch
+
+- Les cases de configuration Caisse (création et modification), Boutique E-commerce et canaux WhatsApp/SMS du POS utilisent désormais le switch SaaS préféré.
+- Les noms de champs, IDs (`cash-role-toggle`, `invoiceWhatsapp`, `invoiceSms`), valeurs, états `checked`/`disabled` et comportements JavaScript sont conservés.
+- Le POS embarque la primitive switch dans `saas-pos.css`, version cache `20260902-35`, sans dépendre de la feuille Bootstrap pour l’affichage.
+- Les cases de sélection multiple des permissions et les cases de connexion « Se souvenir de moi » restent des cases à cocher, car elles ne représentent pas un état marche/arrêt unique.
+
+## Mise à jour du 2 septembre 2026 — clôture locale du design system
+
+- **Invitation publique finalisée** : `auth/invitation.blade.php` utilise maintenant `layouts.public-auth`, les composants `x-ui.*`, les tokens `--ds-*`, une zone interne défilable mobile et la révélation accessible des mots de passe. Routes, jeton, acceptation/refus et cas compte existant/nouveau sont inchangés.
+- **Authentification plateforme finalisée** : connexion, 2FA, mot de passe oublié et réinitialisation utilisent le nouveau `layouts.platform-auth` et `platform-auth.css`, sans `app.min.css`, styles complets inline ni couleurs locales.
+- **Shell plateforme finalisé** : `layouts.platform` ne charge plus `app.min.css` ni `app.min.js`. `platform-components.css` normalise formulaires, tableaux, boutons, pagination, modales, focus, responsive et réduction des mouvements sans fusionner les gardes plateforme et compagnie.
+- **Bibliothèque partagée complète** : les 19 composants prescrits sont présents dans `resources/views/components/ui`. Codes promotionnels, sélection de compagnie, invitation et authentification plateforme utilisent les primitives partagées. Le composant mot de passe et `design-system.js` garantissent un contrôle de révélation accessible à tout champ mot de passe, y compris les contenus injectés dynamiquement.
+- **Nettoyage** : couleurs SweetAlert locales retirées des écrans Catalogue, E-commerce, Historique et POS concernés ; détails Code promo et Vente débarrassés de `card-arrow`/`hljs-container`; maintenance, accueil et erreur 403 basculés sur les nouveaux shells.
+- **Versions d’assets** : `design-system.js?v=20260902-6`, `saas-shell.css?v=20260902-10`, `saas-pos.css?v=20260902-37`, `platform.css?v=20260902-2`, `platform-components.css?v=20260902-1`, `platform-auth.css?v=20260902-2`, `invitation.css?v=20260902-1`, `password-toggle.css?v=20260902-1`.
+- **Recette navigateur authentifiée non destructive** : Dashboard, Codes promo, sélection d’entreprise, Historique, Inventaire et POS vérifiés à 390 et 1440 px ; Dashboard, Codes promo et POS vérifiés aussi à 320, 480, 768, 1024 et 1600 px. Aucun débordement horizontal réel. La modale Codes promo à 390 px est plein écran, son corps seul défile, Échap ferme la fenêtre et le focus revient au déclencheur. Aucune erreur ou alerte console.
+- **Validation technique finale** : `php artisan view:cache` réussi, `git diff --check` propre, suite complète **220 tests, 1 381 assertions, 0 échec**. `CompanyInvitationFlowTest` valide les cinq scénarios après migration de la vue.
+- **Sécurité de la recette** : aucune vente, suppression, invitation, facture, communication, export, paiement, modification plateforme ou donnée métier n’a été déclenché dans le navigateur.
+- Les anciens layouts historiques restent présents comme fichiers de compatibilité, mais aucune vue active ne les étend encore. Ne les réutiliser pour aucun nouvel écran.
+
+## Mise à jour du 2 septembre 2026 — intégration du site vitrine marketing
+
+- **Périmètre livré** : domaine racine `/` remplacé par un accueil commercial POS SaaS Afrique ; pages `/fonctionnalites`, `/factures-sms-whatsapp`, `/secteurs`, `/tarifs`, `/securite`, `/aide` et `/mentions-legales` ; raccourcis `/connexion` et `/inscription` reliés respectivement à `/user_login` et `/register`.
+- **Fichiers structurants ajoutés** : `app/Http/Controllers/MarketingController.php`, `config/marketing.php`, `resources/views/layouts/marketing.blade.php`, `resources/views/marketing/*`, `public/hub/assets/css/marketing.css`, `public/hub/assets/js/marketing.js`, `tests/Feature/MarketingSiteTest.php`.
+- **SEO technique** : canonical et Open Graph dans le layout marketing, données structurées `SoftwareApplication` et `FAQPage` sur l’accueil, routes dynamiques `sitemap.xml` et `robots.txt`.
+- **Comportement livré** : navigation mobile accessible, démonstration facture en quatre états avec lecture unique, pause et repli `prefers-reduced-motion`, bascule mensuel/annuel, tarifs provenant d’une source unique et offres payantes explicitement prévisionnelles.
+- **Sécurité commerciale** : aucune souscription fictive, aucun paiement, SMS, WhatsApp, formulaire externe ou donnée client réelle déclenché. Les CTA payants utilisent « Être informé » ; les limites précisent qu’aucune donnée n’est supprimée.
+- **Recette navigateur locale** : accueil chargé sur `http://127.0.0.1:1111/`, sans erreur console marketing courante et sans débordement global aux largeurs 320, 390, 768, 1024, 1280 et 1440 px ; menu mobile et bascule annuelle contrôlés. L’accueil reste ouvert dans le navigateur intégré pour la poursuite des corrections.
+- **Validation technique** : `php artisan view:cache`, `git diff --check`, `php artisan test --filter=MarketingSiteTest`, `AuthNavigationTest`, `DesignSystemCompletionTest` et `php artisan test --stop-on-failure` — **224 tests, 1 406 assertions, 0 échec**.
+- **À valider avant publication** : nom/logo officiels, pays et langues, adresse support, textes juridiques, politique cookies/analytics, témoignages autorisés, disponibilité réelle de WhatsApp par pays et activation future du moteur d’abonnement. L’icône sociale actuelle réutilise un asset produit existant ; prévoir un visuel Open Graph final si l’équipe marketing en fournit un.
+
+## Mise à jour du 2 septembre 2026 — thème marketing et préférences utilisateur
+
+- La couleur primaire par défaut est le bleu vif doux `#3B82F6` ; le forçage orange du site vitrine a été retiré.
+- Le mode nuit est désormais le fallback par défaut lorsqu’aucune préférence n’est enregistrée.
+- Le mode clair et la couleur primaire personnalisée restent prioritaires lorsqu’ils sont enregistrés pour l’utilisateur (`appearance_mode` et `accent_color`).
+- L’asset marketing est versionné `marketing.css?v=20260902-5` pour éviter le maintien de l’ancien rendu en cache.
+- Vérification sans préférence : fallback détecté `#3B82F6` + `dark`. Vérification de la session actuelle : mode `dark` et couleur personnalisée conservée.
+- Les créations de compte et le schéma `users` utilisent également ces deux valeurs par défaut ; une préférence déjà enregistrée n’est pas écrasée.
+- Le site vitrine expose maintenant son propre panneau « Apparence » dans l’en-tête : sombre/clair, palettes de couleur et couleur personnalisée ; la préférence est mémorisée dans le navigateur et synchronisée au compte lorsqu’un utilisateur est connecté.

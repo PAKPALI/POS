@@ -1,1 +1,12 @@
-<!doctype html><html lang="fr" data-bs-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mot de passe oublié</title><link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet"><link href="{{ asset('hub/assets/css/app.min.css') }}" rel="stylesheet"><style>body{min-height:100vh;background:#080d18}.wrap{min-height:100vh;display:grid;place-items:center;padding:20px}.card{max-width:460px;width:100%;background:#111827;border:1px solid #334155;border-radius:18px;padding:32px}</style></head><body><div class="wrap"><section class="card"><h1 class="h3">Récupérer votre accès</h1><p class="text-secondary">Indiquez l’adresse de votre compte administrateur. Le lien sera valable 60 minutes.</p>@if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif<form method="POST" action="{{ route('platform.password.email') }}">@csrf<label class="form-label" for="email">Adresse e-mail</label><input id="email" name="email" type="email" class="form-control form-control-lg mb-3" value="{{ old('email') }}" required autofocus><button class="btn btn-warning btn-lg w-100" data-loading-text="Envoi…">Envoyer le lien sécurisé</button></form><a class="d-block text-center mt-3" href="{{ route('platform.login') }}">Retour à la connexion</a></section></div><script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script><script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script></body></html>
+@extends('layouts.platform-auth')
+@section('title', 'Mot de passe oublié')
+@section('content')
+<h1>Récupérer votre accès</h1><p class="lead">Indiquez l’adresse de votre compte administrateur. Le lien sera valable 60 minutes.</p>
+@if($errors->any())<x-ui.alert variant="danger">{{ $errors->first() }}</x-ui.alert>@endif
+@if(session('success'))<x-ui.alert variant="success">{{ session('success') }}</x-ui.alert>@endif
+<form method="POST" action="{{ route('platform.password.email') }}" class="platform-auth-form">@csrf
+    <x-ui.input id="email" name="email" type="email" label="Adresse e-mail" :value="old('email')" autocomplete="email" required autofocus />
+    <x-ui.button type="submit" variant="primary" data-loading-text="Envoi…">Envoyer le lien sécurisé</x-ui.button>
+</form>
+<nav class="platform-auth-links"><a href="{{ route('platform.login') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Retour à la connexion</a></nav>
+@endsection

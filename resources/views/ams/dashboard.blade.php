@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 @endpush
 
@@ -207,7 +207,7 @@
                     let total_transfer = data.map(d=>d.total_transfer);
 
                     const computedStyle = getComputedStyle(document.documentElement);
-                    const accentColor = computedStyle.getPropertyValue('--ds-accent').trim() || '#FF9F43';
+                    const accentColor = computedStyle.getPropertyValue('--ds-accent').trim() || '#3B82F6';
                     const textColor = computedStyle.getPropertyValue('--ds-text-secondary').trim() || '#A9B5C8';
                     const mutedColor = computedStyle.getPropertyValue('--ds-text-muted').trim() || '#74839A';
 

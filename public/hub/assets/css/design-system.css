@@ -9,10 +9,10 @@
     --ds-text-primary: #f4f7fb;
     --ds-text-secondary: #a9b5c8;
     --ds-text-muted: #74839a;
-    --ds-accent: #ff9f43;
-    --ds-accent-rgb: 255, 159, 67;
-    --ds-accent-hover: #ffad5c;
-    --ds-accent-active: #ed8931;
+    --ds-accent: #3b82f6;
+    --ds-accent-rgb: 59, 130, 246;
+    --ds-accent-hover: #60a5fa;
+    --ds-accent-active: #2563eb;
     --ds-accent-soft: rgba(var(--ds-accent-rgb), .14);
     --ds-accent-contrast: #111827;
     --ds-focus-ring: rgba(var(--ds-accent-rgb), .36);
@@ -108,9 +108,43 @@ body { color: var(--ds-text-primary); }
     color: var(--ds-text-primary);
 }
 
+/* Shared modal scroll contract. The dialog owns the viewport; only the body scrolls. */
+.saas-body .modal.show {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.saas-body .modal.show .modal-dialog {
+    display: flex;
+    min-height: 0;
+    max-height: calc(100dvh - 3rem);
+    flex-direction: column;
+}
+.saas-body .modal.show .modal-content {
+    display: flex;
+    min-height: 0;
+    max-height: 100%;
+    flex: 0 1 auto;
+    flex-direction: column;
+    overflow: hidden;
+}
+.saas-body .modal.show .modal-header,
+.saas-body .modal.show .modal-footer { flex: 0 0 auto; }
+.saas-body .modal.show .modal-body {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
 @media (max-width: 767.98px) {
     .ds-surface { border-radius: 14px; backdrop-filter: blur(8px) saturate(108%); -webkit-backdrop-filter: blur(8px) saturate(108%); }
     .ds-color-swatch { width: 48px; height: 48px; }
+    .saas-body .modal.show .modal-dialog { width: 100%; max-height: 100dvh; min-height: 0; margin: 0; }
+    .saas-body .modal.show .modal-content { height: auto; max-height: 100dvh; min-height: 0; border: 0; border-radius: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

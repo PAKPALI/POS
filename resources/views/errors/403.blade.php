@@ -1,24 +1,10 @@
 @php($isPlatformError = auth('platform')->check() && request()->routeIs('platform.*'))
-@extends($isPlatformError ? 'layouts.platform' : 'layouts.layout')
+@extends($isPlatformError ? 'layouts.platform' : 'layouts.saas')
 @section('title', 'Accès refusé')
 @section('page-title', 'Accès refusé')
 
-@push('css-scripts')
-<style>
-    .permission-illustration {
-        width: min(230px, 72vw);
-        height: auto;
-        filter: drop-shadow(0 18px 28px rgba(0, 0, 0, .32));
-        animation: permissionGuardFloat 3.2s ease-in-out infinite;
-    }
-    @keyframes permissionGuardFloat {
-        0%, 100% { transform: translateY(0) rotate(-1deg); }
-        50% { transform: translateY(-10px) rotate(1deg); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-        .permission-illustration { animation: none; }
-    }
-</style>
+@push('styles')
+<link href="{{ asset('hub/assets/css/error-pages.css') }}?v=20260902-1" rel="stylesheet">
 @endpush
 
 @section('content')

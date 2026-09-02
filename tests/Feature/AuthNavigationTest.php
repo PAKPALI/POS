@@ -17,16 +17,16 @@ class AuthNavigationTest extends TestCase
             ->assertSeeText('Vous avez déjà un compte ?')
             ->assertSee(route('user_login'))
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
-            ->assertSee(asset('hub/assets/css/app.min.css'));
+            ->assertSee(asset('hub/assets/css/public-auth.css'));
 
         $this->get(route('user_login'))
             ->assertOk()
-            ->assertSeeText("Vous n'avez pas encore de compte ?", false)
+            ->assertSeeText('Vous débutez ?', false)
             ->assertSee(route('register'))
             ->assertSeeText('Administration SaaS')
             ->assertSee(route('platform.entry'))
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
-            ->assertSee(asset('hub/assets/css/app.min.css'));
+            ->assertSee(asset('hub/assets/css/public-auth.css'));
 
         $this->get(route('platform.entry'))
             ->assertRedirect('/platform/login');
@@ -36,10 +36,14 @@ class AuthNavigationTest extends TestCase
             ->assertSee('name="company_name"', false)
             ->assertDontSee('name="default_tax"', false)
             ->assertSee('name="country_code"', false)
+            ->assertSee('name="appearance_mode"', false)
+            ->assertSee('name="accent_color"', false)
+            ->assertSee('data-public-accent', false)
+            ->assertSee('publicCustomAccent', false)
             ->assertSee('name="name"', false)
             ->assertSee('name="email"', false)
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
-            ->assertSee(asset('hub/assets/css/app.min.css'))
+            ->assertSee(asset('hub/assets/css/public-auth.css'))
             ->assertSee(route('admin_register'))
             ->assertSee(route('user_login'));
 
@@ -48,7 +52,7 @@ class AuthNavigationTest extends TestCase
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
             ->assertSeeText('MOT DE PASSE OUBLIÉ');
         $this->get(route('password.reset', ['token' => 'test-token']))->assertOk()
-            ->assertSee(asset('hub/assets/css/app.min.css'))
+            ->assertSee(asset('hub/assets/css/public-auth.css'))
             ->assertSeeText('NOUVEAU MOT DE PASSE');
         $this->get(route('user_login'))->assertSee(route('password.request'));
 
@@ -82,6 +86,6 @@ class AuthNavigationTest extends TestCase
         $this->assertStringContainsString('mobile-pwa-install-fallback', file_get_contents(public_path('pwa-register.js')));
         $this->get('/user_login?source=pwa')
             ->assertOk()
-            ->assertSee('SE CONNECTER');
+            ->assertSee('Bon retour.');
     }
 }

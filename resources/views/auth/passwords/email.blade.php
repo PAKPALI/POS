@@ -1,4 +1,6 @@
-@extends('layouts.layout_admin')
+@extends('layouts.public-auth')
+
+@section('title', 'Mot de passe oublié')
 @section('content')
 <div class="login"><div class="login-content">
 <form method="POST" action="{{ route('password.email') }}">@csrf

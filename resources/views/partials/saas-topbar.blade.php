@@ -31,10 +31,10 @@
 @php
     $navbarAppearanceMode = in_array(auth()->user()->appearance_mode, ['system', 'dark', 'light'], true)
         ? auth()->user()->appearance_mode
-        : 'system';
+        : 'dark';
     $navbarAccent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) auth()->user()->accent_color)
         ? strtoupper(auth()->user()->accent_color)
-        : '#FF9F43';
+        : '#3B82F6';
 @endphp
 
 <x-ui.modal id="navbarAppearanceModal" title="Personnaliser l’interface" eyebrow="Préférences personnelles" size="md">
@@ -67,7 +67,7 @@
                 <output id="navbarAccentValue">{{ $navbarAccent }}</output>
             </div>
             <div class="navbar-accent-grid" id="navbarAccentSwatches">
-                @foreach(['#FF9F43', '#20BFA9', '#3B82F6', '#7C5CFC', '#EC4899', '#84B547'] as $color)
+                @foreach(['#3B82F6', '#20BFA9', '#FF9F43', '#7C5CFC', '#EC4899', '#84B547'] as $color)
                     <button type="button" class="navbar-accent-swatch {{ $navbarAccent === $color ? 'is-selected' : '' }}" style="--swatch:{{ $color }}" data-accent="{{ $color }}" aria-label="Choisir la couleur {{ $color }}" aria-pressed="{{ $navbarAccent === $color ? 'true' : 'false' }}"></button>
                 @endforeach
                 <label class="navbar-custom-color" title="Choisir une couleur personnalisée">

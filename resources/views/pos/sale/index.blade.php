@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260901-34" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260902-37" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -409,11 +409,11 @@
     </div>
 
     <!-- Modal pour afficher le PDF -->
-    <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel"
+    <div class="modal fade saas-modal" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel"
         aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content pos-modal-content">
-                <div class="modal-header pos-modal-header">
+            <div class="modal-content saas-modal-content pos-modal-content">
+                <div class="modal-header saas-modal-header pos-modal-header">
                     <div>
                         <span class="pos-modal-eyebrow">Vente finalisée</span>
                         <h5 class="modal-title" id="pdfModalLabel">Aperçu du reçu</h5>
@@ -442,14 +442,8 @@
                             </div>
                         </div>
                         <div class="pos-invoice-channels">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}>
-                                <label class="form-check-label" for="invoiceWhatsapp">WhatsApp (<span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span>)</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="invoiceSms" {{ !$company->invoice_whatsapp_enabled && $company->invoice_sms_enabled && $company->sms_count > 0 ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}>
-                                <label class="form-check-label" for="invoiceSms">SMS (<span id="invoiceSmsQuota">{{ $company->sms_count }}</span>)</label>
-                            </div>
+                            <label class="saas-switch-line" for="invoiceWhatsapp"><span><strong>WhatsApp</strong><small><span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
+                            <label class="saas-switch-line" for="invoiceSms"><span><strong>SMS</strong><small><span id="invoiceSmsQuota">{{ $company->sms_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceSms" {{ !$company->invoice_whatsapp_enabled && $company->invoice_sms_enabled && $company->sms_count > 0 ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
                         </div>
                         <button type="button" id="sendInvoice" class="btn btn-success" data-loading-text="Envoi en cours…" {{ (!$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1) && (!$company->invoice_sms_enabled || $company->sms_count < 1) ? 'disabled' : '' }}>
                             <i class="bi bi-whatsapp me-1"></i> Envoyer la facture
@@ -475,10 +469,10 @@
     </div>
 
     <!-- view modal -->
-    <div class="modal fade" id="showModal" tabindex="-1" aria-labelledby="showModalLabel" aria-hidden="true">
+    <div class="modal fade saas-modal" id="showModal" tabindex="-1" aria-labelledby="showModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content pos-modal-content">
-                <div class="modal-header pos-modal-header">
+            <div class="modal-content saas-modal-content pos-modal-content">
+                <div class="modal-header saas-modal-header pos-modal-header">
                     <div>
                         <span class="pos-modal-eyebrow">Activité des ventes</span>
                         <h3 class="modal-title" id="showModalLabel">Détail de la vente</h3>
@@ -496,10 +490,10 @@
     </div>
 
     <!-- Pending Orders Modal -->
-    <div class="modal fade" id="pendingOrdersModal" tabindex="-1" aria-labelledby="pendingOrdersModalLabel" aria-hidden="true">
+    <div class="modal fade saas-modal" id="pendingOrdersModal" tabindex="-1" aria-labelledby="pendingOrdersModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content pos-modal-content">
-                <div class="modal-header pos-modal-header">
+            <div class="modal-content saas-modal-content pos-modal-content">
+                <div class="modal-header saas-modal-header pos-modal-header">
                     <div>
                         <span class="pos-modal-eyebrow">Panier sauvegardé</span>
                         <h3 class="modal-title" id="pendingOrdersModalLabel">Commandes en cours</h3>
@@ -1149,13 +1143,11 @@
                                         <p>Réduction appliquée (${response.valid ? response.percent : 0}%) : <b style="color:red">-${discount.toFixed(2)}</b></p>
                                         <p><b>Total à payer après réduction : ${finalAmount.toFixed(2)}</b></p>
                                         <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
-                                        <p>Monnaie à rendre : <b style="color:green">${monnaie.toFixed(2)}</b></p>`,
+                                        <p>Monnaie à rendre : <b class="pos-change-amount">${monnaie.toFixed(2)}</b></p>`,
                                     icon: "question",
                                     confirmButtonText: "Confirmer la vente",
-                                    confirmButtonColor: "green",
                                     showCancelButton: true,
                                     cancelButtonText: "Annuler",
-                                    cancelButtonColor: "blue",
                                 }).then((saleResult) => {
                                     if (saleResult.isConfirmed) {
                                         $('#loader').show();
@@ -1204,7 +1196,6 @@
                                                         text: data.msg,
                                                         icon: 'error',
                                                         confirmButtonText: "D'accord",
-                                                        confirmButtonColor: '#A40000',
                                                     })
                                                 }
                                             },
@@ -1245,13 +1236,11 @@
                                 <p>Remise : <b style="color:red">-${remiseMontant.toFixed(2)}</b></p>
                                 <p><b>Total à payer : ${finalAmount.toFixed(2)}</b></p>
                                 <p>Montant reçu : <b>${received_amount.toFixed(2)}</b></p>
-                                <p>Monnaie à rendre : <b style="color:green">${monnaie.toFixed(2)}</b></p>`,
+                                <p>Monnaie à rendre : <b class="pos-change-amount">${monnaie.toFixed(2)}</b></p>`,
                             icon: "question",
                             confirmButtonText: "Confirmer la vente",
-                            confirmButtonColor: "green",
                             showCancelButton: true,
                             cancelButtonText: "Annuler",
-                            cancelButtonColor: "blue",
                         }).then((saleResult) => {
                             if (saleResult.isConfirmed) {
                                 $('#loader').show();
@@ -1300,7 +1289,6 @@
                                                 text: data.msg,
                                                 icon: 'error',
                                                 confirmButtonText: "D'accord",
-                                                confirmButtonColor: '#A40000',
                                             })
                                         }
                                     },

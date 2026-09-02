@@ -31,6 +31,7 @@ class CompanyController extends Controller
             ->orderByDesc('last_accessed_at')
             ->get();
         $activeCompanyId = $this->context->getCompanyId();
+        $currentMembership = $memberships->firstWhere('company_id', $activeCompanyId);
         if(request()->ajax()){
             // $Student = Student::all();
             return DataTables::of($Object)
@@ -49,7 +50,7 @@ class CompanyController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        return view('company.index', compact('Object', 'memberships', 'activeCompanyId'));
+        return view('company.index', compact('Object', 'memberships', 'activeCompanyId', 'currentMembership'));
     }
 
     public function create()

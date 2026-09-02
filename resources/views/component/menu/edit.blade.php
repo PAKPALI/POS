@@ -87,10 +87,10 @@
             </div>
         </div>
     </div>
-    <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning" type="submit">
-            <div class="loader spinner-grow" style="display: none;"></div>
-            <span id="submit_text">Modifier</span>
+    <div class="saas-modal-actions">
+        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
+        <button id="submit" class="saas-btn saas-btn-warning" type="submit" data-loading-text="Enregistrement…">
+            <i class="bi bi-check-lg" aria-hidden="true"></i><span>Enregistrer</span>
         </button>
     </div>
 </form>
@@ -120,9 +120,6 @@
 
 <script>
     $(function() {
-        // Cache le loader au chargement de la page
-        $('.loader').hide();
-
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -165,9 +162,6 @@
 
         $('#submit').click(function(e) {
             e.preventDefault();
-            // Affiche le loader et remplace le texte du bouton
-            $('.loader').fadeIn();
-            $('#submit_text').hide();
             let isValid = true; 
             let products = [];
 
@@ -220,8 +214,6 @@
 
             // Vérifier si la validation a échoué ou si aucun produit n'a été ajouté
             if (!isValid || products.length === 0) {
-                $('.loader').hide();
-                $('#submit_text').fadeIn();
                 Swal.fire({
                     toast: true,
                     position: 'top',
@@ -247,6 +239,8 @@
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PUT');
 
+            if (window.ServerButtonLoader) window.ServerButtonLoader.start($('#submit')[0], 'Enregistrement…');
+
             $.ajax({
                 data: formData,
                 url: '{{ url('component/menu/' . $Product->id) }}',
@@ -256,12 +250,9 @@
                 contentType: false,
                 dataType: 'json',
                 success: function(data) {
+                    if (window.ServerButtonLoader) window.ServerButtonLoader.stop($('#submit')[0]);
                     if (data.status) {
                         console.log(data);
-                        // Cache le loader et remet le texte "Modifier"
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -276,9 +267,6 @@
                         $('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
                     } else {
-                        $('.loader').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -289,14 +277,11 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        $('#submit').html('Modifier');
                     }
                 },
                 error: function(data) {
+                    if (window.ServerButtonLoader) window.ServerButtonLoader.stop($('#submit')[0]);
                     console.log('Error:', data);
-                    $('.loader').fadeOut();
-                    $('#submit_text').fadeIn();
-
                     Swal.fire({
                         toast: true,
                         position: 'top',
@@ -307,7 +292,6 @@
                         timerProgressBar: true,
                         text: 'Une erreur est survenue, veuillez réessayer.',
                     });
-                    $('#submit').html('Modifier');
                 }
             });
         });

@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.public-auth')
+
+@section('title', 'Vérifier votre adresse e-mail')
 
 @section('content')
 <div class="container">

@@ -20,9 +20,13 @@
             </div>
         </div>
     </div>
-    <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning" type="submit" data-loading-text="Modification…">
-            Modifier
+    <div class="saas-modal-actions">
+        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">
+            Annuler
+        </button>
+        <button id="submit" class="saas-btn saas-btn-warning" type="submit" data-loading-text="Enregistrement…">
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
+            <span>Enregistrer</span>
         </button>
     </div>
 </form>
@@ -37,6 +41,8 @@
 
         $('#update_form').submit(function(event) {
             event.preventDefault();
+            const submitButton = document.getElementById('submit');
+            if (window.ServerButtonLoader) window.ServerButtonLoader.start(submitButton, 'Enregistrement…');
             
             $.ajax({
                 data: $('#update_form').serialize(),
@@ -85,6 +91,9 @@
                         timerProgressBar: true,
                         text: message || 'Une erreur est survenue, veuillez réessayer.',
                     });
+                },
+                complete: function() {
+                    if (window.ServerButtonLoader) window.ServerButtonLoader.stop(submitButton);
                 }
             });
         });

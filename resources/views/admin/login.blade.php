@@ -1,63 +1,33 @@
-@extends('layouts.layout_admin')
+@extends('layouts.public-auth')
+
+@section('title', 'Connexion')
 
 @section('content')
-    <div class="login">
-        <div class="login-content">
-            <form id="form_login">
-                @csrf
-                <h1 class="text-center">SE CONNECTER</h1>
-                <div class="text-inverse text-opacity-50 text-center mb-4">
-                {{ config('app.name') }}
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email <span class="text-danger">*</span></label>
-                    <input type="email" name="email" class="form-control form-control-lg bg-inverse bg-opacity-5"
-                        autocomplete="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" required>
-                </div>
-                <div class="mb-3">
-                    <div class="d-flex">
-                        <label class="form-label">Mot de passe <span class="text-danger">*</span></label>
-                        <a href="{{ route('password.request') }}" class="ms-auto text-inverse text-decoration-none text-opacity-50">Mot de passe oublié ?</a>
-                    </div>
-                    <input type="password" name="password" class="form-control form-control-lg bg-inverse bg-opacity-5" autocomplete="current-password" required>
-                </div>
-                <!-- <div class="mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value id="customCheck1">
-                        <label class="form-check-label" for="customCheck1">Remember me</label>
-                    </div>
-                </div> -->
-                <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mb-3 mt-5" data-loading-text="Connexion…">
-                    Se connecter
-                </button>
-                <div class="text-center text-inverse text-opacity-75 mt-4">
-                    Vous n'avez pas encore de compte ?
-                    <a href="{{ route('register') }}" class="text-theme fw-semibold text-decoration-none">
-                        Créer votre compte SaaS
-                    </a>
-                </div>
-                <div class="border-top border-secondary border-opacity-25 mt-4 pt-4 text-center">
-                    <div class="small text-inverse text-opacity-50 mb-2">Accès réservé au concepteur de la plateforme</div>
-                    <a href="{{ route('platform.entry') }}" class="btn btn-outline-warning w-100">
-                        <i class="bi bi-shield-lock-fill me-2"></i>Administration SaaS
-                    </a>
-                </div>
-            </form>
-        </div>
+    <div class="auth-flow auth-login-flow">
+        <div class="auth-flow-heading"><span class="auth-flow-kicker"><i class="bi bi-shield-check" aria-hidden="true"></i> Espace sécurisé</span><h1>Bon retour.</h1><p>Connectez-vous pour retrouver votre espace de travail.</p></div>
+        <form id="form_login" class="auth-flow-form">@csrf
+            <div class="auth-field"><label for="email">Adresse e-mail</label><div class="auth-control"><i class="bi bi-envelope" aria-hidden="true"></i><input id="email" type="email" name="email" placeholder="vous@exemple.com" autocomplete="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" required autofocus></div></div>
+            <div class="auth-field"><div class="auth-label-row"><label for="password">Mot de passe</label><a href="{{ route('password.request') }}">Mot de passe oublié ?</a></div><div class="auth-control"><i class="bi bi-lock" aria-hidden="true"></i><input id="password" type="password" name="password" placeholder="Votre mot de passe" autocomplete="current-password" required><button id="togglePassword" type="button" aria-label="Afficher le mot de passe"><i id="togglePasswordIcon" class="bi bi-eye" aria-hidden="true"></i></button></div></div>
+            <button type="submit" class="saas-btn saas-btn-primary auth-submit" data-loading-text="Connexion…">Se connecter <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+        </form>
+        <p class="auth-flow-switch">Vous débutez ? <a href="{{ route('register') }}">Créer votre espace</a></p>
+        <a href="{{ route('platform.entry') }}" class="auth-platform-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span><strong>Administration SaaS</strong><small>Accès réservé à la plateforme</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
     </div>
 
+    @push('scripts')
     <script>
         $(function() {
             //ajax pour se connecter
             $('#form_login').submit(function(event){
                 event.preventDefault();
-                $.ajax({
+                const button = this.querySelector('[type="submit"]');
+                window.ServerButtonLoader.withLoader(button, $.ajax({
                     type: 'POST',
                     url: @json(route('login', [], false)),
                     data: $('#form_login').serialize(),
                     dataType: 'json',
                     headers: { 'Accept': 'application/json' },
-                    success: function (data) {
+                })).then(function (data) {
                         if (data.status) {
                             $('#form_login').slideUp(3000);
                             // Swal.fire({
@@ -90,11 +60,11 @@
                                 text:data.msg,
                                 icon: 'error',
                                 confirmButtonText: "D'accord",
-                                confirmButtonColor: 'red',
+                                buttonsStyling: false,
+                                customClass: { confirmButton: 'saas-btn saas-btn-danger' },
                             });
                         }
-                    },
-                    error: function (xhr) {
+                }).catch(function (xhr) {
                         // Une session peut être créée avant qu'un middleware ne renvoie
                         // une page HTML. Vérifier alors la session au lieu d'afficher
                         // une alerte vide ou de demander une seconde connexion.
@@ -114,7 +84,6 @@
                             text: message,
                             timer: 3600,
                         });
-                    }
                 });
                 return false;
             });
@@ -149,4 +118,5 @@
             });
         });
     </script>
+    @endpush
 @endsection

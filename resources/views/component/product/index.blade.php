@@ -2,7 +2,7 @@
 @section('title', 'Produits')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
@@ -89,14 +89,19 @@
     </div>
 
     {{-- Modale Modification --}}
-    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header modal-header-accent modal-header-warning">
-                    <h3 class="modal-title">Modifier produit</h3>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal fade saas-modal" id="editModal" tabindex="-1" aria-labelledby="editModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content saas-modal-content saas-modal-warning">
+                <div class="modal-header saas-modal-header">
+                    <div>
+                        <span class="saas-modal-eyebrow">Catalogue</span>
+                        <h3 class="modal-title" id="editModalTitle">Modifier produit</h3>
+                    </div>
+                    <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body saas-modal-body">
                     <div id="edit_response"></div>
                 </div>
             </div>
@@ -422,12 +427,12 @@
                 Swal.fire({
                     icon: "warning",
                     title: "Confirmer l'opération",
-                    html: '<div style="background:#dc3545;color:white;padding:15px;border-radius:8px;font-size:15px;font-weight:bold;text-align:left;">ATTENTION<br><br>Si ce produit n\'a jamais été utilisé dans une vente, il sera <strong>SUPPRIMÉ DÉFINITIVEMENT</strong>.<br><br>S\'il est déjà lié à une ou plusieurs ventes, il sera simplement <strong>ARCHIVÉ</strong>.</div>',
+                    html: '<div class="saas-alert saas-alert-danger"><strong>ATTENTION</strong><br><br>Si ce produit n\'a jamais été utilisé dans une vente, il sera <strong>SUPPRIMÉ DÉFINITIVEMENT</strong>.<br><br>S\'il est déjà lié à une ou plusieurs ventes, il sera simplement <strong>ARCHIVÉ</strong>.</div>',
                     confirmButtonText: "Oui",
-                    confirmButtonColor: "#dc3545",
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal saas-swal-danger', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },
                     showCancelButton: true,
                     cancelButtonText: "Non",
-                    cancelButtonColor: "#0d6efd",
                     showLoaderOnConfirm: true,
                     allowOutsideClick: function() { return !Swal.isLoading(); },
                     allowEscapeKey: function() { return !Swal.isLoading(); },
@@ -447,10 +452,10 @@
                     icon: "question",
                     title: "Êtes-vous sûr de vouloir restaurer ce produit ?",
                     confirmButtonText: "Oui",
-                    confirmButtonColor: 'green',
+                    buttonsStyling: false,
+                    customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' },
                     showCancelButton: true,
                     cancelButtonText: "Non",
-                    cancelButtonColor: '#0d6efd',
                     showLoaderOnConfirm: true,
                     allowOutsideClick: function() { return !Swal.isLoading(); },
                     allowEscapeKey: function() { return !Swal.isLoading(); },

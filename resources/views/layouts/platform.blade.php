@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr" data-bs-theme="dark">
+<html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,30 +7,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Administration SaaS') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/app.min.css') }}" rel="stylesheet">
-    <style>
-        body { background: #080d18; }
-        .platform-shell { min-height: 100vh; }
-        .platform-sidebar { width: 260px; background: linear-gradient(180deg, #111b31, #0b1221); border-right: 1px solid rgba(255,255,255,.08); position: fixed; inset: 0 auto 0 0; padding: 24px 18px; z-index: 10; }
-        .platform-brand { color: #fff; font-size: 1.05rem; font-weight: 700; text-decoration: none; display: flex; gap: 10px; align-items: center; }
-        .platform-brand i { color: #ff9f43; }
-        .platform-nav { margin-top: 34px; }
-        .platform-nav a { display: flex; gap: 10px; align-items: center; color: #b8c2d8; text-decoration: none; padding: 11px 13px; border-radius: 10px; margin-bottom: 6px; }
-        .platform-nav a.active, .platform-nav a:hover { color: #fff; background: rgba(255,159,67,.14); }
-        .platform-main { margin-left: 260px; padding: 28px; }
-        .platform-topbar { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 28px; }
-        .platform-card { background: #111827; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; }
-        .metric-value { font-size: 1.75rem; font-weight: 750; color: #fff; }
-        .metric-label { color: #93a4bf; }
-        @media(max-width: 800px) {
-            .platform-sidebar { position: static; width: 100%; min-height: auto; }
-            .platform-nav { display: flex; margin-top: 18px; overflow-x: auto; }
-            .platform-nav a { white-space: nowrap; }
-            .platform-main { margin-left: 0; padding: 18px; }
-        }
-    </style>
+    @include('partials.design-system-head')
+    <link href="{{ asset('hub/assets/css/platform.css') }}?v=20260902-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/platform-components.css') }}?v=20260902-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
 </head>
 <body>
+@include('partials.navigation-loader')
 <div class="platform-shell">
     <aside class="platform-sidebar">
         <a class="platform-brand" href="{{ route('platform.dashboard') }}">@if(config('platform.identity.logo_url'))<img src="{{ config('platform.identity.logo_url') }}" alt="Logo" width="32" height="32" style="object-fit:contain;border-radius:8px">@else<i class="bi bi-shield-lock-fill"></i>@endif Administration SaaS</a>
@@ -62,9 +45,10 @@
     </main>
 </div>
 <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
-<script src="{{ asset('hub/assets/js/app.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
+<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
+<script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-1"></script>
 @stack('scripts')
 </body>
 </html>

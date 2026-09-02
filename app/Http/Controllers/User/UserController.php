@@ -352,6 +352,8 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'default_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
+            'appearance_mode' => ['nullable', Rule::in(['light', 'dark', 'system'])],
+            'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ], $error_messages);
 
         if($validator->fails())
@@ -364,7 +366,7 @@ class UserController extends Controller
             ]);
         }else{
             $result = $onboarding->registerOwner($request->only([
-                'name', 'email', 'password', 'company_name', 'company_email', 'company_phone', 'phone', 'default_tax', 'country_code',
+                'name', 'email', 'password', 'company_name', 'company_email', 'company_phone', 'phone', 'default_tax', 'country_code', 'appearance_mode', 'accent_color',
             ]));
             Auth::login($result['user']);
             $request->session()->regenerate();

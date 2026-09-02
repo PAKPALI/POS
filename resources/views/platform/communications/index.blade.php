@@ -137,7 +137,7 @@
                         </td>
                         <td>
                             @if($delivery->last_error)
-                                <span style="color: #ff7f89; font-size: .78rem;" title="{{ $delivery->last_error }}">
+                                <span class="platform-error-text" title="{{ $delivery->last_error }}">
                                     {{ \Illuminate\Support\Str::limit($delivery->last_error, 40) }}
                                 </span>
                             @else

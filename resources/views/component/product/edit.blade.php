@@ -69,10 +69,13 @@
             </div>
         </div>
     </div>
-    <div class="card-footer mt-4">
-        <button id="submit" class="btn btn-warning" type="submit">
-            <div class="loader spinner-grow" style="display: none;"></div>
-            <span id="submit_text">Modifier</span>
+    <div class="saas-modal-actions">
+        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">
+            Annuler
+        </button>
+        <button id="submit" class="saas-btn saas-btn-warning" type="submit" data-loading-text="Enregistrement…">
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
+            <span>Enregistrer</span>
         </button>
     </div>
 </form>
@@ -93,9 +96,6 @@
     }, 100);
     
     jQuery(function() {
-        // Cache le loader au chargement de la page
-        jQuery('.loader').hide();
-
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -104,9 +104,8 @@
 
         jQuery('#submit').click(function(e) {
             e.preventDefault();
-            // Affiche le loader et remplace le texte du bouton
-            jQuery('.loader').fadeIn();
-            jQuery('#submit_text').hide();
+            var submitButton = document.getElementById('submit');
+            if (window.ServerButtonLoader) window.ServerButtonLoader.start(submitButton, 'Enregistrement…');
             var formData = new FormData(jQuery('#update_form')[0]);
 
             formData.append('_token', '{{ csrf_token() }}');
@@ -122,11 +121,6 @@
                 dataType: 'json',
                 success: function(data) {
                     if (data.status) {
-                        console.log(data);
-                        // Cache le loader et remet le texte "Modifier"
-                        jQuery('.loader').fadeOut();
-                        jQuery('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -141,9 +135,6 @@
                         jQuery('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
                     } else {
-                        jQuery('.loader').fadeOut();
-                        jQuery('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -154,14 +145,9 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        jQuery('#submit').html('Modifier');
                     }
                 },
-                error: function(data) {
-                    console.log('Error:', data);
-                    jQuery('.loader').fadeOut();
-                    jQuery('#submit_text').fadeIn();
-
+                error: function() {
                     Swal.fire({
                         toast: true,
                         position: 'top',
@@ -172,7 +158,9 @@
                         timerProgressBar: true,
                         text: 'Une erreur est survenue, veuillez réessayer.',
                     });
-                    jQuery('#submit').html('Modifier');
+                },
+                complete: function() {
+                    if (window.ServerButtonLoader) window.ServerButtonLoader.stop(submitButton);
                 }
             });
         });

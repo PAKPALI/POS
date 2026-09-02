@@ -12,14 +12,17 @@
 
         <!-- Styles -->
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+        <link rel="stylesheet" href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1">
 
         <!-- Scripts -->
         <script src="{{ asset('js/app.js') }}" defer></script>
     </head>
     <body>
+        @include('partials.navigation-loader')
         <div class="font-sans text-gray-900 antialiased">
             {{ $slot }}
         </div>
         <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
+        <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-1"></script>
     </body>
 </html>

@@ -22,6 +22,8 @@ class CompanyOnboardingService
                 'country_code' => $data['country_code'] ?? 'TG',
                 'status' => 1,
                 'password' => Hash::make($data['password']),
+                'appearance_mode' => $data['appearance_mode'] ?? 'dark',
+                'accent_color' => isset($data['accent_color']) ? strtoupper($data['accent_color']) : '#3B82F6',
             ]);
 
             $company = Company::create([

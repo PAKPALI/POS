@@ -6,7 +6,7 @@
 
     function normaliseHex(value) {
         const hex = String(value || '').trim().toUpperCase();
-        return /^#[0-9A-F]{6}$/.test(hex) ? hex : '#FF9F43';
+        return /^#[0-9A-F]{6}$/.test(hex) ? hex : '#3B82F6';
     }
 
     function hexToRgb(hex) {
@@ -95,9 +95,54 @@
     }
 
     localiseDataTableLoader(document);
+    document.addEventListener('click', (event) => {
+        const toggle = event.target.closest('[data-password-toggle]');
+        if (!toggle) return;
+        const input = document.getElementById(toggle.dataset.passwordToggle);
+        if (!input) return;
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        toggle.setAttribute('aria-pressed', String(!showing));
+        toggle.setAttribute('aria-label', showing ? 'Afficher le mot de passe' : 'Masquer le mot de passe');
+        const icon = toggle.querySelector('i');
+        if (icon) icon.className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
+        input.focus({ preventScroll: true });
+    });
+
+    function enhancePasswords(scope = document) {
+        const inputs = [];
+        if (scope instanceof HTMLInputElement && scope.type === 'password') inputs.push(scope);
+        if (scope.querySelectorAll) inputs.push(...scope.querySelectorAll('input[type="password"]'));
+        inputs.forEach((input) => {
+            if (!input.id) input.id = `ds-password-${Math.random().toString(36).slice(2)}`;
+            input.dataset.passwordEnhanced = 'true';
+            const parent = input.parentElement;
+            if (!parent) return;
+            const existing = parent.querySelector(`[data-password-toggle="${CSS.escape(input.id)}"], .password-toggle[data-target="${CSS.escape(input.id)}"]`);
+            if (existing) {
+                existing.dataset.passwordToggle = input.id;
+                return;
+            }
+            parent.classList.add('ds-password-field');
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'ds-password-toggle';
+            button.dataset.passwordToggle = input.id;
+            button.setAttribute('aria-label', 'Afficher le mot de passe');
+            button.setAttribute('aria-pressed', 'false');
+            button.innerHTML = '<i class="bi bi-eye" aria-hidden="true"></i>';
+            input.insertAdjacentElement('afterend', button);
+        });
+    }
+
+    enhancePasswords();
+
     new MutationObserver((mutations) => {
         mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) localiseDataTableLoader(node);
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                localiseDataTableLoader(node);
+                enhancePasswords(node);
+            }
         }));
     }).observe(document.documentElement, { childList: true, subtree: true });
 })();

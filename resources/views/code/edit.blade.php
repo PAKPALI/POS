@@ -23,7 +23,6 @@
                 <label for="exampleInputText0"></label>
                 <div>
                     <a id="generateCode" class="btn btn-secondary">
-                        <!-- <div id="" class="spinner-grow"></div> -->
                         <div id="">Générer</div>
                     </a>
                 </div>
@@ -38,44 +37,29 @@
             </div>
         </div>
     </div>
-    <div class="card-footer mt-4">
-        <button type="" id="submit" class="btn btn-warning">
-            <div id="loader2" class="spinner-grow"></div>
-            <div id="submitText">Modifier</div>
+    <div class="saas-modal-actions">
+        <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" id="submit" class="saas-btn saas-btn-warning" data-loading-text="Enregistrement…">
+            <i class="bi bi-check-lg" aria-hidden="true"></i><span>Enregistrer</span>
         </button>
     </div>
 </form>
 
 <script>
     $(function() {
-        // Cache le loader au chargement de la page
-        $('#loader2').hide();
-
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        $('#submit').click(function(e) {
+        $('#update_form').on('submit', function(e) {
             e.preventDefault();
-
-            // Affiche le loader et remplace le texte du bouton
-            $('#loader2').fadeIn();
-            $('#submit_text').hide();
-            
-            $.ajax({
-                data: $('#update_form').serialize(),
-                url: '{{ url('code/code/' . $CodePromo->id) }}',
-                type: "PUT",
-                dataType: 'json',
-                success: function(data) {
+            var button = this.querySelector('[type="submit"]');
+            window.ServerButtonLoader.withLoader(button, function() {
+                return $.ajax({ data: $('#update_form').serialize(), url: '{{ url('code/code/' . $CodePromo->id) }}', type: 'PUT', dataType: 'json' });
+            }, 'Enregistrement…').then(function(data) {
                     if (data.status) {
-                        console.log(data);
-                        // Cache le loader et remet le texte "Modifier"
-                        $('#loader2').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -90,9 +74,6 @@
                         $('#editModal').modal('hide');
                         window.dispatchEvent(new Event('datatableUpdated'));
                     } else {
-                        $('#loader2').fadeOut();
-                        $('#submit_text').fadeIn();
-
                         Swal.fire({
                             toast: true,
                             position: 'top',
@@ -103,14 +84,8 @@
                             timerProgressBar: true,
                             text: data.msg,
                         });
-                        $('#submit').html('Modifier');
                     }
-                },
-                error: function(data) {
-                    console.log('Error:', data);
-                    $('#loader2').fadeOut();
-                    $('#submit_text').fadeIn();
-
+                }).catch(function() {
                     Swal.fire({
                         toast: true,
                         position: 'top',
@@ -121,9 +96,7 @@
                         timerProgressBar: true,
                         text: 'Une erreur est survenue, veuillez réessayer.',
                     });
-                    $('#submit').html('Modifier');
-                }
-            });
+                });
         });
     });
 </script>

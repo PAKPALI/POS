@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 @section('title', 'Quotas SMS et WhatsApp')
 @push('styles')
-<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
 @endpush
 
 @section('content')

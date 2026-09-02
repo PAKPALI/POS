@@ -1,32 +1,35 @@
-@extends('layouts.layout_admin')
+@extends('layouts.public-auth')
+
+@section('title', 'Créer votre compte')
 
 @section('content')
-    <div class="register">
-        <div class="register-content p-2">
+    <div class="auth-flow auth-register-flow">
+        <div class="register-content">
             <form  id="form">
                 @csrf
-                <h1 class="text-center">INSCRIPTION</h1>
-                <p class="text-inverse text-opacity-50 text-center">{{ config('app.name') }}</p>
+                <input type="hidden" name="appearance_mode" data-appearance-mode value="dark">
+                <input type="hidden" name="accent_color" data-accent-color value="#3B82F6">
+                <div class="auth-flow-heading"><span class="auth-flow-kicker"><i class="bi bi-stars" aria-hidden="true"></i> Démarrage rapide</span><h1>Créez votre espace.</h1><p>Les réglages plus avancés resteront accessibles après l’inscription.</p></div>
                 <div class="mb-3">
-                    <label class="form-label">Nom de l’entreprise <span class="text-danger">*</span></label>
+                    <label class="form-label">Nom de l’entreprise</label>
                     <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" name="company_name" placeholder="Ex. Boutique Horizon" required autofocus>
                     <div class="form-text text-inverse text-opacity-50">Vous pourrez ajouter le logo, l’adresse et les paramètres plus tard.</div>
                 </div>
                 <!-- <p class="text-inverse text-opacity-50 text-center">PRO-SELLER</p> -->
                 <div class="mb-3">
-                    <label class="form-label">Votre nom <span class="text-danger">*</span></label>
+                    <label class="form-label">Votre nom</label>
                     <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" placeholder="Votre nom complet" name="name" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Pays de l’entreprise <span class="text-danger">*</span></label>
+                    <label class="form-label">Pays de l’entreprise</label>
                     <select name="country_code" class="form-select form-select-lg country-select mb-3" data-placeholder="Rechercher un pays" required><option value="">Pays de l’entreprise</option>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === 'TG')>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                    <label class="form-label">Adresse e-mail</label>
                     <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" name="email" placeholder="email" value>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Mot de passe <span class="text-danger">*</span></label>
+                    <label class="form-label">Mot de passe</label>
                     <div class="input-group">
                         <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password" name="password" placeholder="mot de passe">
                         <span class="input-group-text" id="togglePassword" style="cursor: pointer;">
@@ -35,7 +38,7 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Confirmation Mot de passe <span class="text-danger">*</span></label>
+                    <label class="form-label">Confirmer le mot de passe</label>
                     <div class="input-group">
                         <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="password_confirmation" placeholder="mot de passe">
                         <span class="input-group-text" id="togglePassword2" style="cursor: pointer;">
@@ -50,7 +53,7 @@
                     </div>
                 </div> -->
                 <div class="mt-5">
-                    <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100" data-loading-text="Création du compte…">S'inscrire</button>
+                    <button type="submit" class="saas-btn saas-btn-primary auth-submit" data-loading-text="Création du compte…">Créer mon espace <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
                 </div>
                 <div class="text-center text-inverse text-opacity-75 mt-4">
                     Vous avez déjà un compte ?
@@ -61,17 +64,19 @@
             </form>
         </div>
     </div>
+    @push('scripts')
     <script>
         $(function() {
             // Inscription SaaS
             $('#form').submit(function(event){
                 event.preventDefault();
-                $.ajax({
+                const button = this.querySelector('[type="submit"]');
+                window.ServerButtonLoader.withLoader(button, $.ajax({
                     type: 'POST',
                     url: "{{ route('admin_register') }}",
                     data: $('#form').serialize(),
                     datatype: 'json',
-                    success: function (data){
+                })).then(function (data) {
                         console.log(data)
                         if (data.status) {
                             Swal.fire({
@@ -89,18 +94,12 @@
                                 text:data.msg,
                                 icon: 'error',
                                 confirmButtonText: "D'accord",
-                                confirmButtonColor: 'blue',
+                                buttonsStyling: false,
+                                customClass: { confirmButton: 'saas-btn saas-btn-primary' },
                             });
                         }
-                    },
-                    error: function (data){
-                        Swal.fire({
-                            icon: "error",
-                            title: "Erreur",
-                            text: "Impossible de communiquer avec le serveur.",
-                            timer: 3600,
-                        });
-                    }
+                }).catch(function () {
+                    Swal.fire({icon:"error",title:"Erreur",text:"Impossible de communiquer avec le serveur.",timer:3600});
                 });
                 return false;
             });
@@ -135,4 +134,5 @@
             });
         });
     </script>
+    @endpush
 @endsection

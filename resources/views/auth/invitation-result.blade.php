@@ -1,2 +1,7 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ $title }}</title><link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet"><link href="{{ asset('hub/assets/css/app.min.css') }}" rel="stylesheet"></head>
-<body class="bg-dark text-white"><main class="container py-5" style="max-width:620px"><div class="card card-body text-center p-5"><h1 class="h3">{{ $title }}</h1><p class="text-muted">{{ $message }}</p><a href="{{ route('user_login') }}" class="btn btn-theme">Accéder à la connexion</a></div></main></body></html>
+@extends('layouts.public-auth')
+
+@section('title', $title)
+
+@section('content')
+<x-ui.empty-state icon="bi-shield-check" :title="$title" :description="$message"><a href="{{ route('user_login') }}" class="saas-btn saas-btn-primary">Accéder à la connexion</a></x-ui.empty-state>
+@endsection

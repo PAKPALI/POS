@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('appearance_mode', 10)->default('system')->after('status');
-            $table->char('accent_color', 7)->default('#FF9F43')->after('appearance_mode');
+            $table->string('appearance_mode', 10)->default('dark')->after('status');
+            $table->char('accent_color', 7)->default('#3B82F6')->after('appearance_mode');
         });
     }
 

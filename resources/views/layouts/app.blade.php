@@ -12,11 +12,13 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <body>
+    @include('partials.navigation-loader')
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
@@ -77,5 +79,6 @@
         </main>
     </div>
     <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
+    <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-1"></script>
 </body>
 </html>

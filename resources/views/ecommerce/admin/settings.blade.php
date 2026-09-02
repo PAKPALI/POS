@@ -1,7 +1,7 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260901-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-16" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
@@ -64,10 +64,7 @@
                             <textarea name="description" rows="4" placeholder="Décrivez ce que l'entreprise propose…">{{ $company->description }}</textarea>
                         </div>
                         <div class="col-md-12 saas-form-group">
-                            <label>Boutique en ligne</label>
-                            <div class="form-check form-switch" style="margin-top: 4px;">
-                                <input class="form-check-input" type="checkbox" name="ecommerce_active" id="ecommerce_active" value="1" {{ $company->ecommerce_active ? 'checked' : '' }}>
-                            </div>
+                            <label class="saas-switch-line" for="ecommerce_active"><span><strong>Boutique en ligne</strong><small>Rendre la boutique publique accessible</small></span><input class="saas-switch-input" type="checkbox" name="ecommerce_active" id="ecommerce_active" value="1" {{ $company->ecommerce_active ? 'checked' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
                         </div>
                     </div>
 
@@ -268,7 +265,7 @@
                     icon: 'warning', title: 'Changer le lien de la boutique ?',
                     text: "L'ancien lien ne fonctionnera plus. Le nouveau sera /boutique/" + normalizedSlug + ".",
                     showCancelButton: true, confirmButtonText: 'Oui, changer', cancelButtonText: 'Annuler',
-                    confirmButtonColor: '#d97706', showLoaderOnConfirm: true,
+                    buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-warning', cancelButton: 'saas-btn saas-btn-ghost' }, showLoaderOnConfirm: true,
                     allowOutsideClick: () => !Swal.isLoading(), allowEscapeKey: () => !Swal.isLoading(),
                     preConfirm: function() {
                         if (window.ServerButtonLoader) window.ServerButtonLoader.start(button[0], 'Enregistrement…');
