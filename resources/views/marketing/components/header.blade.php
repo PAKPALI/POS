@@ -1,8 +1,8 @@
 <header class="marketing-header" data-marketing-header>
     <div class="marketing-container marketing-header-inner">
-        <a class="marketing-brand" href="{{ route('marketing.home') }}" aria-label="POS SaaS Afrique, accueil">
-            <span class="marketing-brand-mark">P</span>
-            <span><strong>POS</strong><small>SaaS Afrique</small></span>
+        <a class="marketing-brand" href="{{ route('marketing.home') }}" aria-label="Maxanou, accueil">
+            <span class="marketing-brand-mark">M</span>
+            <span><strong>Maxanou</strong><small>Je vais vendre</small></span>
         </a>
         <div class="marketing-appearance" data-marketing-appearance @auth data-save-url="{{ route('profile.appearance.update') }}" @endauth>
             <button class="marketing-appearance-trigger" type="button" aria-expanded="false" aria-controls="marketing-appearance-panel">

@@ -1,5 +1,5 @@
 @extends('layouts.marketing')
-@section('title', $content['title'].' — POS SaaS Afrique')
+@section('title', $content['title'].' — Maxanou')
 @section('meta-description', $content['intro'])
 @section('content')
 <section class="marketing-page-hero"><div class="marketing-container"><span class="marketing-eyebrow">{{ $content['eyebrow'] }}</span><h1>{{ $content['title'] }}</h1><p class="marketing-lead">{{ $content['intro'] }}</p><div class="marketing-hero-actions"><a class="marketing-button marketing-button-primary" href="{{ route('marketing.register') }}">Essayer gratuitement @include('marketing.components.icon', ['name' => 'arrow'])</a><a class="marketing-button marketing-button-secondary" href="{{ route('marketing.login') }}">Se connecter</a></div></div></section>

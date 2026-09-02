@@ -338,7 +338,7 @@
 		<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 		<script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
 		<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
-		<script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-1"></script>
+		<script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>
 		<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 		<!-- DataTables JS -->
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>

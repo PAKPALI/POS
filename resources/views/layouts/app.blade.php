@@ -79,6 +79,6 @@
         </main>
     </div>
     <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
-    <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-1"></script>
+    <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>
 </body>
 </html>

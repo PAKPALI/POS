@@ -1,6 +1,6 @@
 @extends('layouts.marketing')
 @section('title', 'Encaissez ici. Votre client reçoit sa facture sur son téléphone.')
-@section('meta-description', 'POS SaaS Afrique : encaissez rapidement, suivez le stock, pilotez la caisse et envoyez les reçus par SMS ou WhatsApp.')
+@section('meta-description', 'Maxanou vous aide à encaisser rapidement, suivre le stock, piloter la caisse et envoyer les reçus par SMS ou WhatsApp.')
 @section('content')
 <section class="marketing-hero">
     <div class="marketing-container marketing-hero-grid">
@@ -46,6 +46,6 @@
 <section class="marketing-final-cta"><div class="marketing-container marketing-final-cta-inner"><div><span class="marketing-eyebrow">Prêt à voir plus clair ?</span><h2>Créez votre espace et testez le flux complet.</h2><p>14 jours pour découvrir la vente, le stock, la caisse et les reçus mobiles.</p></div><a class="marketing-button marketing-button-primary marketing-button-large" data-event="signup_start" href="{{ route('marketing.register') }}">Créer mon espace gratuitement @include('marketing.components.icon', ['name' => 'arrow'])</a></div></section>
 @endsection
 @section('structured-data')
-<script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@type' => 'SoftwareApplication', 'name' => 'POS SaaS Afrique', 'applicationCategory' => 'BusinessApplication', 'operatingSystem' => 'Web, Android, iOS', 'description' => 'Point de vente pour vendre, suivre le stock, piloter la caisse et envoyer des reçus mobiles.'], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) !!}</script>
+<script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@type' => 'SoftwareApplication', 'name' => 'Maxanou', 'applicationCategory' => 'BusinessApplication', 'operatingSystem' => 'Web, Android, iOS', 'description' => 'Point de vente Maxanou pour vendre, suivre le stock, piloter la caisse et envoyer des reçus mobiles.'], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) !!}</script>
 <script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => array_map(fn ($faq) => ['@type' => 'Question', 'name' => $faq[0], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $faq[1]]], [['Puis-je essayer sans carte bancaire ?', 'L’essai de 14 jours est affiché comme un parcours gratuit. Les modalités définitives d’abonnement seront précisées avant activation.'], ['WhatsApp fonctionne-t-il partout ?', 'La disponibilité dépend du pays, du canal configuré et du fournisseur. Le site ne promet pas une couverture universelle.'], ['Que se passe-t-il quand un quota est atteint ?', 'L’envoi concerné s’arrête jusqu’à recharge ou renouvellement. Vos données et historiques ne sont pas supprimés.'], ['Puis-je gérer plusieurs activités ?', 'Oui, le produit prévoit plusieurs entreprises dans un même compte, avec une séparation stricte des données.']])], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) !!}</script>
 @endsection

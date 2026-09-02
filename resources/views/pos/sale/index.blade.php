@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260902-37" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260902-41" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -89,6 +89,10 @@
                             <i class="bi bi-box-seam"></i>
                             <span><strong>{{ $productCount }}</strong> produits</span>
                         </div>
+                    </div>
+                    <div id="posTabHint" class="pos-tab-hint is-command" role="status" aria-live="polite" tabindex="0">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                        <span class="pos-tab-hint-viewport"><span id="posTabHintText" class="pos-tab-hint-track">Besoin des statistiques journalières ? Ouvrez le panier puis sélectionnez « Produits vendus ».</span></span>
                     </div>
                     <!-- search product -->
                     <div class="row mb-3 pos-search-row">
@@ -255,8 +259,8 @@
 
                     <div class="pos-sidebar-header">
                         <div class="back-btn">
-                            <button type="button" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos" class="btn">
-                                <i class="bi bi-chevron-left"></i>
+                                <button type="button" data-toggle-class="pos-mobile-sidebar-toggled" data-toggle-target="#pos" class="btn" aria-label="Fermer le panier et revenir aux produits" title="Retour aux produits">
+                                <i class="bi bi-arrow-left" aria-hidden="true"></i>
                             </button>
                         </div>
                         <div class="icon"><i class="bi bi-bag-check"></i></div>
@@ -565,9 +569,22 @@
         // Chargement dynamique de DataTables + Select2 (évite les conflits de timing)
         const initPage = () => {
         $('.sale_list').hide();
+        $('#product_list').removeClass('is-sales-view');
         $('#loader').hide();
         $('#saleLoader').hide();
         $('#search_loader').hide();
+        function setPosTabHint(view) {
+            const hint = document.getElementById('posTabHint');
+            const text = document.getElementById('posTabHintText');
+            if (!hint || !text) return;
+
+            const isSales = view === 'sales';
+            hint.classList.toggle('is-sales', isSales);
+            hint.classList.toggle('is-command', !isSales);
+            text.textContent = isSales
+                ? 'Vous consultez les statistiques journalières. Pour reprendre une vente, sélectionnez « Commande » dans le panier.'
+                : 'Besoin des statistiques journalières ? Ouvrez le panier puis sélectionnez « Produits vendus ».';
+        }
         const defaultPosProductImage = @json(asset('icons/product-placeholder.svg'));
         const catalogUrl = @json(route('products.search'));
         const clientSearchUrl = @json(route('clients.search'));
@@ -832,6 +849,7 @@
         // Filtrage serveur du catalogue par catégorie.
         $('.pos-menu .nav-link[data-filter]').on('click', function(e) {
             e.preventDefault();
+            $('#product_list').removeClass('is-sales-view');
             $('.sale_list').fadeOut();
             $('#confirmSale').fadeIn();
             $('.no-sale').hide();
@@ -840,6 +858,7 @@
             $('#posCatalogEyebrow').html('<i class="bi bi-lightning-charge-fill"></i> Vente rapide');
             $('#posCatalogTitle').text('Choisir des produits');
             $('#posCatalogDescription').text('Recherchez, ajoutez au panier, puis finalisez la vente.');
+            setPosTabHint('command');
 
             $('.pos-menu .nav-link[data-filter]').removeClass('active');
             $(this).addClass('active');
@@ -862,6 +881,7 @@
         // Au clic sur élément de navigation de la liste des ventes
         $('.nav-sale').on('click', function(e) {
             e.preventDefault();
+            $('#product_list').addClass('is-sales-view');
             $('.pos-client-bar').hide();
             $('.product_list').hide();
             $('#catalogProducts, #catalogEmpty, #catalogLoadMore, #search_loader').hide();
@@ -871,6 +891,7 @@
             $('#posCatalogEyebrow').html('<i class="bi bi-activity"></i> Résumé du jour');
             $('#posCatalogTitle').text('Activité des ventes');
             $('#posCatalogDescription').text('Suivez les indicateurs et les ventes enregistrées aujourd’hui.');
+            setPosTabHint('sales');
             $('#confirmSale').hide();
             $('.no-sale').show();
         });
@@ -878,6 +899,7 @@
         // Au clic sur élément de commande dans la navigation laterale
         $('.nav-sale-command').on('click', function(e) {
             e.preventDefault();
+            $('#product_list').removeClass('is-sales-view');
             $('.pos-client-bar').show();
             $('.sale_list').hide();
             $('#catalogProducts').css('display', 'grid');
@@ -888,6 +910,7 @@
             $('#posCatalogEyebrow').html('<i class="bi bi-lightning-charge-fill"></i> Vente rapide');
             $('#posCatalogTitle').text('Choisir des produits');
             $('#posCatalogDescription').text('Recherchez, ajoutez au panier, puis finalisez la vente.');
+            setPosTabHint('command');
             $('#confirmSale').fadeIn();
         });
 
