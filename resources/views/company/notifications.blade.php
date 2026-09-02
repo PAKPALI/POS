@@ -2,6 +2,7 @@
 @section('title', 'Configuration des communications')
 @push('styles')
 <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-16" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/saas-page-fixes.css') }}?v=20260902-7" rel="stylesheet">
 <style>
     .recipient-switch-cell { text-align: center; vertical-align: middle; }
     .recipient-toggle { display: inline-flex; align-items: center; justify-content: center; position: relative; cursor: pointer; padding: 4px 0; }
@@ -109,7 +110,7 @@
     </section>
     @endforeach
 
-    <div class="d-flex justify-content-end mb-5">
+    <div class="notifications-save-actions d-flex justify-content-end mb-5">
         <button class="saas-btn saas-btn-primary" type="submit" data-loading-text="Enregistrement…"><i class="bi bi-check2-circle"></i> Enregistrer les notifications</button>
     </div>
 </form>

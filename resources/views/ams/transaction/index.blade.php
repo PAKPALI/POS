@@ -1,7 +1,8 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-19" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-page-fixes.css') }}?v=20260902-1" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -40,7 +41,7 @@
     </section>
 
     {{-- Balance nette --}}
-    <div class="saas-card mb-4">
+    <div class="saas-card saas-transaction-balance">
         <div class="saas-card-head">
             <div>
                 <h2>Balance nette</h2>
@@ -139,7 +140,7 @@
     </div>
 
     {{-- Tableau --}}
-    <div class="saas-card">
+    <div class="saas-card saas-transaction-operations">
         <div class="saas-card-head">
             <div>
                 <h2>Liste des opérations</h2>

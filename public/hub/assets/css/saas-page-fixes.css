@@ -1,0 +1,30 @@
+/* Corrections de mise en page chargées après la feuille SaaS principale. */
+.saas-accounting-section { margin-bottom: 28px !important; }
+.saas-accounting-settings { padding: 24px; }
+.saas-cash-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.saas-cash-summary-grid > [class*="col-"] { width: auto; padding: 0; }
+.saas-cash-summary { display: grid; gap: 20px; min-height: 148px; padding: 17px; background: var(--ds-bg-elevated); border: 1px solid var(--ds-border-soft); border-radius: 14px; }
+.saas-cash-summary-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.saas-cash-summary-head .saas-metric-icon { flex: 0 0 38px; width: 38px; height: 38px; margin: 0; }
+.saas-cash-summary-head > div { display: grid; gap: 3px; min-width: 0; }
+.saas-cash-summary-head > div > span { color: var(--ds-text-muted); font-size: .72rem; font-weight: 700; }
+.saas-cash-summary-head strong { overflow: hidden; color: var(--ds-text-primary); text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; }
+.saas-cash-summary-balance { display: flex; align-items: end; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--ds-border-soft); }
+.saas-cash-summary-balance > small { color: var(--ds-text-muted); font-size: .7rem; }
+.saas-cash-summary-balance > strong { color: var(--ds-text-primary); font-size: 1.18rem; font-variant-numeric: tabular-nums; text-align: right; }
+.saas-cash-summary-balance > strong small { color: var(--ds-text-muted); font-size: .58em; font-weight: 700; }
+.saas-transaction-balance { margin-bottom: 28px !important; }
+.saas-accounting-flow-grid { display: grid; grid-template-columns: 1fr; row-gap: 28px; margin-inline: 0; }
+.saas-accounting-flow-grid > .col-xl-8,
+.saas-accounting-flow-grid > .col-xl-4 { width: 100%; }
+.saas-ecommerce-settings-grid { display: grid; grid-template-columns: 1fr; row-gap: 28px; margin-inline: 0; }
+.saas-ecommerce-settings-grid > .col-lg-7,
+.saas-ecommerce-settings-grid > .col-lg-5 { width: 100%; }
+.saas-ecommerce-settings-card, .saas-ecommerce-managers-card { height: 100%; }
+.saas-ecommerce-managers-card { margin-top: 0 !important; }
+.notifications-save-actions { display: flex; justify-content: flex-end; margin-top: 28px; }
+@media (max-width: 767.98px) {
+    .saas-accounting-settings { padding: 18px; }
+    .saas-cash-summary-grid { grid-template-columns: 1fr; gap: 12px; }
+    .saas-accounting-section, .saas-transaction-balance { margin-bottom: 20px !important; }
+}

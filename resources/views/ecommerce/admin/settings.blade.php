@@ -1,7 +1,8 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-16" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-19" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-page-fixes.css') }}?v=20260902-5" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
@@ -22,10 +23,10 @@
             </p>
         </div>
     @else
-    <div class="row g-4">
+    <div class="row g-4 saas-ecommerce-settings-grid">
         {{-- Paramètres boutique --}}
         <div class="col-lg-7">
-            <div class="saas-card">
+            <div class="saas-card saas-ecommerce-settings-card">
                 <div class="saas-card-head">
                     <div>
                         <h2>Informations boutique</h2>
@@ -98,7 +99,7 @@
 
         {{-- Managers --}}
         <div class="col-lg-5">
-            <div class="saas-card">
+            <div class="saas-card saas-ecommerce-managers-card">
                 <div class="saas-card-head">
                     <div>
                         <h2>Managers de la boutique</h2>

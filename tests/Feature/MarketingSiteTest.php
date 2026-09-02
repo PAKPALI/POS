@@ -8,7 +8,7 @@ class MarketingSiteTest extends TestCase
 {
     public function test_public_marketing_pages_render_with_real_auth_links(): void
     {
-        $this->get('/')->assertOk()->assertSee('Encaissez ici. Votre client reçoit sa facture sur son téléphone.')->assertSee(route('marketing.register'), false)->assertSee(route('marketing.login'), false)->assertSee('data-marketing-appearance', false)->assertSee('data-marketing-mode="light"', false)->assertSee('data-marketing-accent="#3B82F6"', false);
+        $this->get('/')->assertOk()->assertSee('Vendez simplement. Gardez le contrôle.')->assertSee('Testez Maxanou dans les conditions réelles de votre commerce.')->assertSee(route('marketing.register'), false)->assertSee(route('marketing.login'), false)->assertSee('data-marketing-appearance', false)->assertSee('data-marketing-mode="light"', false)->assertSee('data-marketing-accent="#3B82F6"', false);
         foreach (['fonctionnalites', 'factures-sms-whatsapp', 'secteurs', 'securite', 'aide', 'mentions-legales'] as $page) {
             $this->get('/'.$page)->assertOk();
         }

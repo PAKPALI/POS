@@ -27,6 +27,17 @@ class CatalogSaasUiTest extends TestCase
         ];
     }
 
+    public function test_sidebar_follows_catalog_first_order_and_marks_active_modules(): void
+    {
+        $contents = file_get_contents(resource_path('views/partials/saas-sidebar.blade.php'));
+
+        $this->assertLessThan(strpos($contents, "@if(\$allowed('sales.manage'))"), strpos($contents, "@if(\$allowed('catalog.manage'))"));
+        $this->assertLessThan(strpos($contents, '>Produits</a>'), strpos($contents, '>Catégories</a>'));
+        $this->assertStringContainsString('summary class="{{ $catalogActive ? \'is-active\' : \'\' }}"', $contents);
+        $this->assertStringContainsString('summary class="{{ $salesActive ? \'is-active\' : \'\' }}"', $contents);
+        $this->assertStringContainsString("request()->routeIs('history') ? 'is-active' : ''", $contents);
+    }
+
     public function test_catalog_server_actions_expose_loading_feedback(): void
     {
         foreach (['product', 'category', 'menu', 'supplier'] as $view) {

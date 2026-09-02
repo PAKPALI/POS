@@ -7,6 +7,9 @@
         ? strtoupper($appearanceUser->accent_color)
         : '#3B82F6';
 @endphp
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
     (() => {
         const mode = @json($appearanceMode);
@@ -21,6 +24,6 @@
         root.style.setProperty('--ds-accent', accent);
     })();
 </script>
-<link href="{{ asset('hub/assets/css/design-system.css') }}?v=20260902-4" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/design-system.css') }}?v=20260902-6" rel="stylesheet">
 <link href="{{ asset('hub/assets/css/password-toggle.css') }}?v=20260902-1" rel="stylesheet">
 <link href="{{ asset('hub/assets/css/datatable-loading.css') }}?v=20260901-2" rel="stylesheet">

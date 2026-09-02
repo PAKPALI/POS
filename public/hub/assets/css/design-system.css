@@ -1,5 +1,6 @@
 :root {
     color-scheme: dark;
+    --ds-font-sans: "Manrope", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     --ds-bg-canvas: #070b14;
     --ds-bg-elevated: #0d1422;
     --ds-glass-1: rgba(18, 27, 45, .76);
@@ -14,7 +15,7 @@
     --ds-accent-hover: #60a5fa;
     --ds-accent-active: #2563eb;
     --ds-accent-soft: rgba(var(--ds-accent-rgb), .14);
-    --ds-accent-contrast: #111827;
+    --ds-accent-contrast: #ffffff;
     --ds-focus-ring: rgba(var(--ds-accent-rgb), .36);
     --ds-shadow-card: 0 14px 36px rgba(0, 0, 0, .2);
     --ds-radius-control: 11px;
@@ -38,7 +39,22 @@ html[data-ds-theme="light"] {
 }
 
 html, body { background: var(--ds-bg-canvas); }
-body { color: var(--ds-text-primary); }
+body { color: var(--ds-text-primary); font-family: var(--ds-font-sans); }
+button, input, select, textarea, .btn, .form-control, .form-select, .dataTables_wrapper, .dt-container, .swal2-popup { font-family: var(--ds-font-sans) !important; }
+
+/* Les actions remplies gardent un contraste constant, quelle que soit la couleur choisie. */
+.ds-btn-primary, .btn-theme, .btn-primary, .btn-success, .btn-warning, .btn-danger, .saas-btn-primary, .saas-btn-warning, .saas-btn-danger, .saas-primary-action, .marketing-button-primary { color: #fff !important; }
+.ds-btn-primary *, .btn-theme *, .btn-primary *, .btn-success *, .btn-warning *, .btn-danger *, .saas-btn-primary *, .saas-btn-warning *, .saas-btn-danger *, .saas-primary-action *, .marketing-button-primary * { color: inherit; }
+
+/* Convention partagée DataTables : le filtre reste aligné à droite sur tous les écrans larges. */
+.dataTables_wrapper .dataTables_filter { float: right !important; justify-content: flex-end; margin-left: auto !important; text-align: right !important; }
+.dataTables_wrapper .dataTables_filter label { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.dt-container .dt-layout-row:first-child .dt-layout-end { margin-left: auto; }
+.dt-container .dt-search { display: flex; justify-content: flex-end; text-align: right; }
+
+/* Un emplacement de message vide ne doit jamais créer un faux état d’erreur. */
+.saas-field-error:empty, .invalid-feedback:empty, .field-error:empty, .form-error:empty { display: none !important; }
+.saas-field-error { display: block; margin-top: 6px; color: var(--ds-danger, #ff626e); font-size: .74rem; font-weight: 650; }
 
 .ds-surface {
     background: var(--ds-glass-1);

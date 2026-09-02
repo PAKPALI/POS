@@ -15,7 +15,7 @@
     <meta property="og:image" content="{{ asset('icons/icon-512.png') }}">
     <title>@yield('title', 'Maxanou — POS de vente et gestion')</title>
     @include('partials.design-system-head')
-    <link href="{{ asset('hub/assets/css/marketing.css') }}?v=20260902-5" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/marketing.css') }}?v=20260902-6" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="marketing-body">

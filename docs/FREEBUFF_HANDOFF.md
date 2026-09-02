@@ -2,6 +2,17 @@
 
 Dernière mise à jour : 1er septembre 2026 — chantier de refonte frontend SaaS en cours (dashboard, profil, POS et contrats UI communs).
 
+## Mise à jour du 2 septembre 2026 — cadrage du moteur d'abonnements KPrimePay
+
+- Le document de cadrage executable `docs/PROMPT_IMPLEMENTATION_ABONNEMENTS_KPRIMEPAY.md` a ete ajoute apres lecture complete de `AGENTS.md`, du present handoff, du PDF tarifaire de 15 pages et de l'integration KPrimePay existante.
+- Le prompt donne priorite a la consigne du proprietaire : renouvellement ou montee en gamme uniquement ; toute descente de gamme est interdite dans l'interface, la validation serveur et le reglement, y compris apres expiration et face a une requete falsifiee.
+- Architecture recommandee : compte de facturation couvrant plusieurs compagnies, catalogue versionne, snapshots financiers, abonnements et paiements separes de `quota_payments`, `EntitlementService`, essai unique, lecture seule a expiration et controles concurrents des limites.
+- L'integration existante des quotas doit rester intacte. Le futur paiement d'abonnement reutilisera le client/protocole KPrimePay, mais disposera de son propre modele et d'un settlement atomique. Le retour navigateur ne constituera jamais une preuve de paiement.
+- Le prompt impose `subscriptions.enforcement_enabled`, desactive par defaut : ce reglage permet le travail local sans restrictions de plan mais ne contourne jamais authentification, permissions, isolation tenant, statut de compagnie, CSRF, rate limits ou verification KPrimePay.
+- Le prompt impose une mise a jour de ce fichier apres chaque phase et du rapport administration apres chaque progression plateforme, avec tests immediats avant de poursuivre.
+- Aucun code metier, schema, paiement, quota, abonnement ou donnee n'a ete modifie pendant ce cadrage. Les changements deja presents dans le depot ont ete preserves.
+- Validation de ce lot documentaire : lecture et inspection du code/documents, controle visuel des 15 pages du PDF et `git diff --check` passe sans erreur. L'implementation et tous ses tests restent a faire selon les huit phases du prompt.
+
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
 
 ## Reprise frontend — état exact au 1er septembre 2026

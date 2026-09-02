@@ -1,7 +1,8 @@
 @extends('layouts.saas')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-20" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-page-fixes.css') }}?v=20260902-6" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 @endpush
 
@@ -14,7 +15,7 @@
     </div>
 
     {{-- Statistiques --}}
-    <section class="saas-metric-grid mb-4" aria-label="Indicateurs comptables">
+    <section class="saas-metric-grid saas-accounting-section" aria-label="Indicateurs comptables">
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Caisse principale</span><span class="saas-metric-icon"><i class="bi bi-wallet2"></i></span></div>
             <strong class="saas-metric-value">{{ $mainCash ? number_format($mainCash->balance, 0, ',', ' ') : '0' }} <small style="font-size:.55em;font-weight:600;color:var(--ds-text-muted)">FCFA</small></strong>
@@ -43,7 +44,7 @@
     </section>
 
     {{-- Paramètres comptabilité --}}
-    <div class="saas-card mb-4">
+    <section class="saas-card saas-accounting-section saas-accounting-settings">
         <div class="saas-card-head">
             <div>
                 <h2>Paramètres comptabilité</h2>
@@ -62,45 +63,31 @@
                 </p>
             </div>
         @else
-            <div class="row g-3">
+            <div class="saas-cash-summary-grid">
                 <div class="col-md-4">
-                    <div class="saas-detail-list">
-                        <div>
-                            <dt>Caisse principale</dt>
-                            <dd>{{ $mainCash->name }}</dd>
-                        </div>
-                        <div>
-                            <dt>Solde</dt>
-                            <dd>{{ number_format($mainCash->balance, 0, ',', ' ') }} FCFA</dd>
-                        </div>
+                    <div class="saas-cash-summary">
+                        <div class="saas-cash-summary-head"><span class="saas-metric-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span><div><span>Caisse principale</span><strong>{{ $mainCash->name }}</strong></div></div>
+                        <div class="saas-cash-summary-balance"><small>Solde actuel</small><strong>{{ number_format($mainCash->balance, 0, ',', ' ') }} <small>FCFA</small></strong></div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="saas-detail-list">
-                        <div>
-                            <dt>Caisse de taxe</dt>
-                            <dd>{{ $taxCash->name }}</dd>
-                        </div>
-                        <div>
-                            <dt>Solde</dt>
-                            <dd>{{ number_format($taxCash->balance, 0, ',', ' ') }} FCFA</dd>
-                        </div>
+                    <div class="saas-cash-summary">
+                        <div class="saas-cash-summary-head"><span class="saas-metric-icon"><i class="bi bi-receipt" aria-hidden="true"></i></span><div><span>Caisse de taxe</span><strong>{{ $taxCash->name }}</strong></div></div>
+                        <div class="saas-cash-summary-balance"><small>Solde actuel</small><strong>{{ number_format($taxCash->balance, 0, ',', ' ') }} <small>FCFA</small></strong></div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="saas-detail-list">
-                        <div>
-                            <dt>Taxe par défaut</dt>
-                            <dd>{{ $settings->default_tax ?? 0 }} %</dd>
-                        </div>
+                    <div class="saas-cash-summary saas-tax-summary">
+                        <div class="saas-cash-summary-head"><span class="saas-metric-icon"><i class="bi bi-percent" aria-hidden="true"></i></span><div><span>Taxe par défaut</span><strong>Configuration actuelle</strong></div></div>
+                        <div class="saas-cash-summary-balance"><small>Taux appliqué</small><strong>{{ $settings->default_tax ?? 0 }} <small>%</small></strong></div>
                     </div>
                 </div>
             </div>
         @endif
-    </div>
+    </section>
 
     {{-- Graphique et dernières opérations --}}
-    <div class="row g-4">
+    <div class="row g-4 saas-accounting-section saas-accounting-flow-grid">
         <div class="col-xl-8">
             <div class="saas-card">
                 <div class="saas-card-head">

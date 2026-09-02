@@ -4,7 +4,7 @@
     --pos-panel-soft: color-mix(in srgb, var(--ds-bg-elevated) 76%, transparent);
 }
 
-.pos-saas-body { min-width: 320px; background: var(--ds-bg-canvas); color: var(--ds-text-primary); font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+.pos-saas-body { min-width: 320px; background: var(--ds-bg-canvas); color: var(--ds-text-primary); font-family: var(--ds-font-sans); overflow: hidden; }
 .pos-saas-body::before { content: ""; position: fixed; z-index: -1; inset: 0; pointer-events: none; background: radial-gradient(circle at 10% 0%, rgba(var(--ds-accent-rgb), .13), transparent 30%), radial-gradient(circle at 86% 90%, rgba(var(--ds-accent-rgb), .08), transparent 26%); }
 .pos-saas-body #app { min-height: 100vh; background: transparent; }
 .pos-saas-body .app-theme-panel { display: none !important; }
@@ -252,7 +252,7 @@
 .pos-saas-body .modal-content.pos-modal-content .modal-footer { flex: 0 0 auto; display: flex !important; align-items: center; justify-content: flex-end; gap: 9px; padding: 14px 20px; background: color-mix(in srgb, var(--ds-bg-elevated) 88%, transparent); border-top: 1px solid var(--ds-border-soft); }
 .pos-saas-body .modal-content.pos-modal-content .modal-footer .btn { min-height: 42px; padding: 9px 15px; border-radius: 10px; font-size: .76rem; font-weight: 800; }
 .pos-saas-body .modal-content.pos-modal-content .modal-footer .btn-secondary { color: var(--ds-text-primary); background: var(--ds-bg-elevated); border-color: var(--ds-border-soft); }
-.pos-saas-body .modal-content.pos-modal-content .modal-footer .btn-success { color: #061a18; background: var(--ds-accent); border-color: var(--ds-accent); }
+.pos-saas-body .modal-content.pos-modal-content .modal-footer .btn-success { color: #fff; background: var(--ds-accent); border-color: var(--ds-accent); }
 .pos-saas-body #pdfModal .modal-dialog { width: min(880px, 100%); }
 .pos-saas-body #pdfModal .modal-content { height: min(92dvh, 880px); }
 .pos-saas-body #pdfModal .modal-body canvas { display: block; width: auto; max-width: 100%; height: auto !important; margin: 0 auto; background: #fff; box-shadow: 0 2px 12px rgba(0, 0, 0, .18); }

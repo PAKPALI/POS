@@ -10,7 +10,7 @@
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-18" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260902-8" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260902-9" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="saas-body public-auth-body">
