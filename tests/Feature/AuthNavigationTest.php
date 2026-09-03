@@ -79,12 +79,12 @@ class AuthNavigationTest extends TestCase
     {
         $manifest = json_decode(file_get_contents(public_path('manifest.json')), true, flags: JSON_THROW_ON_ERROR);
 
-        $this->assertSame('/user_login?source=pwa', $manifest['start_url']);
-        $this->assertStringContainsString('pro-seller-pwa-v5', file_get_contents(public_path('sw.js')));
+        $this->assertSame('/user_login', $manifest['start_url']);
+        $this->assertStringContainsString('pro-seller-pwa-v7', file_get_contents(public_path('sw.js')));
         $this->assertStringContainsString('beforeinstallprompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('android-pwa-install-prompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('mobile-pwa-install-fallback', file_get_contents(public_path('pwa-register.js')));
-        $this->get('/user_login?source=pwa')
+        $this->get('/user_login')
             ->assertOk()
             ->assertSee('Bon retour.');
     }

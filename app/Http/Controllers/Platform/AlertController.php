@@ -11,15 +11,43 @@ use App\Services\PlatformAlertService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AlertController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['open', 'acknowledged', 'resolved'])],
+            'severity' => ['nullable', Rule::in(['critical', 'warning', 'info'])],
+            'per_page' => ['nullable', 'integer', Rule::in([10, 20, 50, 100])],
+        ]);
         $settings = PlatformAlertSetting::current();
-        $alerts = PlatformOperationalAlert::latest('last_detected_at')->paginate(20);
+        $allAlerts = PlatformOperationalAlert::query();
+        $summary = [
+            'total' => (clone $allAlerts)->count(),
+            'open' => (clone $allAlerts)->where('status', 'open')->count(),
+            'acknowledged' => (clone $allAlerts)->where('status', 'acknowledged')->count(),
+            'resolved' => (clone $allAlerts)->where('status', 'resolved')->count(),
+        ];
+        $alerts = (clone $allAlerts)
+            ->when($filters['search'] ?? null, function ($query, $value) {
+                $term = '%'.$value.'%';
+                $query->where(function ($search) use ($term) {
+                    $search->where('title', 'like', $term)
+                        ->orWhere('message', 'like', $term)
+                        ->orWhere('type', 'like', $term)
+                        ->orWhere('fingerprint', 'like', $term);
+                });
+            })
+            ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
+            ->when($filters['severity'] ?? null, fn ($query, $value) => $query->where('severity', $value))
+            ->latest('last_detected_at')
+            ->paginate((int) ($filters['per_page'] ?? 20))
+            ->withQueryString();
         $admins = PlatformAdmin::where('is_active', true)->whereIn('role', ['super_admin', 'technical'])->orderBy('name')->get();
-        return view('platform.alerts.index', compact('settings', 'alerts', 'admins'));
+        return view('platform.alerts.index', compact('settings', 'alerts', 'admins', 'filters', 'summary'));
     }
 
     public function updateSettings(Request $request)

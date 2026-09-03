@@ -55,4 +55,24 @@ class PlatformOperationalAlertTest extends TestCase
         $this->assertSame('resolved', $alert->fresh()->status);
         $this->assertDatabaseHas('platform_audit_logs', ['action' => 'platform.alert.resolved', 'target_id' => (string) $alert->id]);
     }
+
+    public function test_alert_index_supports_search_filters_and_server_pagination(): void
+    {
+        $admin = $this->admin();
+        foreach (range(1, 11) as $number) {
+            PlatformOperationalAlert::create(['type' => 'queue.delayed', 'fingerprint' => 'queue-'.$number,
+                'severity' => 'warning', 'status' => 'open', 'title' => 'Queue ralentie '.$number,
+                'message' => 'Le job attend depuis trop longtemps.', 'detected_at' => now(), 'last_detected_at' => now()]);
+        }
+        PlatformOperationalAlert::create(['type' => 'payments.blocked', 'fingerprint' => 'payment-resolved',
+            'severity' => 'warning', 'status' => 'resolved', 'title' => 'Paiement résolu', 'message' => 'Incident clos.',
+            'detected_at' => now(), 'last_detected_at' => now()]);
+
+        $response = $this->actingAs($admin, 'platform')->get(route('platform.alerts.index', [
+            'search' => 'Queue', 'status' => 'open', 'per_page' => 10,
+        ]));
+
+        $response->assertOk()->assertSee('Queue ralentie 1')->assertSee('Affichage de 1 à 10 sur 11')
+            ->assertSee('page=2');
+    }
 }

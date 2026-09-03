@@ -50,8 +50,8 @@ code { font-family:"DejaVu Sans Mono", monospace; font-size:8.6pt; color:#8a2454
   <div class="meta">
     <p><strong>Périmètre audité :</strong> dépôt POS Laravel situé dans <code>C:\POS</code></p>
     <p><strong>État observé :</strong> Laravel 10.48.20 · PHP 8.2.24 · application Blade/Vite · MySQL</p>
-    <p><strong>Mise à jour :</strong> 18 août 2026</p>
-    <p><strong>Statut :</strong> architecture et rapport d’avancement — migration fonctionnelle estimée à 74 %, préparation production à 55 %</p>
+    <p><strong>Mise à jour :</strong> 3 septembre 2026 (référence historique révisée)</p>
+    <p><strong>Statut :</strong> architecture et migration documentées ici à titre historique ; consulter les rapports permanents pour l’avancement courant et la préparation production.</p>
   </div>
 </section>
 
@@ -69,6 +69,7 @@ code { font-family:"DejaVu Sans Mono", monospace; font-size:8.6pt; color:#8a2454
 </table>
 
 <h2>1. Résumé exécutif</h2>
+<div class="callout warning"><strong>Document historique :</strong> cette page conserve une photographie d’architecture antérieure. Pour l’état courant et les décisions de mise en production, consulter <code>docs/FREEBUFF_HANDOFF.md</code>, <code>docs/RAPPORT_GLOBAL_SAAS.md</code> et <code>docs/RAPPORT_ADMINISTRATION_SAAS.md</code>. Les pourcentages historiques ci-dessous ne sont pas normatifs.</div>
 <div class="callout success"><strong>État au 24 août 2026 :</strong> le noyau multi-compagnies, le changement de compagnie, l’inscription propriétaire, les rôles/permissions, le storefront et les principaux jobs de notification tenantés sont implémentés. Le flux d’invitation est complet et les écrans Connexion/Inscription possèdent une navigation réciproque. La vue <code>auth/register</code> reprend l’interface SaaS complète de <code>admin/register</code> et son template POS. Une redirection intelligente conduit désormais chaque utilisateur vers sa première fonctionnalité autorisée après connexion, changement de compagnie ou acceptation d’invitation ; un membre de plusieurs entreprises passe par le sélecteur. La désactivation du cache des pages d’authentification évite aussi l’affichage d’un ancien écran après un retour navigateur. Deux lots de défense par ressource sécurisent désormais Produits, Catégories, Clients et Fournisseurs avec Policies, autorisations explicites et tests IDOR. Les gestionnaires E-commerce sont également isolés par <code>CompanyContext</code> : seuls les membres actifs de la compagnie peuvent être ajoutés, listés ou retirés. Le Profil cible exclusivement le compte connecté et exige le mot de passe actuel pour modifier l’e-mail ou le mot de passe. Les slugs et identifiants publics des compagnies sont maintenant obligatoires et uniques ; deux entreprises homonymes disposent de liens distincts et stables. Le propriétaire peut personnaliser son slug depuis la configuration E-commerce avec vérification de disponibilité et confirmation avant rupture de l’ancien lien. Les commandes publiques rechargent produits et prix dans la compagnie du slug et enregistrent commande/lignes sans modifier le stock. Après confirmation du client, une action transforme atomiquement la commande en vente avec le moteur du POS : stock, caisses, transactions et notifications sont alors mis à jour une seule fois. Une commande peut aussi être annulée avec auteur, date et motif, sans mouvement de stock. Les managers actifs reçoivent après commit un e-mail HTML basé sur le template commun. Les relations Produit→Catégorie/Fournisseur, Vente→Client et Inventaire→Fournisseur sont contrôlées dans la compagnie active. Les bénéfices sont retirés des écrans, DataTables et PDF lorsque le rôle ne possède pas <code>reports.view_margin</code>. La livraison E-commerce accepte désormais une position GPS ou un lien Google Maps sécurisé, consultable depuis l’e-mail manager et le détail de commande. La suite automatisée compte <strong>98 tests et 571 assertions réussis</strong>.</div>
 <div class="callout success"><strong>Audit et durcissement actualisés le 24 août 2026 :</strong> la base locale contient 2 compagnies, aucune relation inter-compagnies et aucun <code>company_id</code> nul dans les tables actives auditées. Les 12 actions et 3 rôles historiques sont conservés dans une archive technique réversible. Les relations métier, adhésions, invitations, destinataires de notifications et managers E-commerce sont maintenant contraintes par le tenant en base. Le rapport détaillé est disponible dans <code>docs/AUDIT_ISOLATION_TENANT_2026-08-24.md</code>.</div>
 <div class="callout success"><strong>Convention d’attente serveur :</strong> les layouts principaux chargent un composant commun qui affiche un loader dans le bouton déclencheur, désactive les doubles clics et restaure l’état en cas d’erreur. Les nouveaux flux AJAX, Fetch ou SweetAlert doivent respecter la convention décrite dans <code>docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md</code>.</div>
@@ -81,8 +82,8 @@ code { font-family:"DejaVu Sans Mono", monospace; font-size:8.6pt; color:#8a2454
 <tr><td>Rôles et permissions</td><td>78 %</td><td>RBAC par compagnie et interface terminés. La permission dédiée Clients est cohérente entre menu, routes et Policy ; autres Policies encore nécessaires.</td></tr>
 <tr><td>POS, stock et caisse</td><td>78 %</td><td>Flux principaux testés, relations Vente→Client et Inventaire→Fournisseur sécurisées. Policies complètes Ventes/Inventaires/Caisses restantes.</td></tr>
 <tr><td>E-commerce tenanté</td><td>90 %</td><td>URL unique/personnalisable, paniers séparés, commande sans mouvement de stock, conversion atomique en vente, annulation historisée et e-mails managers tenantés. Domaines personnalisés à prévoir.</td></tr>
-<tr><td>Industrialisation production</td><td>25 %</td><td>Tests fonctionnels présents ; Redis, stockage privé, MFA, sauvegardes testées, supervision et charge restent à réaliser.</td></tr>
-<tr><td>Abonnements</td><td>0 %</td><td>Reporté volontairement jusqu’à la définition des plans ; créer d’abord <code>EntitlementService</code>.</td></tr>
+<tr><td>Industrialisation production</td><td>Historique</td><td>Estimation du 24 août 2026 conservée uniquement pour traçabilité ; consulter le guide O2switch pour le statut d’exploitation actuel.</td></tr>
+<tr><td>Abonnements</td><td>Fonctionnel terminé</td><td>Plans, durée, KPrimePay, webhooks, limites, fonctionnalités, rappels et notifications sont désormais livrés ; la production reste à configurer.</td></tr>
 </table>
 <p><strong>Estimation globale :</strong> migration fonctionnelle SaaS à environ <strong>74 %</strong> ; aptitude à une mise en production SaaS à environ <strong>55 %</strong>.</p>
 
@@ -313,7 +314,7 @@ code { font-family:"DejaVu Sans Mono", monospace; font-size:8.6pt; color:#8a2454
 <tr><td>PWA</td><td>Clés IndexedDB/cache incluant company_id ; purge au switch ; stratégie hors-ligne tenant-aware.</td></tr>
 </table>
 
-<h2>9. Préparation aux abonnements (tarifs définis plus tard)</h2>
+<h2>9. Préparation aux abonnements (section historique)</h2>
 <p>Ne pas coder maintenant des prix ni un fournisseur de paiement. Créer une frontière fonctionnelle afin que le tenant et les permissions ne dépendent pas de Stripe ou d’un plan encore inconnu.</p>
 <table>
 <tr><th>Objet préparatoire</th><th>Rôle</th><th>À faire maintenant ?</th></tr>

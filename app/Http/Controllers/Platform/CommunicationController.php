@@ -26,7 +26,26 @@ class CommunicationController extends Controller
         $stats = (clone $query)->selectRaw('channel, status, COUNT(*) total')->groupBy('channel', 'status')->get();
         $companies = (clone $query)->selectRaw('company_id, channel, COUNT(*) total')
             ->with('company:id,name')->groupBy('company_id', 'channel')->orderByDesc('total')->limit(20)->get();
-        $deliveries = $query->with(['company:id,name', 'user:id,name,email,phone'])->latest()->paginate(25)->withQueryString();
+        $deliveries = (clone $query)
+            ->when($filters['delivery_search'] ?? null, function ($q, $value) {
+                $q->where(function ($search) use ($value) {
+                    $term = '%'.$value.'%';
+                    $search->where('event_key', 'like', $term)
+                        ->orWhere('category', 'like', $term)
+                        ->orWhere('channel', 'like', $term)
+                        ->orWhere('status', 'like', $term)
+                        ->orWhereHas('company', fn ($company) => $company->where('name', 'like', $term))
+                        ->orWhereHas('user', fn ($user) => $user->where(function ($identity) use ($term) {
+                            $identity->where('name', 'like', $term)
+                                ->orWhere('email', 'like', $term)
+                                ->orWhere('phone', 'like', $term);
+                        }));
+                });
+            })
+            ->with(['company:id,name', 'user:id,name,email,phone'])
+            ->latest()
+            ->paginate((int) ($filters['per_page'] ?? 25))
+            ->withQueryString();
         return view('platform.communications.index', compact('deliveries', 'stats', 'companies', 'filters'));
     }
 
@@ -66,7 +85,9 @@ class CommunicationController extends Controller
     {
         $filters = $request->validate(['company_id'=>['nullable','integer','exists:company_settings,id'],
             'channel'=>['nullable',Rule::in(['email','sms','whatsapp'])], 'status'=>['nullable',Rule::in(['pending','processing','sent','failed'])],
-            'category'=>['nullable','string','max:30'], 'from'=>['nullable','date'], 'to'=>['nullable','date','after_or_equal:from'], 'search'=>['nullable','string','max:100']]);
+            'category'=>['nullable','string','max:30'], 'from'=>['nullable','date'], 'to'=>['nullable','date','after_or_equal:from'],
+            'search'=>['nullable','string','max:100'], 'delivery_search'=>['nullable','string','max:100'],
+            'per_page'=>['nullable','integer',Rule::in([10,25,50,100])]]);
         $query = NotificationDelivery::query()
             ->when($filters['company_id']??null,fn($q,$v)=>$q->where('company_id',$v))->when($filters['channel']??null,fn($q,$v)=>$q->where('channel',$v))
             ->when($filters['status']??null,fn($q,$v)=>$q->where('status',$v))->when($filters['category']??null,fn($q,$v)=>$q->where('category',$v))

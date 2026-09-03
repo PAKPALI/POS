@@ -4,7 +4,7 @@
 @section('page-title', 'Accès refusé')
 
 @push('styles')
-<link href="{{ asset('hub/assets/css/error-pages.css') }}?v=20260902-1" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/error-pages.css') }}?v=20260902-4" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -12,7 +12,7 @@
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8 col-xl-6">
-            <div class="card border-0 shadow-lg overflow-hidden">
+            <div class="permission-denied-card card border-0 shadow-lg overflow-hidden">
                 <div class="card-body p-4 p-md-5 text-center">
                     <img src="{{ asset('hub/assets/img/errors/access-denied-robot.png') }}"
                          class="permission-illustration mb-3"
@@ -23,22 +23,22 @@
                         {{ $exception->getMessage() ?: "Votre rôle ne vous donne pas accès à cette fonctionnalité dans l’entreprise sélectionnée." }}
                     </p>
 
-                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <div class="permission-actions d-flex flex-wrap justify-content-center gap-2" aria-label="Actions disponibles">
                         @if($isPlatformError)
-                            <a href="{{ route('platform.dashboard') }}" class="btn btn-warning"><i class="bi bi-grid-1x2-fill me-2"></i>Vue générale</a>
+                            <a href="{{ route('platform.dashboard') }}" class="permission-button permission-button-primary"><i class="bi bi-grid-1x2-fill me-2"></i>Vue générale</a>
                         @elseif($permissionMembership?->hasPermission('dashboard.view'))
-                            <a href="{{ route('dashboard') }}" class="btn btn-theme"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</a>
+                            <a href="{{ route('dashboard') }}" class="permission-button permission-button-primary"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</a>
                         @endif
                         @if($permissionMembership?->hasPermission('clients.manage'))
-                            <a href="{{ route('client.index') }}" class="btn btn-outline-theme">Clients</a>
+                            <a href="{{ route('client.index') }}" class="permission-button permission-button-secondary">Clients</a>
                         @endif
                         @if($permissionMembership?->hasPermission('sales.manage'))
-                            <a href="{{ route('sale.index') }}" class="btn btn-outline-theme">Point de vente</a>
+                            <a href="{{ route('sale.index') }}" class="permission-button permission-button-secondary">Point de vente</a>
                         @endif
                         @if($permissionMembership?->hasPermission('inventory.manage'))
-                            <a href="{{ route('inventory.index') }}" class="btn btn-outline-theme">Inventaire</a>
+                            <a href="{{ route('inventory.index') }}" class="permission-button permission-button-secondary">Inventaire</a>
                         @endif
-                        @unless($isPlatformError)<a href="{{ $permissionMembership ? route('profil') : route('companies.select') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-2"></i>{{ $permissionMembership ? 'Mon profil' : 'Mes entreprises' }}</a>@endunless
+                        @unless($isPlatformError)<a href="{{ $permissionMembership ? route('profil') : route('companies.select') }}" class="permission-button permission-button-secondary"><i class="bi bi-person me-2"></i>{{ $permissionMembership ? 'Mon profil' : 'Mes entreprises' }}</a>@endunless
                     </div>
 
                     <p class="small text-secondary mt-4 mb-0">

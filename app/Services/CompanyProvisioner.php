@@ -26,6 +26,7 @@ class CompanyProvisioner
         'company.manage' => 'Paramètres de la compagnie',
         'notifications.manage' => 'Gérer les notifications',
         'quota.manage' => 'Acheter des quotas SMS et WhatsApp',
+        'subscription.manage' => 'Gérer l’abonnement de la compagnie',
         'communications.view' => 'Voir la consommation SMS et WhatsApp',
         'reports.view_margin' => 'Marges et bénéfices',
     ];
@@ -96,6 +97,8 @@ class CompanyProvisioner
                     ['email_enabled' => true, 'whatsapp_enabled' => true, 'sms_enabled' => false]
                 );
             }
+
+            app(SubscriptionAccountService::class)->ensureFor($company, $owner->id);
 
             return $membership;
         });

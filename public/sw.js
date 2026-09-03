@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'pro-seller-pwa-v6';
+const CACHE_VERSION = 'pro-seller-pwa-v7';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const STATIC_ASSETS = [
     '/offline.html', '/manifest.json', '/favicon.ico',

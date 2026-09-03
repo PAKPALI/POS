@@ -40,6 +40,7 @@ class Company extends Model
         'inventory_whatsapp_enabled',
         'inventory_sms_enabled',
         'created_by',
+        'subscription_account_id',
     ];
 
     protected $casts = [
@@ -113,6 +114,7 @@ class Company extends Model
     {
         return $this->hasMany(Order::class, 'company_id');
     }
+    public function subscriptionAccount() { return $this->belongsTo(SubscriptionAccount::class); }
 
     // ─── Scopes ──────────────────────────────────────────
 

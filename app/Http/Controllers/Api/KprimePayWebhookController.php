@@ -4,21 +4,37 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\QuotaPayment;
+use App\Models\SubscriptionPayment;
 use App\Services\KprimePayService;
 use App\Services\QuotaPaymentSettlementService;
+use App\Services\SubscriptionSettlementService;
 use Illuminate\Http\Request;
 use RuntimeException;
 use Throwable;
 
 class KprimePayWebhookController extends Controller
 {
-    public function __invoke(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement)
+    public function __invoke(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement, SubscriptionSettlementService $subscriptionSettlement)
     {
         $webhook = $this->normalizeWebhook($request, $request->all());
         if ($webhook === null) {
             return response()->json(['status' => false, 'message' => 'INVALID_WEBHOOK'], 400);
         }
 
+        $subscriptionPayment = SubscriptionPayment::where('transaction_id', $webhook['transaction_id'])->first();
+        if ($subscriptionPayment) {
+            if ($webhook['event'] === 'collection.failed') {
+                if ($subscriptionPayment->status !== 'paid') {
+                    $subscriptionSettlement->markFailed($subscriptionPayment, $webhook['failure_reason'], $webhook['event_id']);
+                }
+
+                return response()->json(['status' => true, 'message' => 'FAILED']);
+            }
+            if ($webhook['event'] !== 'collection.succeeded') return response()->json(['status'=>true]);
+            try { $verified=$kprimePay->paymentStatus($webhook['transaction_id']); $subscriptionSettlement->creditVerified($subscriptionPayment,$verified,$webhook['event_id'],$webhook['kpp_reference']); return response()->json(['status'=>true,'message'=>'SETTLED']); }
+            catch (\RuntimeException $e) { return response()->json(['status'=>false,'message'=>$e->getMessage()],422); }
+            catch (Throwable $e) { report($e); return response()->json(['status'=>false,'message'=>'VERIFICATION_UNAVAILABLE'],503); }
+        }
         $payment = QuotaPayment::withoutCompanyScope()->where('transaction_id', $webhook['transaction_id'])->first();
         if (!$payment) {
             return response()->json(['status' => true, 'message' => 'IGNORED']);

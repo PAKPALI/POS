@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Validator;
 
 class SupplierController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('plan.feature:suppliers');
+    }
     /**
      * Display a listing of the resource.
      */

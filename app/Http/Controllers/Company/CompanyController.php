@@ -7,8 +7,11 @@ use App\Models\Company;
 use App\Models\CompanyUser;
 use App\Services\CompanyContext;
 use App\Services\CompanyProvisioner;
+use App\Services\EntitlementService;
+use App\Exceptions\SubscriptionLimitReached;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -18,6 +21,7 @@ class CompanyController extends Controller
     public function __construct(
         private CompanyContext $context,
         private CompanyProvisioner $provisioner,
+        private EntitlementService $entitlements,
     ) {}
 
     public function index()
@@ -107,12 +111,26 @@ class CompanyController extends Controller
             }
 
             $data['created_by'] = Auth::id();
-            $company = Company::create($data);
-            $this->provisioner->provision(
-                $company,
-                Auth::user(),
-                $request->filled('default_tax') ? (float) $request->default_tax : null
-            );
+            try {
+                $company = DB::transaction(function () use ($data, $request) {
+                    $this->entitlements->assertCanAdd($this->context->getCompany(), 'company');
+                    $company = Company::create($data);
+                    $this->provisioner->provision(
+                        $company,
+                        Auth::user(),
+                        $request->filled('default_tax') ? (float) $request->default_tax : null
+                    );
+
+                    return $company;
+                });
+            } catch (SubscriptionLimitReached $exception) {
+                return response()->json([
+                    'status' => false,
+                    'reload' => false,
+                    'title' => 'LIMITE DU PLAN ATTEINTE',
+                    'msg' => 'Votre plan actuel ne permet pas de créer une nouvelle entreprise. Veuillez passer à un plan supérieur pour continuer.',
+                ], 422);
+            }
 
             return response()->json([
                 "status" => true,

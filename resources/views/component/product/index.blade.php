@@ -12,7 +12,7 @@
             <h1>Produits</h1>
             <p>Gérez les articles vendus, leurs prix, leur stock de sécurité et leur disponibilité.</p>
         </div>
-        <button type="button" class="saas-btn saas-btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <button type="button" class="saas-btn saas-btn-primary {{ !$canAddProduct ? 'is-disabled' : '' }}" @if(!$canAddProduct) aria-disabled="true" data-limit-message="La limite de produits actifs de votre plan d’abonnement est atteinte." @else data-bs-toggle="modal" data-bs-target="#addModal" @endif>
             <i class="bi bi-plus-lg"></i> Ajouter un produit
         </button>
     </div>
@@ -234,6 +234,16 @@
                     : fallback;
             }
 
+            function showPlanLimitAlert(message) {
+                var canUpgrade = @json(app(\App\Services\CompanyContext::class)->hasPermission('subscription.manage'));
+                return Swal.fire({ icon: 'warning', title: 'Limite du plan atteinte', text: message, showCancelButton: canUpgrade, confirmButtonText: canUpgrade ? 'Améliorer mon plan' : 'OK', cancelButtonText: 'Fermer', buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' } }).then(function(result) { if (canUpgrade && result.isConfirmed) window.location.href = '{{ route('subscriptions.index') }}'; });
+            }
+
+            $(document).on('click', '[data-limit-message]', function(event) {
+                event.preventDefault();
+                Swal.fire({ icon: 'warning', title: 'Limite du plan atteinte', text: this.dataset.limitMessage, buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' } });
+            });
+
             function changeProductStatus(id, fallback) {
                 return new Promise(function(resolve) {
                     $.ajax({
@@ -371,11 +381,14 @@
                             $('#add')[0].reset();
                             Datatable.draw();
                         } else {
-                            Swal.fire({ toast: true, position: 'top', icon: "error", title: data.title, showConfirmButton: false, timer: 3000, timerProgressBar: true, text: data.msg });
+                            if (data.msg && data.msg.toLowerCase().includes('limite')) showPlanLimitAlert(data.msg);
+                            else Swal.fire({ toast: true, position: 'top', icon: "error", title: data.title, showConfirmButton: false, timer: 3000, timerProgressBar: true, text: data.msg });
                         }
                     },
-                    error: function() {
-                        Swal.fire({ icon: "error", title: "Erreur", text: ajaxErrorMessage(arguments[0], "Impossible de communiquer avec le serveur."), timer: 3600 });
+                    error: function(xhr) {
+                        var message = ajaxErrorMessage(xhr, "Impossible de communiquer avec le serveur.");
+                        if (xhr.status === 422 && message.toLowerCase().includes('limite')) showPlanLimitAlert(message);
+                        else Swal.fire({ icon: "error", title: "Erreur", text: message, timer: 3600 });
                     }
                 });
                 return false;

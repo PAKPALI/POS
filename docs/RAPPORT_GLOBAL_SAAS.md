@@ -1,6 +1,6 @@
 # Rapport global permanent — SaaS POS
 
-Dernière mise à jour : 28 août 2026
+Dernière mise à jour : 3 septembre 2026
 
 ## Rôle du document
 
@@ -30,6 +30,9 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 - boutique e-commerce publique avec slug unique, recherche progressive et cycle commande-vers-vente ;
 - notifications e-mail, SMS et WhatsApp configurables par entreprise, catégorie et destinataire ;
 - quotas SMS/WhatsApp payés par KPrimePay ;
+- abonnements commerciaux fonctionnels : essai, plans tarifés, durée flexible, montée de plan, limites et fonctionnalités contrôlées côté serveur ;
+- paiements d’abonnement distincts des paiements de quotas, avec webhooks KPrimePay idempotents et notifications e-mail administratives ;
+- réglage d’enforcement désactivé par défaut pour le développement local et activable progressivement en production ;
 - PWA Android/iOS, panier persistant et interfaces mobiles ;
 - console centrale SaaS documentée séparément dans `RAPPORT_ADMINISTRATION_SAAS.md`.
 
@@ -109,7 +112,7 @@ Ils sont configurables avec `PDF_PRODUCTS_MAX_ROWS`, `PDF_INVENTORIES_MAX_ROWS` 
 - une surveillance externe reste nécessaire pour détecter l’arrêt total du cron ;
 - les agrégations du tableau de bord et de l’historique doivent rester surveillées avec la croissance réelle ;
 - le lancement recommandé reste progressif avec quelques entreprises pilotes ;
-- les abonnements commerciaux peuvent être ajoutés ultérieurement sans empêcher le premier lancement.
+- la validation staging des abonnements, webhooks, SMTP et recette visuelle est acquise ; la production nécessite encore les secrets/URLs, la supervision et une activation progressive de l’enforcement.
 
 ## Documents complémentaires conservés
 

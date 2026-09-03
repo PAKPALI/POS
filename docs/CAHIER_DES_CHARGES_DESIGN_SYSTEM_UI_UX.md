@@ -1,7 +1,7 @@
 # Cahier des charges — Design system et harmonisation UI/UX
 
-Version : 1.6 — 1er septembre 2026  
-Statut : direction validée — implémentation progressive en cours
+Version : 1.7 — 3 septembre 2026
+Statut : direction validée — composants principaux implémentés, contrôles et extensions à maintenir
 
 ## 1. Vision
 

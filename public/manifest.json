@@ -1,11 +1,11 @@
 {
-  "id": "/",
+  "id": "/user_login",
   "name": "PRO-SELLER",
   "short_name": "Pro-Seller",
   "description": "Gestion de point de vente, de stock et de commandes pour votre entreprise.",
   "lang": "fr",
   "dir": "ltr",
-  "start_url": "/user_login?source=pwa",
+  "start_url": "/user_login",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

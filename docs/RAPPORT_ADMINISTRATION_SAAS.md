@@ -1,6 +1,6 @@
 # Rapport permanent — Administration SaaS
 
-Dernière mise à jour : 28 août 2026 — sécurisation avancée des comptes plateforme
+Dernière mise à jour : 3 septembre 2026 — catalogue, pré-contrôle et notifications d’abonnement validés
 
 ## Règle de suivi
 
@@ -10,7 +10,7 @@ Ce fichier est l’unique rapport d’avancement de la partie administrative Saa
 
 La console d’administration centrale est opérationnelle et séparée des comptes `owner` et `admin` propres aux entreprises. Elle est accessible par `/admin-saas` ou `/platform/login`.
 
-Dernière non-régression complète connue : **185 tests, 1 109 assertions, 0 échec**.
+Dernière non-régression complète documentée : **185 tests, 1 109 assertions, 0 échec**. Des suites ciblées supplémentaires ont ensuite couvert le catalogue, le pré-contrôle, les abonnements, l’expiration et les notifications.
 
 ## Accès et sécurité plateforme
 
@@ -221,3 +221,57 @@ Le cron serveur doit exécuter `php artisan schedule:run` chaque minute afin d�
 - **28 août 2026** : ajout des alertes automatiques d’exploitation, des seuils configurables, des destinataires, de l’anti-spam et du cycle de prise en charge/résolution.
 - **28 août 2026** : ajout du module global Communications avec statistiques, filtres, masquage, consommation par entreprise, exports et relances contrôlées.
 - **28 août 2026** : ajout des paramètres généraux, de l’identité dynamique, des interrupteurs de services, des délais de sécurité, du mode maintenance et correction du cache Blade.
+# Mise à jour du 3 septembre 2026 — pré-contrôle abonnement plateforme
+
+- La console SaaS dispose de la page super-administrateur `platform/subscriptions/preflight` (« Abonnements » dans Monétisation). Elle est strictement en lecture seule : aucune action de cette page ne modifie un plan, un prix, une souscription, un paiement ou un quota.
+- Le pré-contrôle affiche l’état effectif de l’enforcement, la disponibilité logique de KPrimePay sans jamais révéler de secret, les comptes facturation, abonnements en cours/expirés/proches de l’échéance, paiements en attente et paiements expirés à réconcilier.
+- Le catalogue des plans est exposé uniquement comme contrôle : version, prix, limites et fonctionnalités. La règle financière est explicitée : un engagement déjà souscrit reste fondé sur son snapshot ; une évolution commerciale devra créer une nouvelle version au lieu de réécrire un prix existant.
+- Le réglage « Vérifier les abonnements avant les accès métier » reste dans Paramètres généraux, désactivé par défaut pour le développement local. Le pré-contrôle y renvoie mais ne peut pas l’activer lui-même.
+- Autorisation : la route est protégée par `platform.admins.manage` ; un administrateur Finance ne peut pas y accéder. Test : `PlatformSubscriptionPreflightTest` vérifie l’accès super-administrateur, l’absence de fuite du token KPrimePay et le refus du rôle Finance.
+- Validation du lot : `php artisan test tests/Feature/PlatformSubscriptionPreflightTest.php tests/Feature/SubscriptionAccessTest.php tests/Feature/SubscriptionWebhookTest.php --no-coverage` — **10 tests, 45 assertions, 0 échec** ; `php artisan view:cache` et `git diff --check` passent.
+- Recette visuelle locale authentifiée : le pré-contrôle a été ouvert avec une session super-administrateur ; aucun débordement horizontal à 1440, 1024, 768 et 390 px, et le déclencheur de navigation mobile apparaît bien aux deux petites largeurs. Aucun avertissement ni erreur console détecté. Aucun formulaire ni paiement n’a été soumis.
+
+# Mise à jour du 3 septembre 2026 — catalogue abonnement versionné
+
+- La console plateforme fournit maintenant `platform/subscriptions/catalog`, accessible uniquement au super-administrateur. Elle ne permet jamais de modifier un plan déjà souscrit.
+- Une évolution crée une version brouillon identifiée par une clé distincte (`bronze-v2`, par exemple), avec les prix, limites, quotas et fonctionnalités de la nouvelle offre. Le serveur impose le tarif annuel à exactement onze mensualités et exige motif + mot de passe plateforme.
+- La publication est une action distincte avec nouveau motif et mot de passe. Elle rend la version brouillon disponible pour les futurs checkouts et masque les versions précédentes de la même famille ; les abonnements, paiements et snapshots existants restent inchangés.
+- Chaque création et publication est inscrite dans `platform_audit_logs`. Les rôles non super-administrateurs sont refusés et les routes sont limitées à cinq tentatives par minute.
+- Validation : `PlatformSubscriptionCatalogTest` couvre la création sans mutation de la source, la publication, la validation du prix annuel et le refus du rôle Finance : **4 tests, 20 assertions, 0 échec**. Recette locale authentifiée sans soumission à 1440/1024/768/390 px : aucun débordement ni erreur console.
+- Reprise technique : garder `subscriptions.enforcement_enabled` désactivé tant que les rappels réels, le parcours KPrimePay sûr et la suite complète sur une base de test stabilisée ne sont pas validés.
+
+# Mise à jour du 3 septembre 2026 — expiration abonnement
+
+- La commande planifiée `subscriptions:expire` expire les abonnements arrivés à échéance et enregistre les jalons J-3/J-2/J-1 ainsi que l’expiration dans `subscription_events`.
+- Ce mécanisme est strictement journalisé : il n’envoie pas encore de message externe. Son idempotence est validée par `SubscriptionExpiryCommandTest`, y compris lors de deux exécutions consécutives.
+- Les canaux réels ne devront être activés qu’après définition du consentement, des destinataires, des horaires et des contenus approuvés.
+
+# Mise à jour du 3 septembre 2026 — rappels e-mail abonnement
+
+- Le canal retenu est l’e-mail au propriétaire du compte de facturation et aux administrateurs actifs de la compagnie facturée.
+- Le réglage plateforme `services.email.enabled` est respecté. L’état d’envoi est conservé par destinataire dans l’événement d’abonnement afin d’éviter les renvois en cas de rejeu ; les échecs restent traçables.
+- `SubscriptionExpiryNotification` utilise un contenu distinct pour les rappels J-3/J-2/J-1 et l’expiration, avec accès direct au menu Abonnement. Aucun SMS ou WhatsApp n’est utilisé.
+- Le branchement technique est testé avec `SubscriptionExpiryCommandTest` : **2 tests, 13 assertions, 0 échec**. Avant production, le relais SMTP, SPF/DKIM/DMARC, le fuseau et la politique de consentement doivent être validés.
+
+# Mise à jour du 3 septembre 2026 — durée flexible des plans
+
+- Le client peut sélectionner 1 à 12 mois sur chaque plan payant et voit immédiatement le montant total ainsi que l’expiration estimée.
+- Aucune remise n’est appliquée de 1 à 11 mois. La remise annuelle est appliquée uniquement à 12 mois, avec 12 mois d’accès et 11 mensualités facturées.
+- Le serveur recalcule les valeurs, enregistre la durée dans le paiement et l’abonnement, et conserve les anciennes périodicités pour compatibilité. Aucun montant affiché côté navigateur n’est considéré comme une preuve de paiement.
+- La migration `2026_09_03_210000_add_subscription_duration_months` est appliquée sur la base locale.
+- La sélection de durée est regroupée dans la fenêtre de confirmation du plan : le bouton « Choisir la durée » ouvre le sélecteur 1–12 mois, avec montant, réduction et date recalculés avant validation. Le nom du prestataire de paiement n’est pas exposé dans cette interface.
+- Pour limiter le risque financier, la durée initiale proposée est 1 mois ; l’engagement de 12 mois et sa remise nécessitent une sélection explicite.
+- Le sélecteur de durée du modal utilise désormais une liste tactile explicitement scrollable sur mobile (2 colonnes, hauteur limitée et `overflow-y: auto`) afin que les 12 durées restent accessibles dans les WebView qui tronquent les listes natives.
+- Après confirmation serveur d’un paiement d’abonnement, tous les administrateurs plateforme actifs reçoivent un e-mail détaillé (`SubscriptionActivatedNotification`) : entreprise, plan, durée, montant/devise, période, transaction et référence de paiement. L’envoi respecte `services.email.enabled`, est séparé de la transaction financière et est idempotent par destinataire dans `subscription_events`.
+- Validation complémentaire : les tests abonnement ciblés passent (**14 tests, 72 assertions, 0 échec**) et `php artisan view:cache` est valide. La recette navigateur responsive du modal a depuis été effectuée sur mobile et desktop ; l’activation production reste conditionnée aux secrets, à la supervision et à l’enforcement progressif.
+
+# Mise à jour du 3 septembre 2026 — notification des paiements de quotas
+
+- Après confirmation serveur d’un paiement SMS/WhatsApp, les administrateurs plateforme actifs reçoivent `QuotaPaymentConfirmedNotification` avec l’entreprise, l’acheteur, les quantités créditées, le montant/devise, la transaction, la référence et la date de confirmation.
+- L’envoi est effectué après le crédit des quotas et respecte `services.email.enabled`. Les états par administrateur sont conservés dans `quota_payments.administration_email_status` pour empêcher les doublons lors des webhooks rejoués.
+- Migration appliquée : `2026_09_03_220000_add_administration_email_status_to_quota_payments`. `QuotaPaymentTest` passe : **6 tests, 51 assertions, 0 échec**.
+
+# Validation staging — abonnements, quotas et notifications
+
+- Le propriétaire confirme le bon fonctionnement en staging du checkout de test, des retours webhook KPrimePay, du SMTP réel et de la recette visuelle mobile/desktop.
+- Le développement fonctionnel des abonnements et des notifications de paiements est considéré terminé. La mise en production reste conditionnée uniquement au renseignement contrôlé des secrets/URLs de production, à la supervision et à l’activation progressive de l’enforcement.

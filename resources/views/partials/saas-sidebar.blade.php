@@ -73,6 +73,7 @@
             </details>
         @endif
         @if($allowed('company.manage'))<a class="saas-nav-link {{ request()->routeIs('company.*') ? 'is-active' : '' }}" href="{{ route('company.index') }}"><i class="bi bi-gear"></i><span>Paramètres</span></a>@endif
+        @if(in_array($membership?->role?->key, ['owner', 'admin'], true) && $allowed('subscription.manage'))<a class="saas-nav-link {{ request()->routeIs('subscriptions.*') ? 'is-active' : '' }}" href="{{ route('subscriptions.index') }}"><i class="bi bi-credit-card"></i><span>Abonnement</span></a>@endif
     </nav>
 
     <div class="saas-sidebar-foot">

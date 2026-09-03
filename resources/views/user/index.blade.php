@@ -12,10 +12,10 @@
             <p>Gérez les membres, invitations et accès de votre entreprise.</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <button type="button" class="saas-btn saas-btn-outline" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+            <button type="button" class="saas-btn saas-btn-outline {{ !$canAddUser ? 'is-disabled' : '' }}" @if(!$canAddUser) aria-disabled="true" data-limit-message="La limite d’utilisateurs de votre plan d’abonnement est atteinte." @else data-bs-toggle="modal" data-bs-target="#inviteUserModal" @endif>
                 <i class="bi bi-envelope-plus"></i> Inviter par e-mail
             </button>
-            <button type="button" class="saas-btn saas-btn-secondary" data-bs-toggle="modal" data-bs-target="#attachExistingModal">
+            <button type="button" class="saas-btn saas-btn-secondary {{ !$canAddUser ? 'is-disabled' : '' }}" @if(!$canAddUser) aria-disabled="true" data-limit-message="La limite d’utilisateurs de votre plan d’abonnement est atteinte." @else data-bs-toggle="modal" data-bs-target="#attachExistingModal" @endif>
                 <i class="bi bi-person-plus"></i> Utilisateur existant
             </button>
         </div>
@@ -378,6 +378,7 @@ $(function() {
                 }).then(function() { window.location.reload(); });
             }).catch(function(xhr) {
                 var msg = xhr.responseJSON?.message || Object.values(xhr.responseJSON?.errors || {})[0]?.[0] || 'Une erreur est survenue.';
+                if (xhr.status === 422 && msg.toLowerCase().includes('limite')) return showPlanLimitAlert(msg);
                 Swal.fire({
                     icon: 'error', title: 'Invitation impossible', text: msg,
                     buttonsStyling: false,
@@ -653,6 +654,14 @@ $(function() {
             Swal.fire({ icon: data.status ? 'success' : 'error', title: data.title, text: data.msg,
                 buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }});
         });
+    });
+    function showPlanLimitAlert(message) {
+        var canUpgrade = @json(app(\App\Services\CompanyContext::class)->hasPermission('subscription.manage'));
+        return Swal.fire({ icon: 'warning', title: 'Limite du plan atteinte', text: message, showCancelButton: canUpgrade, confirmButtonText: canUpgrade ? 'Améliorer mon plan' : 'OK', cancelButtonText: 'Fermer', buttonsStyling: false, customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary', cancelButton: 'saas-btn saas-btn-ghost' } }).then(function(result) { if (canUpgrade && result.isConfirmed) window.location.href = '{{ route('subscriptions.index') }}'; });
+    }
+    $(document).on('click', '[data-limit-message]', function(event) {
+        event.preventDefault();
+        showPlanLimitAlert(this.dataset.limitMessage);
     });
 });
 </script>

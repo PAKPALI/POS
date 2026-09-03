@@ -36,6 +36,8 @@ use App\Http\Controllers\Platform\AdminController as PlatformAdminController;
 use App\Http\Controllers\Platform\AlertController as PlatformAlertController;
 use App\Http\Controllers\Platform\CommunicationController as PlatformCommunicationController;
 use App\Http\Controllers\Platform\GeneralSettingController as PlatformGeneralSettingController;
+use App\Http\Controllers\Platform\SubscriptionPreflightController as PlatformSubscriptionPreflightController;
+use App\Http\Controllers\Platform\SubscriptionPlanCatalogController as PlatformSubscriptionPlanCatalogController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -73,6 +75,10 @@ Route::prefix('platform')->name('platform.')->group(function () {
                 ->middleware(['platform.permission:platform.pricing.manage', 'throttle:10,1'])->name('settings.pricing.update');
             Route::get('settings/general', [PlatformGeneralSettingController::class, 'edit'])->middleware('platform.permission:platform.admins.manage')->name('settings.general');
             Route::put('settings/general', [PlatformGeneralSettingController::class, 'update'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.update');
+            Route::get('subscriptions/preflight', [PlatformSubscriptionPreflightController::class, 'index'])->middleware('platform.permission:platform.admins.manage')->name('subscriptions.preflight');
+            Route::get('subscriptions/catalog', [PlatformSubscriptionPlanCatalogController::class, 'index'])->middleware('platform.permission:platform.admins.manage')->name('subscriptions.catalog');
+            Route::post('subscriptions/plans/{plan}/versions', [PlatformSubscriptionPlanCatalogController::class, 'storeVersion'])->middleware(['platform.permission:platform.admins.manage', 'throttle:5,1'])->name('subscriptions.plans.versions.store');
+            Route::post('subscriptions/plans/{plan}/publish', [PlatformSubscriptionPlanCatalogController::class, 'publish'])->middleware(['platform.permission:platform.admins.manage', 'throttle:5,1'])->name('subscriptions.plans.publish');
             Route::get('audit', [PlatformAuditController::class, 'index'])->middleware('platform.permission:platform.audit.view')->name('audit.index');
             Route::get('audit/{audit}', [PlatformAuditController::class, 'show'])->middleware('platform.permission:platform.audit.view')->name('audit.show');
             Route::get('health', [PlatformHealthController::class, 'index'])->middleware('platform.permission:platform.health.view')->name('health.index');
@@ -186,22 +192,22 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
     Route::get('profil', function () {return view('user/profile');})->name('profil');
     // user
     Route::post('user/attach-existing', 'attachExisting')
-        ->middleware('permission:members.manage')
+        ->middleware(['permission:members.manage', 'subscription.writable'])
         ->name('user.attach-existing');
     Route::post('user/invitations', [CompanyInvitationController::class, 'store'])
-        ->middleware('permission:members.manage')->name('user.invitations.store');
+        ->middleware(['permission:members.manage', 'subscription.writable'])->name('user.invitations.store');
     Route::post('user/invitations/{invitation}/resend', [CompanyInvitationController::class, 'resend'])
-        ->middleware('permission:members.manage')->name('user.invitations.resend');
+        ->middleware(['permission:members.manage', 'subscription.writable'])->name('user.invitations.resend');
     Route::delete('user/invitations/{invitation}', [CompanyInvitationController::class, 'destroy'])
-        ->middleware('permission:members.manage')->name('user.invitations.destroy');
+        ->middleware(['permission:members.manage', 'subscription.writable'])->name('user.invitations.destroy');
     Route::get('user/{user}/transfer-options', 'transferOptions')
         ->middleware('permission:members.manage')->name('user.transfer-options');
     Route::post('user/{user}/transfer-company', 'transferToCompany')
-        ->middleware('permission:members.manage')->name('user.transfer-company');
-    Route::resource('user', UserController::class)->middleware('permission:members.manage');
+        ->middleware(['permission:members.manage', 'subscription.writable'])->name('user.transfer-company');
+    Route::resource('user', UserController::class)->middleware(['permission:members.manage', 'subscription.writable']);
     Route::resource('roles', RoleController::class)
         ->only(['index', 'store', 'update', 'destroy'])
-        ->middleware('permission:members.manage');
+        ->middleware(['permission:members.manage', 'subscription.writable']);
     // Route::get('getEmployeList', 'getEmployeList')->name('getEmployeList');
     // update email
     Route::post('updateEmail', 'updateEmail')->middleware('throttle:10,1')->name('profile.email.update');
@@ -217,7 +223,7 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
 });
 
 /*manage component*/
-Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage'])->group(function () {
+Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage', 'subscription.writable'])->group(function () {
     //category
     Route::controller(CategoryController::class)->group(function () {
         Route::resource('category', CategoryController::class);
@@ -245,7 +251,7 @@ Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.sele
     // inventory
 });
 
-Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:inventory.manage'])->group(function () {
+Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:inventory.manage', 'subscription.writable'])->group(function () {
     Route::controller(InventoryController::class)->group(function () {
         Route::resource('inventory', InventoryController::class);
         Route::post('inventory-remove', 'remove')->name('inventory.remove');
@@ -257,13 +263,13 @@ Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.sele
     });
 });
 
-Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:clients.manage'])->group(function () {
+Route::prefix('component')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:clients.manage', 'subscription.writable'])->group(function () {
     Route::resource('client', ClientController::class);
     Route::get('client-disabled', [ClientController::class, 'disabledListing'])->name('client.disabled.listing');
 });
 
 /*manage POS*/
-Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:sales.manage'])->group(function () {
+Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:sales.manage', 'subscription.writable'])->group(function () {
     //sale
     Route::controller(SaleController::class)->group(function () {
         Route::resource('sale', SaleController::class);
@@ -280,7 +286,7 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
     });
 });
 
-Route::prefix('code')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage'])->group(function () {
+Route::prefix('code')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage', 'subscription.writable'])->group(function () {
     //sale
     Route::controller(CodePromoController::class)->group(function () {
         Route::resource('code', CodePromoController::class);
@@ -289,7 +295,7 @@ Route::prefix('code')->middleware(['auth', 'company.resolve', 'company.selected'
     });
 });
 
-Route::prefix('ams')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:cash.manage'])->group(function () {
+Route::prefix('ams')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:cash.manage', 'subscription.writable'])->group(function () {
     //dashboard
     Route::get('/dashboard-ams', [DashboardController::class, 'index'])->name('ams.dashboard');
     Route::post('/dashboard-ams/stats', [DashboardController::class, 'transactionStats'])->name('ams.stats');
@@ -302,7 +308,7 @@ Route::prefix('ams')->middleware(['auth', 'company.resolve', 'company.selected',
 });
 
 /*manage ecommerce admin*/
-Route::prefix('ecommerce')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:ecommerce.manage'])->group(function () {
+Route::prefix('ecommerce')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:ecommerce.manage', 'subscription.writable', 'plan.feature:ecommerce'])->group(function () {
     Route::get('settings', [App\Http\Controllers\Ecommerce\SettingController::class, 'index'])->name('ecommerce.settings');
     Route::get('slug/check', [App\Http\Controllers\Ecommerce\SettingController::class, 'checkSlug'])->name('ecommerce.slug.check');
     Route::post('settings/update', [App\Http\Controllers\Ecommerce\SettingController::class, 'updateSettings'])->name('ecommerce.settings.update');
@@ -339,7 +345,7 @@ Route::prefix('shop')->controller(App\Http\Controllers\Ecommerce\FrontController
     Route::get('/success', 'success')->name('shop.success');
 });
 
-Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:company.manage'])->group(function () {
+Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:company.manage', 'subscription.writable'])->group(function () {
     //company
     Route::controller(CompanyController::class)->group(function () {
         Route::resource('company', CompanyController::class);
@@ -353,8 +359,14 @@ Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.select
     Route::get('sms-quota/status/{transactionId}', [SmsQuotaController::class, 'status'])->middleware('throttle:60,1')->name('sms-quota.status');
     Route::get('sms-quota/return', [SmsQuotaController::class, 'returned'])->name('sms-quota.return');
 });
+Route::prefix('subscription')->middleware(['auth','company.resolve','company.selected','subscription.manage'])->group(function () {
+    Route::get('', [\App\Http\Controllers\SubscriptionController::class,'index'])->name('subscriptions.index');
+    Route::post('checkout', [\App\Http\Controllers\SubscriptionController::class,'checkout'])->middleware('throttle:10,1')->name('subscriptions.checkout');
+    Route::get('status/{transactionId}', [\App\Http\Controllers\SubscriptionController::class,'status'])->middleware('throttle:60,1')->name('subscriptions.status');
+    Route::get('return', [\App\Http\Controllers\SubscriptionController::class,'returned'])->name('subscriptions.return');
+});
 
-Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:notifications.manage'])->group(function () {
+Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:notifications.manage', 'subscription.writable'])->group(function () {
     Route::get('notifications', [NotificationSettingController::class, 'index'])->name('notifications.index');
     Route::put('notifications', [NotificationSettingController::class, 'update'])->name('notifications.update');
 });

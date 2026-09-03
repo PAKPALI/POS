@@ -14,11 +14,31 @@ use Illuminate\Validation\Rules\Password;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $admins = PlatformAdmin::latest()->paginate(20);
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'role' => ['nullable', Rule::in(array_keys(config('platform.roles')))],
+            'status' => ['nullable', Rule::in(['active', 'inactive'])],
+            'per_page' => ['nullable', 'integer', Rule::in([10, 20, 50, 100])],
+        ]);
+        $allAdmins = PlatformAdmin::query();
+        $summary = [
+            'total' => (clone $allAdmins)->count(),
+            'active' => (clone $allAdmins)->where('is_active', true)->count(),
+            'inactive' => (clone $allAdmins)->where('is_active', false)->count(),
+            'two_factor' => (clone $allAdmins)->where('two_factor_enabled', true)->count(),
+        ];
+        $admins = (clone $allAdmins)
+            ->when($filters['search'] ?? null, function ($query, $value) {
+                $term = '%'.$value.'%';
+                $query->where(fn ($search) => $search->where('name', 'like', $term)->orWhere('email', 'like', $term));
+            })
+            ->when($filters['role'] ?? null, fn ($query, $value) => $query->where('role', $value))
+            ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('is_active', $value === 'active'))
+            ->latest()->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
         $roles = config('platform.roles');
-        return view('platform.admins.index', compact('admins', 'roles'));
+        return view('platform.admins.index', compact('admins', 'roles', 'filters', 'summary'));
     }
 
     public function store(Request $request)

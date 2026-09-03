@@ -19,6 +19,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\CreatePlatformAdmin::class,
         \App\Console\Commands\RecordPlatformHeartbeat::class,
         \App\Console\Commands\CheckPlatformAlerts::class,
+        \App\Console\Commands\ExpireSubscriptions::class,
     ];
     protected function schedule(Schedule $schedule): void
     {
@@ -28,6 +29,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('payments:reconcile-kprimepay --limit=100')->everyTenMinutes()->withoutOverlapping();
         $schedule->command('platform:heartbeat')->everyMinute()->withoutOverlapping();
         $schedule->command('platform:check-alerts')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('subscriptions:expire')->dailyAt('00:05')->withoutOverlapping();
         // $schedule->command('actions:clean')->everyMinute();
     }
 

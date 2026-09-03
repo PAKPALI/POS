@@ -3,18 +3,53 @@
 namespace Tests\Feature;
 
 use App\Models\CompanyUser;
+use App\Models\PlatformAdmin;
 use App\Models\QuotaPayment;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\QuotaPaymentConfirmedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\InteractsWithCompanies;
 use Tests\TestCase;
 
 class QuotaPaymentTest extends TestCase
 {
     use InteractsWithCompanies, RefreshDatabase;
+
+    public function test_verified_quota_payment_notifies_active_platform_admin_once_with_details(): void
+    {
+        Notification::fake();
+        $owner = User::factory()->create(['status' => 1]);
+        $company = $this->activateCompanyFor($owner, 'quota-admin-notify');
+        $admin = PlatformAdmin::create([
+            'name' => 'Finance quotas', 'email' => 'finance-quotas@example.test', 'password' => 'secret',
+            'role' => 'finance', 'is_active' => true, 'must_change_password' => false,
+        ]);
+        $payment = QuotaPayment::create([
+            'company_id' => $company->id, 'user_id' => $owner->id, 'transaction_id' => 'QUOTA-ADMIN-NOTIFY',
+            'idempotency_key' => 'quota-admin-notify', 'sms_quantity' => 4, 'whatsapp_quantity' => 7,
+            'amount' => 350, 'currency' => 'XOF', 'status' => 'pending',
+        ]);
+
+        $service = app(\App\Services\QuotaPaymentSettlementService::class);
+        $verified = ['status' => 'success', 'transaction_currency' => 'XOF', 'transaction_amount' => 350];
+        $this->assertTrue($service->creditVerified($payment, $verified, 'event-quota-admin', 'KPP-QUOTA-ADMIN'));
+        $this->assertFalse($service->creditVerified($payment->fresh(), $verified, 'event-quota-admin', 'KPP-QUOTA-ADMIN'));
+
+        Notification::assertSentTo($admin, QuotaPaymentConfirmedNotification::class, function ($notification) use ($admin, $company, $payment) {
+            $rendered = $notification->toMail($admin)->render();
+            return str_contains($rendered, $company->name)
+                && str_contains($rendered, '4 SMS')
+                && str_contains($rendered, '7 WhatsApp')
+                && str_contains($rendered, '350 XOF')
+                && str_contains($rendered, $payment->transaction_id);
+        });
+        Notification::assertCount(1);
+        $this->assertSame('sent', $payment->fresh()->administration_email_status[(string) $admin->id]['status']);
+    }
 
     public function test_checkout_and_verified_webhook_credit_quotas_only_once(): void
     {

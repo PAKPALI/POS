@@ -7,16 +7,23 @@ use App\Models\CompanyInvitation;
 use App\Models\CompanyUser;
 use App\Models\Role;
 use App\Models\User;
+use App\Exceptions\SubscriptionLimitReached;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
 class CompanyInvitationService
 {
+    public function __construct(private EntitlementService $entitlements) {}
     public function create(Company $company, Role $role, string $email, User $inviter): CompanyInvitation
     {
         $email = mb_strtolower(trim($email));
         abort_unless($role->company_id === $company->id && $role->key !== 'owner', 422, 'Rôle invalide pour cette compagnie.');
+        try {
+            $this->entitlements->assertCanAdd($company, 'user');
+        } catch (SubscriptionLimitReached $exception) {
+            abort(422, 'La limite d’utilisateurs de votre plan d’abonnement est atteinte.');
+        }
 
         $existingUser = User::whereRaw('LOWER(email) = ?', [$email])->first();
         if ($existingUser && CompanyUser::where('company_id', $company->id)->where('user_id', $existingUser->id)->where('status', 'active')->exists()) {
@@ -47,6 +54,11 @@ class CompanyInvitationService
     public function resend(CompanyInvitation $invitation): void
     {
         abort_if($invitation->accepted_at || $invitation->declined_at || $invitation->revoked_at, 422, 'Cette invitation est clôturée.');
+        try {
+            $this->entitlements->assertCanAdd($invitation->company, 'user');
+        } catch (SubscriptionLimitReached $exception) {
+            abort(422, 'La limite d’utilisateurs de votre plan d’abonnement est atteinte.');
+        }
         $token = CompanyInvitation::generateToken();
         $invitation->update([
             'token_hash' => hash('sha256', $token),
@@ -71,6 +83,12 @@ class CompanyInvitationService
             abort_unless($locked->isPending(), 410, 'Cette invitation n’est plus valide.');
             $role = Role::where('company_id', $locked->company_id)->whereKey($locked->role_id)->firstOrFail();
             abort_if($role->key === 'owner', 403, 'Le rôle propriétaire ne peut pas être attribué par invitation.');
+            $company = Company::withoutGlobalScopes()->findOrFail($locked->company_id);
+            try {
+                $this->entitlements->assertCanAddUser($company, $user->id);
+            } catch (SubscriptionLimitReached $exception) {
+                abort(422, $exception->getMessage());
+            }
 
             $membership = CompanyUser::updateOrCreate(
                 ['company_id' => $locked->company_id, 'user_id' => $user->id],

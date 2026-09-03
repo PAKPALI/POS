@@ -1,10 +1,43 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 1er septembre 2026 — chantier de refonte frontend SaaS en cours (dashboard, profil, POS et contrats UI communs).
+Dernière mise à jour : 3 septembre 2026 — état consolidé après validation des abonnements, quotas, limites et notifications.
+
+## État de référence au 3 septembre 2026
+
+Cette section prévaut sur les anciennes entrées historiques de ce handoff. Le développement fonctionnel du plan d’abonnement est terminé pour le périmètre prévu : catalogue versionné, essai de 14 jours, choix de 1 à 12 mois avec remise uniquement à 12 mois, montée de plan sans descente, règlement KPrimePay séparé des quotas, webhooks idempotents, expiration et rappels par e-mail, contrôle des fonctionnalités et limites compagnie/utilisateur/produit, SweetAlert avec proposition d’amélioration pour les propriétaires et administrateurs, et notification des paiements confirmés aux administrateurs plateforme.
+
+Les tests ciblés abonnement, quotas, webhooks, expiration, pré-contrôle et catalogue passent. Le checkout de test KPrimePay, les webhooks, le SMTP réel de staging et la recette visuelle mobile/desktop ont été validés par le propriétaire. La suite de développement reste terminée à **100 %** ; seules la configuration des secrets/URL de production, la supervision et l’activation progressive de `subscriptions.enforcement_enabled` restent à réaliser sur l’hébergement.
+
+La fixture locale du compte `didierlombardo48@gmail.com` est mutable et a servi à plusieurs recettes manuelles (Basic, Bronze, Argent, Gold puis Essai). Elle ne doit donc pas être considérée comme une vérité permanente dans ce document : vérifier l’état courant directement dans la base locale avant chaque test et ne jamais reproduire cette fixture en production.
+
+## Mise à jour du 3 septembre 2026 — refonte complète de l'administration plateforme
+
+- Toutes les vues de la console administration (`resources/views/platform/`) ont été harmonisées avec le design system SaaS.
+- **Tables DataTable-style** : `platform.css` et `platform-components.css` v=20260903-10 harmonisent le rendu des tables avec le pattern DataTables du SaaS : en-tête uppercase + letter-spacing, border-radius coins, padding adapté, hover accent, pagination style DataTables, border-collapse séparé.
+- **Boutons d'action en tableau** : nouvelle classe `.platform-action-btn` (34×34px, rond, transparent) remplace `btn btn-sm btn-outline-info/danger/success` pour les icônes d'action dans les colonnes de tableau — même pattern que `.saas-action-btn` du SaaS.
+- **Vides et chargements** : `.platform-empty-state` stylé avec icône et texte muted pour les tableaux sans données.
+- **Switches SaaS** : toutes les cases à cocher Bootstrap (`form-check form-switch`) remplacées par le composant `.saas-switch-line` + `.saas-switch-control` du design system SaaS. Les styles sont inclus dans `platform.css` (pas besoin de charger `saas-pages.css`). Appliqué dans : settings/general (services, abonnements, maintenance), subscriptions/catalog (features), alerts/index (activation, destinataires).
+- Les vues utilisant encore `btn btn-sm` pour des boutons avec texte (Relancer, Reinitialiser, 2FA) restent en Bootstrap car elles ont un label textuel.
+- Badges Bootstrap (`bg-success`, `bg-danger`, `bg-warning`, `bg-info`, `bg-secondary`) remplacés par `platform-status-chip` avec variantes `is-success`, `is-danger`, `is-warning`, `is-info`, `is-muted`.
+- Les pages **companies/index**, **companies/show**, **users/show**, **audit/index**, **alerts/index**, **health/index** utilisent `platform-status-chip`, `platform-user-avatar`, `platform-panel-head`, `platform-eyebrow`.
+- La page **users/index** utilise `platform-status-chip` pour statuts, adhésions et entreprises.
+- La page **payments/index** utilise `platform-status-chip` pour les statuts de transaction.
+- La page **payments/show** utilise `platform-panel-head`, `platform-eyebrow`, `platform-summary-metric` pour les quotas SMS/WhatsApp.
+- Les pages **admins/index** et **admins/edit** utilisent `platform-panel-head` et `platform-status-chip` pour rôles, statuts et 2FA.
+- La page **settings/general** utilise `platform-panel-head` et `platform-status-chip` pour services externes et switches.
+- La page **settings/edit** (tarifs) utilise `platform-panel-head` et `platform-eyebrow` pour le formulaire et l'historique.
+- La page **subscriptions/catalog** utilise `platform-status-chip` pour les versions, features et états.
+- La page **subscriptions/preflight** utilise `platform-summary-metric` pour les 5 indicateurs de contrôle.
+- La page **communications/index** utilise `platform-summary-metric` pour les totaux par canal, `platform-filter-grid` pour les filtres, `platform-status-chip` pour les statuts de livraison.
+- Le **dashboard** protège l'accès aux sections Paiements et Santé par `hasPlatformPermission()`.
+- Les styles `platform.css` v=20260903-8 incluent `platform-status-chip`, `platform-user-avatar`, `platform-summary-metric` et responsive mobile.
+- **244 tests, 1501 assertions — 0 échec.**
+- Ne pas réintroduire de badges Bootstrap (`bg-success`, `bg-danger`, etc.) dans les vues plateforme. Utiliser systématiquement `platform-status-chip`.
+- Ne pas exposer de sections aux rôles qui n'ont pas la permission correspondante (`hasPlatformPermission()`).
 
 ## Mise à jour du 2 septembre 2026 — cadrage du moteur d'abonnements KPrimePay
 
-- Le document de cadrage executable `docs/PROMPT_IMPLEMENTATION_ABONNEMENTS_KPRIMEPAY.md` a ete ajoute apres lecture complete de `AGENTS.md`, du present handoff, du PDF tarifaire de 15 pages et de l'integration KPrimePay existante.
+- Le chantier abonnement est désormais documenté par le présent handoff, le PDF tarifaire, `GUIDE_KPRIMEPAY.md` et les rapports permanents ; l’ancien prompt de cadrage a été retiré après finalisation des phases développées.
 - Le prompt donne priorite a la consigne du proprietaire : renouvellement ou montee en gamme uniquement ; toute descente de gamme est interdite dans l'interface, la validation serveur et le reglement, y compris apres expiration et face a une requete falsifiee.
 - Architecture recommandee : compte de facturation couvrant plusieurs compagnies, catalogue versionne, snapshots financiers, abonnements et paiements separes de `quota_payments`, `EntitlementService`, essai unique, lecture seule a expiration et controles concurrents des limites.
 - L'integration existante des quotas doit rester intacte. Le futur paiement d'abonnement reutilisera le client/protocole KPrimePay, mais disposera de son propre modele et d'un settlement atomique. Le retour navigateur ne constituera jamais une preuve de paiement.
@@ -13,13 +46,46 @@ Dernière mise à jour : 1er septembre 2026 — chantier de refonte frontend Saa
 - Aucun code metier, schema, paiement, quota, abonnement ou donnee n'a ete modifie pendant ce cadrage. Les changements deja presents dans le depot ont ete preserves.
 - Validation de ce lot documentaire : lecture et inspection du code/documents, controle visuel des 15 pages du PDF et `git diff --check` passe sans erreur. L'implementation et tous ses tests restent a faire selon les huit phases du prompt.
 
+## Mise à jour du 2 septembre 2026 — abonnements, lot 1 (socle et protection initiale)
+
+- Ajout de la migration `2026_09_02_200000_create_subscription_billing_tables.php` : comptes de facturation, rattachement de compagnies, catalogue tarifaire versionné, fonctionnalités de plan, abonnements, paiements distincts des quotas et journal d'événements. Les prix/limites du PDF sont insérés : Essai, Basic, Bronze, Argent et Gold.
+- Ajout des modèles et services `SubscriptionAccountService`, `EntitlementService`, `SubscriptionCheckoutService` et `SubscriptionSettlementService`. Un essai de 14 jours et les 3 SMS/3 WhatsApp sont créés une seule fois pour un nouveau compte de facturation. Les paiements d'abonnement utilisent leurs propres identifiants et snapshots ; `quota_payments` reste séparé.
+- Les routes et l'écran `Abonnement` existent ; l'accès est contrôlé côté serveur par le rôle système owner/admin et la permission `subscription.manage`. Le downgrade est refusé par le checkout serveur.
+- `KprimePayService` dispose d'un checkout abonnement réutilisant les mêmes timeouts, bearer token et `Idempotency-Key`; le webhook dispatche les transactions d'abonnement vers un règlement SQL verrouillé et idempotent, sans perturber les quotas.
+- Le réglage plateforme persistant `subscriptions.enforcement_enabled` a été ajouté, valeur par défaut OFF. Lorsque ON, les groupes métier principaux bloquent les écritures après expiration; l'E-commerce exige aussi la fonctionnalité du plan et les Fournisseurs sont protégés par `plan.feature:suppliers`.
+- Tests exécutés : `SubscriptionFoundationTest` (3 tests, 15 assertions), `QuotaPaymentTest` (5 tests, 46 assertions), `php artisan route:list --name=subscriptions`, `php artisan migrate --pretend`, `php artisan view:cache` et `git diff --check` : tous passants.
+- À l’époque du lot 1, ces validations restaient à faire : tests complets du checkout d'abonnement V1/V2, rappels/expiration planifiés, contrôle concurrent des limites compagnie/utilisateur/produit, storefront public, préflight administratif, audit de toutes les routes mutantes et recette navigateur. Les lots ultérieurs les ont couverts ; la production reste néanmoins soumise à la configuration contrôlée décrite dans l’état de référence.
+
+### Complément lot 1 — cycle planifié
+
+- Commande `subscriptions:expire` ajoutée et planifiée quotidiennement à 00:05 avec `withoutOverlapping`. Elle journalise de manière idempotente les rappels J-3/J-2/J-1 et passe les abonnements à `expired` à échéance.
+- Les événements sont volontairement journalisés seulement à ce stade : aucun SMS, WhatsApp ou e-mail de rappel réel n'a été envoyé. Brancher les jobs de communication existants uniquement après tests dédiés de destinataires et d'idempotence.
+- Vérifications : `php artisan list subscriptions`, `SubscriptionFoundationTest`, `php artisan view:cache` et `git diff --check` passent.
+- Suite complète tentée le 2 septembre : arrêt sur un échec préexistant hors abonnement dans `AuthNavigationTest::test_pwa_starts_on_the_authentication_route`. Le test attend `pro-seller-pwa-v5` alors que le fichier déjà modifié `public/sw.js` contient `pro-seller-pwa-v6`. Ne pas modifier ce fichier dans le chantier abonnement sans coordination avec son auteur ; les tests abonnement et quotas restent verts.
+
+## Mise à jour du 2 septembre 2026 — abonnements, lot 2 (règlement et storefront)
+
+- Le test PWA a été réaligné à la demande du propriétaire avec les artefacts réellement livrés : manifeste `/user_login` et cache `pro-seller-pwa-v7`. `AuthNavigationTest` passe maintenant (2 tests, 49 assertions).
+- L'E-commerce public consulte désormais `EntitlementService` : lorsque l'enforcement est activé et que le plan ne possède pas la fonctionnalité E-commerce, la boutique publique est fermée et aucun POST de commande n'est accepté.
+- La création/restauration de produit vérifie la capacité produits active quand l'enforcement est activé. La réponse est explicite et aucune donnée n'est supprimée.
+- Ajout de `SubscriptionPaymentTest` : downgrade refusé avant checkout ; règlement annuel Bronze vérifié et rejoué une seconde fois, avec un seul paiement `paid` et un seul crédit annuel (+240 SMS/+240 WhatsApp après les crédits essai). Résultat : 2 tests, 6 assertions, 0 échec.
+- Tests confirmés : `SubscriptionFoundationTest` (3/15), `SubscriptionPaymentTest` (2/6), `QuotaPaymentTest` (5/46), `AuthNavigationTest` (2/49), `view:cache` et `git diff --check`.
+- Reste : contrôle exhaustif des limites utilisateurs/compagnies, contrôle des routes mutantes hors groupes déjà protégés, administration catalogue/préflight, tests HTTP V1/V2 de paiement abonnement, notifications de rappel et recette navigateur. L'enforcement reste OFF par défaut.
+
+## Mise à jour du 2 septembre 2026 — correction UI Abonnement
+
+- La vue `resources/views/subscription/index.blade.php` a été refondue avec `layouts.saas`, `saas-page-header`, `saas-metric`, `saas-card`, badges d’état et grille de plans responsive. Elle n’injecte plus de contrôles d’apparence dans son contenu.
+- Cause du contenu « Mode d’affichage / Couleur dominante » visible sur la page : le composant d’apparence du topbar était rendu sans règle globale de masquage initial après retrait de la feuille historique. `design-system.css` contient maintenant `.saas-modal { display:none; }` et `.saas-modal.show { display:block; }`, et son cache est passé en `20260902-7`.
+- Le composant d’apparence reste disponible uniquement via le bouton Apparence du topbar, conformément au nouveau template. Aucun réglage d’apparence n’est présent dans la section Abonnement.
+- Validation : `php artisan view:cache`, `SubscriptionFoundationTest`, `SubscriptionPaymentTest` et `git diff --check` passent. Recette navigateur visuelle de la page Abonnement reste à faire.
+
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
 
 ## Reprise frontend — état exact au 1er septembre 2026
 
 ### Direction validée
 
-- Le propriétaire a validé une refonte progressive vers un design SaaS propriétaire : **glassmorphisme léger, blur, soft glow, lisibilité élevée, animations courtes et accessibles**. Le cahier de charges fait foi : `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` et son PDF.
+- Le propriétaire a validé une refonte progressive vers un design SaaS propriétaire : **glassmorphisme léger, blur, soft glow, lisibilité élevée, animations courtes et accessibles**. La référence active est `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md`.
 - Objectif : remplacer progressivement le visuel de l’ancien template sans réécrire ni fragiliser les flux métier Laravel, les permissions, l’isolation multi-entreprises, les ventes, les notifications ou les exports.
 - Les préférences utilisateur sont personnelles : `appearance_mode` (`system`, `dark`, `light`) et `accent_color` hexadécimal. Ne jamais les transformer en préférence globale de compagnie.
 - Le navigateur intégré Codex est opérationnel sur `http://127.0.0.1:1111/`. Les contrôles visuels authentifiés ont été réalisés à 1440 px, 689 px et 390 px. Ne pas considérer une capture desktop seule comme validation responsive.
@@ -173,8 +239,8 @@ Les résultats de volume SQL, concurrence, charge des notifications, limites PDF
 ## Niveau d’avancement
 
 - Migration fonctionnelle SaaS : **environ 94 %**.
-- Préparation à une production SaaS : **environ 70 %**.
-- Monétisation et abonnements : **0 % volontairement**, les plans seront définis ultérieurement.
+- Préparation à une production SaaS : **instantané historique** ; consulter `RAPPORT_GLOBAL_SAAS.md` et `DEPLOIEMENT_O2SWITCH.md` pour l’état courant.
+- Monétisation et abonnements : **instantané historique du 25 août 2026** ; ce chiffre est remplacé par l’état de référence actuel en tête du document.
 - Suite quotidienne validée : **129 tests, 719 assertions, tous réussis**. Les 5 scénarios lourds de volume/concurrence/queue/PDF sont séparés dans `benchmarks/` et ne sont exécutés que sur demande.
 - Décision du propriétaire au 25 août 2026 : **le déploiement O2switch n’est pas encore autorisé**. Continuer à maintenir sa documentation, mais ne lancer aucune connexion, migration, configuration cron/SMTP, copie de fichiers ou opération sur l’hébergement avant une nouvelle demande explicite.
 
@@ -608,7 +674,7 @@ Le travail est non commité et le dépôt était déjà sale avant la reprise. P
 
 # Administration centrale SaaS
 
-Le cahier des charges de référence reste `docs/CAHIER_DES_CHARGES_ADMINISTRATION_SAAS.md`. La console plateforme est séparée des rôles `owner` et `admin` des compagnies et ne doit jamais reposer uniquement sur le champ historique `users.user_type`.
+La référence active de la console plateforme est `docs/RAPPORT_ADMINISTRATION_SAAS.md`. Elle est séparée des rôles `owner` et `admin` des compagnies et ne doit jamais reposer uniquement sur le champ historique `users.user_type`.
 
 Toute l’implémentation et son avancement sont désormais regroupés dans un seul document permanent : `docs/RAPPORT_ADMINISTRATION_SAAS.md`. Ne plus créer de rapport distinct par phase. Après chaque modification de la partie administrative, mettre à jour dans ce document la date, la fonctionnalité concernée, les contrôles de sécurité, les tests réalisés et, si nécessaire, les instructions de déploiement.
 
@@ -626,7 +692,7 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 
 ## Mise à jour du 31 août 2026 — refonte frontend propriétaire
 
-- Référence UI/UX unique : `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` et son PDF.
+- Référence UI/UX unique : `docs/CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md`.
 - Préférences personnelles ajoutées aux utilisateurs : `appearance_mode` (`system`, `dark`, `light`) et `accent_color`; migration `2026_08_31_140000_add_appearance_preferences_to_users_table.php`.
 - L’onglet **Apparence** du profil enregistre la préférence côté serveur. Le socle est dans `design-system.css`, `design-system.js` et `partials/design-system-head.blade.php`.
 - Nouveau frontend propriétaire commencé avec `layouts.saas`, `partials/saas-sidebar.blade.php`, `partials/saas-topbar.blade.php`, `saas-shell.css` et `saas-shell.js`.
@@ -937,3 +1003,258 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - Vérification sans préférence : fallback détecté `#3B82F6` + `dark`. Vérification de la session actuelle : mode `dark` et couleur personnalisée conservée.
 - Les créations de compte et le schéma `users` utilisent également ces deux valeurs par défaut ; une préférence déjà enregistrée n’est pas écrasée.
 - Le site vitrine expose maintenant son propre panneau « Apparence » dans l’en-tête : sombre/clair, palettes de couleur et couleur personnalisée ; la préférence est mémorisée dans le navigateur et synchronisée au compte lorsqu’un utilisateur est connecté.
+
+## Mise à jour du 2 septembre 2026 — corrections UI finales et point d’entrée PWA
+
+- **Comptabilité** : `resources/views/ams/dashboard.blade.php` regroupe maintenant chaque caisse avec son nom et son solde dans une carte lisible, ajoute des espacements entre les sections et empile verticalement « Flux des opérations » puis « 20 dernières opérations » avec 28 px d’écart.
+- **Opérations** : `resources/views/ams/transaction/index.blade.php` sépare visuellement « Balance nette » et « Liste des opérations » avec un espacement vertical responsive.
+- **Configuration E-commerce** : `resources/views/ecommerce/admin/settings.blade.php` empile « Informations boutique » et « Managers de la boutique » sur toutes les largeurs, avec 28 px d’espace vertical. La recherche DataTable reste alignée à droite via les styles partagés.
+- **Communications** : `resources/views/company/notifications.blade.php` ajoute une marge verticale de 28 px et un alignement à droite au bouton « Enregistrer les notifications » après « Notifications d’inventaire ».
+- **Inscription** : `public/hub/assets/css/public-auth.css` espace les labels des champs et augmente le padding interne des contrôles afin que le focus et les placeholders restent lisibles.
+- **Cache PWA/CSS** : ajout de `public/hub/assets/css/saas-page-fixes.css` chargé après la feuille principale pour les corrections UI, avec suffixes de cache incrémentés ; `public/sw.js` est passé en `pro-seller-pwa-v7`. Le dossier `bootstrap/cache` a été restauré après une erreur `optimize:clear` liée à son absence/non-écriture.
+- **Lancement PWA** : `public/manifest.json` utilise désormais `id: /user_login` et `start_url: /user_login`, sans passer par l’accueil public. `AuthNavigationTest` vérifie ce contrat.
+- **Recette navigateur authentifiée** : comptabilité, opérations, E-commerce et communications ont été vérifiées visuellement après actualisation, sans erreur console ni erreur HTTP 500. La vue intégrée a confirmé les espacements de 28 px et les sélecteurs CSS actifs ; la largeur desktop native complète n’était pas disponible dans l’onglet intégré et reste à confirmer sur un écran 1440 px réel.
+- **Validation technique** : `php artisan optimize:clear`, `php artisan view:cache`, `git diff --check`, `AuthNavigationTest` et `NotificationSettingsTest` — **6 tests, 64 assertions, 0 échec**. Aucun formulaire métier, paiement, envoi de notification ou donnée métier n’a été modifié pendant la recette.
+- **À surveiller** : une ancienne installation PWA peut conserver l’ancien manifeste ; la désinstaller puis la réinstaller force le nouveau point d’entrée `/user_login`. Les changements locaux non liés présents dans le dépôt ont été conservés.
+
+## Mise à jour du 2 septembre 2026 — écran e-commerce lorsque l’accès est refusé
+
+- La vue `resources/views/ecommerce/public/closed.blade.php` n’est plus une page HTML autonome avec ancien dégradé, CDN Bootstrap et emoji panier.
+- Elle utilise désormais le shell SaaS public (`layouts.public-auth`), les tokens du design system, une carte responsive et une hiérarchie visuelle cohérente avec les autres écrans SaaS.
+- L’illustration officielle de refus a été conservée : `public/hub/assets/img/errors/access-denied-robot.png`. Aucun asset métier ni logique de contrôle d’abonnement n’a été modifié.
+- Le message couvre les deux cas réels de fermeture : boutique désactivée et fonctionnalité e-commerce non incluse dans le plan actif. Le texte reste informatif sans exposer de détail technique.
+- Accessibilité : titre référencé par `aria-labelledby`, texte alternatif explicite et respect de `prefers-reduced-motion` via le shell partagé.
+- Validation : `php artisan view:cache`, `git diff --check` et `php artisan test tests/Feature/EcommerceStorefrontTest.php --no-coverage` — **3 tests, 37 assertions, 0 échec**.
+- Contrôle navigateur visuel de cette page spécifique non réalisé dans cette session ; vérifier les largeurs 1440, 1024, 768 et 390 px lors de la prochaine recette authentifiée/public.
+
+### Ajustement complémentaire — actions de l’erreur 403
+
+- Les destinations de navigation de `resources/views/errors/403.blade.php` restent des éléments `<a>` (sémantiquement corrects pour changer de page), mais sont explicitement rendues comme boutons SaaS via les classes `btn` existantes.
+- Le groupe est maintenant centré et chaque action reçoit une largeur cohérente sur desktop ; à 575 px et moins, les boutons occupent la largeur disponible et s’empilent sans débordement.
+- Le contenu de la carte 403 est centré par flexbox, sans modifier les gardes de permission ni les routes accessibles.
+- La version cache de `error-pages.css` est passée à `20260902-2` afin que le nouveau centrage soit immédiatement visible après déploiement/rechargement.
+- Les actions 403 utilisent maintenant la classe dédiée `permission-button` avec un rendu visuel explicite (fond, bordure, rayon, hauteur, hover et focus), et la feuille est versionnée `20260902-3`.
+- Contrôle visuel dans le navigateur local sur `/ecommerce/settings` avec enforcement actif : le vrai écran 403 est centré, les boutons secondaires sont lisibles sur fond sombre et le bouton principal est clairement différencié. La feuille est passée à `error-pages.css?v=20260902-4`.
+
+## Point de reprise abonnement — fin de session du 2 septembre 2026
+
+### État livré
+
+- Le socle abonnement est présent : migration, modèles, comptes de facturation, catalogue des plans, fonctionnalités, abonnements, paiements, événements et services métier.
+- KPrimePay est réutilisé pour le checkout abonnement avec identifiant d’idempotence distinct ; les paiements de quotas SMS/WhatsApp restent séparés.
+- Le webhook abonnement règle les transactions avec verrou SQL et traitement idempotent.
+- Le menu Abonnement est disponible pour le propriétaire/l’administrateur autorisé. Le downgrade est refusé côté serveur ; la montée de plan est possible.
+- L’enforcement configurable est présent côté administration et reste **désactivé par défaut** pour le travail local.
+- Les protections de plan couvrent déjà les écritures principales, les limites produits/utilisateurs, les fournisseurs et l’accès e-commerce.
+- La commande `subscriptions:expire` et la planification quotidienne existent ; les rappels sont journalisés mais aucun message réel n’est encore envoyé.
+- L’écran Abonnement, l’écran e-commerce fermé et l’erreur 403 suivent maintenant le template SaaS. L’erreur 403 a été visualisée dans le navigateur sur `/ecommerce/settings` avec le plan actif insuffisant ; les actions sont centrées et rendues comme boutons lisibles.
+
+### Validations réalisées
+
+- `SubscriptionFoundationTest` : 3 tests, 15 assertions.
+- `SubscriptionPaymentTest` : 2 tests, 6 assertions.
+- `QuotaPaymentTest` : 5 tests, 46 assertions.
+- `CompanyInvitationFlowTest` et `AuthNavigationTest` validés pendant les lots précédents.
+- `EcommerceStorefrontTest` : 3 tests, 37 assertions.
+- `php artisan view:cache` et `git diff --check` passent après les dernières corrections UI.
+- Contrôle navigateur effectué en session locale authentifiée sur l’écran 403 e-commerce ; aucun paiement ni formulaire métier n’a été soumis.
+
+### À faire lors de la prochaine session (ordre recommandé)
+
+1. Auditer toutes les routes mutantes et compléter les protections d’écriture manquantes.
+2. Ajouter les tests HTTP KPrimePay V1/V2 : succès, échec, expiration, signature invalide, doublon et webhook rejoué.
+3. Tester les limites concurrentes utilisateurs/produits/compagnies et les réponses attendues côté interface.
+4. Finaliser l’administration du catalogue des plans et le préflight avant activation production.
+5. Brancher les rappels J-3/J-2/J-1/expiration sur les canaux réels après tests d’idempotence et de destinataires.
+6. Recetter les parcours Abonnement, refus d’accès, e-commerce et administration à 1440/1024/768/390 px.
+7. Rejouer la suite complète et ne passer `subscriptions.enforcement_enabled` à ON qu’après validation de tous les points précédents.
+
+### Consignes de reprise
+
+- Lire intégralement `AGENTS.md` puis ce fichier avant toute modification.
+- Préserver les changements locaux non liés déjà présents dans le dépôt ; ne pas utiliser de reset destructif.
+- Ne pas activer l’enforcement en production ni déclencher de paiement réel pendant les tests.
+- Après chaque lot : mettre à jour ce point de reprise, exécuter les tests ciblés, `php artisan view:cache` et `git diff --check`.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 3 (webhooks, réconciliation et écritures équipe)
+
+- **KPrimePay abonnement complété** : les callbacks V1 et V2 sont désormais couverts pour un succès confirmé côté serveur, un rejeu idempotent, un échec, une signature V2 invalide et un montant incohérent. Un paiement échoué est maintenant enregistré en `failed` avec son motif, sans créditer de quota ni activer de souscription.
+- **Réconciliation opérationnelle** : `payments:reconcile-kprimepay` traite aussi les `subscription_payments` expirés en attente. Après vérification serveur, il règle le paiement, le marque échoué ou expiré ; aucun crédit n’est accordé deux fois. Les quotas SMS/WhatsApp et les paiements de quota existants restent dans leurs tables et services dédiés.
+- **Accès abonnement des nouvelles compagnies** : `CompanyProvisioner` attribue désormais `subscription.manage` aux rôles système propriétaire et administrateur créés pour une nouvelle compagnie. Sans cela, une compagnie créée après la migration pouvait ne pas voir son menu Abonnement.
+- **Audit des écritures Équipe** : invitations, rattachement, transfert, gestion des utilisateurs et modification des rôles appliquent maintenant `subscription.writable`. À expiration avec enforcement actif, la consultation Abonnement reste accessible mais ces écritures sont refusées côté serveur. Le profil personnel n’est pas bloqué.
+- **Tests ajoutés** : `SubscriptionWebhookTest` (V1/V2, succès, échec, mismatch, rejeu, réconciliation) et `SubscriptionAccessTest` (permission propriétaire nouvelle compagnie, lecture autorisée/écritures Équipe refusées après expiration).
+- **Validation du lot** : tests abonnement + quotas : **17 tests, 98 assertions, 0 échec**. La suite complète `php artisan test --stop-on-failure --no-coverage` a aussi été exécutée sans arrêt sur échec. `php artisan view:cache` et `git diff --check` restent à exécuter après toute modification ultérieure de ce lot.
+
+### Reste à finaliser avant activation production
+
+1. Créer l’administration plateforme du catalogue abonnement et le préflight de publication/activation ; ne jamais modifier un prix déjà souscrit, utiliser une nouvelle version de plan.
+2. Décider puis implémenter les canaux réels de rappel J-3/J-2/J-1/expiration, avec opt-in, destinataires, idempotence et tests ; actuellement les rappels sont seulement journalisés.
+3. Recetter visuellement Abonnement, administration et storefront refusé aux largeurs 1440/1024/768/390, puis rejouer la suite complète finale.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 4 (limites atomiques)
+
+- Les limites de compagnies, produits et utilisateurs ne sont plus seulement vérifiées avant l’écriture. EntitlementService verrouille maintenant la ligne du compte d’abonnement dans la transaction qui crée/restaure/attache réellement la ressource.
+- Les opérations concernées sont : création de compagnie, création/restauration de produit et acceptation d’invitation. Deux requêtes concurrentes appartenant au même compte de facturation sont donc sérialisées avant de décider si une place reste disponible.
+- Une limite dépassée retourne une réponse exploitable sans créer d’enregistrement partiel. Le membre déjà actif dans une autre compagnie du même compte ne consomme pas une seconde place utilisateur.
+- Tests ciblés : SubscriptionAccessTest, SubscriptionWebhookTest, SubscriptionPaymentTest et SubscriptionFoundationTest — **13 tests, 60 assertions, 0 échec**. Les parcours métier touchés par la transaction (CompanyCreationTest, CompanyInvitationFlowTest, CatalogTenantSecurityTest) passent aussi : **16 tests, 120 assertions, 0 échec**.
+- Suite complète : l’exécution du 3 septembre a rencontré le problème MySQL intermittent déjà connu de la base pos_testing : SQLSTATE[HY000] 1412 Table definition has changed, please retry transaction pendant les remises à zéro de tables. AuditLogSecurityTest relancé isolément passe (3 tests, 17 assertions). Ne pas corriger cela avec migrate:fresh sur une base applicative ; stabiliser uniquement la base de test après autorisation.
+- Après ce lot : php artisan view:cache et git diff --check doivent rester obligatoires. L’enforcement reste désactivé par défaut et ne doit pas être activé en production tant que l’administration catalogue, les rappels réels et la recette complète ne sont pas terminés.
+
+## Mise à jour du 3 septembre 2026 — harmonisation UI/UX de l’administration
+
+- **Console plateforme** : `resources/views/layouts/platform.blade.php` reprend le langage visuel SaaS partagé : marque MAXANOU, navigation organisée par Pilotage / Monétisation / Surveillance / Accès, état actif explicite et `aria-current` sur le lien courant.
+- **Barre supérieure** : ajout d’un contexte « Administration / Console SaaS », d’un titre de page cohérent, d’un indicateur de session sécurisée et d’un regroupement clair de l’identité administrateur avec son rôle et la déconnexion.
+- **Responsive** : `public/hub/assets/css/platform.css` propose maintenant un menu latéral mobile hors-canvas avec fond de fermeture, bouton d’ouverture accessible, cartes et contrôles cohérents avec le design system, tables lisibles et meilleure hiérarchie des espacements.
+- **Formulaires et paramètres responsive** : les labels et champs de filtre sont explicitement empilés et dimensionnés à 100 % ; les onglets Général / Tarifs / Pré-contrôle utilisent un composant dédié, empilé sur mobile pour éviter tout chevauchement. Les boutons partagés disposent maintenant d’une bordure réelle, d’un alignement flex et d’un retour à la ligne mobile ; les actions d’en-tête Abonnements utilisent également un conteneur dédié. Le cache CSS est versionné `platform.css?v=20260903-15`.
+- **Dashboard réellement refondu** : `resources/views/platform/dashboard.blade.php` n’utilise plus les cartes Bootstrap historiques. Il propose une introduction de pilotage, une grille d’indicateurs dédiée (4 colonnes desktop, 2 mobile), un état de santé des paiements et deux panneaux de suivi actionnables.
+- **Paiements réellement refondus** : `resources/views/platform/payments/index.blade.php` organise maintenant la rentabilité, les cinq indicateurs, les filtres et l’historique en composants adaptés aux petites largeurs, sans modifier les calculs ni les routes.
+- **Listes et supervision finalisées** : `resources/views/platform/users/index.blade.php`, `resources/views/platform/audit/index.blade.php` et `resources/views/platform/health/index.blade.php` utilisent désormais les cartes de filtres, panneaux de données et indicateurs du design plateforme. Les tableaux conservent un défilement horizontal propre sur mobile.
+- **Paramètres, abonnements et communication** : les vues d’abonnement (`subscriptions/preflight`, `subscriptions/catalog`) et de communication globale s’appuient sur les mêmes cartes, indicateurs, filtres et en-têtes ; les actions d’abonnement ont un conteneur responsive dédié et les boutons outline ont une bordure/focus visibles.
+- **Abonnements finalisés par étape** : le pré-contrôle présente désormais une introduction claire, un résumé opérationnel, les points à résoudre et les règles de sûreté financière dans des blocs distincts. Les data tables du catalogue publié et des paiements à suivre utilisent une enveloppe dédiée, des en-têtes lisibles, des sous-textes pour les identifiants et montants, des puces de fonctionnalités et un défilement horizontal maîtrisé sur mobile. Le catalogue versionné reprend la même structure par famille ; ses actions de publication et de création de brouillon sont alignées, espacées et adaptées aux petites largeurs. Le cache CSS est versionné `platform.css?v=20260903-16`.
+- **Communication finalisée** : `resources/views/platform/communications/index.blade.php` reprend le template SaaS avec une introduction dédiée, des statistiques par canal, une consommation par entreprise mieux présentée et une data table de livraisons structurée. Les libellés de statuts et de catégories sont corrigés, les colonnes secondaires utilisent des sous-textes et l’action de relance reste clairement isolée. Le filtre de période utilise désormais le composant SaaS existant `daterangepicker`, avec `saas-pages.css`, les assets locaux Moment/DateRangePicker, les plages rapides en français, deux calendriers et les boutons « Effacer / Appliquer ». Les exports Excel/CSV restent accessibles sous la zone de recherche. Le cache CSS est versionné `platform.css?v=20260903-17`.
+- **Historique des livraisons outillé** : la même vue propose maintenant une recherche dédiée sur entreprise, événement, canal, catégorie, statut ou destinataire, un choix de 10/25/50/100 lignes et une pagination Laravel serveur conservant les filtres. Le rendu de la barre de recherche est empilé proprement sur mobile et reste aligné à droite sur grand écran. Le cache CSS est versionné `platform.css?v=20260903-18`.
+- **Alertes finalisées** : `resources/views/platform/alerts/index.blade.php` reprend le template SaaS avec une introduction de surveillance, quatre indicateurs d’état, une configuration découpée en seuils/destinataires/sécurité et un journal structuré. La liste dispose d’une recherche sur le titre/message/type, de filtres par état et gravité, d’un choix de 10/20/50/100 lignes et d’une pagination serveur qui conserve les filtres. Les actions de prise en charge et de résolution sont conservées avec leurs contrôles d’accès. Le cache CSS est versionné `platform.css?v=20260903-19`.
+- **Validation Alertes** : rendu mobile contrôlé sur `127.0.0.1:1111/platform/alerts`, recherche « Jobs » vérifiée avec retour à 1 résultat, `php artisan test tests/Feature/PlatformOperationalAlertTest.php --no-coverage` validé (**3 tests, 16 assertions**), ainsi que `php artisan view:cache`, `php -l` du contrôleur et `git diff --check`.
+- **Paramètres finalisés** : les vues `platform/settings/general` et `platform/settings` conservent leur structure SaaS mais présentent désormais leurs historiques sous forme de data tables pleine largeur, avec recherche, choix de 10/20/50/100 lignes, pagination serveur et compteurs d’affichage. Les libellés, descriptions, valeurs avant/après, administrateurs et motifs sont alignés dans des colonnes lisibles ; le rendu est empilé sur mobile. Le cache CSS est versionné `platform.css?v=20260903-20`.
+- **Validation Paramètres** : Général et Tarifs ont été ouverts visuellement sur mobile, la recherche de l’historique Général sur « MAXANOU » retourne 1 résultat, `PlatformGeneralSettingTest` et `PlatformPaymentPricingTest` passent (**8 tests, 48 assertions**), ainsi que `php artisan view:cache`, les contrôles PHP et `git diff --check`.
+- **Administrateurs finalisés** : `resources/views/platform/admins/index.blade.php` reprend le template SaaS avec une introduction Accès plateforme, quatre indicateurs, un formulaire de création mieux hiérarchisé et une data table unique regroupant rôle, statut, 2FA, dernière connexion et actions. La liste dispose d’une recherche nom/e-mail, de filtres rôle/statut, d’un choix de 10/20/50/100 lignes et d’une pagination serveur qui conserve les filtres. `resources/views/platform/admins/edit.blade.php` suit également le même parcours visuel pour la modification d’un compte. Le cache CSS est versionné `platform.css?v=20260903-22`.
+- **Validation Administrateurs** : la page liste, la data table mobile et l’édition d’un compte ont été contrôlées visuellement ; la recherche « DIXON » retourne 1 résultat. `PlatformAdminRoleManagementTest` et `PlatformAdminSecurityTest` passent (**9 tests, 66 assertions**), avec `php artisan view:cache`, contrôles PHP et `git diff --check` validés.
+- **Paramètres SaaS finalisés par étape** : `resources/views/platform/settings/general.blade.php` et `settings/edit.blade.php` utilisent désormais une introduction dédiée, des sections espacées, des titres et descriptions hiérarchisés, une grille de champs régulière, des services alignés avec leur statut et leur interrupteur, une zone de validation distincte et un historique en timeline. La page Tarifs conserve sa prévisualisation dynamique de marge ; la composition passe en une colonne sous 900 px et les actions s’étendent sur mobile.
+- **Sécurité fonctionnelle conservée** : aucune route, permission, garde d’accès, action métier ou donnée n’a été modifiée ; seul le layout partagé et son style ont évolué.
+- **Validation** : `php artisan view:cache`, `git diff --check` et `php artisan route:list --path=platform` passent. Les tests plateforme n’ont pas pu démarrer car la base `pos_testing` est incohérente (table `migrations` absente puis tables déjà existantes), problème d’environnement de test indépendant du changement UI.
+- **Recette visuelle authentifiée** : connexion plateforme validée. Le dashboard, le menu mobile, Entreprises, Paiements, Journal d’audit, Paramètres généraux et Santé du système ont été ouverts localement sans erreur serveur. Le rendu mobile des onglets Paramètres, du dashboard et des paiements a été contrôlé après rechargement de la feuille versionnée.
+- **Smoke test authentifié complémentaire** : Dashboard, Entreprises, Utilisateurs, Paiements, Journal d’audit, Santé, Alertes, Communications, Administrateurs, Paramètres généraux et Tarifs ont été ouverts sur `127.0.0.1:1111` sans erreur de rendu. `php artisan view:cache` et `git diff --check` passent après la finalisation.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 5 (pré-contrôle plateforme)
+
+- **Préflight administration livré** : la route protégée `platform/subscriptions/preflight`, accessible depuis « Monétisation > Abonnements », donne au super-administrateur une vue strictement en lecture seule avant toute activation du contrôle d’abonnement. Elle expose l’état de l’enforcement, KPrimePay sans secret, les comptes de facturation, les abonnements à risque, les paiements à réconcilier et le catalogue publié.
+- **Sûreté financière** : cet écran ne propose aucune écriture. Il rappelle que les snapshots protègent les prix déjà souscrits et que toute évolution commerciale devra passer par une nouvelle version de plan plutôt qu’une modification du plan existant.
+- **Accès et configuration** : seul `platform.admins.manage` peut ouvrir la page ; le rôle Finance est explicitement refusé. Le lien vers le réglage général permet de retrouver l’interrupteur d’enforcement, qui demeure OFF par défaut en local.
+- **Tests et contrôles** : `PlatformSubscriptionPreflightTest`, `SubscriptionAccessTest` et `SubscriptionWebhookTest` passent : **10 tests, 45 assertions, 0 échec**. `php artisan view:cache`, `php artisan route:list --path=platform/subscriptions` et `git diff --check` passent.
+- **Recette visuelle locale authentifiée** : la page a été ouverte avec une session super-administrateur. Aucun débordement horizontal à 1440/1024/768/390 px ; le menu mobile apparaît à 768 et 390 px ; aucune erreur ou alerte console. Aucun formulaire, paiement ou réglage n’a été soumis.
+
+### Reste à finaliser avant activation production
+
+1. Implémenter un véritable catalogue plateforme versionné : création d’une nouvelle version de plan, publication/masquage, double confirmation, mot de passe, audit et interdiction stricte d’éditer les snapshots déjà souscrits.
+2. Décider puis implémenter les canaux réels de rappel J-3/J-2/J-1/expiration, avec opt-in, destinataires, idempotence et tests ; actuellement les rappels sont seulement journalisés.
+3. Recetter visuellement les écrans Abonnement utilisateur, pré-contrôle administration et storefront refusé aux largeurs 1440/1024/768/390 avec un compte plateforme de test valide, puis relancer la suite complète sur une base `pos_testing` stabilisée.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 6 (catalogue versionné)
+
+- **Catalogue sécurisé livré** : `platform/subscriptions/catalog` permet au seul super-administrateur de créer une nouvelle version brouillon à partir d’une famille de plan payante, sans éditer ni supprimer les versions historiques. Les clés sont distinctes (`basic-v2`, etc.) et les snapshots déjà souscrits ne sont jamais touchés.
+- **Publication contrôlée** : un brouillon ne devient disponible aux nouveaux checkouts qu’après publication distincte, motif et mot de passe plateforme. La publication masque les versions précédentes de la même famille pour les futurs checkouts sans modifier les abonnements courants, paiements ni quotas déjà enregistrés.
+- **Garde-fous** : tarif annuel obligatoirement égal à onze mensualités, limites/champs bornés, permission `platform.admins.manage`, throttling 5/minute et audit `subscription.plan_version.created` / `subscription.plan_version.published`. Un rôle Finance est refusé.
+- **Correction découverte en recette** : le premier rendu contenait deux directives Blade concaténées, produisant une erreur 500. La directive a été séparée, le test HTTP d’ouverture a été ajouté et la page est désormais compilée et rendue correctement.
+- **Tests et recette** : `PlatformSubscriptionCatalogTest` — **4 tests, 20 assertions, 0 échec** ; contrôle local authentifié sans soumission à 1440/1024/768/390 px, aucun débordement et aucune erreur/alerte console.
+
+### Reste à finaliser avant activation production
+
+1. Décider puis implémenter les canaux réels de rappel J-3/J-2/J-1/expiration, avec opt-in, destinataires, idempotence et tests ; actuellement les rappels sont seulement journalisés.
+2. Rejouer le parcours complet de checkout KPrimePay sur un environnement de paiement sûr avec une version de plan brouillon puis publiée, sans transaction réelle non autorisée.
+3. Recetter les écrans Abonnement utilisateur et storefront refusé aux largeurs 1440/1024/768/390, puis relancer la suite complète sur une base `pos_testing` stabilisée avant d’activer `subscriptions.enforcement_enabled` en production.
+
+### Point de reprise immédiat
+
+- **Ne pas activer l’enforcement en production** et ne pas soumettre de checkout réel pendant la reprise.
+- Commencer par `AGENTS.md`, puis relire les lots 3 à 6 de ce fichier. Les fichiers centraux sont `SubscriptionPlanCatalogService`, `SubscriptionPlanCatalogController`, `SubscriptionPreflightController`, `SubscriptionSettlementService`, `EntitlementService` et leurs tests Feature `Subscription*` / `PlatformSubscription*`.
+- Contrôle minimum avant toute nouvelle modification : `php artisan test tests/Feature/PlatformSubscriptionCatalogTest.php tests/Feature/PlatformSubscriptionPreflightTest.php tests/Feature/SubscriptionAccessTest.php tests/Feature/SubscriptionWebhookTest.php tests/Feature/SubscriptionPaymentTest.php tests/Feature/SubscriptionFoundationTest.php --no-coverage`, puis `php artisan view:cache` et `git diff --check`.
+- Le dépôt est volontairement sale avec des changements utilisateurs hors abonnement : les préserver. La base de test MySQL peut encore lever l’erreur intermittente 1412 ; ne jamais lancer `migrate:fresh` sur la base applicative pour la contourner.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 9 (durée flexible et prix en temps réel)
+
+- **Choix de durée utilisateur** : chaque plan payant propose maintenant une durée de 1 à 12 mois. Le montant affiché en direct vaut `prix mensuel × mois` pour 1–11 mois. À 12 mois exactement, le prix annuel réduit est appliqué (11 mensualités facturées pour 12 mois d’accès).
+- **Expiration visible** : l’écran utilisateur affiche le total estimé, la date d’expiration estimée et indique explicitement si la réduction annuelle est appliquée. Pour un renouvellement du même niveau, l’estimation part de la fin de l’abonnement courant ; pour une montée de plan, elle part de la date de confirmation.
+- **Serveur source de vérité** : le checkout n’accepte que 1–12 mois, recalcule toujours le montant et enregistre `duration_months` + `discount_applied` dans le snapshot. Le règlement vérifié calcule l’expiration avec `addMonths()` et crédite les quotas mensuels pour le nombre exact de mois (12 pour l’annuel).
+- **Compatibilité et migration** : ajout de `duration_months` dans `subscription_payments` et `subscriptions`. Les anciens paiements `monthly`/`annual` restent interprétés correctement.
+- **Base locale** : la migration `2026_09_03_210000_add_subscription_duration_months` est appliquée sur la base locale (`Ran`).
+- **Tests** : `SubscriptionDurationTest` couvre 3 mois sans réduction, 12 mois au tarif annuel et expiration à 12 mois ; `SubscriptionAccessTest` vérifie le rendu utilisateur. Lot paiement/accès/durée : **12 tests, 54 assertions, 0 échec**. `php artisan view:cache` et `git diff --check` passent.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 7 (expiration et rappels journalisés)
+
+- **Comportement consolidé** : `subscriptions:expire`, planifiée chaque jour à 00:05, expire les abonnements arrivés à échéance et journalise les rappels J-3/J-2/J-1. Aucun e-mail, SMS ou WhatsApp n’est envoyé par cette commande à ce stade.
+- **Idempotence démontrée** : une seconde exécution le même jour ne crée pas un second événement de rappel ; une souscription expirée ne reçoit qu’un seul événement d’expiration. Les événements restent dans `subscription_events` et servent de base sûre pour un futur distributeur de notifications.
+- **Tests** : ajout de `SubscriptionExpiryCommandTest`. Lot ciblé `SubscriptionExpiryCommandTest`, `SubscriptionAccessTest`, `SubscriptionWebhookTest`, `PlatformSubscriptionCatalogTest` et `PlatformSubscriptionPreflightTest` : **16 tests, 74 assertions, 0 échec**. `php artisan view:cache`, `php -l` et `git diff --check` passent.
+
+### Point bloquant fonctionnel pour les rappels réels
+
+- Avant de brancher un canal externe, définir explicitement : les canaux autorisés (e-mail, SMS et/ou WhatsApp), le consentement/opt-in et sa preuve, les destinataires (propriétaire seul ou administrateurs inclus), le contenu validé, les horaires/fuseaux et la stratégie de désinscription. Ne pas déduire ces choix des réglages généraux déjà existants.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 8 (rappels e-mail propriétaire et administrateurs)
+
+- **Canal choisi et livré** : les rappels d’échéance sont envoyés par e-mail au propriétaire du compte de facturation et aux membres actifs dont le rôle de la compagnie facturée est `admin`. Les adresses vides sont ignorées et un destinataire présent dans les deux listes ne reçoit qu’un seul message.
+- **Sécurité d’envoi** : l’envoi respecte le réglage plateforme `services.email.enabled`. Chaque événement conserve l’état par destinataire (`sent`, `failed` ou `disabled`) ; un e-mail déjà marqué `sent` n’est jamais renvoyé par une nouvelle exécution. Les erreurs sont journalisées pour permettre une reprise.
+- **Contenu** : la notification `SubscriptionExpiryNotification` distingue le rappel J-3/J-2/J-1 de l’expiration et renvoie vers le menu Abonnement. Aucun SMS ou WhatsApp n’est déclenché.
+- **Tests** : `SubscriptionExpiryCommandTest` vérifie l’envoi au propriétaire et à l’administrateur, l’absence de doublon lors d’une seconde exécution et l’e-mail d’expiration : **2 tests, 13 assertions, 0 échec**.
+
+### Reste à valider avant production
+
+1. Configurer et tester le relais SMTP de production, le domaine d’envoi, le SPF/DKIM/DMARC et la supervision des erreurs ; aucun e-mail réel de production n’a été déclenché ici.
+2. Faire valider le contenu, le fuseau horaire d’envoi et la politique de désinscription/consentement par le responsable produit et juridique.
+3. Rejouer le checkout KPrimePay en environnement sûr, puis la recette complète et l’activation progressive de l’enforcement.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 10 (durée dans la fenêtre de confirmation)
+
+- **Parcours utilisateur corrigé** : le choix de durée n’est plus dispersé dans les cartes de plans. Le bouton « Choisir la durée » ouvre une fenêtre de confirmation contenant le sélecteur 1–12 mois.
+- **Calcul interactif** : à chaque changement de durée, le montant total, la date d’expiration estimée et l’état de la réduction sont recalculés immédiatement dans la fenêtre, avant toute validation. La règle métier reste inchangée : prix mensuel × mois pour 1–11 mois, prix annuel réduit uniquement à 12 mois.
+- **Précaution financière** : la fenêtre s’ouvre par défaut sur 1 mois afin d’éviter qu’un engagement annuel soit sélectionné involontairement ; l’utilisateur doit choisir explicitement 12 mois pour obtenir la réduction.
+- **Affichage maîtrisé** : aucune mention du prestataire de paiement n’est affichée dans la page ou la fenêtre de confirmation ; le prestataire reste uniquement une implémentation serveur après validation.
+- **Sécurité du bouton** : la confirmation utilise le loader SweetAlert, bloque les clics extérieurs pendant la requête et transmet au serveur la durée effectivement sélectionnée. Le serveur recalcule toujours le montant et la durée avant de créer le checkout.
+- **Validation** : `SubscriptionAccessTest`, `SubscriptionDurationTest`, `SubscriptionPaymentTest`, `SubscriptionWebhookTest` et `SubscriptionExpiryCommandTest` passent : **14 tests, 72 assertions, 0 échec**. `php artisan view:cache` passe également.
+
+### Point de reprise
+
+- Recetter visuellement le modal dans le navigateur aux largeurs 1440/1024/768/390 px, en vérifiant les valeurs 1, 3, 11 et 12 mois ainsi que le renouvellement et la montée de plan.
+- Ne pas activer l’enforcement en production et ne pas effectuer de paiement réel avant la recette finale, la configuration SMTP et le checkout de test du prestataire.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 11 (sélecteur de durée mobile)
+
+- Le sélecteur natif qui pouvait être difficile à faire défiler dans certains WebView mobiles est remplacé par une liste de 12 boutons de durée dans le modal.
+- La liste possède une hauteur maximale, `overflow-y: auto`, inertie de défilement tactile et une grille responsive (3 colonnes desktop, 2 colonnes mobile). La durée sélectionnée est mise en évidence et annoncée via `aria-selected`.
+- Le recalcul du montant, de l’expiration et de la réduction reste immédiat après chaque sélection ; aucune route serveur ni règle financière n’a changé.
+- Contrôles : syntaxe JavaScript, `php artisan view:cache` et `git diff --check` passent. Une vérification manuelle sur un vrai navigateur mobile reste recommandée.
+
+## Mise à jour du 3 septembre 2026 — abonnements, lot 12 (notification administration après paiement)
+
+- **Notification après confirmation serveur** : lorsqu’un paiement d’abonnement est vérifié avec succès, tous les administrateurs plateforme actifs disposant d’une adresse e-mail reçoivent `SubscriptionActivatedNotification`.
+- **Détails transmis** : entreprise facturée, plan issu du snapshot, durée, opération (renouvellement/montée de plan), montant et devise, période d’accès, transaction et référence de paiement. L’e-mail ne part jamais sur un simple clic ou un paiement non confirmé.
+- **Sûreté financière** : l’envoi est exécuté après la transaction de règlement ; une panne SMTP ne peut pas annuler l’abonnement ni les crédits. Le journal `subscription_events` conserve un état par administrateur (`sending`, `sent`, `failed` ou `disabled`) et les rejeux n’envoient pas deux fois un message déjà marqué `sent`.
+- **Configuration** : le réglage plateforme `services.email.enabled` est respecté. Si l’e-mail est désactivé, l’événement est marqué `disabled` sans tentative externe. Les administrateurs autorisés au pré-contrôle reçoivent en plus un bouton d’accès à cette page.
+- **Tests** : `SubscriptionPaymentTest` vérifie les détails et l’idempotence (**3 tests, 11 assertions**) ; `SubscriptionWebhookTest` et `SubscriptionDurationTest` restent verts (**7 tests, 40 assertions**). Lint PHP, cache Blade et `git diff --check` passent.
+
+### Point de reprise
+
+- Vérifier en staging le relais SMTP et la liste réelle des administrateurs plateforme actifs ; aucun e-mail de production n’a été envoyé ici.
+- Recetter le rendu du message, puis relancer la suite abonnement complète avant activation de l’enforcement.
+
+## Mise à jour du 3 septembre 2026 — paiements de quotas, lot 13 (notification administration)
+
+- **Notification après crédit confirmé** : les paiements de quotas SMS/WhatsApp réglés avec succès déclenchent `QuotaPaymentConfirmedNotification` pour chaque administrateur plateforme actif ayant une adresse e-mail.
+- **Détails transmis** : entreprise, acheteur, quantités SMS et WhatsApp créditées, montant/devise, transaction, référence de paiement et date de confirmation. Les paiements échoués, expirés ou non vérifiés ne déclenchent aucun e-mail.
+- **Sûreté et idempotence** : l’e-mail est envoyé après la transaction qui crédite les quotas, afin qu’une panne SMTP ne puisse pas annuler le crédit. La colonne JSON `quota_payments.administration_email_status` conserve l’état par administrateur et empêche les renvois lors des webhooks/reconciliations rejoués ; les états `sending` anciens peuvent être repris.
+- **Configuration** : le réglage `services.email.enabled` est respecté. Les administrateurs disposant de `platform.payments.view` reçoivent un bouton vers la liste des paiements plateforme.
+- **Migration locale** : `2026_09_03_220000_add_administration_email_status_to_quota_payments` est appliquée.
+- **Tests** : `QuotaPaymentTest` — **6 tests, 51 assertions, 0 échec** ; lint PHP et migration passent.
+
+### Point de reprise
+
+- Vérifier en staging le relais SMTP, les administrateurs plateforme actifs et le rendu de l’e-mail ; aucun message réel de production n’a été envoyé.
+- Relancer la suite paiement abonnement + quotas avant activation progressive de l’enforcement.
+
+## Mise à jour du 3 septembre 2026 — documentation rationalisée
+
+- Les cahiers des charges Administration SaaS terminés, le prompt historique d’implémentation des abonnements, le rapport d’audit daté et la convention UI redondante ont été retirés. Les scripts servant uniquement à générer leurs anciens exports ont également été supprimés.
+- `docs/README.md` devient l’index court des références à conserver : reprise, rapports permanents, paiements, déploiement, UI/UX active, stratégie tarifaire, architecture SaaS et audits de sécurité.
+- Les exports PDF binaires historiques ne sont plus référencés. Ils restent signalés dans l’index comme candidats au prochain nettoyage local si l’outil de suppression binaire n’est pas disponible dans l’environnement de travail.
+
+## Fixture locale de recette — compte propriétaire sans paiement
+
+- Le compte propriétaire `didierlombardo48@gmail.com` de la société `Matrix` a été utilisé pour des essais manuels sur plusieurs plans. Son plan, son statut et sa date d’expiration sont volontairement mutables et doivent être relus dans la base locale avant chaque recette.
+- Ces changements locaux sont effectués sans `subscription_payment`, sans crédit automatique de quota et sans appel KPrimePay. Ils servent uniquement à tester les limites, fonctionnalités, SweetAlert et changements de plan.
+- Après la recette, supprimer ou prolonger explicitement la fixture selon le besoin ; ne jamais la reproduire en production.
+
+## Validation propriétaire — staging abonnements et quotas
+
+- Le propriétaire confirme que le checkout de test sécurisé fonctionne sur staging, que les webhooks KPrimePay reviennent correctement et que le SMTP réel de staging a été testé.
+- La recette visuelle finale mobile/desktop des parcours concernés est déclarée conforme.
+- Le webhook unique `/api/kprimepay/webhook` reste le point d’entrée production pour les deux familles : `SUB-*` active un abonnement et `QUOTA-*` crédite les quotas. Les URLs de retour navigateur ne sont pas utilisées comme preuve de paiement.
+- La phase de développement fonctionnel est donc considérée comme **terminée (100 %)**. Il reste uniquement la configuration contrôlée de production (variables SMTP/KPrimePay, URL webhook, déploiement, supervision et activation progressive de l’enforcement).

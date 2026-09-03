@@ -2,7 +2,7 @@
 
 Ce guide prépare un premier déploiement SaaS avec **Laravel 10**, **PHP 8.2**, **MySQL**, une queue en base de données et sans Redis.
 
-> **Statut au 26 août 2026 : staging O2switch en cours de validation.** L'environnement de staging peut recevoir les corrections demandées par le propriétaire. Le déploiement en production commerciale reste distinct et ne doit pas être lancé sans accord explicite.
+> **Statut au 3 septembre 2026 : staging O2switch validé pour le périmètre testé.** Le checkout KPrimePay de test, les webhooks, le SMTP réel et la recette visuelle mobile/desktop des abonnements et quotas ont été validés. La production commerciale reste distincte : secrets, URL webhook HTTPS, cron, supervision et activation progressive de l’enforcement doivent encore être configurés et approuvés.
 
 > Ne jamais envoyer le fichier `.env` réel sur Git et ne jamais copier les mots de passe dans une documentation. Remplacer tous les exemples avant le déploiement.
 

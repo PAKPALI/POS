@@ -74,4 +74,20 @@ class PlatformAdminRoleManagementTest extends TestCase
         $this->assertFalse($second->fresh()->is_active);
         $this->assertDatabaseHas('platform_audit_logs', ['action' => 'platform.admin.deactivated', 'target_id' => (string) $second->id]);
     }
+
+    public function test_super_admin_list_supports_search_filters_and_server_pagination(): void
+    {
+        $actor = $this->admin('super_admin', 'super@example.test');
+        foreach (range(1, 11) as $number) {
+            PlatformAdmin::create(['name' => 'Agent '.$number, 'email' => 'agent'.$number.'@example.test',
+                'password' => Hash::make('SecurePassword!123'), 'role' => 'support', 'is_active' => true,
+                'must_change_password' => false]);
+        }
+
+        $response = $this->actingAs($actor, 'platform')->get(route('platform.admins.index', [
+            'search' => 'Agent', 'status' => 'active', 'per_page' => 10,
+        ]));
+
+        $response->assertOk()->assertSee('Agent 1')->assertSee('Affichage de 1 à 10 sur 11')->assertSee('page=2');
+    }
 }

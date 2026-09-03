@@ -9,11 +9,14 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Services\CompanyContext;
+use App\Services\EntitlementService;
+use App\Exceptions\SubscriptionLimitReached;
 use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
@@ -22,6 +25,7 @@ class ProductController extends Controller
 {
     public function __construct(
         private CompanyContext $companyContext,
+        private EntitlementService $entitlements,
     ) {}
 
     /**
@@ -115,7 +119,8 @@ class ProductController extends Controller
         }
         $Category = Category::where('status','1')->orderBy('name', 'asc')->get();
         $Supplier = Supplier::where('status','1')->orderBy('name', 'asc')->get();
-        return view('component.product.index',compact('Category','Supplier'));
+        $canAddProduct = $this->entitlements->canAdd($this->companyContext->getCompany(), 'product');
+        return view('component.product.index',compact('Category','Supplier','canAddProduct'));
     }
 
     public function disabledListing(Request $request)
@@ -170,7 +175,8 @@ class ProductController extends Controller
 
         $Category = Category::where('status','1')->orderBy('name', 'asc')->get();
         $Supplier = Supplier::where('status','1')->orderBy('name', 'asc')->get();
-        return view('component.product.index',compact('Category','Supplier'));
+        $canAddProduct = $this->entitlements->canAdd($this->companyContext->getCompany(), 'product');
+        return view('component.product.index',compact('Category','Supplier','canAddProduct'));
     }
 
     /**
@@ -187,7 +193,6 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Product::class);
-
         $error_messages = [
             "type.required" => "Sélectionnez un type!",
             "type.numeric" => "Sélectionnez un type qui doit être un nombre!",
@@ -261,13 +266,25 @@ class ProductController extends Controller
                 $data['image'] = $imageName;
             }
 
-            Product::create($data);
+            try {
+                DB::transaction(function () use ($data, $request) {
+                    $this->entitlements->assertCanAdd($this->companyContext->getCompany(), 'product');
+                    Product::create($data);
 
-            Action::create([
-                'user_id' => auth()->user()->id,
-                'function' => 'AJOUT PRODUIT',
-                'text' => auth()->user()->name." a modifié le produit '".$request->name."'",
-            ]);
+                    Action::create([
+                        'user_id' => auth()->user()->id,
+                        'function' => 'AJOUT PRODUIT',
+                        'text' => auth()->user()->name." a modifié le produit '".$request->name."'",
+                    ]);
+                });
+            } catch (SubscriptionLimitReached $exception) {
+                return response()->json([
+                    'status' => false,
+                    'reload' => false,
+                    'title' => 'LIMITE DU PLAN ATTEINTE',
+                    'msg' => 'La limite de produits actifs de votre plan est atteinte. Passez à un plan supérieur pour ajouter ce produit.',
+                ], 422);
+            }
 
             return response()->json([
                 "status" => true,
@@ -548,15 +565,22 @@ class ProductController extends Controller
                 ]);
             }
 
-            $Object->update([
-                'status' => 1,
-            ]);
+            try {
+                DB::transaction(function () use ($Object) {
+                    $this->entitlements->assertCanAdd($this->companyContext->getCompany(), 'product');
+                    $Object->update([
+                        'status' => 1,
+                    ]);
 
-            Action::create([
-                'user_id' => auth()->user()->id,
-                'function' => 'RESTAURER UN PRODUIT',
-                'text' => auth()->user()->name." a restauré le produit : ".$Object->name,
-            ]);
+                    Action::create([
+                        'user_id' => auth()->user()->id,
+                        'function' => 'RESTAURER UN PRODUIT',
+                        'text' => auth()->user()->name." a restauré le produit : ".$Object->name,
+                    ]);
+                });
+            } catch (SubscriptionLimitReached $exception) {
+                return response()->json(['status'=>false,'title'=>'LIMITE DU PLAN ATTEINTE','msg'=>'La limite de produits actifs de votre plan est atteinte.'],422);
+            }
 
             return response()->json([
                 "status" => true,

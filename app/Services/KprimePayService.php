@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\QuotaPayment;
+use App\Models\SubscriptionPayment;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -49,6 +50,13 @@ class KprimePayService
         $payload = $this->validPayload($response, 'Impossible de vérifier le paiement KPrimePay.');
 
         return $payload['data'] ?? [];
+    }
+
+    public function createSubscriptionCheckout(SubscriptionPayment $payment, string $returnUrl): array
+    {
+        if (!app(PlatformConfigurationService::class)->channelEnabled('kprimepay')) throw new RuntimeException('Les paiements KPrimePay sont temporairement désactivés par la plateforme.');
+        $response=$this->client()->withHeaders(['Idempotency-Key'=>$payment->idempotency_key])->post($this->url('/checkout'),['transaction_id'=>$payment->transaction_id,'amount'=>$payment->amount,'currency'=>$payment->currency,'mode'=>config('services.kprimepay.mode'),'with_fees'=>config('services.kprimepay.with_fees'),'description'=>'Abonnement POS : '.($payment->snapshot['name']??'plan'),'return_url'=>$returnUrl,'locale'=>'fr','custom_meta_data'=>['subscription_payment_id'=>(string)$payment->id,'subscription_account_id'=>(string)$payment->subscription_account_id]]);
+        $payload=$this->validPayload($response,'Impossible de créer le paiement KPrimePay.');$data=$payload['data']??[];if(empty($data['checkout_url'])||empty($data['kpp_tx_reference']))throw new RuntimeException('KPrimePay a retourné une réponse incomplète.');return $data;
     }
 
     private function client()

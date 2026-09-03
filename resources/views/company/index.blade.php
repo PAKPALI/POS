@@ -27,4 +27,9 @@ $('#add').on('submit',function(e){e.preventDefault();const form=this,button=form
 function submitCompanySwitch(url){const f=document.createElement('form');f.method='POST';f.action=url;f.innerHTML='<input type="hidden" name="_token" value="{{ csrf_token() }}">';document.body.appendChild(f);f.submit()}
 $('body').on('click','.editModal,.view',function(){const id=$(this).data('id'),edit=$(this).hasClass('editModal'),target=edit?'#edit_response':'#show_response',modal=bootstrap.Modal.getOrCreateInstance(document.querySelector(edit?'#editModal':'#showModal'));$(target).html('<div class="saas-empty-state is-compact">Chargement…</div>');modal.show();fetch("{{ url('setting/company') }}/"+id+(edit?'/edit':''),{headers:{Accept:'text/html'}}).then(r=>{if(!r.ok)throw new Error('Chargement impossible');return r.text()}).then(html=>$(target).html(html)).catch(e=>$(target).html('<div class="saas-alert saas-alert-danger">'+e.message+'</div>'))});window.addEventListener('datatableUpdated',()=>table.ajax.reload(null,false));});
 </script>
+<script>
+document.getElementById('addModal')?.addEventListener('show.bs.modal', function () {
+    if (window.Swal?.isVisible()) window.Swal.close();
+});
+</script>
 @endpush

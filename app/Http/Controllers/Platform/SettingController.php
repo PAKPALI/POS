@@ -11,18 +11,30 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
 {
-    public function edit(PlatformPricingService $pricing)
+    public function edit(Request $request, PlatformPricingService $pricing)
     {
         abort_unless(Auth::guard('platform')->user()->hasPlatformPermission('platform.pricing.manage'), 403);
+        $filters = $request->validate(['history_search' => ['nullable', 'string', 'max:100'], 'history_per_page' => ['nullable', 'integer', Rule::in([10, 20, 50, 100])]]);
         $smsUnitPrice = $pricing->smsUnitPrice();
         $whatsappUnitPrice = $pricing->whatsappUnitPrice();
         $smsUnitCost = $pricing->smsUnitCost();
         $whatsappUnitCost = $pricing->whatsappUnitCost();
-        $history = PlatformSettingHistory::with('admin:id,name')->latest()->limit(20)->get();
-        return view('platform.settings.edit', compact('smsUnitPrice', 'whatsappUnitPrice', 'smsUnitCost', 'whatsappUnitCost', 'history'));
+        $history = PlatformSettingHistory::with('admin:id,name')
+            ->whereIn('key', [PlatformPricingService::SMS_KEY, PlatformPricingService::WHATSAPP_KEY, PlatformPricingService::SMS_COST_KEY, PlatformPricingService::WHATSAPP_COST_KEY])
+            ->when($filters['history_search'] ?? null, function ($query, $value) {
+                $term = '%'.$value.'%';
+                $query->where(function ($search) use ($term) {
+                    $search->where('key', 'like', $term)->orWhere('old_value', 'like', $term)
+                        ->orWhere('new_value', 'like', $term)->orWhere('reason', 'like', $term)
+                        ->orWhereHas('admin', fn ($admin) => $admin->where('name', 'like', $term));
+                });
+            })
+            ->latest()->paginate((int) ($filters['history_per_page'] ?? 20), ['*'], 'history_page')->withQueryString();
+        return view('platform.settings.edit', compact('smsUnitPrice', 'whatsappUnitPrice', 'smsUnitCost', 'whatsappUnitCost', 'history', 'filters'));
     }
 
     public function update(Request $request, PlatformPricingService $pricing)

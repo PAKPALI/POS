@@ -18,6 +18,8 @@ use App\Models\Company;
 use App\Models\Role;
 use App\Services\CompanyContext;
 use App\Services\CompanyOnboardingService;
+use App\Services\EntitlementService;
+use App\Exceptions\SubscriptionLimitReached;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -81,7 +83,8 @@ class UserController extends Controller
 
     public function index()
     {
-        $companyId = app(CompanyContext::class)->getCompanyId();
+        $companyContext = app(CompanyContext::class);
+        $companyId = $companyContext->getCompanyId();
         if(request()->ajax()){
             $users = User::query()
                 ->join('company_user as active_membership', function ($join) use ($companyId) {
@@ -124,7 +127,8 @@ class UserController extends Controller
         $roles = Role::where('company_id', $companyId)->where('key', '!=', 'owner')->orderBy('name')->get();
         $invitations = CompanyInvitation::where('company_id', $companyId)
             ->with('role', 'inviter')->latest()->get();
-        return view('user.index', compact('roles', 'invitations'));
+        $canAddUser = app(EntitlementService::class)->canAdd($companyContext->getCompany(), 'user');
+        return view('user.index', compact('roles', 'invitations', 'canAddUser'));
     }
 
     /**
@@ -179,6 +183,11 @@ class UserController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
         }else{
+            try {
+                app(EntitlementService::class)->assertCanAdd(app(CompanyContext::class)->getCompany(), 'user');
+            } catch (SubscriptionLimitReached $exception) {
+                return response()->json(['status' => false, 'title' => 'LIMITE DU PLAN ATTEINTE', 'msg' => 'La limite d’utilisateurs de votre plan d’abonnement est atteinte.'], 422);
+            }
             $email = $request['email'];
             $name = $request['name'];
             $role = Role::where('company_id', app(CompanyContext::class)->getCompanyId())->findOrFail($request->role_id);
@@ -224,6 +233,11 @@ class UserController extends Controller
         $user = User::where('email', $validated['email'])->firstOrFail();
         $role = Role::where('company_id', $companyId)->findOrFail($validated['role_id']);
         abort_if($role->key === 'owner', 403, 'Le rôle propriétaire ne peut pas être attribué.');
+        try {
+            app(EntitlementService::class)->assertCanAddUser(app(CompanyContext::class)->getCompany(), $user->id);
+        } catch (SubscriptionLimitReached $exception) {
+            return response()->json(['status' => false, 'title' => 'LIMITE DU PLAN ATTEINTE', 'msg' => 'La limite d’utilisateurs de votre plan d’abonnement est atteinte.'], 422);
+        }
 
         $membership = CompanyUser::where('company_id', $companyId)
             ->where('user_id', $user->id)

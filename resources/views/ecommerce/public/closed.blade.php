@@ -1,54 +1,30 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Boutique fermee</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .closed-card {
-            text-align: center;
-            padding: 52px 40px;
-            background: rgba(255,255,255,.04);
-            border-radius: 16px;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,.08);
-            max-width: 420px;
-            width: 100%;
-        }
-        .closed-card .icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2rem;
-        }
-        .closed-card h1 { color: #fff; font-weight: 800; font-size: 1.4rem; margin-bottom: 10px; }
-        .closed-card p { color: rgba(255,255,255,.5); font-size: .92rem; line-height: 1.6; margin-bottom: 0; }
-    </style>
-</head>
-<body>
-    <div class="closed-card">
-        <div class="icon">🛒</div>
-        <h1>Boutique momentanement fermee</h1>
-        <p>Notre boutique en ligne est en cours de maintenance. Nous revenons tres bientot !</p>
-    </div>
-</body>
-</html>
+@extends('layouts.public-auth')
+
+@section('title', 'Accès à la boutique')
+
+@push('styles')
+<style>
+    .storefront-denied { width: min(100%, 720px); margin: 0 auto; }
+    .storefront-denied-card {
+        position: relative; overflow: hidden; padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 5vw, 3.5rem);
+        text-align: center; border: 1px solid var(--ds-border, rgba(148, 163, 184, .2)); border-radius: 28px;
+        background: var(--ds-surface, rgba(255, 255, 255, .8)); box-shadow: 0 24px 70px rgba(15, 23, 42, .16);
+    }
+    .storefront-denied-card::before { position: absolute; inset: 0 0 auto; height: 4px; content: ''; background: linear-gradient(90deg, var(--ds-accent, #3b82f6), #20bfa9); }
+    .storefront-denied-illustration { display: block; width: min(100%, 250px); height: auto; margin: 0 auto 1.25rem; filter: drop-shadow(0 18px 25px rgba(15, 23, 42, .14)); }
+    .storefront-denied-eyebrow { display: inline-flex; align-items: center; gap: .45rem; margin-bottom: .75rem; color: var(--ds-accent, #3b82f6); font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .storefront-denied-title { margin-bottom: .85rem; color: var(--ds-heading, #0f172a); font-size: clamp(1.55rem, 4vw, 2.15rem); font-weight: 800; letter-spacing: -.03em; }
+    .storefront-denied-copy { max-width: 500px; margin: 0 auto; color: var(--ds-muted, #64748b); font-size: 1rem; line-height: 1.7; }
+</style>
+@endpush
+
+@section('content')
+<main class="storefront-denied" aria-labelledby="storefront-denied-title">
+    <section class="storefront-denied-card">
+        <img src="{{ asset('hub/assets/img/errors/access-denied-robot.png') }}" class="storefront-denied-illustration" alt="Illustration indiquant que l’accès à la boutique est momentanément indisponible">
+        <div class="storefront-denied-eyebrow"><i class="bi bi-shield-lock" aria-hidden="true"></i>Accès momentanément indisponible</div>
+        <h1 id="storefront-denied-title" class="storefront-denied-title">Cette boutique n’est pas accessible pour le moment</h1>
+        <p class="storefront-denied-copy">La boutique en ligne est actuellement désactivée ou son abonnement ne permet pas encore l’accès e-commerce. Revenez plus tard ou contactez l’administrateur de l’entreprise.</p>
+    </section>
+</main>
+@endsection

@@ -125,6 +125,8 @@ button, input, select, textarea, .btn, .form-control, .form-select, .dataTables_
 }
 
 /* Shared modal scroll contract. The dialog owns the viewport; only the body scrolls. */
+.saas-modal { display: none; }
+.saas-modal.show { display: block; }
 .saas-body .modal.show {
     display: block;
     overflow-x: hidden;

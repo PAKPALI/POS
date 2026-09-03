@@ -7,6 +7,7 @@ use App\Models\Action;
 use App\Models\CompanyUser;
 use App\Services\CompanyContext;
 use App\Services\AuthorizedLandingPage;
+use App\Services\EntitlementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,7 @@ class SwitchCompanyController extends Controller
     public function __construct(
         private CompanyContext $context,
         private AuthorizedLandingPage $landingPage,
+        private EntitlementService $entitlements,
     ) {}
 
     /**
@@ -37,7 +39,9 @@ class SwitchCompanyController extends Controller
             ? $this->landingPage->forMembership($activeMembership)
             : null;
 
-        return view('company.select', compact('memberships', 'activeCompanyId', 'returnUrl'));
+        $canCreateCompany = !$activeMembership || $this->entitlements->canAdd($activeMembership->company, 'company');
+        $canManageSubscription = $activeMembership?->hasPermission('subscription.manage') ?? false;
+        return view('company.select', compact('memberships', 'activeCompanyId', 'returnUrl', 'canCreateCompany', 'canManageSubscription'));
     }
 
     /**

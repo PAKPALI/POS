@@ -71,5 +71,8 @@ class Kernel extends HttpKernel
         'platform.admin' => \App\Http\Middleware\EnsurePlatformAdmin::class,
         'platform.password' => \App\Http\Middleware\EnsurePlatformPasswordChanged::class,
         'platform.permission' => \App\Http\Middleware\EnsurePlatformPermission::class,
+        'subscription.manage' => \App\Http\Middleware\EnsureSubscriptionManage::class,
+        'subscription.writable' => \App\Http\Middleware\EnsureSubscriptionWritable::class,
+        'plan.feature' => \App\Http\Middleware\EnsurePlanFeature::class,
     ];
 }

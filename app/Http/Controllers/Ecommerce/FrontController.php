@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Company;
 use App\Services\CompanyContext;
+use App\Services\EntitlementService;
 use App\Models\Order;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class FrontController extends Controller
 {
-    public function __construct(private CompanyContext $context) {}
+    public function __construct(private CompanyContext $context, private EntitlementService $entitlements) {}
 
     protected function getCompany(bool $requireExplicitCompany = false)
     {
@@ -32,7 +33,7 @@ class FrontController extends Controller
             $company = null;
         }
 
-        if ($company && (!$company->ecommerce_active || !$company->isActive())) {
+        if ($company && (!$company->ecommerce_active || !$company->isActive() || !$this->entitlements->feature($company, 'ecommerce'))) {
             $company = null;
         }
         if ($company) {
