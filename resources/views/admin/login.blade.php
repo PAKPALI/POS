@@ -11,7 +11,6 @@
             <button type="submit" class="saas-btn saas-btn-primary auth-submit" data-loading-text="Connexion…">Se connecter <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
         </form>
         <p class="auth-flow-switch">Vous débutez ? <a href="{{ route('register') }}">Créer votre espace</a></p>
-        <a href="{{ route('platform.entry') }}" class="auth-platform-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span><strong>Administration SaaS</strong><small>Accès réservé à la plateforme</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
     </div>
 
     @push('scripts')

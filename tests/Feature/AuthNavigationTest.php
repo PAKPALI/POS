@@ -23,8 +23,8 @@ class AuthNavigationTest extends TestCase
             ->assertOk()
             ->assertSeeText('Vous débutez ?', false)
             ->assertSee(route('register'))
-            ->assertSeeText('Administration SaaS')
-            ->assertSee(route('platform.entry'))
+            ->assertDontSeeText('Administration SaaS')
+            ->assertDontSee('auth-platform-link', false)
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
             ->assertSee(asset('hub/assets/css/public-auth.css'));
 
