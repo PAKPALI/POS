@@ -11,6 +11,7 @@ use App\Models\AMS\CashAccount;
 use App\Models\AMS\Setting;
 use App\Models\AMS\Transaction;
 use App\Models\CodePromo;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
@@ -45,7 +46,7 @@ class SaleCreationService
                 'cashier' => $cashier->name,
             ]);
 
-            $totalProfit = $this->processProducts($sale, $data['products']);
+            $totalProfit = $this->processProducts($sale, $data['products'], $cashier->id);
             $sale->update(['total_profit' => $totalProfit - $discount]);
             $this->handleAccounting($sale, $cashier);
 
@@ -66,7 +67,7 @@ class SaleCreationService
         }, 3);
     }
 
-    private function processProducts(Sale $sale, array $products): float
+    private function processProducts(Sale $sale, array $products, int $createdBy): float
     {
         $totalProfit = 0;
         foreach ($products as $item) {
@@ -82,14 +83,14 @@ class SaleCreationService
                 'profit' => $profit,
             ]);
 
-            $this->decrementProduct($product, $quantity, $sale->id);
+            $this->decrementProduct($product, $quantity, $sale, $createdBy);
             $totalProfit += $profit;
         }
 
         return $totalProfit;
     }
 
-    private function decrementProduct(Product $product, int $quantity, int $saleId): void
+    private function decrementProduct(Product $product, int $quantity, Sale $sale, int $createdBy): void
     {
         $previousQuantity = (int) $product->qte;
         if ($previousQuantity < $quantity) {
@@ -99,10 +100,22 @@ class SaleCreationService
         $newQuantity = $previousQuantity - $quantity;
         $product->update(['qte' => $newQuantity]);
 
+        // Keep the stock movement and the sale in the same transaction so an
+        // incomplete sale can never leave an orphan inventory movement.
+        Inventory::create([
+            'type' => 2,
+            'product_id' => $product->id,
+            'qte_before' => $previousQuantity,
+            'qte_added' => $quantity,
+            'qte_after' => $newQuantity,
+            'note' => 'Vente #'.$sale->code,
+            'created_by' => $createdBy,
+        ]);
+
         if ((int) $product->type === 2) {
             foreach ($product->MenuProducts as $component) {
                 $componentProduct = Product::whereKey($component->product_id)->lockForUpdate()->firstOrFail();
-                $this->decrementProduct($componentProduct, (int) $component->quantity * $quantity, $saleId);
+                $this->decrementProduct($componentProduct, (int) $component->quantity * $quantity, $sale, $createdBy);
             }
         }
 
@@ -114,7 +127,7 @@ class SaleCreationService
                 $newQuantity,
                 $this->context->getCompanyId(),
                 $product->id,
-                $saleId
+                $sale->id
             )->afterCommit();
         }
     }

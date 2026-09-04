@@ -8,6 +8,7 @@ use App\Models\AMS\Setting;
 use App\Models\AMS\Transaction;
 use App\Models\Category;
 use App\Models\Client;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
@@ -295,6 +296,48 @@ class SalesFlowTest extends TestCase
         $this->assertEquals($initialQte - 5, $this->product->qte);
     }
 
+    public function test_sale_creates_one_inventory_exit_per_sold_product(): void
+    {
+        $secondProduct = Product::create([
+            'category_id' => $this->category->id,
+            'name' => 'Second Test Product',
+            'qte' => 40,
+            'price' => 3000,
+            'purchase_price' => 1500,
+            'profit' => 1500,
+            'margin' => 5,
+            'type' => 1,
+            'status' => '1',
+            'created_by' => $this->user->id,
+        ]);
+
+        $this->makeSale([
+            'products' => [
+                ['product_id' => $this->product->id, 'quantity' => 2, 'unit_price' => 5000, 'total_price' => 10000],
+                ['product_id' => $secondProduct->id, 'quantity' => 3, 'unit_price' => 3000, 'total_price' => 9000],
+            ],
+            'total_amount' => 19000,
+            'received_amount' => 19000,
+        ])->assertJson(['status' => true]);
+
+        $sale = Sale::latest()->firstOrFail();
+        $movements = Inventory::where('type', 2)
+            ->whereIn('product_id', [$this->product->id, $secondProduct->id])
+            ->get()
+            ->keyBy('product_id');
+
+        $this->assertCount(2, $movements);
+        $this->assertSame('Vente #'.$sale->code, $movements[$this->product->id]->note);
+        $this->assertSame(100, (int) $movements[$this->product->id]->qte_before);
+        $this->assertSame(2, (int) $movements[$this->product->id]->qte_added);
+        $this->assertSame(98, (int) $movements[$this->product->id]->qte_after);
+        $this->assertSame('Vente #'.$sale->code, $movements[$secondProduct->id]->note);
+        $this->assertSame(40, (int) $movements[$secondProduct->id]->qte_before);
+        $this->assertSame(3, (int) $movements[$secondProduct->id]->qte_added);
+        $this->assertSame(37, (int) $movements[$secondProduct->id]->qte_after);
+        $this->assertTrue($movements->every(fn (Inventory $movement) => (int) $movement->created_by === $this->user->id));
+    }
+
     /** Creating a sale creates sale record with correct amounts */
     public function test_sale_creates_correct_record(): void
     {
@@ -399,6 +442,7 @@ class SalesFlowTest extends TestCase
         $this->product->refresh();
         $this->assertEquals(2, $this->product->qte);
         $this->assertDatabaseCount('sales', 0);
+        $this->assertDatabaseCount('inventories', 0);
     }
 
     /** Sale with discount applies correctly */

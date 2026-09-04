@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260902-41" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260904-1" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -424,49 +424,51 @@
                     </div>
                     <button type="button" class="btn-close receipt-modal-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
-                <div class="modal-body" id="receiptPreview">
-                    <div class="py-5 text-muted">Chargement du reçu...</div>
-                </div>
-                <div class="px-3 pb-3 d-none pos-invoice-delivery" id="invoiceDeliveryPanel">
-                    <div class="border rounded p-3">
-                        <div class="pos-invoice-delivery-heading">
-                            <span><i class="bi bi-send-check"></i> Envoi au client</span>
-                            <p>Choisissez au moins un canal et vérifiez le numéro avant l’envoi.</p>
-                        </div>
-                        <div class="pos-invoice-fields">
-                            <div class="pos-invoice-field">
-                                <label for="invoiceCountry" class="form-label">Pays du numéro</label>
-                                <select class="form-select country-select" id="invoiceCountry" data-placeholder="Rechercher un pays">
-                                    @foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($company->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach
-                                </select>
-                            </div>
-                            <div class="pos-invoice-field">
-                                <label for="invoicePhone" class="form-label">Numéro local du client</label>
-                                <input type="tel" class="form-control" id="invoicePhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
-                            </div>
-                        </div>
-                        <div class="pos-invoice-channels">
-                            <label class="saas-switch-line" for="invoiceWhatsapp"><span><strong>WhatsApp</strong><small><span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
-                            <label class="saas-switch-line" for="invoiceSms"><span><strong>SMS</strong><small><span id="invoiceSmsQuota">{{ $company->sms_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceSms" {{ !$company->invoice_whatsapp_enabled && $company->invoice_sms_enabled && $company->sms_count > 0 ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
-                        </div>
-                        <button type="button" id="sendInvoice" class="btn btn-success" data-loading-text="Envoi en cours…" {{ (!$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1) && (!$company->invoice_sms_enabled || $company->sms_count < 1) ? 'disabled' : '' }}>
-                            <i class="bi bi-whatsapp me-1"></i> Envoyer la facture
-                        </button>
-                        @if(!$company->invoice_whatsapp_enabled && !$company->invoice_sms_enabled)
-                            <div class="small text-warning mt-2">
-                                Activez WhatsApp ou SMS dans la section « Envoi des factures aux clients » de Communications &gt; SMS &amp; WhatsApp &gt; Configuration.
-                                @if($currentMembership?->hasPermission('notifications.manage'))
-                                    <a href="{{ route('notifications.index') }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>
-                                @endif
-                            </div>
-                        @endif
+                <div class="pos-receipt-modal-scroll" tabindex="0" aria-label="Contenu du reçu et actions de vente">
+                    <div class="modal-body" id="receiptPreview">
+                        <div class="py-5 text-muted">Chargement du reçu...</div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="print" class="btn btn-success">
-                        <i class="bi bi-printer me-1"></i> Imprimer
-                    </button>
-                    <button type="button" class="btn btn-secondary receipt-modal-close" data-bs-dismiss="modal">Fermer</button>
+                    <div class="px-3 pb-3 d-none pos-invoice-delivery" id="invoiceDeliveryPanel">
+                        <div class="border rounded p-3">
+                            <div class="pos-invoice-delivery-heading">
+                                <span><i class="bi bi-send-check"></i> Envoi au client</span>
+                                <p>Choisissez au moins un canal et vérifiez le numéro avant l’envoi.</p>
+                            </div>
+                            <div class="pos-invoice-fields">
+                                <div class="pos-invoice-field">
+                                    <label for="invoiceCountry" class="form-label">Pays du numéro</label>
+                                    <select class="form-select country-select" id="invoiceCountry" data-placeholder="Rechercher un pays">
+                                        @foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === ($company->country_code ?? 'TG'))>{{ $countryName }} ({{ $iso }})</option>@endforeach
+                                    </select>
+                                </div>
+                                <div class="pos-invoice-field">
+                                    <label for="invoicePhone" class="form-label">Numéro local du client</label>
+                                    <input type="tel" class="form-control" id="invoicePhone" inputmode="numeric" pattern="[0-9]{6,15}" minlength="6" maxlength="15" placeholder="Numéro local sans indicatif">
+                                </div>
+                            </div>
+                            <div class="pos-invoice-channels">
+                                <label class="saas-switch-line" for="invoiceWhatsapp"><span><strong>WhatsApp</strong><small><span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
+                                <label class="saas-switch-line" for="invoiceSms"><span><strong>SMS</strong><small><span id="invoiceSmsQuota">{{ $company->sms_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceSms" {{ !$company->invoice_whatsapp_enabled && $company->invoice_sms_enabled && $company->sms_count > 0 ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
+                            </div>
+                            <button type="button" id="sendInvoice" class="btn btn-success" data-loading-text="Envoi en cours…" {{ (!$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1) && (!$company->invoice_sms_enabled || $company->sms_count < 1) ? 'disabled' : '' }}>
+                                <i class="bi bi-whatsapp me-1"></i> Envoyer la facture
+                            </button>
+                            @if(!$company->invoice_whatsapp_enabled && !$company->invoice_sms_enabled)
+                                <div class="small text-warning mt-2">
+                                    Activez WhatsApp ou SMS dans la section « Envoi des factures aux clients » de Communications &gt; SMS &amp; WhatsApp &gt; Configuration.
+                                    @if($currentMembership?->hasPermission('notifications.manage'))
+                                        <a href="{{ route('notifications.index') }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="print" class="btn btn-success">
+                            <i class="bi bi-printer me-1"></i> Imprimer
+                        </button>
+                        <button type="button" class="btn btn-secondary receipt-modal-close" data-bs-dismiss="modal">Fermer</button>
+                    </div>
                 </div>
             </div>
         </div>
