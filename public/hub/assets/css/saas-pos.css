@@ -172,8 +172,28 @@
 .pos-saas-body .pos-order-product .pos-order-price::before { content: "Sous-total"; color: var(--ds-text-muted); font-size: .55rem; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
 .pos-saas-body .pos-order-product > div:last-child { grid-column: 3; grid-row: 2; }
 .pos-saas-body .pos-order-product .pos-order-remove { align-self: center; justify-self: end; }
-.pos-saas-body .pos-order-product .remove-item { display: inline-grid; width: 27px; height: 27px; place-items: center; padding: 0; border-radius: 8px; opacity: .82; }
-.pos-saas-body .pos-order-product .remove-item:hover { opacity: 1; transform: translateY(-1px); }
+.pos-saas-body .pos-order-product .remove-item,
+.pos-saas-body .pos-order-product .remove-item:visited {
+    display: inline-grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    padding: 0;
+    color: #fff !important;
+    background: #dc3545 !important;
+    border: 1px solid #dc3545 !important;
+    border-radius: 8px;
+    opacity: .92;
+}
+.pos-saas-body .pos-order-product .remove-item i { color: #fff !important; }
+.pos-saas-body .pos-order-product .remove-item:hover,
+.pos-saas-body .pos-order-product .remove-item:focus-visible {
+    color: #fff !important;
+    background: #bb2d3b !important;
+    border-color: #bb2d3b !important;
+    opacity: 1;
+    transform: translateY(-1px);
+}
 .pos-saas-body #newOrderTab > .pos-order:first-of-type { margin-top: 2px; }
 .pos-saas-body .pos-top-sales-panel { min-height: 100%; padding: 12px; }
 .pos-saas-body .pos-top-sales { overflow: hidden; color: var(--ds-text-primary); background: linear-gradient(145deg, var(--pos-panel-soft), color-mix(in srgb, var(--ds-accent-soft) 34%, transparent)); border: 1px solid var(--ds-border-soft); border-radius: 16px; }
