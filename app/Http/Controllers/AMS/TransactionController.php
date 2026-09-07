@@ -50,7 +50,7 @@ class TransactionController extends Controller
                     ';
                 })
                 ->editColumn('amount', function ($row) {
-                    return number_format($row->amount, 2, ',', ' ') . ' FCFA';
+                    return app(\App\Services\AfricanMarketProfile::class)->format($row->amount);
                 })
                 // ->editColumn('description', function ($row) {
                 //     return $row->description??'-';

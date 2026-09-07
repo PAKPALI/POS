@@ -43,7 +43,7 @@
                     <header class="platform-settings-section-head">
                         <p class="platform-eyebrow"><i class="bi bi-plug" aria-hidden="true"></i> Services</p>
                         <h2>Services externes</h2>
-                        <p>Activez uniquement les canaux déjà configurés dans l’environnement de la plateforme.</p>
+                        <p>Activez uniquement les canaux déjà configurés dans l’environnement de la plateforme. Les secrets restent stockés côté serveur et ne sont jamais affichés ici.</p>
                     </header>
                     <div class="platform-settings-service-list">
                         @foreach(['email'=>['label'=>'E-mail','icon'=>'bi-envelope-at'],'sms'=>['label'=>'SMS','icon'=>'bi-chat-text'],'whatsapp'=>['label'=>'WhatsApp','icon'=>'bi-whatsapp'],'kprimepay'=>['label'=>'KPrimePay','icon'=>'bi-credit-card-2-front']] as $key=>$service)
@@ -120,6 +120,62 @@
             </div>
         </div>
     </form>
+
+    <section class="platform-settings-section platform-settings-company-enforcement">
+        <header class="platform-settings-section-head">
+            <p class="platform-eyebrow"><i class="bi bi-buildings" aria-hidden="true"></i> Exception par entreprise</p>
+            <h2>Contrôle d’abonnement individuel</h2>
+            <p>« Hériter » suit le réglage global. « Activer » ou « Désactiver » crée une exception propre à cette entreprise. Chaque changement est protégé par le mot de passe plateforme et inscrit au journal d’audit.</p>
+        </header>
+        <div class="table-responsive platform-table-scroll platform-company-enforcement-table-wrap">
+            <table class="table platform-data-table platform-company-enforcement-table align-middle mb-0">
+                <thead><tr><th>Entreprise</th><th>Statut</th><th>Réglage actuel</th><th class="text-end">Action</th></tr></thead>
+                <tbody>
+                @forelse($companies as $company)
+                    @php($mode = $company->subscription_enforcement_enabled === null ? 'inherit' : ($company->subscription_enforcement_enabled ? 'enabled' : 'disabled'))
+                    <tr>
+                        <td><strong>{{ $company->name }}</strong><small class="platform-table-subtext">{{ $company->email }}</small></td>
+                        <td><span class="platform-status-chip {{ $company->status === 'active' ? 'is-success' : 'is-danger' }}"><i class="bi bi-circle-fill" aria-hidden="true"></i>{{ $company->status === 'active' ? 'Active' : 'Suspendue' }}</span></td>
+                        <td><span class="platform-status-chip {{ $mode === 'enabled' ? 'is-warning' : ($mode === 'disabled' ? 'is-danger' : 'is-muted') }}"><i class="bi bi-shield-check" aria-hidden="true"></i>{{ $mode === 'enabled' ? 'Activé pour cette entreprise' : ($mode === 'disabled' ? 'Désactivé pour cette entreprise' : 'Hérite du réglage global') }}</span></td>
+                        <td class="text-end"><button type="button" class="platform-action-btn btn-warning" data-bs-toggle="modal" data-bs-target="#companyEnforcementModal-{{ $company->id }}" aria-label="Configurer l’abonnement de {{ $company->name }}" title="Configurer"><i class="bi bi-sliders2" aria-hidden="true"></i></button></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="4" class="platform-table-empty"><i class="bi bi-buildings" aria-hidden="true"></i><span>Aucune entreprise enregistrée.</span></td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+        @foreach($companies as $company)
+            @php($mode = $company->subscription_enforcement_enabled === null ? 'inherit' : ($company->subscription_enforcement_enabled ? 'enabled' : 'disabled'))
+            @php($modeLabel = $mode === 'enabled' ? 'Activé pour cette entreprise' : ($mode === 'disabled' ? 'Désactivé pour cette entreprise' : 'Hérite du réglage global'))
+            <div class="modal fade platform-company-enforcement-dialog" id="companyEnforcementModal-{{ $company->id }}" tabindex="-1" aria-labelledby="companyEnforcementModalTitle-{{ $company->id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                    <form method="POST" action="{{ route('platform.settings.general.companies.subscription-enforcement', $company) }}" class="modal-content saas-modal-content platform-company-enforcement-modal">
+                        @csrf @method('PUT')
+                        <div class="modal-header">
+                            <div class="platform-company-enforcement-modal-heading">
+                                <span class="platform-company-enforcement-modal-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+                                <div class="platform-company-enforcement-modal-copy"><span class="platform-eyebrow"><i class="bi bi-sliders2" aria-hidden="true"></i> Exception d’abonnement</span><h2 class="modal-title" id="companyEnforcementModalTitle-{{ $company->id }}">{{ $company->name }}</h2><p class="platform-modal-subtitle"><i class="bi bi-envelope" aria-hidden="true"></i> {{ $company->email }}</p></div>
+                            </div>
+                            <button type="button" class="saas-modal-close" data-bs-dismiss="modal" aria-label="Fermer"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="platform-company-enforcement-current">
+                                <span class="platform-company-enforcement-current-icon"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                                <div><span>Réglage actuel</span><strong>{{ $modeLabel }}</strong><small>Cette exception agit uniquement sur le contrôle d’accès de l’entreprise.</small></div>
+                            </div>
+                            <div class="platform-company-enforcement-modal-grid">
+                                <div class="platform-settings-field"><label for="company-mode-{{ $company->id }}"><i class="bi bi-toggles" aria-hidden="true"></i> Mode de contrôle</label><select id="company-mode-{{ $company->id }}" name="mode" class="form-select" required><option value="inherit" @selected($mode === 'inherit')>Hériter du réglage global</option><option value="enabled" @selected($mode === 'enabled')>Activer pour cette entreprise</option><option value="disabled" @selected($mode === 'disabled')>Désactiver pour cette entreprise</option></select><small>Le mode choisi ne modifie ni l’abonnement ni les paiements.</small></div>
+                                <div class="platform-settings-field"><label for="company-reason-{{ $company->id }}"><i class="bi bi-chat-left-text" aria-hidden="true"></i> Motif de la modification</label><textarea id="company-reason-{{ $company->id }}" name="reason" class="form-control" minlength="5" maxlength="500" rows="3" placeholder="Expliquez la raison de cette exception…" required></textarea></div>
+                                <div class="platform-settings-field"><label for="company-password-{{ $company->id }}"><i class="bi bi-key" aria-hidden="true"></i> Mot de passe plateforme</label><input id="company-password-{{ $company->id }}" name="current_password" type="password" class="form-control" autocomplete="current-password" required><small>Votre mot de passe confirme cette action sensible et sera journalisé.</small></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg" aria-hidden="true"></i> Annuler</button><button class="btn btn-warning" data-loading-text="Enregistrement…"><i class="bi bi-save2" aria-hidden="true"></i> Enregistrer l’exception</button></div>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+    </section>
 
     @php($settingLabels=['identity.app_name'=>'Nom de l’application','support.email'=>'E-mail du support','support.phone'=>'Téléphone du support','support.hours'=>'Horaires du support','defaults.currency'=>'Devise par défaut','defaults.country'=>'Pays par défaut','services.email.enabled'=>'Service e-mail','services.sms.enabled'=>'Service SMS','services.whatsapp.enabled'=>'Service WhatsApp','services.kprimepay.enabled'=>'Service KPrimePay','subscriptions.enforcement_enabled'=>'Contrôle des abonnements','security.invitation_expiry_hours'=>'Expiration des invitations','security.two_factor_expiry_minutes'=>'Expiration 2FA','security.payment_expiry_hours'=>'Expiration des paiements','maintenance.enabled'=>'Mode maintenance','maintenance.message'=>'Message de maintenance','identity.logo_path'=>'Logo'])
     <section class="platform-settings-section platform-settings-history platform-settings-history-panel">

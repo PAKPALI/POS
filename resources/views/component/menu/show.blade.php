@@ -17,9 +17,9 @@
 <dl class="saas-detail-list saas-detail-grid">
     <div><dt>Quantité disponible</dt><dd>{{ $MenuProduct->qte }}</dd></div>
     <div><dt>Marge de sécurité</dt><dd>{{ $MenuProduct->margin }}</dd></div>
-    <div><dt>Prix unitaire</dt><dd>{{ number_format((float) $MenuProduct->price, 0, ',', ' ') }} FCFA</dd></div>
-    <div><dt>Prix d'achat</dt><dd>{{ number_format((float) $MenuProduct->purchase_price, 0, ',', ' ') }} FCFA</dd></div>
-    <div><dt>Bénéfice unitaire</dt><dd>{{ number_format((float) $MenuProduct->profit, 0, ',', ' ') }} FCFA</dd></div>
+    <div><dt>Prix unitaire</dt><dd>@money($MenuProduct->price)</dd></div>
+    <div><dt>Prix d'achat</dt><dd>@money($MenuProduct->purchase_price)</dd></div>
+    <div><dt>Bénéfice unitaire</dt><dd>@money($MenuProduct->profit)</dd></div>
     <div><dt>Créé par</dt><dd>{{ $MenuProduct->user->name }}</dd></div>
     <div><dt>Créé le</dt><dd>{{ $MenuProduct->created_at->format('d/m/Y à H:i') }}</dd></div>
 </dl>

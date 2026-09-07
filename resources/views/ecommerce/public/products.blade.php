@@ -50,7 +50,7 @@
                         <div class="card-body">
                             @if($product->category)<div class="cat-label">{{ $product->category->name }}</div>@endif
                             <div class="product-name">{{ $product->name }}</div>
-                            <div class="product-price">{{ number_format($product->price_ttc ?? $product->price, 0, ',', ' ') }} <span class="currency">FCFA</span></div>
+                            <div class="product-price">@money($product->price_ttc ?? $product->price)</div>
                             <div class="d-flex gap-2 mt-auto">
                                 <input type="number" class="qty-input" value="1" min="1" max="{{ $product->qte ?: 1 }}">
                                 <button class="add-to-cart-btn flex-grow-1" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price_ttc ?? $product->price }}" data-image="{{ ($product->image && $product->image !== 'null') ? asset('images/'.$product->image) : asset('icons/product-placeholder.svg') }}" {{ $product->qte <= 0 ? 'disabled' : '' }}>

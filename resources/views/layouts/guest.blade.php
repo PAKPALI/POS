@@ -13,6 +13,7 @@
         <!-- Styles -->
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <link rel="stylesheet" href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1">
+        @include('partials.design-system-head')
 
         <!-- Scripts -->
         <script src="{{ asset('js/app.js') }}" defer></script>

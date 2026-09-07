@@ -13,7 +13,7 @@
                     <tr>
                         <th scope="col" class="pos-top-sales-rank-column">#</th>
                         <th scope="col">Produit</th>
-                        <th scope="col" class="pos-top-sales-price-column">Prix <small>FCFA</small></th>
+                        <th scope="col" class="pos-top-sales-price-column">Prix <small>{{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</small></th>
                         <th scope="col" class="pos-top-sales-quantity-column">Qté</th>
                     </tr>
                 </thead>

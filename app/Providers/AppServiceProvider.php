@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Blade;
 use App\Services\PlatformConfigurationService;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,6 +16,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(UrlGenerator $url)
     {
+        Blade::directive('money', function ($expression) {
+            return "<?php echo app(\\App\\Services\\AfricanMarketProfile::class)->format({$expression}); ?>";
+        });
         try {
             if (Schema::hasTable('platform_settings')) {
                 $platformConfiguration = app(PlatformConfigurationService::class);

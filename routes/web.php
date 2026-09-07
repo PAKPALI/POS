@@ -75,6 +75,7 @@ Route::prefix('platform')->name('platform.')->group(function () {
                 ->middleware(['platform.permission:platform.pricing.manage', 'throttle:10,1'])->name('settings.pricing.update');
             Route::get('settings/general', [PlatformGeneralSettingController::class, 'edit'])->middleware('platform.permission:platform.admins.manage')->name('settings.general');
             Route::put('settings/general', [PlatformGeneralSettingController::class, 'update'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.update');
+            Route::put('settings/general/companies/{company}/subscription-enforcement', [PlatformGeneralSettingController::class, 'updateCompanyEnforcement'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.companies.subscription-enforcement');
             Route::get('subscriptions/preflight', [PlatformSubscriptionPreflightController::class, 'index'])->middleware('platform.permission:platform.admins.manage')->name('subscriptions.preflight');
             Route::get('subscriptions/catalog', [PlatformSubscriptionPlanCatalogController::class, 'index'])->middleware('platform.permission:platform.admins.manage')->name('subscriptions.catalog');
             Route::post('subscriptions/plans/{plan}/versions', [PlatformSubscriptionPlanCatalogController::class, 'storeVersion'])->middleware(['platform.permission:platform.admins.manage', 'throttle:5,1'])->name('subscriptions.plans.versions.store');

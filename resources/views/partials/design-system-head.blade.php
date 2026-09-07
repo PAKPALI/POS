@@ -25,5 +25,7 @@
     })();
 </script>
 <link href="{{ asset('hub/assets/css/design-system.css') }}?v=20260902-7" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/saas-toolkit.css') }}?v=20260907-1" rel="stylesheet">
 <link href="{{ asset('hub/assets/css/password-toggle.css') }}?v=20260902-1" rel="stylesheet">
 <link href="{{ asset('hub/assets/css/datatable-loading.css') }}?v=20260901-2" rel="stylesheet">
+<script src="{{ asset('hub/assets/js/saas-toolkit.js') }}?v=20260907-1" defer></script>

@@ -1,6 +1,15 @@
 # Rapport permanent — Administration SaaS
 
-Dernière mise à jour : 3 septembre 2026 — catalogue, pré-contrôle et notifications d’abonnement validés
+Dernière mise à jour : 7 septembre 2026 — contrôle individuel d’abonnement par entreprise ajouté
+
+## Mise à jour du 7 septembre 2026 — contrôle d’abonnement par entreprise
+
+- **Paramètres généraux** expose maintenant une section « Contrôle d’abonnement individuel » listant les entreprises et leur mode effectif : héritage du réglage global, activation forcée ou désactivation forcée.
+- La DataTable conserve désormais une lecture propre (entreprise, statut, réglage, action) ; les champs sensibles et le choix du mode s’ouvrent dans une fenêtre SaaS dédiée par entreprise, responsive et scrollable sur mobile.
+- Contrôle navigateur effectué : les modales non ouvertes sont désormais masquées, la modal sélectionnée s’affiche en overlay avec backdrop et le corps de page ne défile plus derrière elle.
+- Le changement est protégé par `platform.admins.manage`, le mot de passe plateforme et un motif obligatoire. Il est journalisé dans `platform_audit_logs` sous l’action `company.subscription_enforcement.updated`.
+- La valeur `NULL` conserve le comportement global ; les valeurs `1` et `0` permettent de tester ou d’exploiter une entreprise indépendamment du reste de la plateforme. Aucun abonnement, paiement ou quota n’est modifié.
+- Migration : `2026_09_07_100000_add_subscription_enforcement_override_to_companies.php`. La feuille `platform.css` est versionnée `20260907-1` pour le nouveau formulaire responsive.
 
 ## Règle de suivi
 

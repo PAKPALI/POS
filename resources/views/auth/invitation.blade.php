@@ -27,13 +27,10 @@
                 <div><dt>Compte invité</dt><dd>{{ $invitation->email }}</dd></div>
                 <div><dt>Valable jusqu’au</dt><dd>{{ $invitation->expires_at->format('d/m/Y à H:i') }}</dd></div>
             </dl>
-            @if(auth()->check() && strcasecmp(auth()->user()->email, $invitation->email) !== 0)
-                <x-ui.alert variant="warning" role="alert">Vous êtes connecté avec <strong>{{ auth()->user()->email }}</strong>. Cette invitation appartient au compte <strong>{{ $invitation->email }}</strong>. Reconnectez-vous avec ce compte pour continuer.</x-ui.alert>
-            @endif
             <form method="POST" action="{{ route('invitations.accept', $token) }}" class="invitation-account-panel">
                 @csrf
                 @if($existingUser)
-                    <h2>Votre compte est prêt</h2><p>Pour protéger votre compte, vous devez être connecté avec <strong>{{ $invitation->email }}</strong> avant d’accepter.</p>
+                    <h2>Votre compte est prêt</h2><p>Votre accès sera activé automatiquement pour <strong>{{ $invitation->email }}</strong> après confirmation. Aucune reconnexion préalable n’est nécessaire.</p>
                 @else
                     <h2>Créez votre accès</h2><p>Ces informations vous permettront de vous reconnecter à toutes les entreprises auxquelles vous avez accès.</p>
                     <x-ui.input id="invitation-name" name="name" label="Nom complet" :value="old('name')" autocomplete="name" required />
@@ -42,7 +39,7 @@
                     <x-ui.password id="invitation-password-confirmation" name="password_confirmation" label="Confirmer le mot de passe" autocomplete="new-password" minlength="8" required />
                 @endif
                 @if($errors->any())<x-ui.alert variant="danger">{{ $errors->first() }}</x-ui.alert>@endif
-                <x-ui.button class="w-100" type="submit" variant="primary" data-loading-text="Validation en cours…" :disabled="$existingUser && auth()->check() && auth()->id() !== $existingUser->id">{{ $existingUser ? (auth()->check() ? 'Accepter l’invitation' : 'Me connecter pour accepter') : 'Créer mon compte et rejoindre l’entreprise' }}</x-ui.button>
+                <x-ui.button class="w-100" type="submit" variant="primary" data-loading-text="Validation en cours…">{{ $existingUser ? 'Accepter l’invitation' : 'Créer mon compte et rejoindre l’entreprise' }}</x-ui.button>
             </form>
             <form method="POST" action="{{ route('invitations.decline', $token) }}" class="invitation-decline-form" data-confirm-message="Refuser définitivement cette invitation ?">@csrf<x-ui.button class="w-100" type="submit" variant="danger" data-loading-text="Refus en cours…">Refuser l’invitation</x-ui.button></form>
             <p class="invitation-security-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Lien sécurisé, personnel et utilisable une seule fois. Ne le transférez à personne.</p>

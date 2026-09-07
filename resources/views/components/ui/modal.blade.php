@@ -32,6 +32,9 @@
             <div class="modal-body saas-modal-body">
                 {{ $slot }}
             </div>
+            @isset($footer)
+                <div class="modal-footer saas-modal-footer">{{ $footer }}</div>
+            @endisset
         </div>
     </div>
 </div>

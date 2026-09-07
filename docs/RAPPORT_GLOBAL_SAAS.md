@@ -1,6 +1,6 @@
 # Rapport global permanent — SaaS POS
 
-Dernière mise à jour : 3 septembre 2026
+Dernière mise à jour : 7 septembre 2026
 
 ## Rôle du document
 
@@ -33,6 +33,7 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 - abonnements commerciaux fonctionnels : essai, plans tarifés, durée flexible, montée de plan, limites et fonctionnalités contrôlées côté serveur ;
 - paiements d’abonnement distincts des paiements de quotas, avec webhooks KPrimePay idempotents et notifications e-mail administratives ;
 - réglage d’enforcement désactivé par défaut pour le développement local et activable progressivement en production ;
+- exceptions d’enforcement par entreprise, avec héritage du réglage global, activation/désactivation ciblée et audit plateforme ;
 - PWA Android/iOS, panier persistant et interfaces mobiles ;
 - console centrale SaaS documentée séparément dans `RAPPORT_ADMINISTRATION_SAAS.md`.
 

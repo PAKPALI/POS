@@ -12,6 +12,7 @@
 		<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
+		@include('partials.design-system-head')
 		<link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet">
 		<!-- DataTables CSS -->
 		<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">

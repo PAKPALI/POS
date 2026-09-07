@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\PlatformAuditLog;
 use App\Models\PlatformSetting;
 use App\Models\PlatformSettingHistory;
@@ -21,6 +22,7 @@ class GeneralSettingController extends Controller
     {
         $filters = $request->validate(['history_search' => ['nullable', 'string', 'max:100'], 'history_per_page' => ['nullable', 'integer', Rule::in([10, 20, 50, 100])]]);
         $values=[]; foreach(self::DEFAULTS as $key=>$default)$values[$key]=$configuration->get($key,$default);
+        $companies = Company::query()->orderBy('name')->get(['id','name','email','status','subscription_enforcement_enabled']);
         $serviceStatus=['email'=>filled(config('mail.mailers.smtp.host')),'sms'=>filled(config('services.kprimesms.token'))&&filled(config('services.kprimesms.key')),'whatsapp'=>filled(config('services.kprimesms.token'))&&filled(config('services.kprimesms.key')),'kprimepay'=>filled(config('services.kprimepay.token'))];
         $history=PlatformSettingHistory::with('admin:id,name')
             ->when($filters['history_search'] ?? null, function ($query, $value) {
@@ -32,7 +34,7 @@ class GeneralSettingController extends Controller
                 });
             })
             ->latest()->paginate((int) ($filters['history_per_page'] ?? 20), ['*'], 'history_page')->withQueryString();
-        return view('platform.settings.general',compact('values','serviceStatus','history','filters'));
+        return view('platform.settings.general',compact('values','serviceStatus','history','filters','companies'));
     }
 
     public function update(Request $request,PlatformConfigurationService $configuration)
@@ -44,5 +46,41 @@ class GeneralSettingController extends Controller
         DB::transaction(function()use($request,$admin,$data,$changes){foreach($changes as $key=>$value){$old=PlatformSetting::where('key',$key)->value('value')??(self::DEFAULTS[$key]??'');if((string)$old===(string)$value)continue;PlatformSetting::updateOrCreate(['key'=>$key],['value'=>(string)$value,'type'=>'string','updated_by'=>$admin->id]);PlatformSettingHistory::create(['key'=>$key,'old_value'=>(string)$old,'new_value'=>(string)$value,'reason'=>$data['reason'],'platform_admin_id'=>$admin->id]);PlatformAuditLog::create(['platform_admin_id'=>$admin->id,'action'=>'platform.general_setting.updated','target_type'=>PlatformSetting::class,'target_id'=>$key,'old_values'=>['value'=>$key==='identity.logo_path'?'[fichier]':$old],'new_values'=>['value'=>$key==='identity.logo_path'?'[fichier]':$value],'reason'=>$data['reason'],'ip_address'=>$request->ip(),'user_agent'=>Str::limit((string)$request->userAgent(),1000,'')]);}});
         $configuration->forget(array_keys($changes));
         return back()->with('success','Les paramètres généraux ont été mis à jour.');
+    }
+
+    public function updateCompanyEnforcement(Request $request, Company $company)
+    {
+        $data = $request->validate([
+            'mode' => ['required', 'in:inherit,enabled,disabled'],
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
+            'current_password' => ['required', 'current_password:platform'],
+        ], [
+            'reason.required' => 'Indiquez la raison de cette opération.',
+            'reason.min' => 'La raison doit contenir au moins 5 caractères.',
+        ]);
+
+        $old = $company->subscription_enforcement_enabled;
+        $new = $data['mode'] === 'inherit' ? null : $data['mode'] === 'enabled';
+        if ($old === $new) {
+            return back()->with('info', 'Le contrôle d’abonnement de cette entreprise est déjà configuré ainsi.');
+        }
+
+        $admin = Auth::guard('platform')->user();
+        DB::transaction(function () use ($request, $data, $company, $admin, $old, $new) {
+            $company->update(['subscription_enforcement_enabled' => $new]);
+            PlatformAuditLog::create([
+                'platform_admin_id' => $admin->id,
+                'action' => 'company.subscription_enforcement.updated',
+                'target_type' => Company::class,
+                'target_id' => (string) $company->id,
+                'old_values' => ['subscription_enforcement_enabled' => $old],
+                'new_values' => ['subscription_enforcement_enabled' => $new],
+                'reason' => $data['reason'],
+                'ip_address' => $request->ip(),
+                'user_agent' => Str::limit((string) $request->userAgent(), 1000, ''),
+            ]);
+        });
+
+        return back()->with('success', 'Le contrôle d’abonnement de l’entreprise a été mis à jour.');
     }
 }

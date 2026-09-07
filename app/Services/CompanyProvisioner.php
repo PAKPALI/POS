@@ -69,7 +69,7 @@ class CompanyProvisioner
             $mainCash = CashAccount::withoutCompanyScope()->firstOrCreate(
                 ['company_id' => $company->id, 'code' => 'MAIN-'.$company->id],
                 [
-                    'name' => 'Caisse principale', 'balance' => 0, 'currency' => 'F CFA',
+                    'name' => 'Caisse principale', 'balance' => 0, 'currency' => $company->currency ?: 'XOF',
                     'is_default' => true, 'is_tax' => false, 'status' => true,
                     'description' => 'Caisse principale créée automatiquement', 'created_by' => $owner->id,
                 ]
@@ -77,7 +77,7 @@ class CompanyProvisioner
             $taxCash = CashAccount::withoutCompanyScope()->firstOrCreate(
                 ['company_id' => $company->id, 'code' => 'TAX-'.$company->id],
                 [
-                    'name' => 'Caisse de taxe', 'balance' => 0, 'currency' => 'F CFA',
+                    'name' => 'Caisse de taxe', 'balance' => 0, 'currency' => $company->currency ?: 'XOF',
                     'is_default' => false, 'is_tax' => true, 'status' => true,
                     'description' => 'Caisse de taxe créée automatiquement', 'created_by' => $owner->id,
                 ]

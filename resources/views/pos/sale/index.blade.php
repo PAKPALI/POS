@@ -340,7 +340,7 @@
                         <hr>
                         <div class="pos-total-summary d-flex align-items-center mb-2">
                             <div><span>Total à encaisser</span><small>Remise déjà déduite</small></div>
-                            <div class="flex-1 text-end h4 mb-0 total-amount">0 FCFA</div>
+                            <div class="flex-1 text-end h4 mb-0 total-amount">0 {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</div>
                         </div>
                         <!-- <div class="bg-light"> -->
                         <!-- <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div> -->
@@ -354,7 +354,7 @@
                             <div class="pos-discount-field mb-2">
                                 <label for="remiseInput">Remise sur la commande</label>
                                 <div class="d-flex gap-1">
-                                    <input type="number" id="remiseInput" class="form-control" placeholder="Montant (FCFA)" min="0">
+                                    <input type="number" id="remiseInput" class="form-control" placeholder="Montant ({{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }})" min="0">
                                     <button class="btn btn-danger btn-sm" id="deletremiseinput" type="button" aria-label="Retirer la remise"><i class="bi bi-trash"></i></button>
                                 </div>
                             </div>
@@ -529,6 +529,7 @@
 @push('scripts')
 <script>
     $(function() {
+        const posCurrency = @json(app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency']);
         let posModalReturnFocus = null;
 
         $(document).on('click', '#showPendingOrders, #confirmSale, .view, [title="Envoyer la facture"]', function() {
@@ -623,7 +624,7 @@
                                 <div class="img" style="background-image:url('${image}');background-size:cover;background-repeat:no-repeat;background-position:center;width:100%;height:150px"></div>
                                 <div class="info">
                                     <div class="title">${name}</div>
-                                    <div class="title price">${price} FCFA</div>
+                                    <div class="title price">${price} ${posCurrency}</div>
                                     <div class="title qte"><i class="bi bi-box-seam"></i> Stock : ${quantity}</div>
                                 </div>
                             </button>
@@ -960,14 +961,14 @@
                                 <div class="img" style="background-image: url(${productImage})"></div>
                                 <div class="flex-1 pos-order-info">
                                     <div class="h6 mb-1">${productName}</div>
-                                    <div class="small pos-unit-price">${productPrice} FCFA <span>l’unité</span></div>
+                                    <div class="small pos-unit-price">${productPrice} ${posCurrency} <span>l’unité</span></div>
                                     <div class="d-flex pos-quantity-control" aria-label="Modifier la quantité">
                                         <a href="#" class="btn btn-outline-theme btn-sm btn-minus" aria-label="Diminuer la quantité"><i class="bi bi-dash-lg"></i></a>
                                         <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}" inputmode="numeric" aria-label="Quantité de ${productName}">
                                         <a href="#" class="btn btn-outline-theme btn-sm btn-plus" aria-label="Augmenter la quantité"><i class="bi bi-plus-lg"></i></a>
                                     </div>
                                 </div>
-                                <div class="pos-order-price">${productPrice * productQte} FCFA</div>
+                                <div class="pos-order-price">${productPrice * productQte} ${posCurrency}</div>
                                 <div class="pos-order-remove"><a href="#" title="Supprimer le produit" aria-label="Supprimer ${productName} du panier" class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></a></div>
                             </div>
                         </div>
@@ -1092,7 +1093,7 @@
             $('.pos-order-product').each(function() {
                 let productId = $(this).data('product-id');
                 let quantity = $(this).find('.quantity-input').val();
-                let price = parseFloat($(this).find('.small').text().replace(' FCFA', ''));
+                let price = parseFloat($(this).find('.small').text().replace(posCurrency, ''));
                 let totalPrice = quantity * price;
 
                 products.push({
@@ -1481,7 +1482,7 @@
         function updateProductTotal(productRow, unitPrice) {
             let quantity = productRow.find('.quantity-input').val();
             let total = unitPrice * quantity;
-            productRow.find('.pos-order-price').text(total + ' FCFA');
+            productRow.find('.pos-order-price').text(total + ' ' + posCurrency);
             updateTotal();
         }
 
@@ -1492,7 +1493,7 @@
                 total += productTotal;
             });
             let remiseMontant = parseFloat($('#remiseInput').val()) || 0;
-            $('.total-amount').text((total - remiseMontant) + ' FCFA');
+            $('.total-amount').text((total - remiseMontant) + ' ' + posCurrency);
             $('#emptyCartState').toggle($('.pos-order-product').length === 0);
             persistCurrentCart();
         }
@@ -1701,7 +1702,7 @@
                 hasItems = true;
                 const productId = $(this).data('product-id');
                 const quantity = $(this).find('.quantity-input').val();
-                const priceText = $(this).find('.small').text().replace(' FCFA', '').trim();
+                const priceText = $(this).find('.small').text().replace(posCurrency, '').trim();
                 const price = parseFloat(priceText);
                 const name = $(this).find('.h6.mb-1').text().trim();
                 const imgStyle = $(this).find('.img').attr('style') || '';
@@ -1720,7 +1721,7 @@
 
             if (!hasItems) return null;
 
-            const totalAmount = parseFloat($('.total-amount').text().replace(' FCFA', '')) || 0;
+            const totalAmount = parseFloat($('.total-amount').text().replace(posCurrency, '')) || 0;
             const codePromo = ($('#promoCodeInput').val() || '').trim();
             const remise = parseFloat($('#remiseInput').val()) || 0;
             const client_id = clientSelect.val();
@@ -1803,14 +1804,14 @@
                             <div class="img" style="background-image: url('${productImage}')"></div>
                                 <div class="flex-1 pos-order-info">
                                     <div class="h6 mb-1">${productName}</div>
-                                    <div class="small pos-unit-price">${unitPrice} FCFA <span>l’unité</span></div>
+                                    <div class="small pos-unit-price">${unitPrice} ${posCurrency} <span>l’unité</span></div>
                                     <div class="d-flex pos-quantity-control" aria-label="Modifier la quantité">
                                         <a href="#" class="btn btn-outline-theme btn-sm btn-minus" aria-label="Diminuer la quantité"><i class="bi bi-dash-lg"></i></a>
                                         <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${quantity}" inputmode="numeric" aria-label="Quantité de ${productName}">
                                         <a href="#" class="btn btn-outline-theme btn-sm btn-plus" aria-label="Augmenter la quantité"><i class="bi bi-plus-lg"></i></a>
                                     </div>
                                 </div>
-                                <div class="pos-order-price">${unitPrice * quantity} FCFA</div>
+                                <div class="pos-order-price">${unitPrice * quantity} ${posCurrency}</div>
                                 <div class="pos-order-remove"><a href="#" title="Supprimer le produit" aria-label="Supprimer ${productName} du panier" class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></a></div>
                         </div>
                     </div>
@@ -1855,7 +1856,7 @@
                         <h4>${label}</h4>
                         <p><i class="bi bi-clock"></i> ${date || 'Date non disponible'}</p>
                     </div>
-                    <div class="pending-order-total">${total} <small>FCFA</small></div>
+                    <div class="pending-order-total">${total} <small>${posCurrency}</small></div>
                     <div class="pending-order-meta"><i class="bi bi-bag-check"></i> ${itemsCount} article${itemsCount > 1 ? 's' : ''}</div>
                     <div class="pending-order-actions">
                         <button class="btn btn-primary btn-sm load-order" data-id="${order.id}"><i class="bi bi-arrow-up-right-circle"></i> Reprendre</button>

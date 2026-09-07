@@ -1,14 +1,31 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 3 septembre 2026 — état consolidé après validation des abonnements, quotas, limites et notifications.
+Dernière mise à jour : 7 septembre 2026 — état consolidé après ajout de l’enforcement individuel et du kit de composants SaaS.
 
-## État de référence au 3 septembre 2026
+## État de référence au 7 septembre 2026
 
 Cette section prévaut sur les anciennes entrées historiques de ce handoff. Le développement fonctionnel du plan d’abonnement est terminé pour le périmètre prévu : catalogue versionné, essai de 14 jours, choix de 1 à 12 mois avec remise uniquement à 12 mois, montée de plan sans descente, règlement KPrimePay séparé des quotas, webhooks idempotents, expiration et rappels par e-mail, contrôle des fonctionnalités et limites compagnie/utilisateur/produit, SweetAlert avec proposition d’amélioration pour les propriétaires et administrateurs, et notification des paiements confirmés aux administrateurs plateforme.
 
 Les tests ciblés abonnement, quotas, webhooks, expiration, pré-contrôle et catalogue passent. Le checkout de test KPrimePay, les webhooks, le SMTP réel de staging et la recette visuelle mobile/desktop ont été validés par le propriétaire. La suite de développement reste terminée à **100 %** ; seules la configuration des secrets/URL de production, la supervision et l’activation progressive de `subscriptions.enforcement_enabled` restent à réaliser sur l’hébergement.
 
 La fixture locale du compte `didierlombardo48@gmail.com` est mutable et a servi à plusieurs recettes manuelles (Basic, Bronze, Argent, Gold puis Essai). Elle ne doit donc pas être considérée comme une vérité permanente dans ce document : vérifier l’état courant directement dans la base locale avant chaque test et ne jamais reproduire cette fixture en production.
+
+## Mise à jour du 7 septembre 2026 — enforcement individuel par entreprise
+
+- La migration `2026_09_07_100000_add_subscription_enforcement_override_to_companies.php` ajoute `company_settings.subscription_enforcement_enabled` : `NULL` hérite du réglage plateforme, `1` active le contrôle pour l’entreprise, `0` le désactive pour cette entreprise.
+- L’administration peut gérer ces exceptions depuis **Paramètres généraux > Contrôle d’abonnement individuel**. Chaque modification exige un motif et le mot de passe plateforme, puis est inscrite dans `platform_audit_logs` avec l’entreprise ciblée.
+- La DataTable de cette section respecte le template SaaS : les informations restent séparées du bouton d’action, et le formulaire détaillé s’ouvre dans une modal dédiée responsive par entreprise.
+- Correctif de recette navigateur : les modales n’étaient pas masquées par défaut lorsque le CSS Bootstrap n’était pas chargé ; le wrapper `platform-company-enforcement-dialog` est maintenant caché jusqu’à l’ouverture, puis positionné en overlay avec fond assombri et défilement interne.
+- Le modal « Exception d’abonnement » a été repris visuellement : en-tête avec identité de l’entreprise et fermeture accessible à droite, carte du réglage courant, champs iconifiés, confirmation sécurisée et pied d’actions clair. Sur mobile, seul le corps défile et les actions restent accessibles.
+- `EntitlementService` applique désormais la résolution effective par entreprise à l’accès en lecture seule, aux fonctionnalités et aux limites de ressources. Le réglage global reste le défaut pour les entreprises en mode « Hériter ».
+- Le réglage individuel ne supprime ni l’abonnement, ni les paiements, ni les données : il détermine uniquement si les garde-fous d’abonnement sont appliqués à cette entreprise.
+
+## Mise à jour du 7 septembre 2026 — kit et garde-fou UI SaaS
+
+- `public/hub/assets/css/saas-toolkit.css` et `public/hub/assets/js/saas-toolkit.js` centralisent les primitives supplémentaires : en-tête, actions de DataTable, badges, barre d’outils, pagination, notices, switch, onglets, détails, progression et toasts accessibles.
+- Les composants Blade `x-ui` couvrent désormais ces outils, y compris le lien/bouton avec texte de chargement, le footer de modal et les outils de table. Ils sont chargés dans les layouts standards via `partials/design-system-head` ; `layouts.saas` charge également `saas-pages.css` globalement.
+- `php artisan ui:lint` vérifie le catalogue, les fondations de layout, les composants référencés et les styles interdits dans les primitives. Utiliser `php artisan ui:lint --changed` avant chaque lot de vues.
+- Le guide opérationnel est `docs/GUIDE_OUTILS_TEMPLATE_SAAS.md`. Les PDF, e-mails et storefront public gardent un contrat de rendu distinct et ne doivent pas être transformés sans recette dédiée.
 
 ## Mise à jour du 3 septembre 2026 — refonte complète de l'administration plateforme
 

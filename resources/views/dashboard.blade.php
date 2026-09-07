@@ -13,7 +13,7 @@
 @php
     $can = fn (string $permission) => $currentMembership?->hasPermission($permission) ?? false;
     $metrics = [
-        ['label' => 'Chiffre d’affaires', 'value' => number_format($sale_total_revenue, 0, ',', ' ').' FCFA', 'note' => 'Remises : '.number_format($sale_total_discount, 0, ',', ' ').' FCFA', 'icon' => 'bi-graph-up-arrow', 'href' => $can('sales.manage') ? route('history') : null],
+        ['label' => 'Chiffre d’affaires', 'value' => app(\App\Services\AfricanMarketProfile::class)->format($sale_total_revenue), 'note' => 'Remises : '.app(\App\Services\AfricanMarketProfile::class)->format($sale_total_discount), 'icon' => 'bi-graph-up-arrow', 'href' => $can('sales.manage') ? route('history') : null],
         ['label' => 'Ventes', 'value' => number_format($saleCount, 0, ',', ' '), 'note' => 'Transactions enregistrées', 'icon' => 'bi-receipt', 'href' => $can('sales.manage') ? route('history') : null],
         ['label' => 'Produits', 'value' => number_format($productCount, 0, ',', ' '), 'note' => 'Références au catalogue', 'icon' => 'bi-box-seam', 'href' => $can('catalog.manage') ? route('product.index') : null],
         ['label' => 'Catégories', 'value' => number_format($categoryCount, 0, ',', ' '), 'note' => 'Familles de produits', 'icon' => 'bi-tags', 'href' => $can('catalog.manage') ? route('category.index') : null],
@@ -22,7 +22,7 @@
     ];
     if ($canViewFinancials) {
         array_splice($metrics, 2, 0, [[
-            'label' => 'Bénéfice', 'value' => number_format($sale_total_profit, 0, ',', ' ').' FCFA',
+            'label' => 'Bénéfice', 'value' => app(\App\Services\AfricanMarketProfile::class)->format($sale_total_profit),
             'note' => 'Marge cumulée', 'icon' => 'bi-piggy-bank', 'href' => $can('sales.manage') ? route('history') : null,
         ]]);
     }

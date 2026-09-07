@@ -2,11 +2,13 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-16">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 @endpush
 
 @section('title', 'Paramètres de l’entreprise')
 
 @section('content')
+<div class="saas-alert saas-alert-info" role="note"><i class="bi bi-pencil-square" aria-hidden="true"></i><span>Pour modifier l’entreprise active, descendez jusqu’à « Informations de la compagnie active », puis cliquez sur l’icône crayon dans la colonne Actions.</span><a class="saas-btn saas-btn-primary ms-auto" href="#companyTable">Modifier l’entreprise</a></div>
 <div class="saas-page-heading"><div><span class="saas-eyebrow"><i class="bi bi-sliders" aria-hidden="true"></i> Paramètres de l’espace</span><h1>Paramètres de l’entreprise</h1><p>Gérez l’identité, les coordonnées et les services de la compagnie active.</p></div>@if($currentMembership?->role?->key === 'owner')<button type="button" class="saas-btn saas-btn-primary" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg" aria-hidden="true"></i> Ajouter une entreprise</button>@endif</div>
 
 <div class="saas-settings-grid"><section class="saas-card saas-settings-overview"><div class="saas-card-head"><div><h2>Mes entreprises</h2><p class="saas-card-description">Ouvrez un espace existant ou créez une nouvelle entreprise. Le rôle affiché est propre à chaque entreprise.</p></div></div><div class="saas-company-grid">@foreach($memberships as $membership) @php $active = (int) $activeCompanyId === (int) $membership->company_id; @endphp<article class="saas-company-card {{ $active ? 'is-active' : '' }}"><div class="saas-company-card-head"><div class="saas-company-logo">@if($membership->company->logo)<img src="{{ asset($membership->company->logo) }}" alt="Logo de {{ $membership->company->name }}">@else{{ mb_strtoupper(mb_substr($membership->company->name, 0, 2)) }}@endif</div><div><h3>{{ $membership->company->name }}</h3><p>{{ $membership->company->email ?: 'E-mail non renseigné' }}</p></div></div><div class="saas-company-meta"><span class="saas-status-badge {{ $active ? 'is-active' : 'is-neutral' }}">{{ $active ? 'Active' : 'Disponible' }}</span><span class="saas-badge">{{ $membership->role->name ?? 'Sans rôle' }}</span></div>@if($active)<button type="button" class="saas-btn saas-btn-ghost w-100" disabled>Entreprise ouverte</button>@else<form method="POST" action="{{ route('companies.switch', $membership->company_id) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button class="saas-btn saas-btn-outline w-100" data-loading-text="Ouverture…">Ouvrir cette entreprise</button></form>@endif</article>@endforeach</div></section>
@@ -21,6 +23,16 @@
 
 @push('scripts')
 <script src="{{ asset('hub/assets/plugins/datatables.net/js/dataTables.min.js') }}"></script><script src="{{ asset('hub/assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script><script src="{{ asset('hub/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script><script src="{{ asset('hub/assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(function () {
+    const options = @json(config('african_countries'));
+    const select = $('<select name="country_code" id="add_country_code" class="form-select country-select" required><option></option></select>');
+    Object.entries(options).forEach(([code, name]) => select.append(new Option(name + ' (' + code + ')', code, code === 'TG', code === 'TG')));
+    $('#add .saas-form-grid').prepend($('<div class="saas-form-group"><label for="add_country_code">Pays principal</label></div>').append(select));
+    select.select2({ width: '100%', dropdownParent: $('#addModal'), placeholder: 'Rechercher un pays', minimumResultsForSearch: 0 });
+});
+</script>
 <script>
 $(function(){const table=$('#datatable').DataTable({processing:true,serverSide:true,responsive:true,ajax:"{{ route('company.index') }}",columns:[{data:'id',name:'id'},{data:'name',name:'name'},{data:'email',name:'email'},{data:'adress',name:'adress'},{data:'number1',name:'number1'},{data:'number2',name:'number2'},{data:'created_at',name:'created_at'},{data:'action',name:'action',orderable:false,searchable:false}],language:{processing:'Chargement…',lengthMenu:'Afficher _MENU_ entrées',zeroRecords:'Aucune entreprise trouvée',emptyTable:'Aucune entreprise disponible',info:'Affichage de _START_ à _END_ sur _TOTAL_ entrées',infoEmpty:'Aucune entrée',search:'Rechercher :',paginate:{first:'Premier',last:'Dernier',next:'Suivant',previous:'Précédent'}}});
 $('#add').on('submit',function(e){e.preventDefault();const form=this,button=form.querySelector('[type=submit]');window.ServerButtonLoader.withLoader(button,fetch("{{ route('company.store') }}",{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}}).then(r=>r.json()).then(data=>{if(!data.status)throw new Error(data.msg||'Création impossible');bootstrap.Modal.getInstance(document.getElementById('addModal')).hide();return Swal.fire({icon:'success',title:'Entreprise créée',text:'Voulez-vous ouvrir « '+data.company_name+' » maintenant ?',showCancelButton:true,confirmButtonText:'Oui, ouvrir',cancelButtonText:'Rester ici',buttonsStyling:false,customClass:{confirmButton:'saas-btn saas-btn-primary',cancelButton:'saas-btn saas-btn-ghost'}}).then(x=>x.isConfirmed?submitCompanySwitch(data.switch_url):location.reload())})).catch(error=>{Swal.fire({icon:'error',title:'Création impossible',text:error.message})})});

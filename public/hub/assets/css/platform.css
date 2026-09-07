@@ -158,6 +158,42 @@
 .platform-datatable-meta span { color: var(--ds-text-primary); font-size: .7rem; font-weight: 800; }
 .platform-datatable-meta small { color: var(--ds-text-muted); font-size: .63rem; }
 .platform-table-scroll { border-radius: 13px !important; }
+.platform-company-enforcement-table-wrap { overflow-x: auto; }
+.platform-company-enforcement-table { min-width: 760px; }
+.platform-company-enforcement-table th:last-child,
+.platform-company-enforcement-table td:last-child { width: 90px; }
+.platform-company-enforcement-table .platform-status-chip { max-width: 100%; }
+.platform-body .platform-company-enforcement-dialog { display: none; }
+.platform-body .platform-company-enforcement-dialog.show { position: fixed; z-index: 1055; inset: 0; display: block; overflow-x: hidden; overflow-y: auto; padding: 1rem; background: rgba(4, 9, 20, .72); }
+.platform-body .platform-company-enforcement-dialog.show .modal-dialog { max-width: 560px; margin: 1.75rem auto; }
+.platform-body .platform-company-enforcement-dialog.show .modal-content { display: flex; max-height: calc(100dvh - 2rem); flex-direction: column; overflow: hidden; border: 1px solid rgba(var(--ds-accent-rgb), .22); border-radius: 22px; box-shadow: 0 24px 70px rgba(0, 0, 0, .42); }
+.platform-company-enforcement-modal .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 22px 24px 18px; border-bottom: 1px solid var(--ds-border-soft); }
+.platform-company-enforcement-modal-heading { display: flex; min-width: 0; align-items: center; gap: 13px; }
+.platform-company-enforcement-modal-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; color: var(--ds-accent); background: var(--ds-accent-soft); border: 1px solid rgba(var(--ds-accent-rgb), .25); border-radius: 13px; font-size: 1.15rem; }
+.platform-company-enforcement-modal-copy { min-width: 0; }
+.platform-company-enforcement-modal .platform-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.platform-company-enforcement-modal .modal-title { overflow: hidden; margin: 0; color: var(--ds-text-primary); font-size: 1.22rem; font-weight: 800; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.platform-modal-subtitle { display: flex; align-items: center; gap: 6px; max-width: 34ch; margin: 6px 0 0; overflow: hidden; color: var(--ds-text-muted); font-size: .72rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.platform-modal-subtitle i { color: var(--ds-accent); }
+.platform-company-enforcement-modal .saas-modal-close { display: grid; place-items: center; flex: 0 0 38px; width: 38px; height: 38px; margin: 0; padding: 0; color: var(--ds-text-secondary); background: rgba(var(--ds-accent-rgb), .06); border: 1px solid var(--ds-border-soft); border-radius: 11px; font-size: .82rem; line-height: 1; cursor: pointer; transition: color var(--ds-motion-fast) ease, background var(--ds-motion-fast) ease, border-color var(--ds-motion-fast) ease; }
+.platform-company-enforcement-modal .saas-modal-close:hover { color: var(--ds-text-primary); background: var(--ds-accent-soft); border-color: rgba(var(--ds-accent-rgb), .34); }
+.platform-company-enforcement-modal .modal-body { min-height: 0; overflow-y: auto; padding: 21px 24px 24px; }
+.platform-company-enforcement-current { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 20px; padding: 13px 14px; background: rgba(var(--ds-accent-rgb), .055); border: 1px solid rgba(var(--ds-accent-rgb), .16); border-radius: 13px; }
+.platform-company-enforcement-current-icon { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; color: var(--ds-accent); background: var(--ds-accent-soft); border-radius: 9px; }
+.platform-company-enforcement-current div { display: grid; gap: 3px; min-width: 0; }
+.platform-company-enforcement-current span:not(.platform-company-enforcement-current-icon) { color: var(--ds-text-muted); font-size: .64rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.platform-company-enforcement-current strong { color: var(--ds-text-primary); font-size: .78rem; line-height: 1.3; }
+.platform-company-enforcement-current small { color: var(--ds-text-secondary); font-size: .66rem; line-height: 1.4; }
+.platform-company-enforcement-modal-grid { display: grid; gap: 16px; }
+.platform-company-enforcement-modal-grid .platform-settings-field { display: grid; gap: 7px; }
+.platform-company-enforcement-modal-grid .platform-settings-field label { display: inline-flex; align-items: center; gap: 7px; color: var(--ds-text-primary); font-size: .75rem; font-weight: 750; }
+.platform-company-enforcement-modal-grid .platform-settings-field label i { color: var(--ds-accent); font-size: .8rem; }
+.platform-company-enforcement-modal-grid .form-control, .platform-company-enforcement-modal-grid .form-select { min-height: 44px; color: var(--ds-text-primary); background-color: rgba(4, 9, 20, .46); border: 1px solid var(--ds-border-soft); border-radius: 11px; }
+.platform-company-enforcement-modal-grid textarea.form-control { min-height: 92px; resize: vertical; }
+.platform-company-enforcement-modal-grid .form-control:focus, .platform-company-enforcement-modal-grid .form-select:focus { background-color: rgba(4, 9, 20, .58); border-color: var(--ds-accent); box-shadow: 0 0 0 3px var(--ds-focus-ring); }
+.platform-company-enforcement-modal-grid .platform-settings-field small { color: var(--ds-text-muted); font-size: .68rem; line-height: 1.45; }
+.platform-company-enforcement-modal .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid var(--ds-border-soft); }
+.platform-company-enforcement-modal .modal-footer .btn { min-height: 42px; padding: 9px 15px; }
 .platform-data-table { min-width: 900px; table-layout: auto; }
 .platform-data-table td { white-space: nowrap; }
 .platform-data-table td:first-child { white-space: normal; }
@@ -630,6 +666,22 @@
     .platform-settings-intro { display: grid; gap: 15px; }
     .platform-settings-intro-badge { width: fit-content; }
     .platform-settings-section { padding: 17px; }
+    .platform-company-enforcement-table { min-width: 680px; }
+    .platform-body .platform-company-enforcement-dialog.show { padding: .75rem; }
+    .platform-body .platform-company-enforcement-dialog.show .modal-dialog { max-width: none; margin: .25rem 0; }
+    .platform-body .platform-company-enforcement-dialog.show .modal-content { max-height: calc(100dvh - 1.5rem); border-radius: 18px; }
+    .platform-company-enforcement-modal .modal-header { gap: 10px; padding: 18px 17px 15px; }
+    .platform-company-enforcement-modal-heading { gap: 10px; }
+    .platform-company-enforcement-modal-icon { flex-basis: 36px; width: 36px; height: 36px; border-radius: 10px; font-size: 1rem; }
+    .platform-company-enforcement-modal .modal-title { font-size: 1.05rem; }
+    .platform-modal-subtitle { max-width: 25ch; font-size: .66rem; }
+    .platform-company-enforcement-modal .saas-modal-close { flex-basis: 34px; width: 34px; height: 34px; border-radius: 9px; }
+    .platform-company-enforcement-modal .modal-body { padding: 16px 17px 19px; }
+    .platform-company-enforcement-current { margin-bottom: 16px; padding: 11px 12px; }
+    .platform-company-enforcement-current small { font-size: .62rem; }
+    .platform-company-enforcement-modal-grid { gap: 14px; }
+    .platform-company-enforcement-modal .modal-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 13px 17px 16px; }
+    .platform-company-enforcement-modal .modal-footer .btn { width: 100%; padding-inline: 9px; font-size: .72rem; }
     .platform-settings-history-panel { padding: 17px; }
     .platform-settings-history-toolbar { padding: 11px; gap: 13px; }
     .platform-settings-history-toolbar-copy { min-width: 0; }

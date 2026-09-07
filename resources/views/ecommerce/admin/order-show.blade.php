@@ -136,24 +136,24 @@
                             @foreach($order->items as $item)
                             <tr>
                                 <td>{{ $item->product_name }}</td>
-                                <td style="text-align: right;">{{ number_format($item->unit_price, 0, ',', ' ') }} FCFA</td>
+                                <td style="text-align: right;">@money($item->unit_price)</td>
                                 <td style="text-align: center;">{{ $item->quantity }}</td>
-                                <td style="text-align: right; font-weight: 700;">{{ number_format($item->total_price, 0, ',', ' ') }} FCFA</td>
+                                <td style="text-align: right; font-weight: 700;">@money($item->total_price)</td>
                             </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr style="border-top: 2px solid var(--ds-border-strong);">
                                 <th colspan="3" style="text-align: right; color: var(--ds-text-muted);">Sous-total</th>
-                                <th style="text-align: right;">{{ number_format($order->subtotal, 0, ',', ' ') }} FCFA</th>
+                                <th style="text-align: right;">@money($order->subtotal)</th>
                             </tr>
                             <tr>
                                 <th colspan="3" style="text-align: right; color: var(--ds-text-muted);">Taxe</th>
-                                <th style="text-align: right;">{{ number_format($order->tax, 0, ',', ' ') }} FCFA</th>
+                                <th style="text-align: right;">@money($order->tax)</th>
                             </tr>
                             <tr style="border-top: 2px solid var(--ds-border-strong);">
                                 <th colspan="3" style="text-align: right; font-size: 1rem;">Total</th>
-                                <th style="text-align: right; font-size: 1.1rem; color: var(--ds-accent);">{{ number_format($order->total, 0, ',', ' ') }} FCFA</th>
+                                <th style="text-align: right; font-size: 1.1rem; color: var(--ds-accent);">@money($order->total)</th>
                             </tr>
                         </tfoot>
                     </table>

@@ -27,6 +27,9 @@ class SettingsSaasUiTest extends TestCase
 
         $this->assertStringContainsString('Préférences personnelles', $company);
         $this->assertStringContainsString('services externes', mb_strtolower($platform));
+        $this->assertStringContainsString('platform-company-enforcement-table', $platform);
+        $this->assertStringContainsString('companyEnforcementModal-', $platform);
+        $this->assertStringContainsString('Hériter du réglage global', $platform);
         $this->assertStringContainsString('secrets restent', mb_strtolower($platform));
         $this->assertStringNotContainsString('smtp_password', $platform);
         $this->assertStringNotContainsString('KPRIMEPAY_TOKEN', $platform);
@@ -46,10 +49,14 @@ class SettingsSaasUiTest extends TestCase
     public function test_shared_modal_contract_keeps_only_the_body_scrollable_on_mobile(): void
     {
         $styles = file_get_contents(public_path('hub/assets/css/design-system.css'));
+        $platformStyles = file_get_contents(public_path('hub/assets/css/platform.css'));
 
         $this->assertStringContainsString('max-height: 100%;', $styles);
         $this->assertStringContainsString('overflow-y: auto;', $styles);
         $this->assertStringContainsString('-webkit-overflow-scrolling: touch;', $styles);
         $this->assertStringContainsString('max-height: 100dvh;', $styles);
+        $this->assertStringContainsString('platform-company-enforcement-modal-heading', $platformStyles);
+        $this->assertStringContainsString('platform-company-enforcement-current', $platformStyles);
+        $this->assertStringContainsString('saas-modal-close', $platformStyles);
     }
 }

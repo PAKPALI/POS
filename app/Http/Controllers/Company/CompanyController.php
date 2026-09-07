@@ -7,6 +7,8 @@ use App\Models\Company;
 use App\Models\CompanyUser;
 use App\Services\CompanyContext;
 use App\Services\CompanyProvisioner;
+use App\Services\AfricanMarketProfile;
+use App\Models\AMS\CashAccount;
 use App\Services\EntitlementService;
 use App\Exceptions\SubscriptionLimitReached;
 use App\Http\Controllers\Controller;
@@ -21,6 +23,7 @@ class CompanyController extends Controller
     public function __construct(
         private CompanyContext $context,
         private CompanyProvisioner $provisioner,
+        private AfricanMarketProfile $marketProfiles,
         private EntitlementService $entitlements,
     ) {}
 
@@ -76,6 +79,7 @@ class CompanyController extends Controller
             'email' => ['required'],
             'adress' => ['required'],
             'number1' => ['required'],
+            'country_code' => ['required', 'string', 'size:2', 'in:'.implode(',', array_keys(config('african_countries')))],
             'default_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ], $error_messages);
@@ -92,6 +96,7 @@ class CompanyController extends Controller
             //     'function' => 'AJOUT CATEGORIE',
             //     'text' => auth()->user()->name." a créer une nouvelle catégorie '".$request->name."'",
             // ]);
+            $market = $this->marketProfiles->forCountry($request->country_code);
             $data = [
                 'name' => $request->name,
                 'email' => $request->email,
@@ -101,6 +106,10 @@ class CompanyController extends Controller
                 'message' => $request->message,
                 'description' => $request->description,
                 'ecommerce_active' => $request->boolean('ecommerce_active'),
+                'country_code' => strtoupper($request->country_code),
+                'currency' => $market['currency'],
+                'timezone' => $market['timezone'],
+                'locale' => $market['locale'],
             ];
 
             if ($request->hasFile('logo')) {
@@ -168,6 +177,7 @@ class CompanyController extends Controller
             'name' => ['required'],
             'email' => ['required'],
             'number1' => ['required'],
+            'country_code' => ['required', 'string', 'size:2', 'in:'.implode(',', array_keys(config('african_countries')))],
             'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ], $error_messages);
 
@@ -181,6 +191,7 @@ class CompanyController extends Controller
 
             $Company = Company::whereKey($this->context->getCompanyId())->findOrFail($id);
 
+            $market = $this->marketProfiles->forCountry($request->country_code);
             $data = [
                 'name' => $request->name,
                 'email' => $request->email,
@@ -190,6 +201,10 @@ class CompanyController extends Controller
                 'message' => $request->message,
                 'description' => $request->description,
                 'ecommerce_active' => $request->boolean('ecommerce_active'),
+                'country_code' => strtoupper($request->country_code),
+                'currency' => $market['currency'],
+                'timezone' => $market['timezone'],
+                'locale' => $market['locale'],
             ];
 
             if ($Company->created_by == NULL) {
@@ -207,6 +222,10 @@ class CompanyController extends Controller
             }
 
             $Company->update($data);
+            CashAccount::withoutCompanyScope()
+                ->where('company_id', $Company->id)
+                ->whereIn('code', ['MAIN-'.$Company->id, 'TAX-'.$Company->id])
+                ->update(['currency' => $market['currency']]);
 
             return response()->json([
                 "status" => true,

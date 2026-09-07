@@ -31,8 +31,7 @@
                 @endif
                 <h1 style="font-weight:800;font-size:1.65rem;color:var(--dark);margin:4px 0 10px;">{{ $product->name }}</h1>
                 <div style="font-weight:800;font-size:2rem;color:var(--acc);margin-bottom:20px;">
-                    {{ number_format($product->price_ttc ?? $product->price, 0, ',', ' ') }}
-                    <span style="font-size:1rem;font-weight:600;color:var(--muted);">FCFA</span>
+                    @money($product->price_ttc ?? $product->price)
                 </div>
                 <hr style="border-color:var(--border);margin:20px 0;">
                 @if($product->qte > 0)

@@ -41,6 +41,7 @@ class Company extends Model
         'inventory_sms_enabled',
         'created_by',
         'subscription_account_id',
+        'subscription_enforcement_enabled',
     ];
 
     protected $casts = [
@@ -53,6 +54,7 @@ class Company extends Model
         'inventory_email_enabled' => 'boolean',
         'inventory_whatsapp_enabled' => 'boolean',
         'inventory_sms_enabled' => 'boolean',
+        'subscription_enforcement_enabled' => 'boolean',
     ];
 
     protected static function booted(): void

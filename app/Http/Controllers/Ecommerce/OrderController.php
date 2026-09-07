@@ -42,7 +42,7 @@ class OrderController extends Controller
                     return $buttons;
                 })
                 ->editColumn('status', fn ($row) => $this->statusBadge($row->status))
-                ->editColumn('total', fn ($row) => number_format($row->total, 0, ',', ' ').' FCFA')
+                ->editColumn('total', fn ($row) => app(\App\Services\AfricanMarketProfile::class)->format($row->total))
                 ->editColumn('created_at', fn ($row) => $row->created_at->format('d-m-Y H:i'))
                 ->rawColumns(['action', 'status'])
                 ->make(true);

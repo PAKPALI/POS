@@ -111,10 +111,10 @@
                     <h5 style="font-weight:700;margin:0;display:flex;align-items:center;gap:8px;font-size:1rem;"><i class="bi bi-receipt"></i> Resume</h5>
                 </div>
                 <div class="card-body" style="padding:20px;">
-                    <div class="d-flex justify-content-between py-2" style="color:var(--muted);font-size:.88rem;"><span>Sous-total</span><span id="summarySubtotal" style="font-weight:600;color:var(--text);">0 FCFA</span></div>
-                    <div class="d-flex justify-content-between py-2" style="color:var(--muted);font-size:.88rem;"><span>Taxe</span><span id="summaryTax" style="font-weight:600;color:var(--text);">0 FCFA</span></div>
+                    <div class="d-flex justify-content-between py-2" style="color:var(--muted);font-size:.88rem;"><span>Sous-total</span><span id="summarySubtotal" style="font-weight:600;color:var(--text);">0 {{ app(\App\Services\AfricanMarketProfile::class)->forCompany($company)['currency'] }}</span></div>
+                    <div class="d-flex justify-content-between py-2" style="color:var(--muted);font-size:.88rem;"><span>Taxe</span><span id="summaryTax" style="font-weight:600;color:var(--text);">0 {{ app(\App\Services\AfricanMarketProfile::class)->forCompany($company)['currency'] }}</span></div>
                     <hr style="border-color:var(--border);margin:12px 0;">
-                    <div class="d-flex justify-content-between" style="font-weight:800;font-size:1.15rem;"><span>Total</span><span id="summaryTotal" style="color:var(--acc);">0 FCFA</span></div>
+                    <div class="d-flex justify-content-between" style="font-weight:800;font-size:1.15rem;"><span>Total</span><span id="summaryTotal" style="color:var(--acc);">0 {{ app(\App\Services\AfricanMarketProfile::class)->forCompany($company)['currency'] }}</span></div>
                     <button type="submit" class="btn-primary-custom w-100 justify-content-center mt-4" id="submitOrderBtn" form="orderForm" data-loading-text="Enregistrement…" style="font-size:.95rem;padding:.8rem;border:none;cursor:pointer;">
                         <i class="bi bi-check2-circle"></i> Passer la commande
                     </button>
@@ -151,13 +151,13 @@
             var info = $('<div>');
             $('<h6>', {class:'checkout-product-name', text:item.name}).appendTo(info);
             var meta = $('<div>', {class:'checkout-product-meta'}).appendTo(info);
-            $('<span>', {class:'checkout-unit-price', text:fmt(item.price)+' FCFA / unité'}).appendTo(meta);
+            $('<span>', {class:'checkout-unit-price', text:fmt(item.price)+' '+window.storeCurrency+' / unité'}).appendTo(meta);
             var qty = $('<div>', {class:'checkout-qty', 'aria-label':'Quantité de '+item.name}).appendTo(meta);
             $('<button>', {type:'button', html:'<i class="bi bi-dash"></i>', 'aria-label':'Diminuer'}).on('click', function(){ changeCheckoutQty(idx, -1); }).appendTo(qty);
             $('<span>', {text:item.quantity}).appendTo(qty);
             $('<button>', {type:'button', html:'<i class="bi bi-plus"></i>', 'aria-label':'Augmenter'}).on('click', function(){ changeCheckoutQty(idx, 1); }).appendTo(qty);
             var side = $('<div>', {class:'checkout-item-side'});
-            $('<div>', {class:'checkout-line-total', text:fmt(total)+' FCFA'}).appendTo(side);
+            $('<div>', {class:'checkout-line-total', text:fmt(total)+' '+window.storeCurrency}).appendTo(side);
             $('<button>', {type:'button', class:'checkout-remove', html:'<i class="bi bi-trash3"></i>', 'aria-label':'Retirer '+item.name}).on('click', function(){ removeCheckoutItem(idx); }).appendTo(side);
             row.append(visual, info, side);
             list.append(row);
@@ -174,9 +174,9 @@
     function removeCheckoutItem(idx) { var c = getCart(); c.splice(idx, 1); saveCart(c); renderCheckoutCart(); }
     function updateSummary(cart) {
         var subtotal = cart.reduce(function(s,i){return s+(i.price*i.quantity);}, 0);
-        $('#summarySubtotal').text(fmt(subtotal)+' FCFA');
-        $('#summaryTax').text('0 FCFA');
-        $('#summaryTotal').text(fmt(subtotal)+' FCFA');
+        $('#summarySubtotal').text(fmt(subtotal)+' '+window.storeCurrency);
+        $('#summaryTax').text('0 '+window.storeCurrency);
+        $('#summaryTotal').text(fmt(subtotal)+' '+window.storeCurrency);
     }
     function fmt(n) { return Math.round(Number(n) || 0).toLocaleString('fr-FR').replace(/\u202f/g, ' '); }
 

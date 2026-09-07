@@ -415,7 +415,8 @@ class SaleController extends Controller
 
         $company = CompanySetting::first();
 
-        $pdf = Pdf::loadView('pos.invoice',compact('sale', 'saleDetails','company'));
+        $pdf = Pdf::loadView('pos.invoice',compact('sale', 'saleDetails','company'))
+            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
         return $pdf->download('Facture' . $sale->code . '.pdf');
     }
 

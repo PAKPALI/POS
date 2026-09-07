@@ -30,7 +30,9 @@ class SaleInvoiceDeliveryService
             if ($company->whatsapp_count < 1) throw new RuntimeException('Le quota WhatsApp est épuisé.');
             $path = tempnam(sys_get_temp_dir(), 'invoice_').'.pdf';
             try {
-                Pdf::loadView('pos.invoice', ['sale' => $sale, 'saleDetails' => $sale->saleDetails, 'company' => $company])->save($path);
+                Pdf::loadView('pos.invoice', ['sale' => $sale, 'saleDetails' => $sale->saleDetails, 'company' => $company])
+                    ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true])
+                    ->save($path);
                 $upload = $this->sms->uploadWhatsappDocument($path);
                 $mediaId = data_get($upload, 'media_id') ?: data_get($upload, 'data.media_id');
                 if (!$mediaId) throw new RuntimeException('Le fournisseur n’a pas accepté la facture WhatsApp.');
@@ -44,7 +46,7 @@ class SaleInvoiceDeliveryService
         if ($sms) {
             if (!$company->invoice_sms_enabled) throw new RuntimeException('Activez SMS dans la section « Envoi des factures aux clients » de Communications > SMS & WhatsApp > Configuration.');
             if ($company->sms_count < 1) throw new RuntimeException('Le quota SMS est épuisé.');
-            $message = 'Facture n°'.$sale->code.' - Total: '.number_format((float) $sale->total_amount, 0, ',', ' ').' FCFA. Merci pour votre achat.';
+            $message = 'Facture n°'.$sale->code.' - Total: '.app(AfricanMarketProfile::class)->format($sale->total_amount, $company).'. Merci pour votre achat.';
             $response = $this->sms->sendSms($phone, $message, $countryCode, 'invoice');
             if (($response['status'] ?? false) !== true) throw new RuntimeException($response['message'] ?? 'Échec de l’envoi SMS.');
             $results[] = 'SMS';

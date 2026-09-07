@@ -95,10 +95,10 @@ class ProductController extends Controller
                     return $Object->supplier ? $Object->supplier->name : '-';
                 })
                 ->editColumn('price', function ($Object) {
-                    return $Object->price? number_format($Object->price, 0, ',', ' ') . ' FCFA' : '-';
+                    return $Object->price ? app(\App\Services\AfricanMarketProfile::class)->format($Object->price) : '-';
                 })
                 ->editColumn('price_ttc', function ($Object) {
-                    return $Object->price_ttc? number_format($Object->price_ttc, 0, ',', ' ') . ' FCFA' : '-';
+                    return $Object->price_ttc ? app(\App\Services\AfricanMarketProfile::class)->format($Object->price_ttc) : '-';
                 })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){
@@ -153,10 +153,10 @@ class ProductController extends Controller
                     return $Object->supplier ? $Object->supplier->name : '-';
                 })
                 ->editColumn('price', function ($Object) {
-                    return $Object->price? number_format($Object->price, 0, ',', ' ') . ' FCFA' : '-';
+                    return $Object->price ? app(\App\Services\AfricanMarketProfile::class)->format($Object->price) : '-';
                 })
                 ->editColumn('price_ttc', function ($Object) {
-                    return $Object->price_ttc? number_format($Object->price_ttc, 0, ',', ' ') . ' FCFA' : '-';
+                    return $Object->price_ttc ? app(\App\Services\AfricanMarketProfile::class)->format($Object->price_ttc) : '-';
                 })
                 ->editColumn('status', function ($Object) {
                     if($Object->status==1){

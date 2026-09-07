@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\PlatformAdmin;
 use App\Models\PlatformSetting;
+use App\Models\Company;
+use App\Services\EntitlementService;
 use App\Services\KprimePayService;
 use App\Services\PlatformConfigurationService;
 use App\Services\SmsService;
@@ -43,5 +45,32 @@ class PlatformGeneralSettingTest extends TestCase
     {
         $admin=$this->admin(); $admin->update(['role'=>'technical']);
         $this->actingAs($admin,'platform')->get(route('platform.settings.general'))->assertForbidden();
+    }
+
+    public function test_super_admin_can_override_subscription_enforcement_for_one_company(): void
+    {
+        $admin = $this->admin();
+        $company = Company::create(['name' => 'Entreprise ciblée', 'email' => 'ciblee@example.test', 'number1' => '000']);
+        PlatformSetting::updateOrCreate(['key' => 'subscriptions.enforcement_enabled'], ['value' => '0', 'type' => 'string']);
+
+        $payload = ['mode' => 'enabled', 'reason' => 'Recette ciblée de cette entreprise', 'current_password' => 'SecurePassword!123'];
+        $this->actingAs($admin, 'platform')->put(route('platform.settings.general.companies.subscription-enforcement', $company), $payload)->assertSessionHas('success');
+        $company->refresh();
+        $this->assertTrue($company->subscription_enforcement_enabled);
+        $this->assertTrue(app(EntitlementService::class)->enforcementEnabledFor($company));
+
+        $payload['mode'] = 'disabled';
+        $this->actingAs($admin, 'platform')->put(route('platform.settings.general.companies.subscription-enforcement', $company), $payload)->assertSessionHas('success');
+        $company->refresh();
+        $this->assertFalse($company->subscription_enforcement_enabled);
+        $this->assertFalse(app(EntitlementService::class)->enforcementEnabledFor($company));
+
+        $payload['mode'] = 'inherit';
+        PlatformSetting::where('key', 'subscriptions.enforcement_enabled')->update(['value' => '1']);
+        $this->actingAs($admin, 'platform')->put(route('platform.settings.general.companies.subscription-enforcement', $company), $payload)->assertSessionHas('success');
+        $company->refresh();
+        $this->assertNull($company->subscription_enforcement_enabled);
+        $this->assertTrue(app(EntitlementService::class)->enforcementEnabledFor($company));
+        $this->assertDatabaseHas('platform_audit_logs', ['action' => 'company.subscription_enforcement.updated', 'target_id' => (string) $company->id]);
     }
 }

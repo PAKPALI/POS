@@ -33,13 +33,6 @@ class InvitationAcceptanceController extends Controller
 
         if ($existingUser) {
             abort_unless((int) $existingUser->status === 1, 403, 'Le compte associé à cette invitation est désactivé.');
-            if (! Auth::check()) {
-                return redirect()->route('user_login')->with(
-                    'error',
-                    'Connectez-vous avec le compte '.$invitation->email.' puis ouvrez de nouveau le lien d’invitation.'
-                );
-            }
-            abort_unless(Auth::id() === $existingUser->id, 403, 'Cette invitation appartient à un autre compte.');
             $user = $existingUser;
         } else {
             $validated = $request->validate([
@@ -56,23 +49,24 @@ class InvitationAcceptanceController extends Controller
 
         $service->accept($invitation, $user);
 
-        if (! Auth::check()) {
-            Auth::login($user);
-            $request->session()->regenerate();
-        }
+        // The invitation token authorizes the onboarding flow. Do not require
+        // a prior browser session: links are commonly opened from another
+        // browser or while a different account is currently signed in.
+        Auth::login($user);
+        $request->session()->regenerate();
 
         $request->session()->forget(['active_company_id', 'active_company_name']);
-        if ($user->activeMemberships()->count() === 1) {
-            $request->session()->put('active_company_id', $invitation->company_id);
-            $request->session()->put('active_company_name', $invitation->company->name);
-            $membership = $user->activeMemberships()
-                ->where('company_id', $invitation->company_id)
-                ->with('role.permissions')
-                ->firstOrFail();
-            return redirect($landingPage->forMembership($membership))
-                ->with('success', 'Invitation acceptée. Bienvenue dans '.$invitation->company->name.'.');
-        }
-        return redirect()->route('companies.select')->with('success', 'Invitation acceptée. Vous pouvez maintenant sélectionner '.$invitation->company->name.'.');
+        // The invitation already identifies the intended company. Select it
+        // explicitly instead of sending multi-company users to the chooser.
+        $request->session()->put('active_company_id', $invitation->company_id);
+        $request->session()->put('active_company_name', $invitation->company->name);
+        $membership = $user->activeMemberships()
+            ->where('company_id', $invitation->company_id)
+            ->with('role.permissions')
+            ->firstOrFail();
+
+        return redirect($landingPage->forMembership($membership))
+            ->with('success', 'Invitation acceptée. Bienvenue dans '.$invitation->company->name.'.');
     }
 
     public function decline(string $token, CompanyInvitationService $service)

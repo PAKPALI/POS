@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', $company->name ?? 'Boutique')</title>
     <script>
+        window.storeCurrency = @json(app(\App\Services\AfricanMarketProfile::class)->forCompany($company)['currency']);
         (function () {
             var savedTheme = localStorage.getItem('ecommerce_theme');
             var preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -813,7 +814,7 @@
                     var category = document.createElement('span');
                     category.textContent = product.category || 'Produit';
                     var price = document.createElement('strong');
-                    price.textContent = new Intl.NumberFormat('fr-FR').format(product.price) + ' FCFA';
+                    price.textContent = new Intl.NumberFormat('fr-FR').format(product.price) + ' ' + window.storeCurrency;
                     meta.append(category, price);
                     copy.append(name, meta);
                     link.append(image, copy);
