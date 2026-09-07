@@ -13,7 +13,7 @@
     </div>
     <div>
         <dt>Montant</dt>
-        <dd style="font-weight: 800; font-size: 1rem;">{{ number_format($transaction->amount, 0, ',', ' ') }} FCFA</dd>
+        <dd style="font-weight: 800; font-size: 1rem;">{{ number_format($transaction->amount, 0, ',', ' ') }} {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</dd>
     </div>
     <div>
         <dt>Caisse source</dt>

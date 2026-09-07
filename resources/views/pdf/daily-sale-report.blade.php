@@ -8,6 +8,7 @@
 </head>
 
 <body>
+    @php($currency = app(\App\Services\AfricanMarketProfile::class)->forCompany($company)['currency'])
     <div class="container">
         <div class="header">
             <h2>{{ $company->name ?? config('app.name') }}</h2>
@@ -25,8 +26,8 @@
                     <tr>
                         <th>Produit</th>
                         <th>Qté</th>
-                        <th>PU (FCFA)</th>
-                        <th>PT (FCFA)</th>
+                        <th>PU ({{ $currency }})</th>
+                        <th>PT ({{ $currency }})</th>
                     </tr>
                 </thead>
 
@@ -47,7 +48,7 @@
                             Montant total:
                         </td>
                         <td style="font-weight: bold; color: red;">
-                            {{ $sale->total_amount }} FCFA
+                            {{ $sale->total_amount }} {{ $currency }}
                         </td>
                     </tr>
                 </tfoot>
@@ -60,7 +61,7 @@
                         Montant global:
                     </td>
                     <td style="font-weight: bold; color: Blue;">
-                        {{ $sales->sum('total_amount') }} FCFA
+                        {{ $sales->sum('total_amount') }} {{ $currency }}
                     </td>
                 </tr>
             </tbody>
@@ -76,8 +77,8 @@
                 <tr>
                     <th>Produit</th>
                     <th>Qté</th>
-                    <th>PU (FCFA)</th>
-                    <th>PT (FCFA)</th>
+                    <th>PU ({{ $currency }})</th>
+                    <th>PT ({{ $currency }})</th>
                 </tr>
             </thead>
 
@@ -97,7 +98,7 @@
                             Total vente
                         </td>
                         <td style="color:red;font-weight:bold;">
-                            {{ $sale->total_amount }} FCFA
+                            {{ $sale->total_amount }} {{ $currency }}
                         </td>
                     </tr>
                 @endforeach
@@ -106,7 +107,7 @@
                         TOTAL GLOBAL
                     </td>
                     <td style="color:blue;font-weight:bold;">
-                        {{ $sales->sum('total_amount') }} FCFA
+                        {{ $sales->sum('total_amount') }} {{ $currency }}
                     </td>
                 </tr>
             </tbody>

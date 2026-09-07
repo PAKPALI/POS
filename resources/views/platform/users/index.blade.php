@@ -43,10 +43,10 @@
                         <td>{{ $user->phone ?: 'Non renseigné' }}</td>
                         <td><span class="platform-status-chip {{ (int)$user->status === 1 ? 'is-success' : 'is-danger' }}"><i class="bi bi-circle-fill" aria-hidden="true"></i> {{ (int)$user->status === 1 ? 'Actif' : 'Désactivé' }}</span></td>
                         <td>
-                            <div class="d-flex flex-wrap gap-1" style="min-width:170px">
+                            <div class="platform-user-memberships">
                                 @forelse($user->memberships as $membership)
                                     @if($membership->company)
-                                        <a href="{{ route('platform.companies.show', $membership->company) }}" class="platform-status-chip {{ $membership->status === 'active' ? 'is-info' : 'is-muted' }}" title="Adhésion {{ $membership->status }}" style="text-decoration:none">
+                                        <a href="{{ route('platform.companies.show', $membership->company) }}" class="platform-status-chip platform-membership-link {{ $membership->status === 'active' ? 'is-info' : 'is-muted' }}" title="Adhésion {{ $membership->status }}">
                                             <i class="bi bi-circle-fill" aria-hidden="true"></i> {{ $membership->company->name }}
                                         </a>
                                     @endif
@@ -61,7 +61,7 @@
                             @else
                                 <span class="platform-status-chip is-success"><i class="bi bi-circle-fill" aria-hidden="true"></i> {{ $user->active_memberships_count }} active(s) sur {{ $user->memberships_count }}</span>
                                 @if($inactiveMemberships > 0)
-                                    <span class="platform-status-chip is-danger" style="margin-top:4px"><i class="bi bi-circle-fill" aria-hidden="true"></i> {{ $inactiveMemberships }} inactive(s)</span>
+                                    <span class="platform-status-chip platform-status-chip-stacked is-danger"><i class="bi bi-circle-fill" aria-hidden="true"></i> {{ $inactiveMemberships }} inactive(s)</span>
                                 @endif
                             @endif
                         </td>

@@ -18,7 +18,7 @@
     <section class="saas-metric-grid saas-accounting-section" aria-label="Indicateurs comptables">
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Caisse principale</span><span class="saas-metric-icon"><i class="bi bi-wallet2"></i></span></div>
-            <strong class="saas-metric-value">{{ $mainCash ? number_format($mainCash->balance, 0, ',', ' ') : '0' }} <small style="font-size:.55em;font-weight:600;color:var(--ds-text-muted)">FCFA</small></strong>
+            <strong class="saas-metric-value">{{ $mainCash ? number_format($mainCash->balance, 0, ',', ' ') : '0' }} <small style="font-size:.55em;font-weight:600;color:var(--ds-text-muted)">{{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</small></strong>
             <a href="{{ route('cash-account.index') }}" class="saas-btn saas-btn-outline saas-btn-sm mt-2">Voir les caisses</a>
         </div>
 
@@ -30,14 +30,14 @@
 
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Ventes</span><span class="saas-metric-icon"><i class="bi bi-receipt"></i></span></div>
-            <strong class="saas-metric-value">{{ number_format($totalSalesAmount, 0, ',', ' ') }} <small style="font-size:.55em;font-weight:600;color:var(--ds-text-muted)">FCFA</small></strong>
+            <strong class="saas-metric-value">{{ number_format($totalSalesAmount, 0, ',', ' ') }} <small style="font-size:.55em;font-weight:600;color:var(--ds-text-muted)">{{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</small></strong>
             <a href="{{ route('sale.index') }}" class="saas-btn saas-btn-outline saas-btn-sm mt-2">Voir les ventes</a>
         </div>
 
         @if ($canViewFinancials)
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Bénéfices</span><span class="saas-metric-icon"><i class="bi bi-piggy-bank"></i></span></div>
-            <strong class="saas-metric-value">{{ number_format($sale_total_profit, 0, ',', ' ') }} <small style="font-size:.55em;font-weight:600;color:var(--ds-text-muted)">FCFA</small></strong>
+            <strong class="saas-metric-value">{{ number_format($sale_total_profit, 0, ',', ' ') }} <small style="font-size:.55em;font-weight:600;color:var(--ds-text-muted)">{{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</small></strong>
             <a href="{{ route('sale.index') }}" class="saas-btn saas-btn-outline saas-btn-sm mt-2">Voir les ventes</a>
         </div>
         @endif
@@ -67,13 +67,13 @@
                 <div class="col-md-4">
                     <div class="saas-cash-summary">
                         <div class="saas-cash-summary-head"><span class="saas-metric-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span><div><span>Caisse principale</span><strong>{{ $mainCash->name }}</strong></div></div>
-                        <div class="saas-cash-summary-balance"><small>Solde actuel</small><strong>{{ number_format($mainCash->balance, 0, ',', ' ') }} <small>FCFA</small></strong></div>
+                        <div class="saas-cash-summary-balance"><small>Solde actuel</small><strong>{{ number_format($mainCash->balance, 0, ',', ' ') }} <small>{{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</small></strong></div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="saas-cash-summary">
                         <div class="saas-cash-summary-head"><span class="saas-metric-icon"><i class="bi bi-receipt" aria-hidden="true"></i></span><div><span>Caisse de taxe</span><strong>{{ $taxCash->name }}</strong></div></div>
-                        <div class="saas-cash-summary-balance"><small>Solde actuel</small><strong>{{ number_format($taxCash->balance, 0, ',', ' ') }} <small>FCFA</small></strong></div>
+                        <div class="saas-cash-summary-balance"><small>Solde actuel</small><strong>{{ number_format($taxCash->balance, 0, ',', ' ') }} <small>{{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</small></strong></div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -142,7 +142,7 @@
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                     <span class="saas-status-badge {{ $typeColors[$t->type] ?? 'is-inactive' }}">{{ $typeName[$t->type] ?? $t->type }}</span>
-                                    <strong style="color: var(--ds-text-primary); font-size: .84rem;">{{ number_format($t->amount, 0, ',', ' ') }} FCFA</strong>
+                                    <strong style="color: var(--ds-text-primary); font-size: .84rem;">{{ number_format($t->amount, 0, ',', ' ') }} {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</strong>
                                 </div>
                                 <div style="color: var(--ds-text-muted); font-size: .76rem;">
                                     @if($t->type == 'IN')
@@ -218,7 +218,7 @@
                             labels: { style: { colors: mutedColor } }
                         },
                         yaxis: {
-                            labels: { style: { colors: mutedColor }, formatter: function(val){ return val.toLocaleString('fr-FR') + ' FCFA'; } }
+                            labels: { style: { colors: mutedColor }, formatter: function(val){ return val.toLocaleString('fr-FR') + ' {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}'; } }
                         },
                         legend: {
                             position: 'top',
@@ -226,7 +226,7 @@
                         },
                         tooltip: {
                             theme: 'dark',
-                            y: { formatter: function(val){ return val.toLocaleString('fr-FR') + " FCFA"; } }
+                            y: { formatter: function(val){ return val.toLocaleString('fr-FR') + " {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}"; } }
                         },
                         grid: {
                             borderColor: 'rgba(255,255,255,.06)'

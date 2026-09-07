@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Sale;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendCustomerInvoiceJob;
 use App\Jobs\SendMarginEmailJob;
 use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
@@ -22,7 +23,6 @@ use App\Models\User;
 use App\Services\SmsService;
 use App\Services\CompanyContext;
 use App\Services\SaleCreationService;
-use App\Services\SaleInvoiceDeliveryService;
 use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -290,7 +290,7 @@ class SaleController extends Controller
             ->get();
     }
 
-    public function sendInvoice(Request $request, Sale $sale, SaleInvoiceDeliveryService $delivery)
+    public function sendInvoice(Request $request, Sale $sale)
     {
         $this->authorize('view', $sale);
         $validated = $request->validate([
@@ -303,19 +303,46 @@ class SaleController extends Controller
             'phone.digits_between' => 'Le numéro doit contenir entre 6 et 15 chiffres, sans indicatif.',
         ]);
         try {
-            $channels = $delivery->deliver(
-                $sale->loadMissing('saleDetails.product'),
-                $validated['phone'],
-                $validated['country_code'] ?? (CompanySetting::first()?->country_code ?? 'TG'),
-                (bool) $validated['whatsapp'],
-                (bool) $validated['sms']
-            );
-            $company = CompanySetting::firstOrFail()->fresh();
+            $company = CompanySetting::firstOrFail();
+            $countryCode = $validated['country_code'] ?? ($company->country_code ?? 'TG');
+            $channels = [];
+
+            // Validate all requested channels before dispatching anything, so a
+            // request for WhatsApp + SMS cannot be partially queued.
+            if ((bool) $validated['whatsapp']) {
+                if (!$company->invoice_whatsapp_enabled) {
+                    throw new \RuntimeException('Activez WhatsApp dans la section « Envoi des factures aux clients » de Communications > SMS & WhatsApp > Configuration.');
+                }
+                if ($company->whatsapp_count < 1) {
+                    throw new \RuntimeException('Le quota WhatsApp est épuisé.');
+                }
+                $channels[] = 'WhatsApp';
+            }
+
+            if ((bool) $validated['sms']) {
+                if (!$company->invoice_sms_enabled) {
+                    throw new \RuntimeException('Activez SMS dans la section « Envoi des factures aux clients » de Communications > SMS & WhatsApp > Configuration.');
+                }
+                if ($company->sms_count < 1) {
+                    throw new \RuntimeException('Le quota SMS est épuisé.');
+                }
+                $channels[] = 'SMS';
+            }
+
+            foreach ($channels as $channel) {
+                SendCustomerInvoiceJob::dispatch(
+                    $sale->id,
+                    $company->id,
+                    strtolower($channel),
+                    $validated['phone'],
+                    $countryCode
+                );
+            }
+
             return response()->json([
                 'status' => true,
-                'message' => 'Facture envoyée par '.implode(' et ', $channels).'.',
-                'smsQuota' => (int) $company->sms_count,
-                'whatsappQuota' => (int) $company->whatsapp_count,
+                'queued' => true,
+                'message' => 'Demande d’envoi placée dans la file pour '.implode(' et ', $channels).'. La facture sera envoyée en arrière-plan.',
             ]);
         } catch (\Throwable $exception) {
             Log::warning('Échec envoi manuel facture client', ['sale_id' => $sale->id, 'error' => $exception->getMessage()]);

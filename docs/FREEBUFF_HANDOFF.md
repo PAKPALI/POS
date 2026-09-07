@@ -1,12 +1,20 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 7 septembre 2026 — état consolidé après ajout de l’enforcement individuel et du kit de composants SaaS.
+Dernière mise à jour : 7 septembre 2026 — validation staging et état consolidé après ajout de l’enforcement individuel et du kit de composants SaaS.
+
+## Mise à jour du 7 septembre 2026 — migration UI SaaS transversale
+
+La migration contrôlée des interfaces a démarré. Le périmètre et les lots sont documentés dans `docs/PLAN_MIGRATION_INTERFACE_SAAS.md`. Le premier lot aligne les vues Laravel d’authentification historiques sur le shell public SaaS et les composants `x-ui`, sans modifier leurs routes ni leurs champs. Les prochains lots doivent être livrés écran par écran, avec validation fonctionnelle et visuelle ; ne pas appliquer un remplacement global aux écrans POS, DataTables, e-commerce public, PDF ou e-mails.
+
+Le propriétaire confirme également la fin de la recette staging : contrôle visuel desktop/mobile des écrans secondaires et AJAX, abonnement KPrimePay réel avec webhook, SMTP réel, cron/queues, sauvegardes, logs et alertes. La production ne demande plus de développement fonctionnel, uniquement le déploiement sécurisé et la vérification des secrets et URL propres à cet environnement.
+
+Le 7 septembre, une recette de charge locale a également été exécutée exclusivement sur `pos_testing` : volume intermédiaire (12 000 ventes et 24 000 lignes) sous 300 ms sur tous les parcours mesurés, deux scénarios de concurrence stock/commande sans doublon ni survente, et 1 000 notifications traitées par quatre workers sans doublon ni échec. Les métriques détaillées sont dans `docs/RAPPORT_GLOBAL_SAAS.md`. Le volume maximal reste rejouable depuis un terminal persistant.
 
 ## État de référence au 7 septembre 2026
 
 Cette section prévaut sur les anciennes entrées historiques de ce handoff. Le développement fonctionnel du plan d’abonnement est terminé pour le périmètre prévu : catalogue versionné, essai de 14 jours, choix de 1 à 12 mois avec remise uniquement à 12 mois, montée de plan sans descente, règlement KPrimePay séparé des quotas, webhooks idempotents, expiration et rappels par e-mail, contrôle des fonctionnalités et limites compagnie/utilisateur/produit, SweetAlert avec proposition d’amélioration pour les propriétaires et administrateurs, et notification des paiements confirmés aux administrateurs plateforme.
 
-Les tests ciblés abonnement, quotas, webhooks, expiration, pré-contrôle et catalogue passent. Le checkout de test KPrimePay, les webhooks, le SMTP réel de staging et la recette visuelle mobile/desktop ont été validés par le propriétaire. La suite de développement reste terminée à **100 %** ; seules la configuration des secrets/URL de production, la supervision et l’activation progressive de `subscriptions.enforcement_enabled` restent à réaliser sur l’hébergement.
+Les tests ciblés abonnement, quotas, webhooks, expiration, pré-contrôle et catalogue passent. Le checkout réel KPrimePay, les webhooks, le SMTP réel de staging, la recette visuelle mobile/desktop, le cron/queue, les sauvegardes, les logs et les alertes ont été validés par le propriétaire. La suite de développement et la validation staging sont terminées à **100 %** ; restent uniquement le déploiement de production, ses secrets/URL et l’activation progressive de `subscriptions.enforcement_enabled`.
 
 La fixture locale du compte `didierlombardo48@gmail.com` est mutable et a servi à plusieurs recettes manuelles (Basic, Bronze, Argent, Gold puis Essai). Elle ne doit donc pas être considérée comme une vérité permanente dans ce document : vérifier l’état courant directement dans la base locale avant chaque test et ne jamais reproduire cette fixture en production.
 

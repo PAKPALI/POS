@@ -1,18 +1,16 @@
 @extends('layouts.public-auth')
 
 @section('title', 'Mot de passe oublié')
+
 @section('content')
-<div class="login"><div class="login-content">
-<form method="POST" action="{{ route('password.email') }}">@csrf
-    <h1 class="text-center">MOT DE PASSE OUBLIÉ</h1>
-    <p class="text-inverse text-opacity-50 text-center mb-4">Indiquez votre adresse e-mail pour recevoir un lien sécurisé.</p>
-    @if(session('status'))<div class="alert alert-success">{{ session('status') }}</div>@endif
-    <div class="mb-3">
-        <label for="email" class="form-label">Adresse e-mail <span class="text-danger">*</span></label>
-        <input id="email" type="email" name="email" value="{{ old('email') }}" class="form-control form-control-lg bg-inverse bg-opacity-5 @error('email') is-invalid @enderror" required autocomplete="email" autofocus>
-        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    <div class="auth-flow auth-login-flow">
+        <div class="auth-flow-heading"><span class="auth-flow-kicker"><i class="bi bi-envelope" aria-hidden="true"></i> Récupération</span><h1>Mot de passe oublié ?</h1><p>Indiquez votre adresse e-mail pour recevoir un lien sécurisé.</p></div>
+        @if (session('status'))<x-ui.alert variant="success">{{ session('status') }}</x-ui.alert>@endif
+        <form method="POST" action="{{ route('password.email') }}">
+            @csrf
+            <x-ui.input id="email" name="email" type="email" label="Adresse e-mail" :value="old('email')" required autocomplete="email" autofocus :error="$errors->first('email')" />
+            <x-ui.form-actions class="auth-form-actions"><x-ui.button type="submit" class="w-100 auth-submit" loading-text="Envoi du lien…">Envoyer le lien</x-ui.button></x-ui.form-actions>
+            <p class="auth-flow-link"><a href="{{ route('user_login') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Retour à la connexion</a></p>
+        </form>
     </div>
-    <button type="submit" class="btn btn-outline-theme btn-lg d-block w-100 fw-500 mt-4" data-loading-text="Envoi du lien…">Envoyer le lien</button>
-    <div class="text-center mt-4"><a href="{{ route('user_login') }}" class="text-theme fw-semibold text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Retour à la connexion</a></div>
-</form></div></div>
 @endsection

@@ -10,38 +10,38 @@
                 <input type="hidden" name="appearance_mode" data-appearance-mode value="dark">
                 <input type="hidden" name="accent_color" data-accent-color value="#3B82F6">
                 <div class="auth-flow-heading"><span class="auth-flow-kicker"><i class="bi bi-stars" aria-hidden="true"></i> Démarrage rapide</span><h1>Créez votre espace.</h1><p>Les réglages plus avancés resteront accessibles après l’inscription.</p></div>
-                <div class="mb-3">
+                <div class="saas-form-group">
                     <label class="form-label">Nom de l’entreprise</label>
                     <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" name="company_name" placeholder="Ex. Boutique Horizon" required autofocus>
                     <div class="form-text text-inverse text-opacity-50">Vous pourrez ajouter le logo, l’adresse et les paramètres plus tard.</div>
                 </div>
                 <!-- <p class="text-inverse text-opacity-50 text-center">PRO-SELLER</p> -->
-                <div class="mb-3">
+                <div class="saas-form-group">
                     <label class="form-label">Votre nom</label>
                     <input type="text" class="form-control form-control-lg bg-inverse bg-opacity-5" placeholder="Votre nom complet" name="name" required>
                 </div>
-                <div class="mb-3">
+                <div class="saas-form-group">
                     <label class="form-label">Pays de l’entreprise</label>
                     <select name="country_code" class="form-select form-select-lg country-select mb-3" data-placeholder="Rechercher un pays" required><option value="">Pays de l’entreprise</option>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === 'TG')>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
                 </div>
-                <div class="mb-3">
+                <div class="saas-form-group">
                     <label class="form-label">Adresse e-mail</label>
                     <input type="email" class="form-control form-control-lg bg-inverse bg-opacity-5" name="email" placeholder="email" value>
                 </div>
-                <div class="mb-3">
+                <div class="saas-form-group">
                     <label class="form-label">Mot de passe</label>
                     <div class="input-group">
                         <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password" name="password" placeholder="mot de passe">
-                        <span class="input-group-text" id="togglePassword" style="cursor: pointer;">
+                        <span class="input-group-text" id="togglePassword" role="button" tabindex="0" aria-label="Afficher le mot de passe">
                             <i class="bi bi-eye" id="togglePasswordIcon"></i>
                         </span>
                     </div>
                 </div>
-                <div class="mb-3">
+                <div class="saas-form-group">
                     <label class="form-label">Confirmer le mot de passe</label>
                     <div class="input-group">
                         <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="password_confirmation" placeholder="mot de passe">
-                        <span class="input-group-text" id="togglePassword2" style="cursor: pointer;">
+                        <span class="input-group-text" id="togglePassword2" role="button" tabindex="0" aria-label="Afficher le mot de passe">
                             <i class="bi bi-eye" id="togglePasswordIcon2"></i>
                         </span>
                     </div>
@@ -104,7 +104,9 @@
                 return false;
             });
 
-            $('#togglePassword').on('click', function() {
+            $('#togglePassword').on('click keydown', function(event) {
+                if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
                 const passwordField = document.getElementById("password");
                 const toggleIcon = document.getElementById("togglePasswordIcon");
 
@@ -118,7 +120,9 @@
                     toggleIcon.classList.add("bi-eye");
                 }
             });
-            $('#togglePassword2').on('click', function() {
+            $('#togglePassword2').on('click keydown', function(event) {
+                if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
                 const passwordField = document.getElementById("password2");
                 const toggleIcon = document.getElementById("togglePasswordIcon2");
 

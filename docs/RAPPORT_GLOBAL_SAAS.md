@@ -47,6 +47,8 @@ php artisan test benchmarks/SaasVolumeBenchmark.php
 
 La commande refuse une base dont le nom ne se termine pas par `_testing`.
 
+Le benchmark accepte aussi des volumes intermédiaires via `PERF_PRODUCTS`, `PERF_CLIENTS`, `PERF_SALES`, `PERF_SALE_DETAILS` et `PERF_ORDERS`, sans modifier ses seuils ni son scénario maximal par défaut. Cela permet une recette locale reproductible avant de lancer le volume maximal dans un terminal persistant.
+
 Volume : 5 entreprises, 50 utilisateurs, 10 000 produits, 5 000 clients, 50 000 ventes, 100 000 lignes de vente et 10 000 commandes. Génération en 15 à 18 secondes, pic mémoire de 96 Mo.
 
 | Parcours | Temps final | Requêtes |
@@ -60,6 +62,19 @@ Volume : 5 entreprises, 50 utilisateurs, 10 000 produits, 5 000 clients, 50 000 
 | Historique des ventes | 696 ms | 10 |
 
 Toutes les routes sont restées sous 2,5 secondes et 40 requêtes. Les filtres temporels utilisent des plages indexables et l’index `sale_details(company_id, created_at, product_id)` protège les agrégations principales.
+
+### Exécution locale contrôlée — 7 septembre 2026
+
+Base isolée utilisée : `pos_testing`.
+
+| Scénario | Résultat |
+|---|---|
+| Volume intermédiaire : 2 500 produits, 2 000 clients, 12 000 ventes, 24 000 lignes, 3 000 commandes | Succès, 22 assertions, génération en 3,98 s, pic de 60 Mo. Dashboard 193 ms, POS 176 ms, recherche produits 28 ms, clients 11 ms, utilisateurs 22 ms, commandes 25 ms, historique 262 ms. |
+| Concurrence stock : 10 caissiers, stock initial 10 | Succès : 5 ventes, 5 refus corrects, stock final 0, caisse 10 000, durée 627 ms. |
+| Concurrence e-commerce : 8 conversions simultanées d’une même commande | Succès : 1 seule conversion, 7 refus, stock final 7, durée 424 ms. |
+| Queue notifications : 4 workers, 100 jobs contenant 50 doublons volontaires | Succès : 1 000 livraisons uniques, 0 doublon, 0 échec, 12,67 s, 78,93 livraisons/s, 40 Mo. |
+
+Le volume maximal (10 000 produits, 50 000 ventes et 100 000 lignes) reste le scénario de référence. Son exécution complète doit être lancée depuis un terminal local persistant ou staging disposant d’une fenêtre supérieure à celle de l’automatisation interactive.
 
 ## Validation de la concurrence
 

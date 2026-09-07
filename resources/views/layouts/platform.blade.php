@@ -10,7 +10,7 @@
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/platform.css') }}?v=20260907-4" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/platform-components.css') }}?v=20260903-10" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/platform-components.css') }}?v=20260907-11" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
     @stack('styles')
 </head>

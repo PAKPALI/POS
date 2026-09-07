@@ -3,80 +3,21 @@
 @section('title', 'Connexion')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Login') }}</div>
-
-                <div class="card-body">
-                    <form method="POST" action="{{ route('login') }}">
-                        @csrf
-
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
-
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
-
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6 offset-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-
-                                    <label class="form-check-label" for="remember">
-                                        {{ __('Remember Me') }}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-0">
-                            <div class="col-md-8 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Login') }}
-                                </button>
-
-                                @if (Route::has('password.request'))
-                                    <a class="btn btn-link" href="{{ route('password.request') }}">
-                                        {{ __('Forgot Your Password?') }}
-                                    </a>
-                                @endif
-
-                                @if (Route::has('register'))
-                                    <div class="mt-3">
-                                        Vous n'avez pas encore de compte ?
-                                        <a href="{{ route('register') }}">Créer un compte</a>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <div class="auth-flow auth-login-flow">
+        <div class="auth-flow-heading">
+            <span class="auth-flow-kicker"><i class="bi bi-shield-check" aria-hidden="true"></i> Accès sécurisé</span>
+            <h1>Bon retour.</h1>
+            <p>Connectez-vous pour retrouver votre espace de travail.</p>
         </div>
+        @if ($errors->any())<x-ui.alert variant="danger">Veuillez corriger les informations indiquées ci-dessous.</x-ui.alert>@endif
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
+            <x-ui.input id="email" name="email" type="email" label="Adresse e-mail" :value="old('email')" required autocomplete="email" autofocus :error="$errors->first('email')" />
+            <x-ui.password id="password" name="password" label="Mot de passe" required autocomplete="current-password" :error="$errors->first('password')" />
+            <label class="saas-check-control" for="remember"><input type="checkbox" name="remember" id="remember" @checked(old('remember'))><span>Rester connecté</span></label>
+            <x-ui.form-actions class="auth-form-actions"><x-ui.button type="submit" class="w-100 auth-submit" loading-text="Connexion en cours…">Se connecter <i class="bi bi-arrow-right" aria-hidden="true"></i></x-ui.button></x-ui.form-actions>
+            @if (Route::has('password.request'))<p class="auth-flow-link"><a href="{{ route('password.request') }}">Mot de passe oublié ?</a></p>@endif
+            @if (Route::has('register'))<p class="auth-flow-link">Vous n’avez pas encore de compte ? <a href="{{ route('register') }}">Créer un compte</a></p>@endif
+        </form>
     </div>
-</div>
 @endsection

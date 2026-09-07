@@ -243,7 +243,7 @@ $(function() {
                     var imageHtml = product && product.image
                         ? '<img class="sales-top-sales-image" src="{{ asset("images") }}/' + encodeURIComponent(product.image) + '" alt="">'
                         : '<span class="sales-top-sales-image is-placeholder"><i class="bi bi-box-seam"></i></span>';
-                    var price = product ? new Intl.NumberFormat('fr-FR').format(product.price_ttc && product.price_ttc > 0 ? product.price_ttc : product.price) + ' FCFA' : 'Référence indisponible';
+                    var price = product ? new Intl.NumberFormat('fr-FR').format(product.price_ttc && product.price_ttc > 0 ? product.price_ttc : product.price) + ' {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}' : 'Référence indisponible';
                     var name = product ? product.name : 'Produit supprimé';
 
                     mostSoldProductsContainer.append(
@@ -464,7 +464,7 @@ $(function() {
                 }
             }
         }).then(function(result) {
-            if (result.isConfirmed) Swal.fire({ icon: 'success', title: 'Facture envoyée', text: result.value.message });
+            if (result.isConfirmed) Swal.fire({ icon: 'success', title: 'Envoi lancé', text: result.value.message });
         });
     });
 });

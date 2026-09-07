@@ -27,7 +27,8 @@ class SaasVolumeBenchmark extends TestCase
         $this->assertStringEndsWith('_testing', $database, 'Benchmark refusé hors d’une base *_testing.');
 
         $seedStartedAt = microtime(true);
-        [$owner, $company] = $this->seedVolume();
+        $volumes = $this->volumes();
+        [$owner, $company] = $this->seedVolume($volumes);
         $seedDuration = round(microtime(true) - $seedStartedAt, 3);
 
         $this->actingAs($owner);
@@ -66,11 +67,11 @@ class SaasVolumeBenchmark extends TestCase
             'volumes' => [
                 'companies' => 5,
                 'users_active_company' => 50,
-                'products_active_company' => 10000,
-                'clients_active_company' => 5000,
-                'sales_active_company' => 50000,
-                'sale_details_active_company' => 100000,
-                'orders_active_company' => 10000,
+                'products_active_company' => $volumes['products'],
+                'clients_active_company' => $volumes['clients'],
+                'sales_active_company' => $volumes['sales'],
+                'sale_details_active_company' => $volumes['sale_details'],
+                'orders_active_company' => $volumes['orders'],
             ],
             'seed_seconds' => $seedDuration,
             'peak_memory_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
@@ -78,7 +79,7 @@ class SaasVolumeBenchmark extends TestCase
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE).PHP_EOL);
     }
 
-    private function seedVolume(): array
+    private function seedVolume(array $volumes): array
     {
         $owner = User::factory()->create(['user_type' => 2, 'status' => 1]);
         $company = $this->activateCompanyFor($owner, 'volume');
@@ -114,7 +115,7 @@ class SaasVolumeBenchmark extends TestCase
         ]);
         $categoryId = (int) DB::table('categories')->where('company_id', $company->id)->value('id');
 
-        $this->insertGenerated('products', 10000, fn (int $number) => [
+        $this->insertGenerated('products', $volumes['products'], fn (int $number) => [
             'company_id' => $company->id,
             'category_id' => $categoryId,
             'name' => 'Produit volume '.str_pad((string) $number, 5, '0', STR_PAD_LEFT),
@@ -132,7 +133,7 @@ class SaasVolumeBenchmark extends TestCase
             'updated_at' => $now,
         ]);
 
-        $this->insertGenerated('clients', 5000, fn (int $number) => [
+        $this->insertGenerated('clients', $volumes['clients'], fn (int $number) => [
             'company_id' => $company->id,
             'name' => 'Client volume '.str_pad((string) $number, 5, '0', STR_PAD_LEFT),
             'created_by' => $owner->id,
@@ -141,7 +142,7 @@ class SaasVolumeBenchmark extends TestCase
             'updated_at' => $now,
         ]);
 
-        $this->insertGenerated('sales', 50000, fn (int $number) => [
+        $this->insertGenerated('sales', $volumes['sales'], fn (int $number) => [
             'company_id' => $company->id,
             'code' => 1000000 + $number,
             'received_amount' => 3000,
@@ -159,10 +160,10 @@ class SaasVolumeBenchmark extends TestCase
 
         $firstProductId = (int) DB::table('products')->where('company_id', $company->id)->min('id');
         $firstSaleId = (int) DB::table('sales')->where('company_id', $company->id)->min('id');
-        $this->insertGenerated('sale_details', 100000, fn (int $number) => [
+        $this->insertGenerated('sale_details', $volumes['sale_details'], fn (int $number) => [
             'company_id' => $company->id,
-            'sale_id' => $firstSaleId + (($number - 1) % 50000),
-            'product_id' => $firstProductId + (($number - 1) % 10000),
+            'sale_id' => $firstSaleId + (($number - 1) % $volumes['sales']),
+            'product_id' => $firstProductId + (($number - 1) % $volumes['products']),
             'quantity' => 1,
             'unit_price' => 1500,
             'total_price' => 1500,
@@ -171,7 +172,7 @@ class SaasVolumeBenchmark extends TestCase
             'updated_at' => $now,
         ]);
 
-        $this->insertGenerated('orders', 10000, fn (int $number) => [
+        $this->insertGenerated('orders', $volumes['orders'], fn (int $number) => [
             'company_id' => $company->id,
             'code' => 'VOL-'.$company->id.'-'.$number,
             'customer_name' => 'Acheteur '.$number,
@@ -197,6 +198,25 @@ class SaasVolumeBenchmark extends TestCase
             }
             DB::table($table)->insert($rows);
         }
+    }
+
+    private function volumes(): array
+    {
+        $defaults = [
+            'products' => 10000,
+            'clients' => 5000,
+            'sales' => 50000,
+            'sale_details' => 100000,
+            'orders' => 10000,
+        ];
+
+        return collect($defaults)->mapWithKeys(function (int $default, string $key) {
+            $value = filter_var(env('PERF_'.strtoupper($key)), FILTER_VALIDATE_INT, [
+                'options' => ['default' => $default, 'min_range' => 1],
+            ]);
+
+            return [$key => $value];
+        })->all();
     }
 
     private function insertChunks(string $table, iterable $rows): void

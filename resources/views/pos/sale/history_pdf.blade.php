@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Historique des ventes</title>
+    @php($currency = app(\App\Services\AfricanMarketProfile::class)->forCompany($company)['currency'])
     <style>
         @page { margin: 25px 30px; }
         body { color: #222; font-family: DejaVu Sans, sans-serif; font-size: 10px; }
@@ -49,10 +50,10 @@
         <tr>
             <td><strong>{{ $summary['sales_count'] }}</strong>Ventes</td>
             <td><strong>{{ $summary['products_quantity'] }}</strong>Produits vendus</td>
-            <td><strong>{{ number_format($summary['total_amount'], 0, ',', ' ') }}</strong>Total FCFA</td>
-            <td><strong>{{ number_format($summary['total_received'], 0, ',', ' ') }}</strong>Reçu FCFA</td>
+            <td><strong>{{ number_format($summary['total_amount'], 0, ',', ' ') }}</strong>Total {{ $currency }}</td>
+            <td><strong>{{ number_format($summary['total_received'], 0, ',', ' ') }}</strong>Reçu {{ $currency }}</td>
             @if ($canViewFinancials)
-                <td><strong>{{ number_format($summary['total_profit'], 0, ',', ' ') }}</strong>Bénéfice FCFA</td>
+                <td><strong>{{ number_format($summary['total_profit'], 0, ',', ' ') }}</strong>Bénéfice {{ $currency }}</td>
             @endif
         </tr>
     </table>
@@ -79,8 +80,8 @@
                     <tr>
                         <th style="width:45%;">Produit</th>
                         <th style="width:10%;" class="number">Quantité</th>
-                        <th style="width:22%;" class="number">P.U (FCFA)</th>
-                        <th style="width:23%;" class="number">P.T (FCFA)</th>
+                        <th style="width:22%;" class="number">P.U ({{ $currency }})</th>
+                        <th style="width:23%;" class="number">P.T ({{ $currency }})</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,16 +99,16 @@
             <table class="sale-totals">
                 <tr>
                     <td class="label">Montant total :</td>
-                    <td class="number">{{ number_format($sale->total_amount, 0, ',', ' ') }} FCFA</td>
+                    <td class="number">{{ number_format($sale->total_amount, 0, ',', ' ') }} {{ $currency }}</td>
                     <td class="label">Montant reçu :</td>
-                    <td class="number">{{ number_format($sale->received_amount, 0, ',', ' ') }} FCFA</td>
+                    <td class="number">{{ number_format($sale->received_amount, 0, ',', ' ') }} {{ $currency }}</td>
                 </tr>
                 <tr>
                     <td class="label">Monnaie rendue :</td>
-                    <td class="number">{{ number_format($sale->remaining_amount, 0, ',', ' ') }} FCFA</td>
+                    <td class="number">{{ number_format($sale->remaining_amount, 0, ',', ' ') }} {{ $currency }}</td>
                     @if ($canViewFinancials)
                         <td class="label">Bénéfice :</td>
-                        <td class="number">{{ number_format($sale->total_profit, 0, ',', ' ') }} FCFA</td>
+                        <td class="number">{{ number_format($sale->total_profit, 0, ',', ' ') }} {{ $currency }}</td>
                     @endif
                 </tr>
             </table>
@@ -125,7 +126,7 @@
                         <th class="rank">Rang</th>
                         <th>Produit</th>
                         <th class="number">Quantité vendue</th>
-                        <th class="number">Chiffre d’affaires (FCFA)</th>
+                        <th class="number">Chiffre d’affaires ({{ $currency }})</th>
                     </tr>
                 </thead>
                 <tbody>

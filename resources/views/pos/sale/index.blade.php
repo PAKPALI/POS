@@ -1371,7 +1371,7 @@
                     ? await window.ServerButtonLoader.withLoader(button, request, 'Envoi en cours…')
                     : await request;
                 updateInvoiceQuotas(data);
-                Swal.fire({icon: 'success', title: 'Facture envoyée', text: data.message});
+                Swal.fire({icon: 'success', title: 'Envoi lancé', text: data.message});
             } catch (error) {
                 updateInvoiceQuotas(error.payload || {});
                 Swal.fire({icon: 'error', title: 'Envoi impossible', text: error.message || 'Veuillez réessayer.'});
@@ -1460,14 +1460,14 @@
         //                     <div class="img" style="background-image: url(${productImage})"></div>
         //                     <div class="flex-1">
         //                         <div class="h6 mb-1">${productName}</div>
-        //                         <div class="small">${productPrice} FCFA</div>
+        //                         <div class="small">${productPrice} {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</div>
         //                         <div class="d-flex">
         //                             <a href="#" class="btn btn-outline-theme btn-sm btn-minus"><i class="bi bi-dash-lg"></i></a>
         //                             <input type="text" class="form-control w-50px form-control-sm mx-2 bg-white bg-opacity-25 text-center quantity-input" value="${productQte}">
         //                             <a href="#" class="btn btn-outline-theme btn-sm btn-plus"><i class="bi bi-plus-lg"></i></a>
         //                         </div>
         //                     </div>
-        //                     <div class="pos-order-price">${productPrice * productQte} FCFA</div>
+        //                     <div class="pos-order-price">${productPrice * productQte} {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</div>
         //                     <div><a href="#" title="supprimer le produit" class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></a></div>
         //                 </div>
         //             </div>

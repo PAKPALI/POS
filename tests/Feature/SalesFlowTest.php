@@ -17,6 +17,7 @@ use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
 use App\Jobs\SendMarginEmailJob;
 use App\Jobs\SendCustomerInvoiceJob;
+use App\Services\SaleInvoiceDeliveryService;
 use App\Services\NotificationRecipientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -179,7 +180,27 @@ class SalesFlowTest extends TestCase
         Queue::assertPushed(SendCustomerInvoiceJob::class, fn ($job) => $job->channel === 'sms');
     }
 
-    public function test_manual_sms_invoice_checks_authorization_and_consumes_quota(): void
+    public function test_manual_sms_invoice_is_queued_with_the_submitted_recipient(): void
+    {
+        Queue::fake();
+        $this->company->update(['invoice_sms_enabled' => true, 'sms_count' => 1]);
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+
+        $this->actingAs($this->user)->postJson(route('sale.send-invoice', $sale), [
+            'phone' => '90000000', 'country_code' => 'BJ', 'whatsapp' => false, 'sms' => true,
+        ])->assertOk()->assertJson(['status' => true, 'queued' => true]);
+
+        Queue::assertPushed(SendCustomerInvoiceJob::class, function ($job) use ($sale) {
+            return $job->saleId === $sale->id
+                && $job->companyId === $this->company->id
+                && $job->channel === 'sms'
+                && $job->phone === '90000000'
+                && $job->countryCode === 'BJ';
+        });
+    }
+
+    public function test_queued_manual_sms_invoice_is_delivered_by_the_worker(): void
     {
         Queue::fake();
         Http::fake(fn () => Http::response(['status' => true, 'message' => 'MESSAGE_SENT_SUCCESSFULLY'], 200));
@@ -187,9 +208,8 @@ class SalesFlowTest extends TestCase
         $this->makeSale()->assertJson(['status' => true]);
         $sale = Sale::latest()->firstOrFail();
 
-        $this->actingAs($this->user)->postJson(route('sale.send-invoice', $sale), [
-            'phone' => '90000000', 'country_code' => 'BJ', 'whatsapp' => false, 'sms' => true,
-        ])->assertOk()->assertJson(['status' => true]);
+        (new SendCustomerInvoiceJob($sale->id, $this->company->id, 'sms', '90000000', 'BJ'))
+            ->handle(app(SaleInvoiceDeliveryService::class));
 
         $this->assertSame(0, (int) $this->company->fresh()->sms_count);
         Http::assertSent(fn ($request) => $request['country'] === 'BJ' && $request['phone_number'] === '90000000');
@@ -211,7 +231,15 @@ class SalesFlowTest extends TestCase
 
         $this->actingAs($this->user)->postJson(route('sale.send-invoice', $sale), [
             'phone' => '0700000000', 'country_code' => 'CI', 'whatsapp' => true, 'sms' => false,
-        ])->assertJson(['status' => true, 'whatsappQuota' => 0])->assertOk();
+        ])->assertJson(['status' => true, 'queued' => true])->assertOk();
+
+        Queue::assertPushed(SendCustomerInvoiceJob::class, fn ($job) => $job->saleId === $sale->id
+            && $job->channel === 'whatsapp'
+            && $job->phone === '0700000000'
+            && $job->countryCode === 'CI');
+
+        (new SendCustomerInvoiceJob($sale->id, $this->company->id, 'whatsapp', '0700000000', 'CI'))
+            ->handle(app(SaleInvoiceDeliveryService::class));
 
         Http::assertSent(fn ($request) => isset($request['media_id']) && $request['media_id'] === 'media-123'
             && $request['country'] === 'CI'

@@ -5,6 +5,7 @@
 @endpush
 
 @section('content')
+    @php($currency = app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'])
     <div class="saas-page-heading">
         <div>
             <h1>Caisse</h1>
@@ -20,17 +21,17 @@
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Total caisses</span><span class="saas-metric-icon"><i class="bi bi-wallet2"></i></span></div>
             <strong class="saas-metric-value">{{ $totalCash->count }}</strong>
-            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $totalCash ? number_format($totalCashSum, 0, ',', ' ') : '0' }} FCFA</span>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $totalCash ? number_format($totalCashSum, 0, ',', ' ') : '0' }} {{ $currency }}</span>
         </div>
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Caisses actives</span><span class="saas-metric-icon"><i class="bi bi-check-circle"></i></span></div>
             <strong class="saas-metric-value">{{ $activeCash->count }}</strong>
-            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $activeCash ? number_format($activeCashSum, 0, ',', ' ') : '0' }} FCFA</span>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $activeCash ? number_format($activeCashSum, 0, ',', ' ') : '0' }} {{ $currency }}</span>
         </div>
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Caisses inactives</span><span class="saas-metric-icon"><i class="bi bi-x-circle"></i></span></div>
             <strong class="saas-metric-value">{{ $inactiveCash->count }}</strong>
-            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $inactiveCash ? number_format($inactiveCashSum, 0, ',', ' ') : '0' }} FCFA</span>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ $inactiveCash ? number_format($inactiveCashSum, 0, ',', ' ') : '0' }} {{ $currency }}</span>
         </div>
     </section>
 

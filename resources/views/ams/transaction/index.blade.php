@@ -6,6 +6,7 @@
 @endpush
 
 @section('content')
+    @php($currency = app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'])
     <div class="saas-page-heading">
         <div>
             <h1>Opérations</h1>
@@ -21,22 +22,22 @@
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Total opérations</span><span class="saas-metric-icon"><i class="bi bi-arrow-left-right"></i></span></div>
             <strong class="saas-metric-value">{{ $totalTransactions->count }}</strong>
-            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($totalTransactions->total, 0, ',', ' ') }} FCFA</span>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($totalTransactions->total, 0, ',', ' ') }} {{ $currency }}</span>
         </div>
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Entrées</span><span class="saas-metric-icon"><i class="bi bi-arrow-down-circle"></i></span></div>
             <strong class="saas-metric-value">{{ $inTransactions->count }}</strong>
-            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($inTransactions->total, 0, ',', ' ') }} FCFA</span>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($inTransactions->total, 0, ',', ' ') }} {{ $currency }}</span>
         </div>
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Sorties</span><span class="saas-metric-icon"><i class="bi bi-arrow-up-circle"></i></span></div>
             <strong class="saas-metric-value">{{ $outTransactions->count }}</strong>
-            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($outTransactions->total, 0, ',', ' ') }} FCFA</span>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($outTransactions->total, 0, ',', ' ') }} {{ $currency }}</span>
         </div>
         <div class="saas-metric">
             <div class="saas-metric-head"><span class="saas-metric-label">Transferts</span><span class="saas-metric-icon"><i class="bi bi-arrow-repeat"></i></span></div>
             <strong class="saas-metric-value">{{ $transferTransactions->count }}</strong>
-            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($transferTransactions->total, 0, ',', ' ') }} FCFA</span>
+            <span style="color: var(--ds-text-muted); font-size: .78rem;">{{ number_format($transferTransactions->total, 0, ',', ' ') }} {{ $currency }}</span>
         </div>
     </section>
 
@@ -50,7 +51,7 @@
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
             <div style="font-size: 1.6rem; font-weight: 800; color: {{ $netBalance >= 0 ? 'var(--ds-success, #35C98B)' : 'var(--ds-danger, #FF626E)' }};">
-                {{ number_format($netBalance, 0, ',', ' ') }} FCFA
+                {{ number_format($netBalance, 0, ',', ' ') }} {{ $currency }}
             </div>
             <span class="saas-status-badge {{ $netBalance >= 0 ? 'is-active' : 'is-inactive' }}">{{ $netBalance >= 0 ? 'Positive' : 'Négative' }}</span>
         </div>
@@ -86,7 +87,7 @@
                                 <select name="from_cash_id" class="form-select">
                                     <option value="">Choisir une caisse</option>
                                     @foreach($cashes as $cash)
-                                        <option value="{{ $cash->id }}">{{ $cash->name }} ({{ number_format($cash->balance, 2, ',', ' ') }} FCFA)</option>
+                                        <option value="{{ $cash->id }}">{{ $cash->name }} ({{ number_format($cash->balance, 2, ',', ' ') }} {{ $currency }})</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -95,12 +96,12 @@
                                 <select name="to_cash_id" class="form-select">
                                     <option value="">Choisir une caisse</option>
                                     @foreach($cashes as $cash)
-                                        <option value="{{ $cash->id }}">{{ $cash->name }} ({{ number_format($cash->balance, 2, ',', ' ') }} FCFA)</option>
+                                        <option value="{{ $cash->id }}">{{ $cash->name }} ({{ number_format($cash->balance, 2, ',', ' ') }} {{ $currency }})</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6 saas-form-group">
-                                <label>Montant (FCFA)</label>
+                                <label>Montant ({{ $currency }})</label>
                                 <input type="number" name="amount" min="1" required placeholder="0">
                             </div>
                             <div class="col-md-12 saas-form-group">
