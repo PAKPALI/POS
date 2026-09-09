@@ -90,10 +90,10 @@
                             <span class="notification-user-name">{{ $user->name }}</span>
                             <span class="notification-user-email">{{ $user->email }} · {{ $user->phone ?: 'Téléphone non renseigné' }}</span>
                         </td>
-                        <td><span class="saas-status-badge {{ $isPrivileged ? 'is-info' : 'is-neutral' }}">{{ $user->memberships->first()?->role?->name ?: 'Sans rôle' }}</span></td>
+                        <td data-label="Rôle"><span class="saas-status-badge {{ $isPrivileged ? 'is-info' : 'is-neutral' }}">{{ $user->memberships->first()?->role?->name ?: 'Sans rôle' }}</span></td>
                         @foreach(['email', 'whatsapp', 'sms'] as $channel)
                             @php $isEnabled = $preference ? $preference->{$channel.'_enabled'} : ($isPrivileged && in_array($channel, ['email', 'whatsapp'], true)); @endphp
-                            <td class="recipient-switch-cell">
+                            <td class="recipient-switch-cell" data-label="{{ ucfirst($channel) }}">
                                 <label class="recipient-toggle">
                                     <input class="saas-switch-input" type="checkbox" role="switch" name="recipients[{{ $category }}][{{ $user->id }}][{{ $channel }}]" value="1" {{ $isEnabled ? 'checked' : '' }} {{ $channel !== 'email' && !$user->phone ? 'disabled' : '' }}>
                                     <span class="saas-switch-control" aria-hidden="true"></span>

@@ -56,6 +56,7 @@ class SettingController extends Controller
             'reason.required' => 'Indiquez la raison du changement tarifaire.',
             'reason.min' => 'La raison doit contenir au moins 5 caractères.',
             'current_password.current_password' => 'Le mot de passe plateforme est incorrect.',
+            'current_password.required' => 'Saisissez votre mot de passe plateforme pour confirmer cette modification.',
         ]);
 
         $changes = [

@@ -1,13 +1,27 @@
 @extends('layouts.platform')
 @section('title', $company->name)
-@section('page-title', $company->name)
+@section('page-title', 'Détails entreprise')
 @section('content')
-<div class="d-flex flex-wrap gap-2 justify-content-between mb-4">
-    <a href="{{ route('platform.companies.index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Entreprises</a>
-    <button type="button" class="btn {{ $company->status === 'active' ? 'btn-outline-danger' : 'btn-outline-success' }} company-status-action" data-status="{{ $company->status === 'active' ? 'suspended' : 'active' }}" data-url="{{ route('platform.companies.status', $company) }}" data-loading-text="Traitement…"><i class="bi {{ $company->status === 'active' ? 'bi-pause-circle' : 'bi-play-circle' }} me-1"></i>{{ $company->status === 'active' ? 'Suspendre l\'entreprise' : 'Réactiver l\'entreprise' }}</button>
-</div>
+<div class="platform-company-page">
+<header class="platform-company-hero">
+    <div class="platform-company-hero-copy">
+        <a href="{{ route('platform.companies.index') }}" class="platform-company-back"><i class="bi bi-arrow-left" aria-hidden="true"></i> Retour aux entreprises</a>
+        <div class="platform-company-title-row">
+            <span class="platform-company-mark" aria-hidden="true"><i class="bi bi-building"></i></span>
+            <div>
+                <p class="platform-eyebrow">Administration / Console SaaS</p>
+                <h1>{{ $company->name }}</h1>
+                <p>Vue opérationnelle de l’entreprise, de son équipe et de ses consommations.</p>
+            </div>
+        </div>
+    </div>
+    <div class="platform-company-hero-actions">
+        <span class="platform-status-chip is-{{ $company->status === 'active' ? 'success' : 'danger' }}"><i class="bi bi-circle-fill" aria-hidden="true"></i>{{ $company->status === 'active' ? 'Entreprise active' : 'Entreprise suspendue' }}</span>
+        <button type="button" class="btn {{ $company->status === 'active' ? 'btn-outline-danger' : 'btn-outline-success' }} company-status-action" data-status="{{ $company->status === 'active' ? 'suspended' : 'active' }}" data-url="{{ route('platform.companies.status', $company) }}" data-loading-text="Traitement…"><i class="bi {{ $company->status === 'active' ? 'bi-pause-circle' : 'bi-play-circle' }} me-1"></i>{{ $company->status === 'active' ? 'Suspendre l\'entreprise' : 'Réactiver l\'entreprise' }}</button>
+    </div>
+</header>
 
-<section class="platform-summary-grid" aria-label="Indicateurs de l'entreprise">
+<section class="platform-company-summary-grid" aria-label="Indicateurs de l'entreprise">
     @foreach([['Ventes',$stats['sales'],'bi-receipt','accent'],['Chiffre de ventes',number_format($stats['sales_amount'],0,',',' ').' '.$company->currency,'bi-cash-stack','success'],['Commandes',$stats['orders'],'bi-bag-check','violet'],['Produits',$stats['products'],'bi-box-seam','info'],['Inventaires',$stats['inventories'],'bi-clipboard-data','warning'],['Communications',$stats['communications'],'bi-chat-dots','info'],['Paiements quotas',$stats['payments'],'bi-credit-card','accent'],['Membres',$company->memberships->count(),'bi-people','success']] as [$label,$value,$icon,$tone])
     <article class="platform-summary-metric is-{{ $tone }}">
         <span class="platform-summary-icon"><i class="bi {{ $icon }}" aria-hidden="true"></i></span>
@@ -17,11 +31,10 @@
     @endforeach
 </section>
 
-<div class="row g-4 mt-1">
-    <div class="col-xl-5">
-        <div class="platform-card p-4 h-100">
-            <header class="platform-panel-head"><div><p class="platform-eyebrow">Identité</p><h2 class="h5 mb-0">Informations</h2></div></header>
-            <dl class="row mb-0">
+<div class="platform-company-content-grid">
+    <section class="platform-card platform-company-panel" aria-labelledby="company-identity-title">
+            <header class="platform-panel-head"><div><p class="platform-eyebrow"><i class="bi bi-fingerprint" aria-hidden="true"></i> Identité</p><h2 id="company-identity-title">Informations de l’entreprise</h2><p>Références et paramètres principaux.</p></div></header>
+            <dl class="platform-company-details mb-0">
                 <dt class="col-5">Statut</dt>
                 <dd class="col-7"><span class="platform-status-chip is-{{ $company->status === 'active' ? 'success' : 'danger' }}"><i class="bi bi-circle-fill" aria-hidden="true"></i>{{ $company->status }}</span></dd>
                 <dt class="col-5">E-mail</dt>
@@ -39,13 +52,11 @@
                 <dt class="col-5">Création</dt>
                 <dd class="col-7">{{ $company->created_at?->format('d/m/Y H:i') }}</dd>
             </dl>
-        </div>
-    </div>
-    <div class="col-xl-7">
-        <div class="platform-card p-3 h-100">
-            <header class="platform-panel-head"><div><p class="platform-eyebrow">Équipe</p><h2 class="h5 mb-0">Membres et rôles</h2></div></header>
+    </section>
+    <section class="platform-card platform-company-panel" aria-labelledby="company-team-title">
+            <header class="platform-panel-head"><div><p class="platform-eyebrow"><i class="bi bi-people" aria-hidden="true"></i> Équipe</p><h2 id="company-team-title">Membres et rôles</h2><p>{{ $company->memberships->count() }} membre(s) rattaché(s) à cette entreprise.</p></div></header>
             <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle mb-0">
+                <table class="table table-dark table-hover align-middle mb-0 platform-company-table">
                     <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th><th>Dernier accès</th></tr></thead>
                     <tbody>
                     @forelse($company->memberships as $membership)
@@ -64,14 +75,13 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
+    </section>
 </div>
 
-<div class="platform-card p-3 mt-4">
-    <header class="platform-panel-head"><div><p class="platform-eyebrow">Finance</p><h2 class="h5 mb-0">Paiements de quotas récents</h2></div></header>
+<section class="platform-card platform-company-panel platform-company-finance" aria-labelledby="company-finance-title">
+    <header class="platform-panel-head"><div><p class="platform-eyebrow"><i class="bi bi-credit-card" aria-hidden="true"></i> Finance</p><h2 id="company-finance-title">Paiements de quotas récents</h2><p>Suivi des achats SMS et WhatsApp associés à cette entreprise.</p></div></header>
     <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle mb-0">
+        <table class="table table-dark table-hover align-middle mb-0 platform-company-table platform-company-payments-table">
             <thead><tr><th>Transaction</th><th>SMS</th><th>WhatsApp</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
             <tbody>
             @forelse($payments as $payment)
@@ -89,6 +99,7 @@
             </tbody>
         </table>
     </div>
+</section>
 </div>
 @endsection
 

@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\PlatformAdmin;
 use App\Models\Subscription;
+use App\Models\SubscriptionAccount;
+use App\Models\PartnerCheckoutIntent;
+use App\Models\PartnerAttribution;
 use App\Models\SubscriptionEvent;
 use App\Models\SubscriptionPayment;
 use App\Notifications\SubscriptionActivatedNotification;
@@ -15,6 +18,11 @@ use Throwable;
 
 class SubscriptionSettlementService
 {
+    public function __construct(
+        private PartnerPromotionService $promotion,
+        private PartnerCommissionService $commissions,
+    ) {}
+
     public function creditVerified(SubscriptionPayment $payment, array $verified, ?string $eventId = null, ?string $reference = null): bool
     {
         if (strtolower((string) ($verified['status'] ?? '')) !== 'success'
@@ -27,7 +35,14 @@ class SubscriptionSettlementService
             $p = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
             if ($p->status === 'paid') return false;
 
-            $current = Subscription::where('subscription_account_id', $p->subscription_account_id)
+            $account = SubscriptionAccount::whereKey($p->subscription_account_id)->lockForUpdate()->firstOrFail();
+            $intent = PartnerCheckoutIntent::where('subscription_payment_id', $p->id)->lockForUpdate()->first();
+            if ($intent && $intent->status === 'pending' && $intent->expires_at && now()->greaterThan($intent->expires_at)) {
+                $intent->update(['status' => 'expired', 'failure_reason' => 'Checkout expiré avant confirmation.']);
+                throw new RuntimeException('CHECKOUT_EXPIRED');
+            }
+
+            $current = Subscription::where('subscription_account_id', $account->id)
                 ->whereIn('status', ['trial', 'active'])
                 ->lockForUpdate()->orderByDesc('ends_at')->first();
             $now = now();
@@ -43,9 +58,20 @@ class SubscriptionSettlementService
                 'status' => 'active', 'billing_period' => $months === 12 ? 'annual' : 'monthly',
                 'duration_months' => $months, 'starts_at' => $start, 'ends_at' => $end, 'snapshot' => $p->snapshot,
             ]);
-            $companyId = $p->subscriptionAccount->billing_company_id;
+            $companyId = $account->billing_company_id;
             Company::withoutGlobalScopes()->whereKey($companyId)->increment('sms_count', (int) $p->snapshot['sms_quota'] * $months);
             Company::withoutGlobalScopes()->whereKey($companyId)->increment('whatsapp_count', (int) $p->snapshot['whatsapp_quota'] * $months);
+            if ($intent) {
+                $attribution = $this->promotion->settleIntent($intent, $p, $now);
+                if ($attribution) $this->commissions->recordForPaidSubscription($p, $attribution, $now);
+            } else {
+                $attribution = PartnerAttribution::query()
+                    ->where('subscription_account_id', $p->subscription_account_id)
+                    ->where('status', 'active')
+                    ->lockForUpdate()
+                    ->first();
+                if ($attribution) $this->commissions->recordForPaidSubscription($p, $attribution, $now);
+            }
             $p->update([
                 'status' => 'paid', 'paid_at' => $now, 'event_id' => $eventId,
                 'kpp_reference' => $reference ?: $p->kpp_reference, 'subscription_id' => $subscription->id, 'failure_reason' => null,

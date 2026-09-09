@@ -10,7 +10,7 @@
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-18" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/platform-auth.css') }}?v=20260902-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/platform-auth.css') }}?v=20260908-1" rel="stylesheet">
 </head>
 <body class="platform-auth-body">
 <main class="platform-auth-shell">

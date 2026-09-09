@@ -20,10 +20,10 @@
 </section>
 <section class="saas-card">
     <div class="saas-card-head"><div><h2>Historique des achats</h2><p class="saas-card-description">État de chaque transaction de recharge.</p></div><span class="saas-count-badge">{{ $payments->total() }}</span></div>
-    <div class="table-responsive"><table class="saas-data-table"><thead><tr><th>Référence</th><th>SMS</th><th>WhatsApp</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>
+    <div class="table-responsive quota-history-table-wrap"><table class="saas-data-table quota-history-table"><thead><tr><th>Référence</th><th>SMS</th><th>WhatsApp</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>
     @forelse($payments as $payment)
         @php $statusClass = match($payment->status) {'paid'=>'is-success','failed'=>'is-danger','pending'=>'is-pending',default=>'is-neutral'}; $statusLabel = match($payment->status) {'paid'=>'Payé','failed'=>'Échoué','expired'=>'Expiré','pending'=>'En attente',default=>'Créé'}; @endphp
-        <tr><td><small>{{ $payment->transaction_id }}</small></td><td>{{ $payment->sms_quantity }}</td><td>{{ $payment->whatsapp_quantity }}</td><td>{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</td><td><span class="saas-status-badge {{ $statusClass }}">{{ $statusLabel }}</span></td><td>{{ $payment->created_at->format('d/m/Y H:i') }}</td></tr>
+        <tr><td data-label="Référence"><small>{{ $payment->transaction_id }}</small></td><td data-label="SMS">{{ $payment->sms_quantity }}</td><td data-label="WhatsApp">{{ $payment->whatsapp_quantity }}</td><td data-label="Montant">{{ number_format($payment->amount, 0, ',', ' ') }} FCFA</td><td data-label="Statut"><span class="saas-status-badge {{ $statusClass }}">{{ $statusLabel }}</span></td><td data-label="Date">{{ $payment->created_at->format('d/m/Y H:i') }}</td></tr>
     @empty<tr><td colspan="6"><div class="saas-empty-state is-compact"><i class="bi bi-receipt"></i><span>Aucun achat enregistré.</span></div></td></tr>@endforelse
     </tbody></table></div><div class="saas-pagination-row"><span>{{ $payments->total() }} transaction(s)</span><div>{{ $payments->links('pagination::bootstrap-5') }}</div></div>
 </section>

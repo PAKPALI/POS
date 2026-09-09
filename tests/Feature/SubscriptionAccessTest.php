@@ -38,7 +38,7 @@ class SubscriptionAccessTest extends TestCase
     {
         [$owner] = $this->ownerWithCompany();
 
-        $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk()->assertSee('Choisir la durée')->assertSee('Durée souhaitée')->assertSee('Expiration estimée')->assertSee('Réduction annuelle appliquée (1 mois offert)')->assertDontSee('Continuer vers KPrimePay');
+        $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk()->assertSee('Choisir la durée')->assertSee('Durée souhaitée')->assertSee('Expiration estimée')->assertSee('Réduction annuelle appliquée (1 mois offert)')->assertSee('partner-promo-input')->assertSee('Code promotionnel partenaire')->assertSee('Continuer vers le paiement')->assertDontSee('Continuer vers KPrimePay');
     }
 
     public function test_expired_plan_keeps_subscription_readable_but_blocks_member_and_role_writes(): void

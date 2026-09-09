@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\RecordPlatformHeartbeat::class,
         \App\Console\Commands\CheckPlatformAlerts::class,
         \App\Console\Commands\ExpireSubscriptions::class,
+        \App\Console\Commands\MaturePartnerCommissions::class,
     ];
     protected function schedule(Schedule $schedule): void
     {
@@ -30,6 +31,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('platform:heartbeat')->everyMinute()->withoutOverlapping();
         $schedule->command('platform:check-alerts')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('subscriptions:expire')->dailyAt('00:05')->withoutOverlapping();
+        $schedule->command('partners:mature-commissions --limit=200')->hourly()->withoutOverlapping();
         // $schedule->command('actions:clean')->everyMinute();
     }
 

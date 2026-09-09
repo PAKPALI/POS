@@ -36,12 +36,61 @@ use App\Http\Controllers\Platform\AdminController as PlatformAdminController;
 use App\Http\Controllers\Platform\AlertController as PlatformAlertController;
 use App\Http\Controllers\Platform\CommunicationController as PlatformCommunicationController;
 use App\Http\Controllers\Platform\GeneralSettingController as PlatformGeneralSettingController;
+use App\Http\Controllers\Platform\PartnerSettingController as PlatformPartnerSettingController;
 use App\Http\Controllers\Platform\SubscriptionPreflightController as PlatformSubscriptionPreflightController;
 use App\Http\Controllers\Platform\SubscriptionPlanCatalogController as PlatformSubscriptionPlanCatalogController;
+use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
+use App\Http\Controllers\Partner\CodeController as PartnerCodeController;
+use App\Http\Controllers\Partner\PortalController as PartnerPortalController;
+use App\Http\Controllers\Partner\InsightsController as PartnerInsightsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('admin-saas', '/platform/login')->name('platform.entry');
+
+$partnerRoutes = function (): void {
+    Route::get('login', [PartnerAuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [PartnerAuthController::class, 'login'])->middleware('throttle:10,1')->name('login.submit');
+    Route::get('register', [PartnerAuthController::class, 'showRegister'])->name('register');
+    Route::post('register', [PartnerAuthController::class, 'register'])->middleware('throttle:5,1')->name('register.submit');
+    Route::get('email/verify/{partner}/{hash}', [PartnerAuthController::class, 'verifyEmail'])
+        ->middleware(['signed', 'throttle:6,1'])->name('email.verify');
+    Route::get('two-factor', [PartnerAuthController::class, 'showTwoFactor'])->name('two-factor.challenge');
+    Route::post('two-factor', [PartnerAuthController::class, 'verifyTwoFactor'])->middleware('throttle:10,1')->name('two-factor.verify');
+    Route::post('two-factor/resend', [PartnerAuthController::class, 'resendTwoFactor'])->middleware('throttle:2,1')->name('two-factor.resend');
+    Route::get('forgot-password', [PartnerAuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('forgot-password', [PartnerAuthController::class, 'sendResetLink'])->middleware('throttle:3,1')->name('password.email');
+    Route::get('reset-password/{token}', [PartnerAuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('reset-password', [PartnerAuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset.update');
+    Route::post('code/validate', [PartnerCodeController::class, 'validatePublic'])->middleware('throttle:30,1')->name('code.validate');
+
+    Route::middleware(['partner.auth', 'partner.active', 'partners.enabled'])->group(function (): void {
+        Route::get('', [PartnerInsightsController::class, 'dashboard'])->name('dashboard');
+        Route::get('clients', [PartnerInsightsController::class, 'clients'])->name('clients');
+        Route::get('commissions', [PartnerInsightsController::class, 'commissions'])->name('commissions');
+        Route::post('commissions/export', [PartnerInsightsController::class, 'requestCommissionExport'])->middleware('throttle:5,1')->name('commissions.export');
+        Route::get('exports/{export}/download', [PartnerInsightsController::class, 'downloadExport'])->name('exports.download');
+        Route::get('code', [PartnerCodeController::class, 'show'])->name('code');
+        Route::get('code/availability', [PartnerCodeController::class, 'availability'])->middleware('throttle:30,1')->name('code.availability');
+        Route::put('code', [PartnerCodeController::class, 'update'])->middleware('throttle:10,1')->name('code.update');
+        Route::get('profile', [PartnerPortalController::class, 'profile'])->name('profile');
+        Route::put('profile/identity', [PartnerPortalController::class, 'updateIdentity'])
+            ->middleware('throttle:10,1')->name('profile.identity.update');
+        Route::put('profile/email', [PartnerPortalController::class, 'updateEmail'])
+            ->middleware('throttle:5,1')->name('profile.email.update');
+        Route::put('profile/password', [PartnerPortalController::class, 'updatePassword'])
+            ->middleware('throttle:5,1')->name('profile.password.update');
+        Route::put('profile/appearance', [PartnerPortalController::class, 'updateAppearance'])
+            ->middleware('throttle:10,1')->name('profile.appearance.update');
+    });
+    Route::post('logout', [PartnerAuthController::class, 'logout'])->middleware('partner.auth')->name('logout');
+};
+
+if (filled(config('partners.domain'))) {
+    Route::domain(config('partners.domain'))->as('partner.')->group($partnerRoutes);
+} else {
+    Route::prefix('partner')->name('partner.')->group($partnerRoutes);
+}
 
 Route::prefix('platform')->name('platform.')->group(function () {
     Route::get('login', [PlatformAuthController::class, 'showLogin'])->name('login');
@@ -76,6 +125,8 @@ Route::prefix('platform')->name('platform.')->group(function () {
             Route::get('settings/general', [PlatformGeneralSettingController::class, 'edit'])->middleware('platform.permission:platform.admins.manage')->name('settings.general');
             Route::put('settings/general', [PlatformGeneralSettingController::class, 'update'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.update');
             Route::put('settings/general/companies/{company}/subscription-enforcement', [PlatformGeneralSettingController::class, 'updateCompanyEnforcement'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.companies.subscription-enforcement');
+            Route::get('settings/partners', [PlatformPartnerSettingController::class, 'edit'])->middleware('platform.permission:platform.partners.manage')->name('settings.partners.edit');
+            Route::put('settings/partners', [PlatformPartnerSettingController::class, 'update'])->middleware(['platform.permission:platform.partners.manage', 'throttle:10,1'])->name('settings.partners.update');
             Route::get('subscriptions/preflight', [PlatformSubscriptionPreflightController::class, 'index'])->middleware('platform.permission:platform.admins.manage')->name('subscriptions.preflight');
             Route::get('subscriptions/catalog', [PlatformSubscriptionPlanCatalogController::class, 'index'])->middleware('platform.permission:platform.admins.manage')->name('subscriptions.catalog');
             Route::post('subscriptions/plans/{plan}/versions', [PlatformSubscriptionPlanCatalogController::class, 'storeVersion'])->middleware(['platform.permission:platform.admins.manage', 'throttle:5,1'])->name('subscriptions.plans.versions.store');
@@ -125,6 +176,7 @@ Route::get('/', [MarketingController::class, 'home'])->name('marketing.home');
 Route::get('/fonctionnalites', fn () => app(MarketingController::class)->page('fonctionnalites'))->name('marketing.features');
 Route::get('/factures-sms-whatsapp', fn () => app(MarketingController::class)->page('factures-sms-whatsapp'))->name('marketing.invoices');
 Route::get('/secteurs', fn () => app(MarketingController::class)->page('secteurs'))->name('marketing.sectors');
+Route::get('/partenaires', fn () => app(MarketingController::class)->page('partenaires'))->name('marketing.partners');
 Route::get('/tarifs', fn () => view('marketing.pricing', ['pricing' => config('marketing.plans'), 'pricingNote' => config('marketing.pricing_note')]))->name('marketing.pricing');
 Route::get('/securite', fn () => app(MarketingController::class)->page('securite'))->name('marketing.security');
 Route::get('/aide', fn () => app(MarketingController::class)->page('aide'))->name('marketing.help');
@@ -132,7 +184,7 @@ Route::get('/mentions-legales', fn () => app(MarketingController::class)->page('
 Route::redirect('/connexion', '/user_login')->name('marketing.login');
 Route::redirect('/inscription', '/register')->name('marketing.register');
 Route::get('/sitemap.xml', function () {
-    $paths = ['', 'fonctionnalites', 'factures-sms-whatsapp', 'secteurs', 'tarifs', 'securite', 'aide', 'mentions-legales'];
+    $paths = ['', 'fonctionnalites', 'factures-sms-whatsapp', 'secteurs', 'partenaires', 'tarifs', 'securite', 'aide', 'mentions-legales'];
     return response()->view('marketing.sitemap', ['urls' => array_map(fn ($path) => url('/'.ltrim($path, '/')), $paths)], 200, ['Content-Type' => 'application/xml']);
 })->name('marketing.sitemap');
 Route::get('/robots.txt', fn () => response("User-agent: *\nAllow: /\nSitemap: ".route('marketing.sitemap')."\n", 200, ['Content-Type' => 'text/plain']))->name('marketing.robots');
@@ -362,6 +414,7 @@ Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.select
 });
 Route::prefix('subscription')->middleware(['auth','company.resolve','company.selected','subscription.manage'])->group(function () {
     Route::get('', [\App\Http\Controllers\SubscriptionController::class,'index'])->name('subscriptions.index');
+    Route::post('preview', [\App\Http\Controllers\SubscriptionController::class,'preview'])->middleware('throttle:30,1')->name('subscriptions.preview');
     Route::post('checkout', [\App\Http\Controllers\SubscriptionController::class,'checkout'])->middleware('throttle:10,1')->name('subscriptions.checkout');
     Route::get('status/{transactionId}', [\App\Http\Controllers\SubscriptionController::class,'status'])->middleware('throttle:60,1')->name('subscriptions.status');
     Route::get('return', [\App\Http\Controllers\SubscriptionController::class,'returned'])->name('subscriptions.return');

@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260904-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260909-4" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -1125,6 +1125,10 @@
                 inputAttributes: {
                     min: totalAmount - remiseMontant, // Empêcher une saisie inférieure au total après remise
                     step: "1"
+                },
+                didOpen: () => {
+                    const input = Swal.getInput();
+                    if (input) input.style.textAlign = 'center';
                 },
                 showCancelButton: true,
                 confirmButtonText: "Calculer la monnaie",

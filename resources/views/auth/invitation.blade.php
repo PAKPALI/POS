@@ -3,7 +3,7 @@
 @section('title', 'Invitation — '.$invitation->company->name)
 
 @push('styles')
-<link href="{{ asset('hub/assets/css/invitation.css') }}?v=20260902-1" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/invitation.css') }}?v=20260908-1" rel="stylesheet">
 @endpush
 
 @section('content')

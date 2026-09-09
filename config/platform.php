@@ -10,12 +10,12 @@ return [
         'support' => [
             'label' => 'Support',
             'description' => 'Consultation des entreprises et utilisateurs pour l’assistance.',
-            'permissions' => ['platform.dashboard.view', 'platform.companies.view', 'platform.users.view'],
+            'permissions' => ['platform.dashboard.view', 'platform.companies.view', 'platform.users.view', 'platform.partners.view'],
         ],
         'finance' => [
             'label' => 'Finance',
             'description' => 'Consultation des paiements, quotas et rentabilité, avec réconciliation.',
-            'permissions' => ['platform.dashboard.view', 'platform.payments.view', 'platform.payments.reconcile'],
+            'permissions' => ['platform.dashboard.view', 'platform.payments.view', 'platform.payments.reconcile', 'platform.partners.view', 'platform.partner_commissions.view', 'platform.partner_withdrawals.view'],
         ],
         'technical' => [
             'label' => 'Technique',

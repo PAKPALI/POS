@@ -1,0 +1,6 @@
+@extends('layouts.public-auth')
+@section('title', 'Vérification partenaire')
+@section('content')
+<div class="auth-flow auth-login-flow"><div class="auth-flow-heading"><span class="auth-flow-kicker"><i class="bi bi-shield-lock" aria-hidden="true"></i> Vérification en deux étapes</span><h1>Confirmez votre connexion.</h1><p>Un code à six chiffres vient d’être envoyé à votre adresse partenaire.</p></div>@if(session('status'))<x-ui.alert variant="success">{{ session('status') }}</x-ui.alert>@endif@if($errors->any())<x-ui.alert variant="danger">{{ $errors->first() }}</x-ui.alert>@endif
+<form method="POST" action="{{ route('partner.two-factor.verify') }}">@csrf<x-ui.input id="code" name="code" inputmode="numeric" label="Code de vérification" required autocomplete="one-time-code" :error="$errors->first('code')" /><x-ui.form-actions class="auth-form-actions"><x-ui.button type="submit" class="w-100 auth-submit" loading-text="Vérification…">Vérifier le code</x-ui.button></x-ui.form-actions></form><form method="POST" action="{{ route('partner.two-factor.resend') }}">@csrf<p class="auth-flow-link"><button class="saas-link-button" type="submit" data-loading-text="Envoi…">Renvoyer un code</button></p></form></div>
+@endsection

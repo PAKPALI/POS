@@ -11,6 +11,9 @@
         @case('file')<path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h4M9 12h6M9 16h6"/>@break
         @case('shield')<path d="M12 3 20 6v5c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/>@break
         @case('check')<path d="m5 12 4.5 4.5L19 7"/>@break
+        @case('percent')<circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/><path d="m6 18 12-12"/>@break
+        @case('share')<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.5-4.3M8.2 13.2l7.5 4.3"/>@break
+        @case('chart')<path d="M4 19V5M4 19h16"/><path d="m7 15 3-4 3 2 5-6"/>@break
         @case('layers')<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/>@break
         @case('lock')<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>@break
         @case('archive')<path d="M4 7h16v13H4V7ZM3 4h18v3H3V4ZM9 11h6"/>@break

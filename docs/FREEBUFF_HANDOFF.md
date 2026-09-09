@@ -1283,3 +1283,583 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - La recette visuelle finale mobile/desktop des parcours concernés est déclarée conforme.
 - Le webhook unique `/api/kprimepay/webhook` reste le point d’entrée production pour les deux familles : `SUB-*` active un abonnement et `QUOTA-*` crédite les quotas. Les URLs de retour navigateur ne sont pas utilisées comme preuve de paiement.
 - La phase de développement fonctionnel est donc considérée comme **terminée (100 %)**. Il reste uniquement la configuration contrôlée de production (variables SMTP/KPrimePay, URL webhook, déploiement, supervision et activation progressive de l’enforcement).
+
+## Mise à jour du 8 septembre 2026 — architecture de la plateforme Partenaires
+
+- Le cahier complet `docs/CAHIER_ARCHITECTURE_PLATEFORME_PARTENAIRES.md` a été ajouté. Il couvre l’inscription et l’authentification partenaire, le sous-domaine, les codes uniques, l’attribution à vie au niveau du `subscription_account`, la remise du premier abonnement, les commissions récurrentes, les paliers progressifs 10–25 %, le portefeuille, les retraits Mobile Money, l’administration, la sécurité, la performance, les tests et le lancement progressif.
+- **Architecture retenue** : monolithe modulaire dans le projet Laravel et la base MySQL actuels, avec garde/session/routes/vues/tables partenaires séparés. Aucun appel API HTTP interne n’est nécessaire en V1 ; une extraction future reste possible via événements/outbox.
+- **Sûreté financière** : montants XOF entiers, snapshot du brut/remise/net/taux, attribution et commission créées atomiquement pendant le règlement vérifié, grand livre immuable, compensations au lieu de suppressions, idempotence et verrous sur paiements/retraits.
+- **KPrimePay** : les encaissements existants restent inchangés. Les payouts devront utiliser un service et une clé distincts, les scopes payout/read, l’IP autorisée, une idempotency key persistée, le statut crédit et les webhooks de transfert. Aucun payout n’a été appelé ni simulé dans ce lot documentaire.
+- **Règle de palier corrigée et fixée** : le taux part de 10 % et s’arrête à 25 %. Il faut 5 nouveaux clients qualifiés par point de 10 à 15 %, puis 10 clients par point de 15 à 20 %, puis 20 clients par point de 20 à 25 %. Ainsi, les rangs 26–35 gagnent 15 %, 36–45 gagnent 16 %, jusqu’aux rangs 156–175 à 24 %, puis le rang 176 et tous les suivants gagnent 25 %. Le taux est acquis par chaque client et conservé lors de ses renouvellements.
+- **Décisions produit/juridiques à confirmer avant implémentation financière** : commission sur brut, taux acquis conservé, maturité 7 jours, minimum de retrait proposé à 5 000 XOF en plus des 3 clients, revue manuelle initiale, frais, fiscalité/KYC et remboursements.
+- **État réel** : architecture/documentation uniquement. Le module partenaire n’est pas encore développé. La reprise doit commencer par la Phase 0 du cahier, puis progresser phase par phase avec tests concomitants et mise à jour de ce handoff à chaque lot.
+- **Contrat UI/UX partenaire** : le futur portail doit reprendre concrètement le template SaaS Maxanou. `layouts.partner` sera construit à partir du shell, des tokens, thèmes et assets partagés de `layouts.saas`, avec navigation partenaire uniquement ; il ne doit pas copier une nouvelle feuille CSS ni réintroduire l’ancien template. Les vues doivent employer les composants `x-ui.*` existants, les DataTables partagées, le responsive 320–1440 px, l’accessibilité et `ServerButtonLoader`. `php artisan ui:lint`, `view:cache`, les tests de rendu et la recette clair/sombre mobile/desktop sont des gates obligatoires de chaque lot d’interface.
+- **Prompt de reprise prêt** : `docs/PROMPT_DEMARRAGE_IMPLEMENTATION_PARTENAIRES.md` peut être copié dans une nouvelle discussion. Il impose une fonctionnalité à la fois, tests automatisés concomitants, inspection visuelle par l’agent, rapport complet, mise à jour du handoff, scénario de recette manuelle, arrêt obligatoire et autorisation explicite du propriétaire avant de poursuivre.
+
+## Mise à jour du 8 septembre 2026 — message d’erreur du mot de passe administrateur
+
+- Les actions d’administration protégées par `current_password:platform` renvoient désormais un message explicite lorsque le mot de passe est incorrect : **« Votre mot de passe plateforme est incorrect. »** ; un message distinct indique lorsqu’il est absent.
+- Le correctif couvre les paramètres généraux, les exceptions d’abonnement par entreprise, les tarifs/coûts, les réglages partenaires, les alertes, le catalogue de plans, ainsi que la gestion des comptes administrateurs. Les réponses JSON utilisées par les SweetAlert récupèrent donc aussi ce message exploitable.
+- Des assertions Feature vérifient le texte exact pour les paramètres généraux, l’exception par entreprise et les tarifs.
+- `php artisan view:cache`, les vérifications `php -l` des contrôleurs touchés et `git diff --check` passent. La suite PHPUnit ciblée n’a pas pu démarrer dans cet environnement : Symfony/PHP échoue avant les tests avec `proc_open(): Command conversion failed` sous Windows. À relancer dans l’environnement local PHP habituel avant la recette manuelle.
+
+## Mise à jour du 8 septembre 2026 — Partenaires, lot 1 : fondation technique désactivée
+
+### Réalisé
+
+- Fondation additive : modèles `Partner`, `PartnerPromoCode`, `PartnerTwoFactorChallenge` et `PartnerAuditLog`, factory partenaire, garde `partner`, provider séparé et broker `partner_password_reset_tokens`.
+- Migration `2026_09_08_090000_create_partner_foundation_tables.php` : identités partenaires, jetons de réinitialisation, challenges 2FA hashés, codes promotionnels normalisés et journal d’audit. Les clés étrangères sont restrictives ; les identifiants, e-mails, téléphones et codes normalisés ont des contraintes uniques ; les index de statut, audit et 2FA sont présents.
+- `config/partners.php` et réglages plateforme : acquisition, inscription et payouts sont tous à `false`; remise initiale 1 000 bps, plafond 2 500 bps, maturité 7 jours, minimum 5 000 XOF et minimum 3 clients.
+- Permissions plateforme préparées : Support peut consulter les partenaires ; Finance peut consulter partenaires, commissions et retraits. La gestion, l’approbation et les ajustements ne sont pas attribués.
+
+### Hors périmètre volontaire
+
+- Aucune route, vue, écran, inscription, connexion, e-mail, attribution, checkout, remise, commission, grand livre, retrait, appel KPrimePay ou payout.
+- `SubscriptionSettlementService`, `SubscriptionCheckoutService`, `KprimePayService` et le webhook existant ne sont pas modifiés.
+
+### Validations exactes
+
+- `php artisan test tests/Feature/PartnerFoundationTest.php tests/Feature/SubscriptionFoundationTest.php --no-coverage` avec `ANSICON=120x40` temporaire : **5 tests, 25 assertions, 0 échec**. Cette variable contourne uniquement l’échec Windows de détection des dimensions du terminal (`mode CON`), sans changer le dépôt ni Laravel.
+- `php artisan migrate --pretend`, puis `php artisan migrate --force` : migration valide, strictement additive et appliquée sur la base locale applicative comme lot **35**. Les onze réglages `partners.*` ont été relus en lecture seule après migration ; acquisition, inscription et payouts sont bien à `false`. `RefreshDatabase` l’a aussi exercée dans la base de test.
+- `php artisan route:list --name=partner` : aucune route, attendu à ce stade.
+- Lint PHP : passé. `git diff --check` : propre.
+
+### Recette visuelle
+
+- Non applicable et non prétendue : aucune interface ni route publique n’est livrée. `php artisan view:cache` et `php artisan ui:lint` ne sont pas requis, aucune vue/UI n’ayant été touchée.
+
+### Risques et reprise
+
+- Les décisions commerciales et juridiques restent nécessaires avant les lots financiers : base de commission brute, fiscalité/KYC, frais, remboursements, conditions partenaires et compte payout staging.
+- Prochain lot, après validation manuelle explicite : authentification partenaire et premier `layouts.partner` fondé sur le shell SaaS partagé, sans code appliquable, checkout ou commission.
+
+## Mise à jour du 8 septembre 2026 — Partenaires, lot 2 : authentification et premier portail
+
+### Réalisé
+
+- Authentification séparée via le guard/provider `partner`, routes nommées `partner.*` sous `/partner` (ou sous-domaine `PARTNER_DOMAIN` s’il est configuré), et middlewares `partner.auth`, `partner.active`, `partners.enabled`.
+- Parcours livrés : connexion, inscription conditionnelle, vérification e-mail par URL signée à durée limitée, 2FA e-mail avec code hashé à usage unique et compteur de tentatives, réinitialisation de mot de passe via le broker partenaire, déconnexion et invalidation par `auth_version`.
+- Inscription volontairement fermée par défaut ; le portail protégé renvoie une page d’indisponibilité tant que `partners.enabled` est désactivé. Aucun e-mail réel n’a été envoyé.
+- Premier `layouts.partner` construit sur le shell SaaS partagé et les assets/tokens existants, avec navigation partenaire limitée au tableau de bord et au profil. Le tableau de bord expose uniquement l’état de fondation ; aucun code promo, checkout, attribution, commission, portefeuille, retrait ou payout n’est inclus.
+- Profil partenaire avec préférences d’apparence `system/light/dark` et couleur d’accent validée côté serveur. Les vues d’authentification utilisent les composants `x-ui.*` ; le shell conserve `ServerButtonLoader`, thèmes et responsive partagés.
+
+### Fichiers principaux
+
+- `app/Http/Controllers/Partner/AuthController.php`, `app/Http/Controllers/Partner/PortalController.php`
+- `app/Services/PartnerAuthenticationService.php`
+- `app/Http/Middleware/AuthenticatePartner.php`, `EnsurePartnerActive.php`, `EnsurePartnersEnabled.php`
+- Notifications partenaire e-mail/2FA/reset, `routes/web.php`, `resources/views/layouts/partner.blade.php` et `resources/views/partner/**`
+- `tests/Feature/PartnerAuthenticationTest.php`
+
+### Validations exactes
+
+- Composant partagé corrigé : le bouton de visibilité du mot de passe est unifié avec l’amélioration automatique du design system, sans doublon visuel.
+
+- `php artisan test tests/Feature/PartnerFoundationTest.php tests/Feature/PartnerAuthenticationTest.php tests/Feature/SubscriptionFoundationTest.php --no-coverage` avec `ANSICON=120x40` temporaire : **11 tests, 63 assertions, 0 échec**.
+- `php artisan view:cache` : succès.
+- `php artisan ui:lint --changed` : `Garde-fous UI SaaS : OK`.
+- `git diff --check` : propre.
+- `php artisan route:list --name=partner` : 16 routes nommées présentes.
+
+### Inspection visuelle
+
+- Navigateur intégré inspecté sur `/partner/login`, `/partner/register` et `/partner/forgot-password` en thème sombre, à l’état initial et sans soumettre de données ; la page `/partner/login` est laissée ouverte pour la revue propriétaire.
+- Le rendu reprend le branding Maxanou, les contrôles d’apparence, les composants de formulaire, les états de focus et le shell partagé. La recette manuelle doit encore confirmer les largeurs 320–1440 px et les thèmes clair/sombre sur un compte partenaire de test autorisé.
+
+### Recette manuelle proposée — gate obligatoire
+
+1. En environnement local/staging isolé, activer temporairement `partners.enabled` puis `partners.registration_enabled` dans les réglages plateforme ; ne pas activer les payouts.
+2. Créer un compte partenaire avec une adresse de test, confirmer le lien signé reçu, puis vérifier que le compte passe de `pending_email` à `active`.
+3. Se connecter avec un mot de passe robuste ; activer la 2FA sur ce compte, vérifier la réception du code, son expiration et l’impossibilité de le réutiliser.
+4. Ouvrir le tableau de bord et le profil, tester le changement d’apparence et vérifier le rendu clair/sombre à 1440, 1024, 768 et 390 px.
+5. Tester la demande de reset, l’utilisation unique du lien, la déconnexion et l’invalidation de session après changement de mot de passe.
+6. Repasser les réglages partenaires à `false` et confirmer que le portail protégé est indisponible. Ne déclencher aucun paiement, checkout, commission ou payout.
+
+### Risques et reprise
+
+- La notification est actuellement synchrone et dépend de la configuration SMTP ; la recette doit utiliser un relais de test ou un fake, jamais la production.
+- La prochaine phase ne doit commencer qu’après validation manuelle de ce lot et autorisation explicite du propriétaire. Elle pourra traiter la gestion des codes partenaires uniquement après confirmation des décisions commerciales/juridiques de la Phase 0.
+
+## Mise à jour du 8 septembre 2026 — Partenaires, ajustement inscription et pays actifs
+
+### Réalisé
+
+- Le formulaire demande désormais uniquement le pays de résidence et le champ « Numéro ». Le champ « Pays du téléphone » et le libellé « Téléphone E.164 » ont été retirés.
+- Le Togo est le seul pays actif par défaut (`TG`, `+228`). Le préfixe affiché et l’aide de saisie sont recalculés côté navigateur lors du changement de pays ; la normalisation et les longueurs autorisées restent contrôlées côté serveur.
+- `PartnerCountryService` centralise le catalogue, les pays actifs et la conversion du numéro national vers le format E.164 stocké. Les autres pays restent inactifs jusqu’à activation administrative.
+- Une page Administration / Paramètres / Partenaires permet au super-administrateur de gérer l’ouverture du portail, l’ouverture des inscriptions et la liste des pays actifs. Chaque changement exige un motif et le mot de passe plateforme, puis est inscrit dans l’historique et le journal d’audit. Les payouts restent explicitement verrouillés.
+- Migration `2026_09_08_130000_add_partner_active_countries_setting` appliquée localement comme lot **36** ; elle initialise `partners.active_countries` à `["TG"]`.
+
+### Validations exactes
+
+- `php artisan test tests/Feature/PartnerAuthenticationTest.php tests/Feature/PlatformPartnerSettingTest.php tests/Feature/PartnerFoundationTest.php tests/Feature/PlatformGeneralSettingTest.php --no-coverage` avec `ANSICON=120x40` temporaire : **15 tests, 83 assertions, 0 échec**.
+- `php artisan migrate --force` : migration du réglage pays appliquée.
+- `php artisan view:cache` : succès.
+- `php artisan ui:lint --changed` : `Garde-fous UI SaaS : OK`.
+- `git diff --check` : propre.
+- `php artisan route:list --name=partner` : 16 routes partenaire ; `platform.settings.partners` : 2 routes d’administration.
+
+### Inspection visuelle
+
+- Navigateur intégré inspecté sur `/partner/register` en thème sombre et largeur responsive disponible : le formulaire affiche `Pays de résidence`, `Togo (+228)` et `Numéro`, sans les deux anciens libellés.
+- La validation visuelle des actions d’administration doit être faite avec un compte super-administrateur autorisé ; aucune authentification ni donnée sensible n’a été saisie par l’agent.
+
+### Recette manuelle ciblée
+
+1. Ouvrir `http://127.0.0.1:1111/platform/settings/partners` avec un compte super-administrateur.
+2. Vérifier que Togo est le seul pays actif et que le portail/inscription sont désactivés par défaut.
+3. Activer le portail et l’inscription, sélectionner éventuellement un second pays, saisir un motif et confirmer avec le mot de passe plateforme.
+4. Ouvrir `/partner/register`, changer de pays et vérifier que l’indicatif affiché et l’aide du champ « Numéro » changent immédiatement.
+5. Créer un compte de test avec un numéro national, vérifier que la valeur stockée est normalisée avec l’indicatif du pays sélectionné.
+6. Désactiver ensuite le second pays et confirmer que les nouvelles inscriptions pour ce pays sont refusées ; laisser `partners.payouts_enabled` à `false`.
+
+### Gate
+
+Je m’arrête après ce lot. La suite nécessite ta validation visuelle et fonctionnelle de l’inscription et de l’écran d’administration, puis une autorisation explicite pour continuer.
+
+## Mise à jour du 8 septembre 2026 — Harmonisation des erreurs d’authentification
+
+- Les alertes d’erreur des pages d’authentification publiques et plateforme utilisent maintenant un fond rouge plein, un texte blanc et une icône blanche pour une lecture immédiate.
+- Une marge basse dédiée sépare l’alerte du premier champ, notamment le libellé « Nom complet » du formulaire d’inscription partenaire.
+- Les versions CSS des layouts `public-auth` et `platform-auth` ont été incrémentées pour éviter un cache navigateur obsolète.
+- Contrôles : tests partenaires et réglages plateforme **9 tests, 51 assertions, 0 échec**, `view:cache`, `ui:lint --changed` et `git diff --check` réussis.
+
+## Mise à jour du 8 septembre 2026 — Affichage des erreurs d’authentification
+
+- Les alertes d’erreur des layouts `public-auth`, `platform-auth` et de la page de sécurisation plateforme utilisent maintenant un fond rouge plein, un texte blanc et une icône blanche.
+- Une marge inférieure dédiée crée un espace visuel entre le message d’erreur et le premier libellé du formulaire, notamment « Nom complet » lors d’une inscription partenaire fermée.
+- Les versions CSS des layouts concernés ont été incrémentées afin d’éviter un ancien cache navigateur.
+- Contrôles : **15 tests, 83 assertions, 0 échec**, `view:cache`, `ui:lint --changed` et `git diff --check` réussis. La page `/partner/register` est laissée ouverte dans le navigateur intégré.
+
+## Mise à jour du 8 septembre 2026 — Messages de validation du mot de passe en français
+
+- Les règles Laravel du mot de passe partenaire (`min`, `mixed`, `numbers`, `symbols`, `confirmed` et `uncompromised`) disposent maintenant de messages français explicites.
+- Une aide française permanente rappelle sous le champ : « 12 caractères minimum, avec majuscule, minuscule, chiffre et symbole. »
+- Contrôles finaux : **18 tests, 90 assertions, 0 échec**, `view:cache`, `ui:lint --changed` et `git diff --check` réussis.
+
+## Mise à jour du 8 septembre 2026 — Indicatif intégré au champ Numéro
+
+- L’indicatif du pays est maintenant affiché à l’intérieur du contrôle du numéro, en texte non éditable ; le partenaire saisit uniquement le numéro national.
+- L’accessibilité annonce l’indicatif courant dans le libellé du champ, et le changement de pays met à jour simultanément le préfixe et l’aide de format.
+- Contrôles : **10 tests, 54 assertions, 0 échec** pour les tests partenaires/authentification, `view:cache`, `ui:lint --changed` et `git diff --check` réussis. Le navigateur intégré a confirmé le passage visuel Togo `+228` → Bénin `+229`, puis a été remis sur Togo.
+
+## Mise à jour du 8 septembre 2026 — Validation française des parcours d’authentification
+
+- Les validations du parcours partenaire sont maintenant entièrement explicites en français : connexion, inscription, pays, numéro, e-mail, pseudonyme, conditions, 2FA, réinitialisation du mot de passe et préférences d’apparence du portail.
+- Le dépassement du champ numéro est couvert par le message exact : « Le numéro ne doit pas dépasser 24 caractères. » ; les règles de mot de passe et les validations de l’administration partenaires ont également leurs messages français.
+- Les validations des parcours d’authentification plateforme (connexion, 2FA, mot de passe oublié et réinitialisation) ont été harmonisées pour ne plus laisser remonter les messages Laravel en anglais.
+- Contrôles finaux : **19 tests, 93 assertions, 0 échec**, `view:cache`, `ui:lint --changed`, vérifications PHP de syntaxe et `git diff --check` réussis.
+- Inspection visuelle : `/partner/register` reste ouvert dans le navigateur intégré ; l’arbre d’accessibilité confirme `Pays de résidence`, `Togo (+228)`, `Numéro` et l’aide de mot de passe en français.
+
+### Recette manuelle ciblée
+
+1. Sur `/partner/register`, soumettre un numéro de plus de 24 caractères et vérifier le message rouge/blanc « Le numéro ne doit pas dépasser 24 caractères. ».
+2. Vérifier les messages français pour un e-mail invalide, un pseudonyme invalide, une case de conditions non cochée et un mot de passe insuffisant.
+3. Vérifier les mêmes états sur `/partner/login`, `/partner/forgot-password`, `/partner/reset-password/...`, la 2FA partenaire et les écrans d’authentification plateforme.
+4. Dans `/platform/settings/partners`, vérifier les erreurs françaises liées aux pays actifs, au motif et au mot de passe de confirmation.
+
+### Gate
+
+Je m’arrête après cette correction. La suite attend ta validation manuelle des messages et du rendu, puis ton autorisation explicite de continuer.
+
+## Mise à jour du 8 septembre 2026 — Confirmation e-mail après inscription
+
+- Après une inscription réussie, l’utilisateur est redirigé vers la connexion avec un message explicite : un lien de validation a été envoyé par e-mail, le compte doit être activé par ce lien et la connexion reste bloquée tant que l’adresse n’est pas confirmée.
+- Si un partenaire saisit des identifiants valides alors que son compte est encore `pending_email`, la page de connexion explique directement qu’il doit cliquer sur le lien reçu avant de réessayer. Un mot de passe incorrect conserve le message générique afin de ne pas divulguer d’information de compte.
+- Le test de parcours couvre désormais l’information post-inscription et le blocage explicite avant validation e-mail.
+- Contrôles finaux : **20 tests, 98 assertions, 0 échec**, `view:cache`, `ui:lint --changed`, syntaxe PHP et `git diff --check` réussis.
+
+### Recette manuelle ciblée
+
+1. Activer temporairement les inscriptions dans l’environnement isolé et créer un compte avec une adresse e-mail de test.
+2. Vérifier la redirection vers la connexion et le message indiquant de cliquer sur le lien reçu.
+3. Avant de cliquer sur le lien, tenter une connexion avec le bon mot de passe : vérifier l’instruction de validation et l’absence d’accès au tableau de bord.
+4. Cliquer sur le lien signé reçu, puis se connecter avec les mêmes identifiants : l’accès doit être autorisé.
+
+### Gate
+
+Je m’arrête après cette correction. La suite attend ta validation manuelle du message, du lien reçu et du comportement de connexion, puis ton autorisation explicite de continuer.
+
+## Mise à jour du 8 septembre 2026 — Apparence dynamique du profil partenaire
+
+- Le profil partenaire utilise maintenant le même système d’apparence que le reste du portail : cartes de sélection pour `Selon l’appareil`, `Sombre` et `Clair`, aperçu immédiat du changement et accordéon lisible sur mobile.
+- La palette propose des couleurs rapides et une couleur personnalisée synchronisée entre le sélecteur visuel, le champ hexadécimal, le résumé et l’aperçu. Le contraste du texte d’action est calculé automatiquement.
+- Les préférences sont appliquées instantanément par `DesignSystem.apply`, puis persistées par le formulaire du profil. L’initialisation du thème tient désormais compte du guard partenaire afin de restaurer la préférence dès le chargement de la page.
+- Contrôles finaux : **21 tests, 104 assertions, 0 échec**, `view:cache`, `ui:lint --changed`, syntaxe PHP et `git diff --check` réussis.
+
+### Recette manuelle ciblée
+
+1. Ouvrir `/partner/profile` avec un compte partenaire actif.
+2. Dans « Mode d’affichage », choisir `Clair`, `Sombre` puis `Selon l’appareil` et vérifier que toute l’interface se met à jour immédiatement.
+3. Ouvrir « Couleur dominante », choisir une pastille puis une couleur personnalisée ; vérifier le bouton d’aperçu, le résumé hexadécimal et la lisibilité du texte.
+4. Enregistrer, recharger la page et vérifier que le mode et la couleur sont conservés sur le profil et le tableau de bord.
+5. Refaire le test sur une largeur mobile et avec le thème système clair/sombre.
+
+### Gate
+
+Je m’arrête après cette correction. La suite attend ta validation visuelle du profil partenaire et de la persistance des préférences, puis ton autorisation explicite de continuer.
+
+## Mise à jour du 8 septembre 2026 — Cartes de sélection d’entreprise sur mobile
+
+- La recette visuelle de `/companies/select` a confirmé un chevauchement réel entre les cartes lorsque la vue passe en une seule colonne.
+- Cause : la hauteur `100%` appliquée simultanément au formulaire parent et à la carte imbriquée créait une ligne CSS plus courte que son contenu.
+- Correction : en dessous de 560 px, les formulaires deviennent des conteneurs flex en hauteur automatique et les cartes reprennent leur hauteur intrinsèque, avec un espacement vertical stable.
+- Vérification dans l’onglet local : les cartes Matrix et FENIX sont désormais séparées, sans recouvrement ; le bouton et le contenu restent entièrement visibles.
+- Contrôles techniques : `php artisan view:cache` et `git diff --check` réussis.
+
+## Mise à jour du 9 septembre 2026 — Refonte du détail utilisateur
+
+- L’écran `/platform/users/{id}` suit maintenant la même structure que le détail entreprise : en-tête profil, statut, métriques synthétiques, informations, adhésions et historique.
+- Les anciennes définitions Bootstrap qui se compressaient sur mobile ont été remplacées par une grille de détails stable et des panneaux SaaS dédiés.
+- Les tables d’adhésions et d’invitations restent contenues dans leurs panneaux avec défilement horizontal lorsque nécessaire.
+- Vérification visuelle locale sur mobile et contrôles `php artisan view:cache` / `git diff --check` réussis.
+
+### Gate
+
+Je m’arrête après cette correction. La suite attend ta validation manuelle sur ton appareil mobile (sélection de plusieurs entreprises et défilement), puis ton autorisation explicite de continuer.
+
+## Mise à jour du 9 septembre 2026 — Textareas partenaires sans débordement
+
+- Inspection de `/platform/settings/partners` en largeur mobile (543 px) : le champ « Motif de la modification » débordait de son panneau à cause de `width: 100%` combiné au modèle de boîte `content-box`.
+- Correction mutualisée : les champs `input`, `select` et `textarea` du toolkit SaaS utilisent maintenant `box-sizing: border-box`, `min-width: 0` et `max-width: 100%`.
+- Le même garde-fou est appliqué aux champs de paramètres plateforme, afin de couvrir les autres écrans partenaires et administrateur.
+- Vérification visuelle après actualisation du cache : le textarea reste contenu dans la carte, sur mobile comme sur les largeurs supérieures.
+
+## Mise à jour du 9 septembre 2026 — Refonte du détail entreprise dans l’administration
+
+- L’écran `/platform/companies/{id}` a été restructuré selon le template SaaS : en-tête entreprise avec retour et action de statut, indicateurs regroupés, panneau d’identité, équipe et finance séparés.
+- Les informations d’identité sont désormais présentées dans une grille lisible avec gestion des identifiants longs ; les tables restent scrollables sans casser la carte sur mobile.
+- La vue mobile a été vérifiée dans le navigateur local : l’en-tête, les métriques, l’identité et les sections inférieures sont lisibles et espacés sans débordement.
+- Contrôles techniques : `php artisan view:cache` et `git diff --check` réussis.
+
+## Mise à jour du 9 septembre 2026 — Phase 3, cycle des codes partenaires
+
+- Chaque partenaire dont l’e-mail est validé reçoit automatiquement un code principal actif, unique et non prédictible, au format canonique de 4 à 24 caractères alphanumériques majuscules.
+- L’écran `/partner/code` permet de consulter, copier et personnaliser le code. Les codes réservés, déjà utilisés ou invalides sont refusés ; l’ancien code est retiré et le changement suivant est bloqué pendant le délai administrable (30 jours par défaut).
+- Le validateur public `POST /partner/code/validate` est volontairement neutre : il ne renvoie que `valid`, `discount_percent` et un message métier, avec limitation par IP, session et compte.
+- Le tableau de bord affiche désormais l’état du code, la remise configurée et un état vide pour les statistiques à venir. Aucun checkout, paiement, commission ou payout n’a été branché dans ce lot.
+- L’administration partenaires expose le délai de personnalisation du code (1 à 365 jours), en plus des pays actifs et des interrupteurs du portail ; toute modification reste confirmée par mot de passe et journalisée.
+
+### Fichiers principaux modifiés
+
+- `app/Services/PartnerCodeService.php`, `app/Services/PartnerAuthenticationService.php`, `app/Exceptions/PartnerCodeChangeTooSoon.php`.
+- `app/Http/Controllers/Partner/CodeController.php`, `app/Http/Controllers/Partner/PortalController.php`, `app/Http/Controllers/Platform/PartnerSettingController.php`, `routes/web.php`.
+- `resources/views/partner/code.blade.php`, `resources/views/partner/dashboard.blade.php`, `resources/views/platform/settings/partners.blade.php`, `resources/views/layouts/partner.blade.php`, `public/hub/assets/css/saas-pages.css`.
+- `tests/Feature/PartnerCodeTest.php` et ajustement du test d’authentification/dashboard.
+
+### Migrations et données
+
+- Aucune nouvelle migration n’était nécessaire pour ce lot : la table `partner_promo_codes` et le réglage `partners.code_change_cooldown_days` proviennent de la fondation partenaire déjà appliquée.
+- Les codes retirés restent conservés et protégés par l’unicité globale ; cela garantit une non-réattribution plus stricte que le minimum de 24 mois.
+
+### Contrôles
+
+- **19 tests, 100 assertions, 0 échec** sur le périmètre partenaires/authentification/réglages : `PartnerCodeTest`, `PartnerAuthenticationTest`, `PartnerFoundationTest`, `PlatformPartnerSettingTest`.
+- `php artisan view:cache` : succès.
+- `php artisan ui:lint --changed` : `Garde-fous UI SaaS : OK`.
+- `git diff --check` et syntaxe PHP des nouveaux contrôleurs/services/exceptions : propres.
+- La suite complète a été lancée : **272 tests passent, 6 échecs observés hors périmètre** (`AuthNavigationTest`, `CompanyCreationTest`, `PlatformPaymentPricingTest`, `PlatformSubscriptionCatalogTest`, `SubscriptionAccessTest`, `SubscriptionExpiryCommandTest`). Aucun échec ne concerne les tests Phase 3.
+
+### Inspection visuelle
+
+- Avec la session partenaire déjà ouverte dans le navigateur intégré, `/partner/code` a été inspecté : hiérarchie lisible, code actif clairement mis en avant, bouton Copier accessible, formulaire de personnalisation responsive et états en français.
+- Le tableau de bord `/partner` a été inspecté : code actif, remise, état vide statistique et lien « Gérer mon code » sont visibles sans branchement financier.
+
+### Recette manuelle ciblée
+
+1. Avec un compte partenaire actif, ouvrir `/partner` puis « Mon code partenaire » ; vérifier la présence du code actif et le bouton « Copier ».
+2. Copier le code, ouvrir une fenêtre privée ou utiliser le validateur public prévu par l’intégration future, et vérifier que la réponse valide ne révèle aucune donnée partenaire.
+3. Essayer un code personnalisé valide (4–24 lettres/chiffres), puis vérifier le message de succès et l’ancien code retiré.
+4. Essayer `ADMIN`, un code déjà utilisé, un code avec symbole, puis refaire une modification immédiate : les erreurs doivent rester en français et indiquer le délai de 30 jours.
+5. Avec un super-administrateur, ouvrir `/platform/settings/partners`, vérifier le délai affiché (30 jours), le modifier dans la plage 1–365 jours, saisir un motif et confirmer avec le mot de passe plateforme.
+6. Vérifier que les pays actifs et les interrupteurs du portail restent inchangés et que les payouts demeurent désactivés.
+
+### Gate
+
+Je m’arrête ici après le premier lot autorisé de la Phase 3. J’attends ta validation manuelle du rendu et du parcours du code partenaire, puis ton autorisation explicite avant toute phase suivante.
+
+## Mise à jour du 9 septembre 2026 — Disponibilité du code en temps réel
+
+- Le champ de personnalisation vérifie désormais la disponibilité après chaque saisie (avec temporisation courte pour éviter les requêtes inutiles).
+- Le partenaire voit immédiatement un état français : code disponible, code actuel, code réservé, code déjà utilisé, format invalide ou vérification momentanément indisponible.
+- Le bouton « Enregistrer le code » est désactivé pendant la vérification et pour tout code indisponible ; il se réactive uniquement lorsque le serveur confirme la disponibilité.
+- Un endpoint authentifié `GET /partner/code/availability` applique la même normalisation et la même règle d’unicité que l’enregistrement. Le contrôle serveur de `PUT /partner/code` reste obligatoire pour couvrir les courses et les appels directs.
+
+### Contrôles
+
+- **20 tests, 108 assertions, 0 échec** sur le périmètre partenaires/authentification/réglages, dont la nouvelle couverture de disponibilité (`PartnerCodeTest`).
+- `php artisan view:cache` : succès.
+- `php artisan ui:lint --changed` : `Garde-fous UI SaaS : OK`.
+- Syntaxe PHP et `git diff --check` : propres.
+
+### Inspection visuelle
+
+- Dans la session partenaire du navigateur intégré, le code actuel affiche « Votre code actuel est disponible » et le bouton est actif.
+- La saisie frontend de `ADMIN` affiche « Ce code est réservé par la plateforme » et désactive le bouton ; la restauration du code actuel réactive le bouton. Aucune donnée n’a été enregistrée pendant cette vérification.
+
+### Recette manuelle ciblée
+
+1. Ouvrir `/partner/code` et saisir progressivement un nouveau code alphanumérique ; vérifier l’état « Vérification de la disponibilité… », puis « Ce code est disponible » et l’activation du bouton.
+2. Saisir `ADMIN` ou un code déjà utilisé ; vérifier le message d’indisponibilité et le bouton désactivé.
+3. Saisir un code contenant un espace, un symbole ou moins de 4 caractères ; vérifier le message de format et le bouton désactivé.
+4. Revenir à un code disponible, vérifier la réactivation du bouton, puis enregistrer volontairement un code de test.
+
+### Gate
+
+Je m’arrête après cette extension de la Phase 3. J’attends ta validation manuelle du comportement temps réel avant toute nouvelle modification.
+
+## Mise à jour du 9 septembre 2026 — Information du délai et conservation des paiements liés
+
+- L’espacement entre l’aide du champ et le statut de disponibilité a été resserré pour garder le message immédiatement lisible sous le champ.
+- Une note permanente informe le partenaire que le délai est de 30 jours par défaut après l’enregistrement (réglable par l’administration).
+- La même note précise qu’un code désactivé n’annule pas les paiements déjà liés à ce code ni les conditions acquises par les clients concernés.
+- La personnalisation ne supprime aucune ligne historique : elle retire uniquement l’ancien code pour les nouvelles utilisations et conserve sa traçabilité.
+
+### Contrôles
+
+- **20 tests, 109 assertions, 0 échec** sur le périmètre partenaires/authentification/réglages.
+- `php artisan view:cache`, `php artisan ui:lint --changed`, syntaxe PHP et `git diff --check` : succès.
+- Inspection navigateur `/partner/code` : espacement resserré, note visible et responsive, sans modification de données.
+
+### Gate
+
+Je m’arrête ici et j’attends ta validation manuelle de ce libellé métier et de l’espacement avant de continuer.
+
+## Mise à jour du 9 septembre 2026 — Mini-historique des changements de code
+
+- L’écran `/partner/code` affiche maintenant une section « Historique des changements » sous le formulaire.
+- Chaque ligne présente la date, l’ancien code et le nouveau code activé après la personnalisation.
+- L’historique s’appuie sur les journaux partenaires déjà écrits lors d’un changement ; il est limité aux cinq derniers changements et ne révèle ni IP ni données d’audit sensibles.
+- Lorsqu’aucun changement n’existe, un état vide explicite est affiché.
+- Les anciens codes restent conservés : cette vue confirme qu’un retrait de code ne supprime pas sa traçabilité ni les paiements déjà liés.
+
+### Contrôles
+
+- **20 tests, 113 assertions, 0 échec** sur le périmètre partenaires/authentification/réglages.
+- `php artisan view:cache`, `php artisan ui:lint --changed`, syntaxe PHP et `git diff --check` : succès.
+- Inspection navigateur `/partner/code` : état vide responsive vérifié ; la présentation reste compacte et lisible.
+
+### Gate
+
+Je m’arrête après l’ajout de l’historique. J’attends ta validation manuelle de l’affichage et du contenu avant toute nouvelle phase.
+
+## Mise à jour du 9 septembre 2026 — Correction de l’enregistrement du code
+
+- Cause reproduite : le chargeur global des boutons désactivait le bouton avant que la garde frontend de disponibilité ne s’exécute ; celle-ci annulait alors à tort chaque soumission.
+- Correction : la garde s’appuie maintenant sur un état de disponibilité confirmé séparé de l’attribut HTML `disabled`. Le bouton reste désactivé pour un code indisponible, mais une disponibilité confirmée est bien soumise au serveur.
+- Enregistrement réel vérifié dans le navigateur connecté avec le code de test `DIXON` : message de succès, code actif mis à jour et entrée d’historique ancien/nouveau visibles. Le délai de 30 jours démarre donc sur ce compte de recette.
+- Les contrôles serveur, l’unicité et la conservation des anciens codes restent inchangés.
+
+### Contrôles
+
+- **20 tests, 115 assertions, 0 échec** sur le périmètre partenaires/authentification/réglages.
+- `php artisan view:cache`, `php artisan ui:lint --changed`, syntaxe PHP et `git diff --check` : succès.
+- Inspection frontend : soumission réussie et historique affiché dans le navigateur intégré.
+
+### Gate
+
+Je m’arrête après cette correction. Le compte de recette est désormais soumis au délai de 30 jours ; j’attends ta validation manuelle du succès et de l’historique avant toute nouvelle modification.
+
+## Mise à jour du 9 septembre 2026 — Profil partenaire et raccourci d’apparence
+
+- Le profil partenaire reprend maintenant le parcours compte Maxanou : informations (nom/pseudonyme), e-mail, mot de passe et apparence sont répartis dans des onglets accessibles.
+- Les changements d’identité, d’e-mail et de mot de passe exigent le mot de passe actuel, sont limités en fréquence et sont inscrits dans `partner_audit_logs` sans donnée sensible.
+- Un changement d’e-mail invalide la session, remet le compte en attente de vérification et envoie un nouveau lien signé ; aucune connexion ne reste active tant que la nouvelle adresse n’est pas confirmée.
+- Le topbar partenaire expose le même raccourci Apparence que le shell SaaS : modal, aperçu direct, modes système/sombre/clair, couleur dominante et lien vers les réglages complets. L’enregistrement AJAX réutilise `ServerButtonLoader`.
+- Fichiers principaux : `Partner/PortalController.php`, `routes/web.php`, `layouts/partner.blade.php`, `partner/profile.blade.php`, `PartnerFoundationTest.php`.
+- Contrôles passés : syntaxe PHP, `php artisan route:list --name=partner.profile`, `php artisan view:cache`, `php artisan ui:lint --changed`, `git diff --check`.
+- Les tests partenaires n’ont pas pu être exécutés : l’environnement Windows échoue avant toute assertion dans `Symfony\\Console\\Terminal` avec `proc_open(): Command conversion failed`. Ce défaut touche aussi les tests existants ; il reste à corriger avant de pouvoir confirmer la suite automatisée.
+
+### Gate
+
+Recetter le profil à 1440, 1024, 768 et 390 px, puis vérifier le raccourci Apparence du topbar, la sauvegarde de chaque mode et le changement d’e-mail sur une boîte de test. Ne poursuivre qu’après validation manuelle.
+
+## Mise à jour du 9 septembre 2026 — Lisibilité actions POS et SweetAlert
+
+- Les boutons de confirmation SweetAlert affichent désormais un texte blanc par défaut, y compris dans le POS.
+- Les boutons POS `Sauvegarder`, `En cours` et `Vendre` utilisent aussi un texte blanc par défaut.
+- Les champs SweetAlert du POS, dont la saisie du montant donné par le client, sont centrés.
+- Validation : `php artisan view:cache`, `php artisan ui:lint --changed` et `git diff --check` passent.
+
+## Mise à jour du 9 septembre 2026 — Phase 4, prix promotionnel et attribution
+
+- Le checkout d’abonnement accepte maintenant un code partenaire facultatif et expose `POST /subscription/preview`. Le serveur recalcule toujours le montant catalogue brut, la remise et le net en XOF entiers ; le navigateur n’envoie aucune valeur monétaire de confiance.
+- La remise partenaire est de 10 % uniquement pour le premier abonnement payé d’un `subscription_account` sans attribution existante. Les renouvellements, montées de plan et comptes déjà payés restent au tarif normal.
+- Un partenaire peut utiliser son propre code sur le compte de n’importe quelle entreprise ; l’éligibilité dépend uniquement de la validité du code et du fait que le compte n’a encore aucun abonnement payé ni attribution.
+- La migration `2026_09_09_100000_create_partner_checkout_intents_and_attributions.php` ajoute les snapshots temporaires `partner_checkout_intents`, les attributions uniques et les colonnes financières complémentaires de `subscription_payments`. La migration a été appliquée sur la base locale et rejouée sur `pos_testing`.
+- Le règlement verrouille le paiement et le compte d’abonnement, vérifie l’expiration de l’intention, crée une seule attribution après confirmation serveur KPrimePay et rejette une seconde intention concurrente sans remplacer l’attribution. Les commissions et payouts restent volontairement hors Phase 4.
+- L’écran `resources/views/subscription/index.blade.php` affiche le code partenaire dans la fenêtre de durée et met à jour en temps réel brut, remise, total et message d’éligibilité via le preview serveur. Le bouton confirmé utilise `showLoaderOnConfirm` et bloque les doubles clics.
+
+### Fichiers principaux
+
+- `app/Services/PartnerPromotionService.php`, `app/Services/SubscriptionCheckoutService.php`, `app/Services/SubscriptionSettlementService.php`.
+- `app/Models/PartnerCheckoutIntent.php`, `app/Models/PartnerAttribution.php`, `app/Models/SubscriptionPayment.php`, `app/Models/SubscriptionAccount.php`.
+- `app/Http/Controllers/SubscriptionController.php`, `routes/web.php`, `resources/views/subscription/index.blade.php`.
+- `database/migrations/2026_09_09_100000_create_partner_checkout_intents_and_attributions.php`, `tests/Feature/SubscriptionPartnerPromotionTest.php`.
+
+### Contrôles
+
+- **14 tests, 74 assertions, 0 échec** sur le nouveau périmètre et les tests abonnement concernés : `SubscriptionPartnerPromotionTest`, `SubscriptionDurationTest`, `SubscriptionPaymentTest`, `SubscriptionWebhookTest`.
+- `php artisan view:cache` : succès.
+- `php artisan ui:lint --changed` : `Garde-fous UI SaaS : OK`.
+- `git diff --check` et syntaxe PHP des services, contrôleur et migration : succès.
+- La suite complète a été exécutée en série : **285 tests, 1694 assertions, 6 échecs hors Phase 4**. Les échecs concernent l’authentification/PWA, la création d’entreprise, des réglages plateforme et un cache d’enforcement préexistant ; aucun n’est dans `SubscriptionPartnerPromotionTest` ni dans le règlement KPrimePay d’abonnement.
+
+### Inspection visuelle
+
+- Le rendu serveur de la page Abonnement a été inspecté avec les cartes de plans, la fenêtre de durée, le champ « Code partenaire », le résumé brut/remise/total et les libellés français.
+- Une tentative d’ouverture authentifiée dans le navigateur intégré sur une base `pos_testing` dédiée a été bloquée par l’expiration de session de la page de connexion ; aucun compte de production ni aucun paiement réel n’a été touché. La recette visuelle interactive reste donc à effectuer par le propriétaire.
+
+### Recette manuelle ciblée
+
+1. Avec un compte propriétaire/admin, ouvrir **Abonnement** et choisir le plan Bronze.
+2. Choisir **1 mois**, saisir un code partenaire actif (par exemple le code de recette affiché dans `/partner/code`) et attendre la prévisualisation.
+3. Vérifier l’affichage du brut `5 000 XOF`, de la remise `500 XOF` et du total `4 500 XOF`.
+4. Vérifier qu’un code invalide affiche une erreur française et qu’aucun montant réduit n’est proposé.
+5. Effectuer un premier paiement dans l’environnement sandbox/stub KPrimePay, puis confirmer le webhook serveur. Vérifier l’attribution unique du `subscription_account`.
+6. Créer un second checkout avec le même ou un autre code et le confirmer : le total ne doit plus être réduit et aucune seconde attribution ne doit être créée.
+7. Refaire le parcours aux durées 3 et 12 mois : vérifier respectivement `15 000 → 13 500 XOF` et `55 000 → 49 500 XOF`.
+
+Résultat attendu : montant KPrimePay égal au net serveur, aucune attribution avant paiement confirmé, une seule attribution permanente et quotas inchangés par rapport au plan choisi.
+
+### État
+
+Phase 4 développée et testée côté serveur ; aucun paiement ou webhook réel n’a été exécuté. Les phases commissions, dashboard/export, retraits/payout et administration financière restent à traiter.
+
+## Mise à jour du 9 septembre 2026 — Refonte du champ code promotionnel
+
+- La saisie du code partenaire dans la fenêtre d’abonnement a été refondue pour un rendu plus professionnel et lisible : libellé dédié, badge « Facultatif », icône, aide contextuelle et bouton d’effacement rapide.
+- Le champ normalise automatiquement la saisie en majuscules et supprime les espaces ; le statut de disponibilité est affiché avec une icône et une couleur distinctes pour la vérification, la validation, l’information et l’erreur.
+- Le résumé financier est maintenant hiérarchisé (catalogue, remise, total et expiration) et le bouton principal indique clairement le passage vers le paiement. Le rendu reste responsive sur mobile.
+
+### Contrôles
+
+- `php artisan view:cache` : succès.
+- `php artisan ui:lint --changed` : `Garde-fous UI SaaS : OK`.
+- `SubscriptionPartnerPromotionTest` : **5 tests, 26 assertions, 0 échec**.
+- `git diff --check` : succès.
+- `SubscriptionAccessTest` conserve un échec préexistant sur l’enforcement des limites d’essai (réponse 200 au lieu de 422), sans lien avec cette retouche visuelle.
+
+## Mise à jour du 9 septembre 2026 — Alignement du webhook abonnement sur le flux quota
+
+- Le paiement d’abonnement utilise le même endpoint KPrimePay que le paiement de quota : `/api/kprimepay/webhook`.
+- Les deux parcours utilisent les mêmes événements V1/V2, la même consultation serveur `transactions/debit-status`, les mêmes montants entiers en XOF et la même clé d’idempotence envoyée au checkout.
+- Le webhook abonnement vérifie maintenant aussi immédiatement le montant et la devise annoncés dans l’événement avant d’interroger KPrimePay, comme le flux quota. Le règlement reste idempotent : un paiement déjà marqué `paid` ne recrédite ni abonnement ni quota.
+- L’URL de retour est générée par Laravel avec `route('subscriptions.return')`; en staging elle doit donc utiliser le domaine public de staging (`APP_URL`/hôte HTTPS), tandis que le webhook KPrimePay doit pointer vers `https://<staging>/api/kprimepay/webhook`, comme pour les quotas.
+
+### Contrôles
+
+- `QuotaPaymentTest`, `SubscriptionWebhookTest`, `SubscriptionPartnerPromotionTest`, `SubscriptionPaymentTest` : **19 tests, 121 assertions, 0 échec**.
+- `php artisan route:list --path=api/kprimepay` confirme l’unique endpoint webhook partagé.
+
+## Mise à jour du 9 septembre 2026 — Refonte visuelle de l’historique des paiements
+
+- La section **Historique des paiements** de `resources/views/subscription/index.blade.php` adopte une hiérarchie plus claire : en-tête de suivi, compteur d’opérations, dates avec heure, plan, durée, montant et statut lisibles.
+- Les statuts techniques sont présentés en français dans des badges cohérents (`Payé`, `En attente`, `Créé`, `Échoué`, `Expiré`, `Annulé`) avec une couleur et une icône adaptées.
+- Le tableau reste paginé, conserve les montants et données serveur existants, et devient une liste de cartes responsive sous 768 px pour éviter le défilement horizontal sur mobile.
+- `SubscriptionPayment` expose les attributs de présentation `status_label` et `status_variant` afin de garder la logique de libellé hors de la vue.
+
+### Contrôles
+
+- `php artisan view:cache` : succès.
+- `php artisan ui:lint --changed` : `Garde-fous UI SaaS : OK`.
+- `git diff --check` : succès.
+- Vérification navigateur authentifiée sur `/subscription` : 2 paiements affichés en cartes à 422 px, statuts « En attente » et « Créé », sans lancement de paiement.
+
+## Mise à jour du 9 septembre 2026 — Phase 5, commissions et grand livre partenaire
+
+- La confirmation d’un abonnement attribué crée désormais, dans la même transaction que l’abonnement, une commission partenaire immédiatement `available` et son écriture de portefeuille `commission_credit` dans le bucket `available`. Le partenaire peut donc la voir dans son solde retirable dès la confirmation du webhook ; les règles de retrait (seuil, vérification, calendrier et activation des payouts) restent un contrôle distinct du futur module de retraits.
+- La commission est calculée exclusivement côté serveur sur le brut catalogue : `floor(brut × taux acquis / 10 000)`. Le brut, la remise, le net, le taux figé, la formule, l’attribution et la version de règle sont conservés dans un snapshot auditable.
+- Le premier abonnement attribué produit une commission `acquisition`. Les renouvellements et montées de plan d’un compte déjà attribué produisent une commission `renewal` ou `upgrade`, sans remise client et avec le taux acquis à vie de l’attribution, jamais le taux courant du partenaire.
+- Une contrainte unique sur `subscription_payment_id`, les verrous du règlement et les clés d’idempotence du grand livre empêchent toute seconde commission positive ou tout second crédit lors d’un webhook/rejeu de paiement.
+- Le réglage `partners.commission_hold_days` reste disponible pour une politique de réserve ultérieure. Sa valeur de production est maintenant `0`. Si une réserve est réactivée (`> 0`), la commande `partners:mature-commissions` transfère de manière idempotente les commissions arrivées à échéance de `pending` vers `available` en inscrivant un débit pending et un crédit available de même montant. Elle est planifiée chaque heure, sans appel à KPrimePay.
+- Les écritures `partner_wallet_entries` sont immuables côté modèle : une modification ou suppression Eloquent est refusée. Aucun retrait, payout, token payout, webhook payout ou appel externe n’est introduit par cette phase.
+
+### Fichiers principaux
+
+- `database/migrations/2026_09_09_110000_create_partner_commissions_and_wallet_entries.php`.
+- `database/migrations/2026_09_09_120000_make_partner_commissions_immediately_available.php`.
+- `app/Models/PartnerCommission.php`, `app/Models/PartnerWalletEntry.php` et relations partenaires/attributions/paiements.
+- `app/Services/PartnerCommissionService.php`, `app/Services/SubscriptionSettlementService.php`.
+- `app/Console/Commands/MaturePartnerCommissions.php`, `app/Console/Kernel.php`.
+- `tests/Feature/PartnerCommissionLifecycleTest.php`.
+
+### Migrations et contrôles
+
+- Migration additive appliquée sur la base locale : création de `partner_commissions` et `partner_wallet_entries` avec clés étrangères restrictives, index et unicités financières.
+- Migration `2026_09_09_120000_make_partner_commissions_immediately_available` appliquée : le réglage `partners.commission_hold_days` vaut `0` pour les nouvelles confirmations. Les éventuelles commissions historiques déjà `pending` ne sont pas réécrites rétroactivement sans opération contrôlée.
+- Commande locale exécutée sans donnée à maturer : `partners:mature-commissions --limit=200` → `0`.
+- Tests ciblés abonnement/commission/webhook : **20 tests, 114 assertions, 0 échec**.
+- `php artisan view:cache`, `php artisan ui:lint --changed`, syntaxe PHP et `git diff --check` : succès.
+- Suite complète : **290 tests, 1729 assertions, 6 échecs préexistants hors Phase 5** (authentification, création d’entreprise, session partenaire, réglages plateforme, libellé catalogue et enforcement essai).
+
+### Recette manuelle Phase 5
+
+1. Sur staging, effectuer un premier abonnement Bronze mensuel à `5 000 XOF` avec un code partenaire actif, puis laisser le webhook KPrimePay confirmer le paiement net `4 500 XOF`.
+2. Vérifier en base ou dans le futur écran administration que la commission est immédiatement `available`, avec brut `5 000`, remise `500`, net `4 500`, taux `1 000 bps` et montant `500 XOF` dans le bucket `available`.
+3. Rejouer le même webhook : une seule commission et une seule écriture available doivent subsister.
+4. Effectuer ensuite un renouvellement Bronze sans code : paiement `5 000 XOF`, aucune remise et une seconde commission `renewal` de `500 XOF` au taux acquis `1 000 bps`.
+5. Si une recette spécifique réactive temporairement un délai de réserve, exécuter `php artisan partners:mature-commissions` uniquement après l’échéance : une commission due devient `available`. Avec le réglage normal à `0`, la commande ne doit rien modifier.
+
+### État et risque restant
+
+- Aucun écran, export, retrait, payout ou remboursement n’est livré dans ce lot : il n’y a donc pas de recette visuelle à réaliser pour ce noyau backend.
+- Les compensations de remboursements/annulations seront raccordées au futur flux de remboursement : aucune annulation financière n’existe aujourd’hui et aucune écriture négative n’est créée sans événement source vérifié. Tant que les commissions sont disponibles immédiatement, ce futur flux devra prévoir une contre-écriture avant tout remboursement afin d’éviter un solde partenaire négatif non contrôlé.
+- Prochain lot : Phase 6, lecture seule partenaire (dashboard, clients attribués, commissions et export), alimentée exclusivement par ce grand livre.
+
+## Mise à jour du 9 septembre 2026 — Phase 6, portail partenaire : dashboard, clients, commissions et exports
+
+- Le tableau de bord partenaire remplace l’ancien état vide par des cartes calculées depuis le grand livre : soldes `pending`, `available`, `reserved` et `paid`, clients qualifiés, abonnements actifs, taux courant, progression de palier, cinq dernières commissions et une vue agrégée des 30 derniers jours.
+- Les écrans **Mes clients** et **Mes commissions** sont paginés côté serveur. L’espace clients expose uniquement la raison sociale, le pays, l’attribution, le plan/statut et les commissions cumulées : aucun e-mail ni numéro de téléphone client n’est rendu ou exporté.
+- Les commissions disposent de filtres bornés (statut et période maximale de 24 mois) et d’un détail de calcul en lecture seule : brut, remise, net encaissé et taux acquis. Aucun montant, statut, solde ou commission n’est modifiable depuis le portail.
+- L’export CSV des commissions est désormais créé comme une tâche en queue, stocké dans l’espace local non public, lié au partenaire propriétaire et téléchargeable uniquement par lui pendant 7 jours. La demande et le téléchargement sont audités. Aucun fichier client ou donnée de contact n’est inclus.
+- Les routes partenaires ajoutées sont `/partner/clients`, `/partner/commissions`, `/partner/commissions/export` et `/partner/exports/{export}/download`. Elles gardent les middlewares `partner.auth`, `partner.active` et `partners.enabled`.
+- Cette phase n’ajoute aucun retrait, aucune réservation de solde, aucun compte Mobile Money, aucun payout et aucun appel KPrimePay. Le solde disponible demeure immédiatement visible après confirmation du webhook conformément à la décision produit validée.
+
+### Fichiers principaux
+
+- `app/Services/PartnerDashboardQueryService.php` et `app/Http/Controllers/Partner/InsightsController.php`.
+- `app/Models/PartnerExport.php`, `app/Jobs/GeneratePartnerCommissionExport.php` et `database/migrations/2026_09_09_130000_create_partner_exports_table.php`.
+- `resources/views/partner/dashboard.blade.php`, `resources/views/partner/clients.blade.php`, `resources/views/partner/commissions.blade.php` et `resources/views/layouts/partner.blade.php`.
+- `tests/Feature/PartnerInsightsTest.php`.
+
+### Migrations et contrôles
+
+- Migration additive `2026_09_09_130000_create_partner_exports_table` appliquée localement. Aucun historique financier n’est modifié.
+- Tests ciblés partenaires, attribution, commission, abonnement et webhook : **32 tests, 191 assertions, 0 échec**.
+- `php artisan view:cache`, `php artisan ui:lint --changed`, syntaxe PHP et `git diff --check` : succès au contrôle final de ce lot.
+- Inspection navigateur : la page locale d’authentification partenaire a été vérifiée. Lors du contrôle développeur, l’in-app browser ne disposait pas d’une session partenaire authentifiée pour les nouvelles pages ; leur rendu et leurs protections ont été couverts par les tests Feature. La recette manuelle propriétaire est désormais validée (voir l’entrée de validation ci-dessous).
+
+### Recette manuelle Phase 6
+
+1. Connectez-vous à un partenaire ayant au moins une commission issue d’un abonnement attribué confirmé, puis ouvrez **Tableau de bord**.
+2. Vérifiez que le solde disponible correspond au grand livre, que le taux et le nombre de clients sont cohérents, puis ouvrez **Mes clients**. Confirmez qu’aucun e-mail ni numéro de téléphone client n’apparaît.
+3. Recherchez une entreprise et changez le filtre de statut ; la pagination doit conserver les filtres.
+4. Ouvrez **Mes commissions**, filtrez par statut et période, puis développez « Voir le calcul » sur une ligne. Vérifiez le brut, la remise, le net et le taux acquis.
+5. Cliquez sur **Préparer le CSV**. Attendez le worker de queue puis téléchargez le fichier lorsqu’il passe à « Prêt ». Le CSV ne doit contenir aucune adresse e-mail ni téléphone client.
+6. Sur mobile (390 px), vérifiez le menu, les cartes, les accordéons, les tableaux et l’absence de défilement horizontal.
+
+### Risques et prochaine étape
+
+- Les exports nécessitent un worker de queue opérationnel pour finir en production ; leur échec reste affiché sans exposer de détail interne.
+- Les agrégats journaliers pré-calculés et les objectifs de charge volumétrique restent à renforcer à la Phase 9. Les requêtes actuelles sont bornées, agrégées et paginées.
+- Prochain lot : Phase 7 — retraits Mobile Money, uniquement après validation juridique/KPrimePay payout, règles d’éligibilité, OTP et recette staging dédiée.
+
+## Ajustement UI du 9 septembre 2026 — calendrier des commissions
+
+- Les deux champs natifs `type="date"` de **Mes commissions** sont remplacés par le DateRangePicker du template, avec une seule sélection de période, les raccourcis usuels et les actions **Appliquer** / **Effacer**.
+- Le composant conserve les paramètres serveur `from` et `to`, respecte la limite de consultation de 24 mois et affiche les libellés en français (mois, jours, raccourcis et boutons).
+- Les actions du calendrier et les dates sélectionnées utilisent explicitement un texte blanc sur leur fond coloré afin de rester lisibles avec tous les thèmes et couleurs d’accent.
+- Le contrôle reste responsive : il s’ouvre dans le panneau de filtres et s’adapte au viewport mobile sans modifier le calcul, les exports ou les flux de paiement.
+
+### Contrôles
+
+- `php artisan view:cache`, `php artisan ui:lint --changed` et `git diff --check` : succès.
+- Tests ciblés : **32 tests, 191 assertions, 0 échec**.
+- Vérification visuelle locale : calendrier du template ouvert sur `/partner/commissions`, avec raccourcis et période visibles. Le navigateur de développement conservait un ancien cache de vue pour l’inspection des noms de mois ; le cache Blade a été recompilé après correction et la recette visuelle finale reste à confirmer dans votre session.
+
+## Validation propriétaire du 9 septembre 2026 — Phase 6 acceptée
+
+- Le propriétaire confirme que la recette manuelle de la Phase 6 est satisfaisante : tableau de bord, clients attribués, commissions, détail des calculs, export CSV et calendrier de période.
+- La Phase 6 est désormais considérée comme validée fonctionnellement. Aucun paiement, retrait ou payout réel n’a été déclenché pendant cette recette.
+- La Phase 7 reste verrouillée jusqu’à une autorisation explicite de démarrage ; elle concernera exclusivement les retraits Mobile Money et le payout KPrimePay staging.

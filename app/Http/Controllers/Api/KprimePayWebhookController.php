@@ -31,6 +31,9 @@ class KprimePayWebhookController extends Controller
                 return response()->json(['status' => true, 'message' => 'FAILED']);
             }
             if ($webhook['event'] !== 'collection.succeeded') return response()->json(['status'=>true]);
+            if ($webhook['currency'] !== $subscriptionPayment->currency || $webhook['amount'] !== (int) $subscriptionPayment->amount) {
+                return response()->json(['status' => false, 'message' => 'PAYMENT_MISMATCH'], 422);
+            }
             try { $verified=$kprimePay->paymentStatus($webhook['transaction_id']); $subscriptionSettlement->creditVerified($subscriptionPayment,$verified,$webhook['event_id'],$webhook['kpp_reference']); return response()->json(['status'=>true,'message'=>'SETTLED']); }
             catch (\RuntimeException $e) { return response()->json(['status'=>false,'message'=>$e->getMessage()],422); }
             catch (Throwable $e) { report($e); return response()->json(['status'=>false,'message'=>'VERIFICATION_UNAVAILABLE'],503); }

@@ -8,6 +8,8 @@ Cette arborescence ne conserve que les références actives, les procédures d�
 - `RAPPORT_GLOBAL_SAAS.md` : état fonctionnel et opérationnel consolidé du SaaS.
 - `RAPPORT_ADMINISTRATION_SAAS.md` : console plateforme, sécurité et suivi de l’administration centrale.
 - `GUIDE_KPRIMEPAY.md` : intégration, rapprochement et exploitation des paiements.
+- `CAHIER_ARCHITECTURE_PLATEFORME_PARTENAIRES.md` : architecture cible, règles financières, schéma de données, flux KPrimePay payout, sécurité, tests et livraison du futur programme partenaires.
+- `PROMPT_DEMARRAGE_IMPLEMENTATION_PARTENAIRES.md` : prompt prêt à copier dans une nouvelle discussion pour développer le module partenaire fonctionnalité par fonctionnalité, avec rapport, recette manuelle et autorisation obligatoire avant poursuite.
 - `DEPLOIEMENT_O2SWITCH.md` : déploiement et exploitation de production.
 - `CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` : direction UI/UX encore active, accessibilité et attente des actions serveur.
 - `STRATEGIE_TARIFAIRE_ABONNEMENTS_POS_AFRIQUE.pdf` : source commerciale normative des plans ; le HTML associé est conservé comme source éditable du PDF.

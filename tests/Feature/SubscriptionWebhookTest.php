@@ -153,6 +153,12 @@ class SubscriptionWebhookTest extends TestCase
         Http::fake(['*/transactions/debit-status' => Http::response(['status' => true, 'data' => [
             'status' => 'success', 'transaction_currency' => 'XOF', 'transaction_amount' => 4999,
         ]])]);
+        $payload['data']['transaction_details']['amount'] = 4999;
+        $this->withHeaders($this->v2Headers('collection.succeeded', 'evt-subscription-mismatch'))
+            ->postJson('/api/kprimepay/webhook', $payload)
+            ->assertStatus(422)->assertJson(['message' => 'PAYMENT_MISMATCH']);
+
+        $payload['data']['transaction_details']['amount'] = 5000;
         $this->withHeaders($this->v2Headers('collection.succeeded', 'evt-subscription-mismatch'))
             ->postJson('/api/kprimepay/webhook', $payload)
             ->assertStatus(422)->assertJson(['message' => 'PAYMENT_MISMATCH']);

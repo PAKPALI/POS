@@ -56,7 +56,7 @@ class PlatformPaymentPricingTest extends TestCase
             'sms_unit_price' => 40, 'whatsapp_unit_price' => 32,
             'sms_unit_cost' => 15, 'whatsapp_unit_cost' => 15,
             'reason' => 'Changement non autorisé', 'current_password' => 'WrongPassword!123',
-        ])->assertSessionHasErrors('current_password');
+        ])->assertSessionHasErrors(['current_password' => 'Le mot de passe plateforme est incorrect.']);
         $this->assertDatabaseCount('platform_settings', 0);
 
         $support = $this->admin('support');

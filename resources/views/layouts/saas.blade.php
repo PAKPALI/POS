@@ -12,7 +12,7 @@
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260903-12" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260907-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260909-24" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     @stack('styles')
@@ -45,6 +45,23 @@
     <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
     <script src="{{ asset('hub/assets/js/saas-shell.js') }}?v=20260901-3"></script>
     <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>
+    <script>
+        // Responsive DataTables : réserver la flèche aux listes assez riches
+        // et conserver l’identifiant, le libellé principal et les actions visibles.
+        if (window.jQuery) {
+            jQuery(document).on('preInit.dt.saasResponsive', function(event, settings) {
+                if (!settings || !settings.oInit || !settings.oInit.responsive) return;
+                var headers = settings.nTHead ? settings.nTHead.querySelectorAll('th') : [];
+                if (headers.length < 4) return;
+                var last = headers.length - 1;
+                headers.forEach(function(header, index) {
+                    if (header.hasAttribute('data-priority')) return;
+                    var priority = index === 0 || index === last ? 1 : (index === 1 || index === last - 1 ? 2 : index + 2);
+                    header.setAttribute('data-priority', priority);
+                });
+            });
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="{{ asset('pwa-register.js') }}" defer></script>
     @stack('scripts')

@@ -36,7 +36,7 @@ class SubscriptionPlanCatalogController extends Controller
     {
         $admin = Auth::guard('platform')->user();
         abort_unless($admin?->hasPlatformPermission('platform.admins.manage'), 403);
-        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500'], 'current_password' => ['required', 'current_password:platform']]);
+        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500'], 'current_password' => ['required', 'current_password:platform']], ['current_password.required' => 'Saisissez votre mot de passe plateforme pour confirmer cette publication.', 'current_password.current_password' => 'Votre mot de passe plateforme est incorrect.']);
         $old = $plan->only(['key', 'name', 'version', 'is_active']);
         $published = $catalog->publish($plan);
         $this->audit($request, $admin->id, 'subscription.plan_version.published', $published, $old, $published->only(['key', 'name', 'version', 'is_active']), $data['reason']);
@@ -60,7 +60,7 @@ class SubscriptionPlanCatalogController extends Controller
             'features.ecommerce' => ['nullable', 'boolean'],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
             'current_password' => ['required', 'current_password:platform'],
-        ]);
+        ], ['current_password.required' => 'Saisissez votre mot de passe plateforme pour confirmer cette création.', 'current_password.current_password' => 'Votre mot de passe plateforme est incorrect.']);
     }
 
     private function audit(Request $request, int $adminId, string $action, SubscriptionPlan $plan, array $old, array $new, ?string $reason = null): void

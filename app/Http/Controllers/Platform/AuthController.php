@@ -34,6 +34,11 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+        ], [
+            'email.required' => 'Saisissez votre adresse e-mail.',
+            'email.email' => 'Saisissez une adresse e-mail valide.',
+            'password.required' => 'Saisissez votre mot de passe.',
+            'password.string' => 'Le mot de passe doit être renseigné sous forme de texte.',
         ]);
 
         $email = mb_strtolower(trim($validated['email']));
@@ -70,7 +75,10 @@ class AuthController extends Controller
 
     public function verifyTwoFactor(Request $request)
     {
-        $validated = $request->validate(['code' => ['required', 'digits:6']]);
+        $validated = $request->validate(['code' => ['required', 'digits:6']], [
+            'code.required' => 'Saisissez le code de vérification.',
+            'code.digits' => 'Le code de vérification doit contenir exactement 6 chiffres.',
+        ]);
         $admin = PlatformAdmin::find($request->session()->get('platform_2fa_admin_id'));
 
         if (!$admin || !$admin->is_active || !$admin->two_factor_code || !$admin->two_factor_expires_at || $admin->two_factor_expires_at->isPast()) {
@@ -103,7 +111,10 @@ class AuthController extends Controller
 
     public function sendResetLink(Request $request)
     {
-        $validated = $request->validate(['email' => ['required', 'email']]);
+        $validated = $request->validate(['email' => ['required', 'email']], [
+            'email.required' => 'Saisissez votre adresse e-mail.',
+            'email.email' => 'Saisissez une adresse e-mail valide.',
+        ]);
         $email = mb_strtolower(trim($validated['email']));
         $admin = PlatformAdmin::where('email', $email)->where('is_active', true)->first();
 
@@ -136,6 +147,17 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'email'], 'token' => ['required', 'string'],
             'password' => ['required', 'confirmed', Password::min(12)->mixedCase()->numbers()->symbols()],
+        ], [
+            'email.required' => 'Saisissez votre adresse e-mail.',
+            'email.email' => 'Saisissez une adresse e-mail valide.',
+            'token.required' => 'Le lien de réinitialisation est incomplet.',
+            'token.string' => 'Le lien de réinitialisation est invalide.',
+            'password.required' => 'Saisissez un nouveau mot de passe.',
+            'password.confirmed' => 'La confirmation du nouveau mot de passe ne correspond pas.',
+            'password.min' => 'Le nouveau mot de passe doit contenir au moins 12 caractères.',
+            'password.mixed' => 'Le nouveau mot de passe doit contenir une majuscule et une minuscule.',
+            'password.numbers' => 'Le nouveau mot de passe doit contenir au moins un chiffre.',
+            'password.symbols' => 'Le nouveau mot de passe doit contenir au moins un symbole.',
         ]);
         $email = mb_strtolower(trim($validated['email']));
         $reset = DB::table('platform_password_reset_tokens')->where('email', $email)->first();

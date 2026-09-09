@@ -105,17 +105,17 @@
                 @forelse($logs as $log)
                     @php($functionLabel = ['sale' => 'Vente', 'inventory' => 'Inventaire', 'invoice' => 'Facture', 'other' => 'Autre'][$log->function] ?? $log->function)
                     <tr>
-                        <td class="communication-log-date">{{ $log->sent_at->format('d/m/Y H:i:s') }}</td>
-                        <td>
+                        <td class="communication-log-date" data-label="Date">{{ $log->sent_at->format('d/m/Y H:i:s') }}</td>
+                        <td data-label="Canal">
                             <span class="saas-status-badge {{ $log->channel === 'whatsapp' ? 'is-success' : 'is-info' }}">
                                 <i class="bi {{ $log->channel === 'whatsapp' ? 'bi-whatsapp' : 'bi-chat-text' }}" aria-hidden="true"></i>
                                 {{ strtoupper($log->channel) }}
                             </span>
                         </td>
-                        <td><span class="saas-status-badge is-neutral">{{ $functionLabel }}</span></td>
-                        <td class="communication-log-country">{{ $log->country_code ?: '—' }}</td>
-                        <td class="communication-log-recipient">{{ $log->recipient }}</td>
-                        <td class="text-end"><strong>{{ $log->units }}</strong></td>
+                        <td data-label="Fonction"><span class="saas-status-badge is-neutral">{{ $functionLabel }}</span></td>
+                        <td class="communication-log-country" data-label="Pays">{{ $log->country_code ?: '—' }}</td>
+                        <td class="communication-log-recipient" data-label="Destinataire">{{ $log->recipient }}</td>
+                        <td class="text-end" data-label="Unités"><strong>{{ $log->units }}</strong></td>
                     </tr>
                 @empty
                     <tr>

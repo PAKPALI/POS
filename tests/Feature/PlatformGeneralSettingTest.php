@@ -47,6 +47,16 @@ class PlatformGeneralSettingTest extends TestCase
         $this->actingAs($admin,'platform')->get(route('platform.settings.general'))->assertForbidden();
     }
 
+    public function test_wrong_password_on_general_settings_returns_an_exploitable_message(): void
+    {
+        $admin = $this->admin();
+        $payload = $this->payload();
+        $payload['current_password'] = 'WrongPassword!123';
+
+        $this->actingAs($admin, 'platform')->put(route('platform.settings.general.update'), $payload)
+            ->assertSessionHasErrors(['current_password' => 'Votre mot de passe plateforme est incorrect.']);
+    }
+
     public function test_super_admin_can_override_subscription_enforcement_for_one_company(): void
     {
         $admin = $this->admin();
@@ -72,5 +82,15 @@ class PlatformGeneralSettingTest extends TestCase
         $this->assertNull($company->subscription_enforcement_enabled);
         $this->assertTrue(app(EntitlementService::class)->enforcementEnabledFor($company));
         $this->assertDatabaseHas('platform_audit_logs', ['action' => 'company.subscription_enforcement.updated', 'target_id' => (string) $company->id]);
+    }
+
+    public function test_wrong_password_on_company_enforcement_returns_an_exploitable_message(): void
+    {
+        $admin = $this->admin();
+        $company = Company::create(['name' => 'Entreprise protégée', 'email' => 'protegee@example.test', 'number1' => '001']);
+
+        $this->actingAs($admin, 'platform')->put(route('platform.settings.general.companies.subscription-enforcement', $company), [
+            'mode' => 'enabled', 'reason' => 'Test du mot de passe invalide', 'current_password' => 'WrongPassword!123',
+        ])->assertSessionHasErrors(['current_password' => 'Votre mot de passe plateforme est incorrect.']);
     }
 }

@@ -37,6 +37,7 @@
         <nav class="marketing-nav" id="marketing-nav" aria-label="Navigation principale">
             <a href="{{ route('marketing.features') }}">Fonctionnalités</a>
             <a href="{{ route('marketing.sectors') }}">Solutions</a>
+            <a href="{{ route('marketing.partners') }}">Partenaires</a>
             <a href="{{ route('marketing.pricing') }}">Tarifs</a>
             <a href="{{ route('marketing.security') }}">Sécurité</a>
             <a href="{{ route('marketing.help') }}">Aide</a>

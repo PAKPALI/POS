@@ -99,15 +99,15 @@ class UserController extends Controller
             return DataTables::of($users)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $clone = '<button type="button" data-id="'.$row->id.'" data-name="'.e($row->name).'" title="Intégrer dans une autre compagnie" class="btn btn-info btn-sm cloneUser"><i class="fas fa-lg fa-fw me-0 fa-clone"></i></button> ';
+                    $clone = '<button type="button" data-id="'.$row->id.'" data-name="'.e($row->name).'" title="Intégrer dans une autre compagnie" aria-label="Intégrer dans une autre compagnie" class="saas-action-btn cloneUser"><i class="fas fa-lg fa-fw me-0 fa-clone"></i></button>';
                     if($row->status==1){
-                        $btn = $clone.'<a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
-                                <a data-id="'.$row->id.'" data-original-title="Archiver" class="btn btn-danger btn-sm archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                        $btn = $clone.'<a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal" data-id="'.$row->id.'" data-original-title="Modifier" title="Modifier" aria-label="Modifier" class="saas-action-btn editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="Archiver" title="Archiver" aria-label="Archiver" class="saas-action-btn btn-action-danger archive"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
                     }else{
-                        $btn = $clone.'<a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal"  data-id="'.$row->id.'" data-original-title="Modifier" class="btn btn-warning btn-sm editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
-                                <a data-id="'.$row->id.'" data-original-title="restaurer" class="btn btn-success btn-sm restore"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
+                        $btn = $clone.'<a href="javascript:void(0)" data-toggle="modal" data-target="#updateModal" data-id="'.$row->id.'" data-original-title="Modifier" title="Modifier" aria-label="Modifier" class="saas-action-btn editModal"><i class="fas fa-lg fa-fw me-0 fa-edit"></i></a>
+                                <a data-id="'.$row->id.'" data-original-title="Restaurer" title="Restaurer" aria-label="Restaurer" class="saas-action-btn btn-action-success restore"><i class="fas fa-lg fa-fw me-0 fa-trash-alt"></i></a>';
                     }
-                    return $btn;
+                    return '<div class="saas-action-group">'.$btn.'</div>';
                 })
                 ->addColumn('role_name', fn ($user) => $user->active_role_name ?? 'Non attribué')
                 ->editColumn('status', function ($Object) {

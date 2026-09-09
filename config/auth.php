@@ -44,6 +44,10 @@ return [
             'driver' => 'session',
             'provider' => 'platform_admins',
         ],
+        'partner' => [
+            'driver' => 'session',
+            'provider' => 'partners',
+        ],
     ],
 
     /*
@@ -71,6 +75,10 @@ return [
         'platform_admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\PlatformAdmin::class,
+        ],
+        'partners' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Partner::class,
         ],
 
         // 'users' => [
@@ -102,6 +110,12 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'partners' => [
+            'provider' => 'partners',
+            'table' => 'partner_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

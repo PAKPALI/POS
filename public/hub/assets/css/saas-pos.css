@@ -239,9 +239,9 @@
 .pos-saas-body .pos-sidebar-footer .btn-group { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px !important; width: 100%; }
 .pos-saas-body .pos-sidebar-footer .btn { display: grid !important; min-width: 0; min-height: 58px; place-content: center; padding: 8px 6px; border-radius: 11px !important; font-weight: 700; line-height: 1.2; text-align: center; text-decoration: none; }
 .pos-saas-body .pos-sidebar-footer .btn i { margin-bottom: 3px; }
-.pos-saas-body .pos-sidebar-footer #savePendingOrder, .pos-saas-body .pos-sidebar-footer #showPendingOrders { color: var(--ds-text-primary); background: var(--ds-bg-elevated); border-color: var(--ds-border-soft); }
+.pos-saas-body .pos-sidebar-footer #savePendingOrder, .pos-saas-body .pos-sidebar-footer #showPendingOrders { color: #fff !important; background: var(--ds-bg-elevated); border-color: var(--ds-border-soft); }
 .pos-saas-body .pos-sidebar-footer #savePendingOrder:hover, .pos-saas-body .pos-sidebar-footer #showPendingOrders:hover { color: var(--ds-accent); border-color: rgba(var(--ds-accent-rgb), .36); background: var(--ds-accent-soft); }
-.pos-saas-body .pos-sidebar-footer #confirmSale { color: #061a18 !important; background: var(--ds-accent); border-color: var(--ds-accent); box-shadow: 0 8px 18px rgba(var(--ds-accent-rgb), .2); }
+.pos-saas-body .pos-sidebar-footer #confirmSale { color: #fff !important; background: var(--ds-accent); border-color: var(--ds-accent); box-shadow: 0 8px 18px rgba(var(--ds-accent-rgb), .2); }
 .pos-saas-body .pos-sidebar-footer #confirmSale:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .pos-saas-body .pos-sidebar-footer #saleLoader { display: none !important; }
 
@@ -371,10 +371,11 @@
 .pos-saas-body .swal2-html-container { margin: 10px 0 0; color: var(--ds-text-muted); font-size: .8rem; line-height: 1.5; }
 .pos-saas-body .swal2-input-label { margin: 16px 0 7px; color: var(--ds-text-muted); font-size: .72rem; font-weight: 750; }
 .pos-saas-body .swal2-input, .pos-saas-body .swal2-textarea, .pos-saas-body .swal2-select { width: 100%; min-height: 46px; margin: 0; padding: 10px 12px; color: var(--ds-text-primary); background: var(--ds-bg-canvas); border: 1px solid var(--ds-border-soft); border-radius: 11px; box-shadow: none; font-size: .86rem; }
+.pos-saas-body .swal2-input[type="number"] { width: 100% !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; display: block !important; text-align: center !important; }
 .pos-saas-body .swal2-input:focus, .pos-saas-body .swal2-textarea:focus, .pos-saas-body .swal2-select:focus { border-color: var(--ds-accent); outline: 0; box-shadow: 0 0 0 3px var(--ds-focus-ring); }
 .pos-saas-body .swal2-actions { display: flex !important; gap: 9px; margin: 20px 0 0; }
 .pos-saas-body .swal2-actions button { min-height: 42px; margin: 0 !important; padding: 9px 16px; border: 1px solid transparent; border-radius: 10px; box-shadow: none !important; font-size: .78rem; font-weight: 800; }
-.pos-saas-body .swal2-confirm { color: #061a18 !important; background: var(--ds-accent) !important; border-color: var(--ds-accent) !important; }
+.pos-saas-body .swal2-confirm { color: #fff !important; background: var(--ds-accent) !important; border-color: var(--ds-accent) !important; }
 .pos-saas-body .swal2-cancel { color: var(--ds-text-primary) !important; background: var(--ds-bg-elevated) !important; border-color: var(--ds-border-soft) !important; }
 .pos-saas-body .swal2-deny { color: #fff !important; background: var(--ds-danger, #dc3545) !important; }
 .pos-saas-body .swal2-validation-message { margin: 10px 0 0; padding: 9px 11px; color: var(--ds-danger, #ef4444); background: color-mix(in srgb, var(--ds-danger, #ef4444) 10%, transparent); border-radius: 9px; font-size: .72rem; }

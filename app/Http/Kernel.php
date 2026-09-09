@@ -74,5 +74,8 @@ class Kernel extends HttpKernel
         'subscription.manage' => \App\Http\Middleware\EnsureSubscriptionManage::class,
         'subscription.writable' => \App\Http\Middleware\EnsureSubscriptionWritable::class,
         'plan.feature' => \App\Http\Middleware\EnsurePlanFeature::class,
+        'partner.auth' => \App\Http\Middleware\AuthenticatePartner::class,
+        'partner.active' => \App\Http\Middleware\EnsurePartnerActive::class,
+        'partners.enabled' => \App\Http\Middleware\EnsurePartnersEnabled::class,
     ];
 }

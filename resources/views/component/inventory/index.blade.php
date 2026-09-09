@@ -13,7 +13,7 @@
             <h1>Inventaires</h1>
             <p>Suivez les entrées et sorties de stock par produit, fournisseur et date.</p>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
+        <div class="d-flex gap-2 flex-wrap inventory-header-actions">
             <button type="button" class="saas-btn saas-btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
                 <i class="bi bi-plus-lg"></i> Entrée
             </button>
