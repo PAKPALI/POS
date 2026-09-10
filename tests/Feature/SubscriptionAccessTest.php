@@ -54,16 +54,50 @@ class SubscriptionAccessTest extends TestCase
         $this->actingAs($owner)->post(route('user.attach-existing'), ['email' => 'new-member@example.test', 'role_id' => 999999])->assertForbidden();
     }
 
+    public function test_expired_plan_blocks_quota_checkout_but_keeps_subscription_management_available(): void
+    {
+        [$owner, $company] = $this->ownerWithCompany();
+        app(EntitlementService::class)->current($company)->update(['ends_at' => now()->subMinute()]);
+        PlatformSetting::updateOrCreate(['key' => 'subscriptions.enforcement_enabled'], ['value' => '1', 'type' => 'string']);
+
+        $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk();
+        $this->actingAs($owner)->post(route('sms-quota.checkout'), [
+            'sms_quantity' => 1,
+            'whatsapp_quantity' => 0,
+        ])->assertForbidden();
+    }
+
+    public function test_suspended_company_cannot_execute_business_writes(): void
+    {
+        [$owner, $company] = $this->ownerWithCompany();
+        $company->update(['status' => 'suspended']);
+
+        $this->actingAs($owner)->post(route('roles.store'), [
+            'name' => 'Rôle qui ne doit pas être créé',
+            'permissions' => [],
+        ])->assertRedirect(route('companies.select'));
+
+        $this->assertDatabaseMissing('roles', [
+            'company_id' => $company->id,
+            'name' => 'Rôle qui ne doit pas être créé',
+        ]);
+    }
+
     public function test_trial_limits_are_enforced_inside_the_company_and_member_write_transactions(): void
     {
         [$owner, $company] = $this->ownerWithCompany();
         PlatformSetting::updateOrCreate(['key' => 'subscriptions.enforcement_enabled'], ['value' => '1', 'type' => 'string']);
+
+        $entitlements = app(EntitlementService::class);
+        $this->assertTrue($entitlements->enforcementEnabledFor($company));
+        $this->assertFalse($entitlements->canAdd($company->fresh(), 'company'));
 
         $this->actingAs($owner)->postJson(route('companies.store'), [
             'name' => 'Deuxième entreprise refusée',
             'email' => 'second-company@example.test',
             'adress' => 'Lomé',
             'number1' => '90101010',
+            'country_code' => 'TG',
         ])->assertStatus(422)->assertJson(['title' => 'LIMITE DU PLAN ATTEINTE']);
         $this->assertDatabaseCount('company_settings', 1);
 

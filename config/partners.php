@@ -18,6 +18,15 @@ return [
         'NE' => ['name' => 'Niger', 'dial_code' => '+227', 'phone_min_length' => 8, 'phone_max_length' => 8],
         'SN' => ['name' => 'Sénégal', 'dial_code' => '+221', 'phone_min_length' => 9, 'phone_max_length' => 9],
     ],
+    'payout_gateways' => [
+        'TG' => ['MOOV-MONEY-TG'],
+    ],
+    'payout_gateway_catalog' => [
+        'TG' => [
+            'MOOV-MONEY-TG' => ['label' => 'Moov Money (Flooz)', 'prefixes' => ['76', '77', '78', '79', '96', '97', '98', '99']],
+            'MIXX-YAS-TG' => ['label' => 'Mixx by Yas (TMoney)', 'prefixes' => ['70', '71', '72', '73', '90', '91', '92', '93']],
+        ],
+    ],
     'first_discount_bps' => 1000,
     'commission_hold_days' => 7,
     'payout_min_xof' => 5000,

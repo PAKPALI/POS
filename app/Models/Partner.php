@@ -68,4 +68,7 @@ class Partner extends Authenticatable
     {
         return $this->hasMany(PartnerWalletEntry::class);
     }
+
+    public function withdrawalAccounts() { return $this->hasMany(PartnerWithdrawalAccount::class); }
+    public function withdrawals() { return $this->hasMany(PartnerWithdrawal::class); }
 }

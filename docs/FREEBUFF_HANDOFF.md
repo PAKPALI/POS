@@ -1863,3 +1863,47 @@ Phase 4 développée et testée côté serveur ; aucun paiement ou webhook réel
 - Le propriétaire confirme que la recette manuelle de la Phase 6 est satisfaisante : tableau de bord, clients attribués, commissions, détail des calculs, export CSV et calendrier de période.
 - La Phase 6 est désormais considérée comme validée fonctionnellement. Aucun paiement, retrait ou payout réel n’a été déclenché pendant cette recette.
 - La Phase 7 reste verrouillée jusqu’à une autorisation explicite de démarrage ; elle concernera exclusivement les retraits Mobile Money et le payout KPrimePay staging.
+
+## Mise à jour du 10 septembre 2026 — Phase 7A, préparation sécurisée des retraits Mobile Money
+
+- La Phase 7A prépare exclusivement le futur flux de retrait : comptes Mobile Money chiffrés (`partner_withdrawal_accounts`), retraits avec états audités (`partner_withdrawals`), allocations par commission, événements payout et clés d’idempotence (`partner_payout_events`).
+- Le numéro E.164 est chiffré au repos par le cast Laravel `encrypted`, son empreinte SHA-256 sert à éviter les doublons et l’interface n’affiche qu’un masque. Toute modification remet le compte en `pending_verification` ; aucune auto-vérification partenaire n’est exposée par une route publique.
+- `PartnerWithdrawalService` calcule l’éligibilité depuis le grand livre immuable (solde disponible, minimum XOF, clients qualifiés, activation `partners.payouts_enabled`), réserve atomiquement le montant par un débit `available` et un crédit `reserved`, puis restitue les deux écritures en cas d’échec confirmé. Un état `unknown` reste réservé pour la future réconciliation.
+- L’écran **Mes retraits** est intégré au shell SaaS. Il présente le solde, les garde-fous, les comptes enregistrés et la préparation du compte ; aucun bouton de transfert ni appel KPrimePay n’est actif tant que `partners.payouts_enabled=false`.
+- L’administration **Programme partenaires** expose maintenant les paramètres de seuil, de clients qualifiés, de revue de risque et de plafond d’approbation automatique. L’activation opérationnelle des payouts reste volontairement séparée et désactivée.
+
+### Fichiers principaux
+
+- `database/migrations/2026_09_10_090000_create_partner_withdrawal_tables.php`.
+- `app/Models/PartnerWithdrawalAccount.php`, `PartnerWithdrawal.php`, `PartnerWithdrawalAllocation.php`, `PartnerPayoutEvent.php` et relations de `Partner`.
+- `app/Services/PartnerWithdrawalService.php`, `app/Http/Controllers/Partner/WithdrawalController.php`, `routes/web.php`.
+- `resources/views/partner/withdrawals.blade.php`, `resources/views/layouts/partner.blade.php`, `resources/views/platform/settings/partners.blade.php` et son contrôleur.
+- `tests/Feature/PartnerWithdrawalPreparationTest.php`.
+
+### Migrations et contrôles
+
+- Migration additive `2026_09_10_090000_create_partner_withdrawal_tables` appliquée localement ; aucune donnée de paiement, quota, abonnement ou commission existante n’est réécrite.
+- Tests ciblés : `PartnerWithdrawalPreparationTest`, `PartnerInsightsTest`, `PartnerCommissionLifecycleTest`, `PlatformPartnerSettingTest` — **16 tests, 96 assertions, 0 échec**.
+- Contrôles exécutés : `php artisan migrate --force` (migration additive), `php artisan view:cache`, `php artisan ui:lint --changed`, syntaxe PHP, `php artisan route:list --name=partner.withdrawals` et `git diff --check` : succès.
+- Dernière non-régression complète exécutée : **296 tests, 1 751 assertions, 8 échecs hors Phase 7A** (AuthNavigation/communications historiques, création d’entreprise, session partenaire périmée, réglage pricing/catalogue et enforcement/expiration abonnement). Après l’ajout du garde-fou `unknown`, la sélection ciblée complète est repassée à **16 tests, 96 assertions, 0 échec** ; aucun échec ne touche `PartnerWithdrawalPreparationTest`.
+
+### Sécurité et limites de ce lot
+
+- Aucun token payout, endpoint `/payouts/transfers`, webhook payout, appel réseau KPrimePay ou transfert réel n’est implémenté.
+- `payouts/from-collection` n’est pas utilisé : il ne permet pas de payer un portefeuille agrégé de commissions.
+- La vérification effective de propriété Mobile Money, l’OTP e-mail d’opération, l’approbation, le job payout, la réconciliation et les notifications restent à livrer après disponibilité et validation de l’endpoint KPrimePay dédié.
+- Les flux de paiement quota SMS/WhatsApp restent inchangés.
+
+### Recette manuelle Phase 7A
+
+1. Avec un partenaire actif, ouvrir **Mes retraits** et vérifier le solde, le seuil, le nombre de clients requis et le message de retrait désactivé.
+2. Ajouter un compte Togo avec un opérateur Mixx/Yas ou Moov Money et un numéro de recette ; vérifier que seul le numéro masqué est affiché et que l’état est « À vérifier ».
+3. Recharger la page et confirmer que le compte reste associé au seul partenaire ; vérifier qu’aucun transfert ou redirection KPrimePay n’est proposé.
+4. Dans **Administration > Programme partenaires**, modifier le seuil ou le nombre de clients avec un motif et le mot de passe plateforme ; vérifier l’audit et le reflet dans **Mes retraits**.
+5. Ne pas activer `partners.payouts_enabled` en production. La réservation automatisée sera testée uniquement en environnement isolé lorsque l’OTP et le contrat KPrimePay seront validés.
+
+Résultat attendu : aucun mouvement externe, aucune modification des paiements existants, compte Mobile Money chiffré et garde-fous visibles.
+
+### État
+
+Phase 7A préparatoire terminée côté serveur et interface, en attente de recette manuelle. Phase 7B (OTP, approbation, transfert KPrimePay dédié et réconciliation staging) reste verrouillée jusqu’à la disponibilité de l’endpoint annoncé et une autorisation explicite.

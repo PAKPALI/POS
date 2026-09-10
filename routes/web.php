@@ -43,6 +43,7 @@ use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
 use App\Http\Controllers\Partner\CodeController as PartnerCodeController;
 use App\Http\Controllers\Partner\PortalController as PartnerPortalController;
 use App\Http\Controllers\Partner\InsightsController as PartnerInsightsController;
+use App\Http\Controllers\Partner\WithdrawalController as PartnerWithdrawalController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +69,8 @@ $partnerRoutes = function (): void {
         Route::get('', [PartnerInsightsController::class, 'dashboard'])->name('dashboard');
         Route::get('clients', [PartnerInsightsController::class, 'clients'])->name('clients');
         Route::get('commissions', [PartnerInsightsController::class, 'commissions'])->name('commissions');
+        Route::get('withdrawals', [PartnerWithdrawalController::class, 'index'])->name('withdrawals');
+        Route::post('withdrawals/accounts', [PartnerWithdrawalController::class, 'storeAccount'])->middleware('throttle:5,1')->name('withdrawals.accounts.store');
         Route::post('commissions/export', [PartnerInsightsController::class, 'requestCommissionExport'])->middleware('throttle:5,1')->name('commissions.export');
         Route::get('exports/{export}/download', [PartnerInsightsController::class, 'downloadExport'])->name('exports.download');
         Route::get('code', [PartnerCodeController::class, 'show'])->name('code');
@@ -406,7 +409,7 @@ Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.select
 
 });
 
-Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:quota.manage'])->group(function () {
+Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:quota.manage', 'subscription.writable'])->group(function () {
     Route::get('sms-quota', [SmsQuotaController::class, 'index'])->name('sms-quota.index');
     Route::post('sms-quota/checkout', [SmsQuotaController::class, 'checkout'])->middleware('throttle:10,1')->name('sms-quota.checkout');
     Route::get('sms-quota/status/{transactionId}', [SmsQuotaController::class, 'status'])->middleware('throttle:60,1')->name('sms-quota.status');

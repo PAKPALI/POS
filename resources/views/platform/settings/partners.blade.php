@@ -87,11 +87,17 @@
                     <header class="platform-settings-section-head">
                         <p class="platform-eyebrow"><i class="bi bi-shield-lock" aria-hidden="true"></i> Garde-fou</p>
                         <h2>Retraits partenaires</h2>
-                        <p>Les payouts restent volontairement désactivés. Ils ne font pas partie de cette configuration ni de ce lot.</p>
+                        <p>Les transferts restent désactivés pendant la préparation KPrimePay, mais leurs garde-fous sont configurables et journalisés ici.</p>
                     </header>
                     <div class="platform-settings-preview">
                         <div class="platform-settings-preview-head"><span><i class="bi bi-lock-fill" aria-hidden="true"></i> Payouts</span><small>Hors périmètre</small></div>
-                        <p class="mb-0">Aucun compte Mobile Money, transfert ou appel KPrimePay n’est activé par cet écran.</p>
+                        <p class="mb-0">État opérationnel : <strong>{{ $payoutsEnabled ? 'activé' : 'désactivé' }}</strong>. Aucun appel KPrimePay n’est effectué par cet écran.</p>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6 platform-settings-field"><label class="form-label" for="payout-min-xof">Montant minimum (XOF)</label><input id="payout-min-xof" class="form-control" type="number" name="payout_min_xof" min="1" value="{{ old('payout_min_xof', $payoutMinXof) }}"><small class="form-text">Seuil de demande, sans frais KPrimePay.</small></div>
+                        <div class="col-md-6 platform-settings-field"><label class="form-label" for="payout-min-clients">Clients qualifiés minimum</label><input id="payout-min-clients" class="form-control" type="number" name="payout_min_qualified_clients" min="0" value="{{ old('payout_min_qualified_clients', $payoutMinQualifiedClients) }}"></div>
+                        <div class="col-md-6 platform-settings-field"><label class="form-label" for="auto-approval-max">Approbation automatique max. (XOF)</label><input id="auto-approval-max" class="form-control" type="number" name="auto_approval_max_xof" min="0" value="{{ old('auto_approval_max_xof', $autoApprovalMaxXof) }}"><small class="form-text">0 = revue manuelle systématique.</small></div>
+                        <div class="col-md-6 platform-settings-field"><label class="platform-settings-toggle-card h-100"><span class="saas-switch-line"><input type="checkbox" name="risk_review_enabled" value="1" class="saas-switch-input" @checked($riskReviewEnabled)><span class="saas-switch-control"></span></span><span><strong>Revue de risque obligatoire</strong><small>Conserve les demandes en attente d’un contrôle.</small></span></label></div>
                     </div>
                 </section>
 

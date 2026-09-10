@@ -24,6 +24,11 @@ class PartnerSettingController extends Controller
             'partnersEnabled' => $configuration->boolean('partners.enabled', false),
             'registrationEnabled' => $configuration->boolean('partners.registration_enabled', false),
             'codeCooldownDays' => $configuration->integer('partners.code_change_cooldown_days', 30),
+            'payoutsEnabled' => $configuration->boolean('partners.payouts_enabled', false),
+            'payoutMinXof' => $configuration->integer('partners.payout_min_xof', 5000),
+            'payoutMinQualifiedClients' => $configuration->integer('partners.payout_min_qualified_clients', 3),
+            'riskReviewEnabled' => $configuration->boolean('partners.risk_review_enabled', true),
+            'autoApprovalMaxXof' => $configuration->integer('partners.auto_approval_max_xof', 0),
         ]);
     }
 
@@ -36,6 +41,10 @@ class PartnerSettingController extends Controller
             'countries' => ['required', 'array', 'min:1'],
             'countries.*' => ['required', Rule::in($catalogCodes)],
             'code_cooldown_days' => ['sometimes', 'integer', 'min:1', 'max:365'],
+            'payout_min_xof' => ['sometimes', 'integer', 'min:1', 'max:100000000'],
+            'payout_min_qualified_clients' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
+            'risk_review_enabled' => ['nullable', 'boolean'],
+            'auto_approval_max_xof' => ['sometimes', 'integer', 'min:0', 'max:100000000'],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
             'current_password' => ['required', 'current_password:platform'],
         ], [
@@ -74,6 +83,10 @@ class PartnerSettingController extends Controller
         if (array_key_exists('code_cooldown_days', $data)) {
             $changes['partners.code_change_cooldown_days'] = ['value' => (string) $data['code_cooldown_days'], 'type' => 'integer'];
         }
+        foreach (['payout_min_xof' => 'partners.payout_min_xof', 'payout_min_qualified_clients' => 'partners.payout_min_qualified_clients', 'auto_approval_max_xof' => 'partners.auto_approval_max_xof'] as $field => $key) {
+            if (array_key_exists($field, $data)) $changes[$key] = ['value' => (string) $data[$field], 'type' => 'integer'];
+        }
+        if ($request->has('risk_review_enabled')) $changes['partners.risk_review_enabled'] = ['value' => $request->boolean('risk_review_enabled') ? 'true' : 'false', 'type' => 'boolean'];
 
         DB::transaction(function () use ($changes, $admin, $data, $request): void {
             foreach ($changes as $key => $change) {
