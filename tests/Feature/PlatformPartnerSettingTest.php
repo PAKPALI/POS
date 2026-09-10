@@ -63,4 +63,20 @@ class PlatformPartnerSettingTest extends TestCase
             'current_password' => 'SecurePassword!123',
         ])->assertSessionHasErrors('registration_enabled');
     }
+
+    public function test_super_admin_can_enable_mixx_for_partner_withdrawals_without_opening_payouts(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin, 'platform')->put(route('platform.settings.partners.update'), [
+            'partners_enabled' => '1',
+            'countries' => ['TG'],
+            'payout_gateways' => ['TG' => ['MOOV-MONEY-TG', 'MIXX-YAS-TG']],
+            'reason' => 'Activation contrôlée de Mixx pour la recette retrait',
+            'current_password' => 'SecurePassword!123',
+        ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('platform_settings', ['key' => 'partners.payout_gateways', 'value' => '{"TG":["MOOV-MONEY-TG","MIXX-YAS-TG"]}']);
+        $this->assertDatabaseHas('platform_audit_logs', ['action' => 'platform.partner_setting.updated', 'target_id' => 'partners.payout_gateways']);
+        $this->assertDatabaseHas('platform_settings', ['key' => 'partners.payouts_enabled', 'value' => 'false']);
+    }
 }

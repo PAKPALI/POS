@@ -99,6 +99,23 @@
                         <div class="col-md-6 platform-settings-field"><label class="form-label" for="auto-approval-max">Approbation automatique max. (XOF)</label><input id="auto-approval-max" class="form-control" type="number" name="auto_approval_max_xof" min="0" value="{{ old('auto_approval_max_xof', $autoApprovalMaxXof) }}"><small class="form-text">0 = revue manuelle systématique.</small></div>
                         <div class="col-md-6 platform-settings-field"><label class="platform-settings-toggle-card h-100"><span class="saas-switch-line"><input type="checkbox" name="risk_review_enabled" value="1" class="saas-switch-input" @checked($riskReviewEnabled)><span class="saas-switch-control"></span></span><span><strong>Revue de risque obligatoire</strong><small>Conserve les demandes en attente d’un contrôle.</small></span></label></div>
                     </div>
+                    <div class="platform-settings-field mt-4">
+                        <label class="form-label">Opérateurs de retrait disponibles</label>
+                        <small class="form-text d-block mb-2">Seuls les opérateurs activés ici seront proposés au partenaire lors de l’enregistrement de son compte Mobile Money.</small>
+                        @foreach($payoutGatewayCatalog as $country => $gateways)
+                            @if(in_array($country, $activeCodes, true))
+                                <div class="platform-settings-service-list mb-2">
+                                    @foreach($gateways as $gateway => $details)
+                                        <label class="platform-settings-service-row">
+                                            <span class="platform-settings-service-icon"><i class="bi bi-phone" aria-hidden="true"></i></span>
+                                            <span class="platform-settings-service-copy"><strong>{{ $details['label'] }}</strong><span>{{ $country }} · préfixes {{ implode(', ', $details['prefixes']) }} · 8 chiffres</span></span>
+                                            <span class="saas-switch-line"><input type="checkbox" name="payout_gateways[{{ $country }}][]" value="{{ $gateway }}" class="saas-switch-input" @checked(in_array($gateway, old('payout_gateways.'.$country, $activePayoutGateways[$country] ?? []), true))><span class="saas-switch-control"></span></span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
                 </section>
 
                 <section class="platform-settings-section platform-settings-action-card">

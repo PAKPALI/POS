@@ -1907,3 +1907,34 @@ Résultat attendu : aucun mouvement externe, aucune modification des paiements e
 ### État
 
 Phase 7A préparatoire terminée côté serveur et interface, en attente de recette manuelle. Phase 7B (OTP, approbation, transfert KPrimePay dédié et réconciliation staging) reste verrouillée jusqu’à la disponibilité de l’endpoint annoncé et une autorisation explicite.
+
+## Mise à jour du 10 septembre 2026 — Phase 7B, opérateurs et confirmation e-mail (sans transfert externe)
+
+- Les opérateurs de retrait sont désormais configurables dans **Administration > Programme partenaires**. Au Togo, `MOOV-MONEY-TG` (Flooz) est actif par défaut ; `MIXX-YAS-TG` (Mixx/Yas) est présent mais désactivé jusqu’à activation administrative explicite. La configuration est persistée dans `partners.payout_gateways`, auditée et ne modifie jamais `partners.payouts_enabled`.
+- Les numéros de retrait sont validés avant soumission dans l’interface, puis côté serveur : exactement 8 chiffres ; Flooz accepte `76, 77, 78, 79, 96, 97, 98, 99`, Mixx/Yas accepte `70, 71, 72, 73, 90, 91, 92, 93`. Aucun flux de paiement abonnement, SMS ou WhatsApp n’est touché.
+- Une confirmation de retrait exige maintenant le mot de passe partenaire puis un code e-mail distinct de la 2FA de connexion, limité à 6 chiffres, 10 minutes et 5 tentatives. Le code est à usage unique et l’émission d’un nouveau code invalide le précédent.
+- La confirmation crée seulement la demande locale et la réservation comptable déjà contrôlée ; aucun client KPrimePay, token payout, appel HTTP, webhook payout ou transfert externe n’est encore ajouté. Le futur client devra appeler `POST /v2/payouts/from-collection-balance`, pas `from-collection`, après une recette staging dédiée.
+
+### Fichiers principaux complémentaires
+
+- `config/partners.php`, `database/migrations/2026_09_10_100000_add_partner_payout_gateways_setting.php`.
+- `app/Services/PartnerAuthenticationService.php`, `app/Notifications/PartnerWithdrawalConfirmationNotification.php`.
+- `app/Http/Controllers/Platform/PartnerSettingController.php`, `app/Http/Controllers/Partner/WithdrawalController.php`.
+- `resources/views/platform/settings/partners.blade.php`, `resources/views/partner/withdrawals.blade.php`, `resources/views/partner/withdrawal-confirm.blade.php`.
+
+### Contrôles
+
+- Migration additive appliquée localement : `2026_09_10_100000_add_partner_payout_gateways_setting`.
+- Tests ciblés `PartnerWithdrawalPreparationTest`, `PlatformPartnerSettingTest`, `PartnerInsightsTest`, `PartnerCommissionLifecycleTest` : **19 tests, 103 assertions, 0 échec**.
+- `php artisan view:cache`, `php artisan ui:lint --changed`, syntaxe PHP et `git diff --check` : succès.
+
+### Recette manuelle
+
+1. Dans l’administration, confirmer que Flooz est actif et Mixx/Yas inactif ; enregistrer avec motif et mot de passe, puis activer Mixx/Yas uniquement pour vérifier le changement.
+2. Dans **Mes retraits**, ouvrir l’ajout de compte : Flooz accepte seulement les huit préfixes prévus, refuse immédiatement un numéro Mixx ; après activation de Mixx, vérifier ses propres préfixes.
+3. Lorsque les payouts seront activés dans un environnement isolé et qu’un compte est vérifié, saisir montant et mot de passe : un code doit arriver par e-mail. Un code erroné, expiré ou rejoué doit être refusé.
+4. Ne pas lancer de transfert KPrimePay pendant cette recette : ce lot ne fait aucune sortie d’argent.
+
+### État
+
+Lot opérateurs/validation/OTP terminé. Reste la Phase 7C : client KPrimePay `from-collection-balance`, liste blanche IP, clé `payouts:write` séparée, webhook signé, réconciliation `credit-status`, traitement des frais, des échecs et des statuts inconnus en staging.

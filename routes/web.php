@@ -71,6 +71,9 @@ $partnerRoutes = function (): void {
         Route::get('commissions', [PartnerInsightsController::class, 'commissions'])->name('commissions');
         Route::get('withdrawals', [PartnerWithdrawalController::class, 'index'])->name('withdrawals');
         Route::post('withdrawals/accounts', [PartnerWithdrawalController::class, 'storeAccount'])->middleware('throttle:5,1')->name('withdrawals.accounts.store');
+        Route::post('withdrawals/request', [PartnerWithdrawalController::class, 'beginWithdrawal'])->middleware('throttle:3,1')->name('withdrawals.request');
+        Route::get('withdrawals/confirm', [PartnerWithdrawalController::class, 'showConfirm'])->name('withdrawals.confirm');
+        Route::post('withdrawals/confirm', [PartnerWithdrawalController::class, 'confirmWithdrawal'])->middleware('throttle:10,1')->name('withdrawals.confirm.submit');
         Route::post('commissions/export', [PartnerInsightsController::class, 'requestCommissionExport'])->middleware('throttle:5,1')->name('commissions.export');
         Route::get('exports/{export}/download', [PartnerInsightsController::class, 'downloadExport'])->name('exports.download');
         Route::get('code', [PartnerCodeController::class, 'show'])->name('code');

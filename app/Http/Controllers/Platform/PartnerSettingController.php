@@ -29,6 +29,8 @@ class PartnerSettingController extends Controller
             'payoutMinQualifiedClients' => $configuration->integer('partners.payout_min_qualified_clients', 3),
             'riskReviewEnabled' => $configuration->boolean('partners.risk_review_enabled', true),
             'autoApprovalMaxXof' => $configuration->integer('partners.auto_approval_max_xof', 0),
+            'payoutGatewayCatalog' => config('partners.payout_gateway_catalog', []),
+            'activePayoutGateways' => $this->payoutGateways($configuration),
         ]);
     }
 
@@ -45,6 +47,9 @@ class PartnerSettingController extends Controller
             'payout_min_qualified_clients' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
             'risk_review_enabled' => ['nullable', 'boolean'],
             'auto_approval_max_xof' => ['sometimes', 'integer', 'min:0', 'max:100000000'],
+            'payout_gateways' => ['nullable', 'array'],
+            'payout_gateways.*' => ['array'],
+            'payout_gateways.*.*' => ['string', 'max:40'],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
             'current_password' => ['required', 'current_password:platform'],
         ], [
@@ -87,6 +92,18 @@ class PartnerSettingController extends Controller
             if (array_key_exists($field, $data)) $changes[$key] = ['value' => (string) $data[$field], 'type' => 'integer'];
         }
         if ($request->has('risk_review_enabled')) $changes['partners.risk_review_enabled'] = ['value' => $request->boolean('risk_review_enabled') ? 'true' : 'false', 'type' => 'boolean'];
+        if ($request->has('payout_gateways')) {
+            $catalog = config('partners.payout_gateway_catalog', []);
+            $selected = [];
+            foreach ((array) $request->input('payout_gateways', []) as $country => $gateways) {
+                $country = strtoupper((string) $country);
+                if (!in_array($country, $activeCodes, true) || !isset($catalog[$country])) continue;
+                $allowed = array_keys($catalog[$country]);
+                $valid = array_values(array_unique(array_filter((array) $gateways, fn ($gateway) => in_array($gateway, $allowed, true))));
+                if ($valid !== []) $selected[$country] = $valid;
+            }
+            $changes['partners.payout_gateways'] = ['value' => json_encode($selected), 'type' => 'json'];
+        }
 
         DB::transaction(function () use ($changes, $admin, $data, $request): void {
             foreach ($changes as $key => $change) {
@@ -124,5 +141,12 @@ class PartnerSettingController extends Controller
         $configuration->forget(array_keys($changes));
 
         return back()->with('success', 'La configuration du programme partenaire a été enregistrée.');
+    }
+
+    private function payoutGateways(PlatformConfigurationService $configuration): array
+    {
+        $fallback = config('partners.payout_gateways', []);
+        $stored = $configuration->get('partners.payout_gateways', json_encode($fallback));
+        return is_array($stored) ? $stored : (json_decode((string) $stored, true) ?: $fallback);
     }
 }
