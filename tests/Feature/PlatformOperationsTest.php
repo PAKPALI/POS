@@ -6,10 +6,16 @@ use App\Models\NotificationDelivery;
 use App\Models\PlatformAdmin;
 use App\Models\PlatformAuditLog;
 use App\Models\PlatformSystemHeartbeat;
+use App\Models\PlatformWithdrawalAccount;
+use App\Models\Partner;
+use App\Models\PartnerWithdrawalAccount;
 use App\Models\QuotaPayment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\Concerns\InteractsWithCompanies;
 use Tests\TestCase;
 
@@ -78,6 +84,43 @@ class PlatformOperationsTest extends TestCase
             ->assertSee('SMS')
             ->assertSee('Paiements en attente depuis plus de 2 h')
             ->assertSee('>1</div>', false);
+    }
+
+    public function test_health_page_exposes_partner_and_platform_withdrawals_to_reconcile(): void
+    {
+        $admin = $this->admin();
+        if (! Schema::hasTable('partner_withdrawals') || ! Schema::hasTable('platform_withdrawals')) {
+            $this->markTestSkipped('Les tables de retraits ne sont pas présentes dans cet environnement de test.');
+        }
+
+        $partner = Partner::factory()->create(['status' => 'active', 'email_verified_at' => now()]);
+        $partnerAccount = PartnerWithdrawalAccount::create([
+            'partner_id' => $partner->id, 'country_code' => 'TG', 'gateway' => 'MOOV-MONEY-TG',
+            'phone_e164' => '+22896000008', 'phone_fingerprint' => hash('sha256', '+22896000008'),
+            'beneficiary_name' => 'Test', 'status' => 'verified', 'verified_at' => now(), 'is_primary' => true,
+        ]);
+        DB::table('partner_withdrawals')->insert([
+            'partner_id' => $partner->id, 'partner_withdrawal_account_id' => $partnerAccount->id,
+            'transaction_id' => (string) Str::uuid(), 'idempotency_key' => 'health-partner-'.Str::uuid(),
+            'amount' => 100, 'fees' => 0, 'currency' => 'XOF', 'with_fees' => false, 'status' => 'unknown',
+            'requested_at' => now(), 'unknown_at' => now(), 'account_snapshot' => json_encode(['gateway' => 'MOOV-MONEY-TG']),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $platformAccount = PlatformWithdrawalAccount::create([
+            'platform_admin_id' => $admin->id, 'country_code' => 'TG', 'gateway' => 'MOOV-MONEY-TG',
+            'phone_e164' => '+22896000009', 'phone_fingerprint' => hash('sha256', '+22896000009'),
+            'beneficiary_name' => 'Test', 'status' => 'verified', 'verified_at' => now(), 'is_primary' => true,
+        ]);
+        DB::table('platform_withdrawals')->insert([
+            'platform_admin_id' => $admin->id, 'platform_withdrawal_account_id' => $platformAccount->id,
+            'transaction_id' => (string) Str::uuid(), 'idempotency_key' => 'health-platform-'.Str::uuid(),
+            'amount' => 100, 'estimated_fees' => 0, 'fees' => 0, 'currency' => 'XOF', 'with_fees' => false, 'status' => 'processing',
+            'account_snapshot' => json_encode(['gateway' => 'MOOV-MONEY-TG']), 'funding_snapshot' => json_encode([]),
+            'requested_at' => now(), 'processing_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin, 'platform')->get(route('platform.health.index'))
+            ->assertOk()->assertSee('Retraits à réconcilier')->assertSee('1 inconnus');
     }
 
     public function test_retry_requires_a_reason_and_an_existing_failed_job(): void

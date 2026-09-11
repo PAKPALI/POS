@@ -193,9 +193,9 @@ Puis tester manuellement :
 - invitations et réinitialisation du mot de passe ;
 - e-mails, SMS et WhatsApp selon les autorisations ;
 - installation PWA depuis Android et Safari/iPhone ;
-- sur Android éligible, affichage de la bannière interne « Installer PRO-SELLER » et lancement de l’invite système ;
+- sur Android éligible, affichage de la bannière interne « Installer MAXANOU » et lancement de l’invite système ;
 - sur les navigateurs mobiles sans API d’installation, affichage après quelques secondes d’un guide indiquant l’option du menu « Installer l’application » ou « Ajouter à l’écran d’accueil » ;
-- connexion depuis la PWA installée, fermeture complète puis réouverture : la session doit reprendre via `/home` sans revenir artificiellement au formulaire ;
+- connexion depuis la PWA installée, fermeture complète puis réouverture : l’application s’ouvre via `/user_login`, puis rejoint l’espace autorisé lorsque la session reste valide, sans retour artificiel au formulaire ;
 - page 403 et menus selon les permissions ;
 - page hors connexion de la PWA.
 - exports CSV et Excel des produits, de l'inventaire et des ventes ; vérifier que le fichier Excel téléchargé porte bien l'extension `.xlsx` et s'ouvre sans réparation.

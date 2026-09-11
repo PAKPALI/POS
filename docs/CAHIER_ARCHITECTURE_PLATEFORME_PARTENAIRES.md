@@ -258,8 +258,7 @@ r >= 176       : 25
 
 ### 5.8 Maturité, disponibilité et retrait
 
-- Une commission confirmée entre d’abord dans l’état `pending`.
-- Elle devient `available` après un délai configurable de 7 jours, si le paiement n’est pas remboursé, annulé ou signalé.
+- Une commission confirmée est immédiatement `available` après le webhook de paiement vérifié, si le paiement n’est pas remboursé, annulé ou signalé. Cette décision produit remplace le délai de conservation initialement proposé de 7 jours ; le paramètre `partners.commission_hold_days` reste versionné pour une réactivation future sans modifier les snapshots existants.
 - Le retrait est autorisé si le partenaire possède au moins 3 clients qualifiés et un solde disponible supérieur ou égal au minimum configuré.
 - Minimum proposé au lancement : 5 000 XOF, à valider commercialement et au regard des frais KPrimePay.
 - Le compte Mobile Money doit être vérifié et appartenir au partenaire ou avoir été validé manuellement.

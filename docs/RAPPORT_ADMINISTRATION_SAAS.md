@@ -1,6 +1,14 @@
 # Rapport permanent — Administration SaaS
 
-Dernière mise à jour : 7 septembre 2026 — contrôle individuel d’abonnement par entreprise ajouté
+Dernière mise à jour : 11 septembre 2026 — trésorerie sécurisée, comptes Mobile Money et parcours d’administration alignés
+
+## Mise à jour du 11 septembre 2026 — trésorerie : comptes Mobile Money visibles et doublons refusés
+
+- La page **Monétisation > Trésorerie & retraits** affiche désormais les comptes Mobile Money enregistrés sous le formulaire : numéro masqué, pays/opérateur, état de vérification et indicateur de compte principal. Les données sensibles restent chiffrées et ne sont jamais réaffichées en clair.
+- Un même numéro normalisé ne peut plus être ajouté deux fois pour un même administrateur. Le contrôle s’appuie sur son empreinte, est refait côté serveur dans une transaction et renvoie un message explicite sans créer de second compte.
+- Les formulaires ont été réorganisés en étapes distinctes : ajout et vérification d’un bénéficiaire, puis demande de sortie. Les informations de capacité, de frais et de sécurité restent séparées des actions afin de préserver la lecture sur ordinateur comme sur mobile.
+- Les cartes « Compte Mobile Money administrateur » et « Demander un retrait de trésorerie » disposent d’un espacement responsive constant ; les champs de mot de passe et les actions de vérification restent contenus dans leur carte.
+- Vérification effectuée avec une session super-administrateur : affichage de la liste masquée, formulaires et espacement contrôlés dans le navigateur. `php -l`, le cache des vues et `git diff --check` sont passés. La suite ciblée `PlatformTreasuryTest` n’a pas pu démarrer dans l’environnement Windows local à cause d’une erreur `proc_open` de conversion de commande, avant toute assertion ; elle reste à rejouer dans un environnement PHP fonctionnel.
 
 ## Mise à jour du 7 septembre 2026 — contrôle d’abonnement par entreprise
 
@@ -225,6 +233,10 @@ Le cron serveur doit exécuter `php artisan schedule:run` chaque minute afin d�
 
 ## Historique des mises à jour
 
+- **11 septembre 2026** : amélioration du parcours de trésorerie : liste lisible des comptes Mobile Money masqués, contrôle serveur empêchant le doublon d’un numéro pour un même administrateur et formulaires responsive séparant clairement bénéficiaire et sortie de trésorerie.
+- **11 septembre 2026** : ajout de la console « Trésorerie & retraits ». Elle consolide les encaissements confirmés de quotas et d’abonnements, sépare les engagements partenaires de la capacité administrateur et réserve toute action de sortie au super-administrateur. Les comptes Mobile Money admin sont chiffrés, masqués et confirmés par code e-mail ; une demande nécessite aussi le mot de passe plateforme et un second code. Les transferts empruntent `from-collection-balance`, une clé d’idempotence et la queue dédiée ; leur règlement attend systématiquement `credit-status`. Le rôle Finance est explicitement en lecture seule. Aucune donnée POS n’a été modifiée lors des tests : la migration a été validée sur `pos_testing`.
+- **11 septembre 2026** : le checkout d’abonnement exige désormais l’acceptation visible des termes avant initialisation : redirection vers KPrimePay et frais éventuels du moyen de paiement indépendants de MAXANOU. Le bouton est désactivé sans case cochée et la validation serveur bloque également les requêtes directes.
+
 - **28 août 2026** : consolidation de toute l’administration SaaS dans ce rapport permanent ; accès sécurisé, tableaux globaux, entreprises, utilisateurs, paiements, rentabilité, audit, supervision et rôles administratifs documentés.
 - **28 août 2026** : ajout de la double authentification e-mail, de la récupération sécurisée du mot de passe, de la révocation des anciennes sessions et de la réinitialisation 2FA auditée par le super-administrateur.
 - **28 août 2026** : ajout des alertes automatiques d’exploitation, des seuils configurables, des destinataires, de l’anti-spam et du cycle de prise en charge/résolution.
@@ -284,3 +296,10 @@ Le cron serveur doit exécuter `php artisan schedule:run` chaque minute afin d�
 
 - Le propriétaire confirme le bon fonctionnement en staging du checkout de test, des retours webhook KPrimePay, du SMTP réel et de la recette visuelle mobile/desktop.
 - Le développement fonctionnel des abonnements et des notifications de paiements est considéré terminé. La mise en production reste conditionnée uniquement au renseignement contrôlé des secrets/URLs de production, à la supervision et à l’activation progressive de l’enforcement.
+
+# Mise à jour du 10 septembre 2026 — activation des retraits partenaires
+
+- La page **Administration SaaS > Paramètres > Partenaires** expose désormais l’interrupteur audité `partners.payouts_enabled` dans la section « Garde-fou / Retraits partenaires ».
+- L’état opérationnel (activé/désactivé), les seuils, la revue de risque et les opérateurs disponibles sont regroupés dans un panneau SaaS responsive. Toute modification exige un motif et le mot de passe plateforme, puis est enregistrée dans `platform_audit_logs` et `platform_settings_history`.
+- Le réglage reste désactivé par défaut ; son activation ne supprime aucun contrôle partenaire (solde, seuil, compte Mobile Money vérifié, 2FA et revue de risque).
+- Validation : `PlatformPartnerSettingTest` passe (**6 tests, 25 assertions**) et les vues Blade/lint UI sont valides.

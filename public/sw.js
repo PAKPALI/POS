@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'pro-seller-pwa-v7';
+const CACHE_VERSION = 'maxanou-pwa-v8';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const STATIC_ASSETS = [
     '/offline.html', '/manifest.json', '/favicon.ico',
@@ -14,7 +14,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(caches.keys()
         .then((keys) => Promise.all(keys
-            .filter((key) => key.startsWith('pro-seller-pwa-') && key !== STATIC_CACHE)
+            .filter((key) => (key.startsWith('pro-seller-pwa-') || key.startsWith('maxanou-pwa-')) && key !== STATIC_CACHE)
             .map((key) => caches.delete(key))))
         .then(() => self.clients.claim()));
 });

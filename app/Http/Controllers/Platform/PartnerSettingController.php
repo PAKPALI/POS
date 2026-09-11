@@ -27,7 +27,7 @@ class PartnerSettingController extends Controller
             'payoutsEnabled' => $configuration->boolean('partners.payouts_enabled', false),
             'payoutMinXof' => $configuration->integer('partners.payout_min_xof', 5000),
             'payoutMinQualifiedClients' => $configuration->integer('partners.payout_min_qualified_clients', 3),
-            'riskReviewEnabled' => $configuration->boolean('partners.risk_review_enabled', true),
+            'payoutFeeBps' => $configuration->integer('partners.payout_fee_bps', (int) config('partners.payout_fee_bps', 100)),
             'autoApprovalMaxXof' => $configuration->integer('partners.auto_approval_max_xof', 0),
             'payoutGatewayCatalog' => config('partners.payout_gateway_catalog', []),
             'activePayoutGateways' => $this->payoutGateways($configuration),
@@ -40,12 +40,13 @@ class PartnerSettingController extends Controller
         $data = $request->validate([
             'partners_enabled' => ['nullable', 'boolean'],
             'registration_enabled' => ['nullable', 'boolean'],
+            'payouts_enabled' => ['nullable', 'boolean'],
             'countries' => ['required', 'array', 'min:1'],
             'countries.*' => ['required', Rule::in($catalogCodes)],
             'code_cooldown_days' => ['sometimes', 'integer', 'min:1', 'max:365'],
             'payout_min_xof' => ['sometimes', 'integer', 'min:1', 'max:100000000'],
             'payout_min_qualified_clients' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
-            'risk_review_enabled' => ['nullable', 'boolean'],
+            'payout_fee_percent' => ['sometimes', 'numeric', 'min:0', 'max:50'],
             'auto_approval_max_xof' => ['sometimes', 'integer', 'min:0', 'max:100000000'],
             'payout_gateways' => ['nullable', 'array'],
             'payout_gateways.*' => ['array'],
@@ -55,6 +56,7 @@ class PartnerSettingController extends Controller
         ], [
             'partners_enabled.boolean' => 'Le réglage du portail partenaire est invalide.',
             'registration_enabled.boolean' => 'Le réglage des inscriptions partenaires est invalide.',
+            'payouts_enabled.boolean' => 'Le réglage des retraits partenaires est invalide.',
             'countries.required' => 'Sélectionnez au moins un pays actif.',
             'countries.array' => 'La sélection des pays actifs est invalide.',
             'countries.min' => 'Sélectionnez au moins un pays actif.',
@@ -74,6 +76,7 @@ class PartnerSettingController extends Controller
 
         $partnersEnabled = $request->boolean('partners_enabled');
         $registrationEnabled = $request->boolean('registration_enabled');
+        $payoutsEnabled = $request->boolean('payouts_enabled');
         if ($registrationEnabled && !$partnersEnabled) {
             return back()->withErrors(['registration_enabled' => 'L’inscription ne peut être ouverte que lorsque le portail partenaire est activé.'])->withInput();
         }
@@ -83,6 +86,7 @@ class PartnerSettingController extends Controller
         $changes = [
             'partners.enabled' => ['value' => $partnersEnabled ? 'true' : 'false', 'type' => 'boolean'],
             'partners.registration_enabled' => ['value' => $registrationEnabled ? 'true' : 'false', 'type' => 'boolean'],
+            'partners.payouts_enabled' => ['value' => $payoutsEnabled ? 'true' : 'false', 'type' => 'boolean'],
             'partners.active_countries' => ['value' => json_encode($activeCodes), 'type' => 'json'],
         ];
         if (array_key_exists('code_cooldown_days', $data)) {
@@ -91,7 +95,9 @@ class PartnerSettingController extends Controller
         foreach (['payout_min_xof' => 'partners.payout_min_xof', 'payout_min_qualified_clients' => 'partners.payout_min_qualified_clients', 'auto_approval_max_xof' => 'partners.auto_approval_max_xof'] as $field => $key) {
             if (array_key_exists($field, $data)) $changes[$key] = ['value' => (string) $data[$field], 'type' => 'integer'];
         }
-        if ($request->has('risk_review_enabled')) $changes['partners.risk_review_enabled'] = ['value' => $request->boolean('risk_review_enabled') ? 'true' : 'false', 'type' => 'boolean'];
+        if (array_key_exists('payout_fee_percent', $data)) {
+            $changes['partners.payout_fee_bps'] = ['value' => (string) ((int) round(((float) $data['payout_fee_percent']) * 100)), 'type' => 'integer'];
+        }
         if ($request->has('payout_gateways')) {
             $catalog = config('partners.payout_gateway_catalog', []);
             $selected = [];

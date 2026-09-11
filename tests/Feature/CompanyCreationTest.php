@@ -24,6 +24,7 @@ class CompanyCreationTest extends TestCase
             'email' => 'second-company@test.local',
             'adress' => 'Lomé',
             'number1' => '90000000',
+            'country_code' => 'TG',
             'default_tax' => 18,
         ]);
 
@@ -71,6 +72,7 @@ class CompanyCreationTest extends TestCase
             'email' => $secondCompany->email,
             'adress' => $secondCompany->adress,
             'number1' => $secondCompany->number1,
+            'country_code' => $secondCompany->country_code,
         ])->assertOk()->assertJson(['status' => true]);
 
         $this->actingAs($owner)->get(route('company.index'))

@@ -27,12 +27,23 @@ return [
     'kprimepay' => [
         'base_url' => env('KPRIMEPAY_BASE_URL', 'https://api.kprimepay.com/v2'),
         'token' => env('KPRIMEPAY_TOKEN'),
+        'ca_bundle' => env('KPRIMEPAY_CA_BUNDLE', env('CURL_CA_BUNDLE')),
         'mode' => (int) env('KPRIMEPAY_MODE', 1),
         'with_fees' => (int) env('KPRIMEPAY_WITH_FEES', 1),
         'sms_unit_price' => (int) env('KPRIMEPAY_SMS_UNIT_PRICE', 35),
         'whatsapp_unit_price' => (int) env('KPRIMEPAY_WHATSAPP_UNIT_PRICE', 30),
         'sms_unit_cost' => (int) env('KPRIMEPAY_SMS_UNIT_COST', 15),
         'whatsapp_unit_cost' => (int) env('KPRIMEPAY_WHATSAPP_UNIT_COST', 15),
+    ],
+
+    // Les retraits utilisent volontairement une clé distincte des encaissements.
+    // Ne jamais réemployer KPRIMEPAY_TOKEN (checkout / quotas) pour un payout.
+    'kprimepay_payout' => [
+        'base_url' => env('KPRIMEPAY_PAYOUT_BASE_URL', env('KPRIMEPAY_BASE_URL', 'https://api.kprimepay.com/v2')),
+        'token' => env('KPRIMEPAY_PAYOUT_TOKEN'),
+        'ca_bundle' => env('KPRIMEPAY_PAYOUT_CA_BUNDLE', env('KPRIMEPAY_CA_BUNDLE', env('CURL_CA_BUNDLE'))),
+        // Distinct des frais KPrimePay : aucun supplément `with_fees` n'est ajouté au bénéficiaire.
+        'with_fees' => (int) env('KPRIMEPAY_PAYOUT_WITH_FEES', 0),
     ],
 
     'mailgun' => [

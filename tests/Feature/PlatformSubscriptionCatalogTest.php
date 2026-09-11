@@ -43,7 +43,7 @@ class PlatformSubscriptionCatalogTest extends TestCase
     {
         $this->actingAs($this->admin(), 'platform')->get(route('platform.subscriptions.catalog'))
             ->assertOk()
-            ->assertSee('Versions des plans');
+            ->assertSee('Versions du plan');
     }
 
     public function test_publish_replaces_only_the_catalog_version_for_future_checkouts(): void

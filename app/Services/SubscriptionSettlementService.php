@@ -84,7 +84,15 @@ class SubscriptionSettlementService
         }, 3);
 
         // Une panne SMTP ne peut jamais annuler un paiement confirmé.
-        $this->notifyPlatformAdmins($payment->fresh(['subscriptionAccount.billingCompany', 'plan', 'subscription']));
+        $this->notifyPlatformAdmins($payment->fresh([
+            'subscriptionAccount.billingCompany',
+            'subscriptionAccount.partnerAttribution.partner',
+            'subscriptionAccount.partnerAttribution.promoCode',
+            'plan',
+            'subscription',
+            'partnerCommission',
+            'user',
+        ]));
         return $settled;
     }
 

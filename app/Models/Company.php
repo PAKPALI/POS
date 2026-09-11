@@ -65,6 +65,14 @@ class Company extends Model
             }
 
             $company->slug = static::generateUniqueSlug($company->slug ?: $company->name);
+            // Les anciennes installations peuvent avoir une colonne nullable
+            // malgré la valeur par défaut de la migration. Garantir ici les
+            // invariants utilisés par les scopes et les jobs tenant.
+            $company->status ??= 'active';
+            $company->timezone ??= 'Africa/Douala';
+            $company->currency ??= 'FCFA';
+            $company->locale ??= 'fr';
+            $company->country_code ??= 'TG';
         });
     }
 

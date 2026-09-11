@@ -90,12 +90,12 @@
         const prompt = document.createElement('aside');
         prompt.id = 'android-pwa-install-prompt';
         prompt.setAttribute('role', 'dialog');
-        prompt.setAttribute('aria-label', 'Installer PRO-SELLER');
+        prompt.setAttribute('aria-label', 'Installer MAXANOU');
         prompt.innerHTML = `
             <div class="android-pwa-content">
                 <img class="android-pwa-icon" src="/icons/icon-192.png" alt="">
                 <div class="android-pwa-copy">
-                    <strong>Installer PRO-SELLER</strong>
+                    <strong>Installer MAXANOU</strong>
                     <span>Accédez plus rapidement à votre espace depuis l’écran d’accueil.</span>
                 </div>
             </div>
@@ -157,12 +157,12 @@
         const guide = document.createElement('aside');
         guide.id = 'mobile-pwa-install-fallback';
         guide.setAttribute('role', 'dialog');
-        guide.setAttribute('aria-label', 'Installer PRO-SELLER');
+        guide.setAttribute('aria-label', 'Installer MAXANOU');
         guide.innerHTML = `
             <div class="mobile-pwa-fallback-head">
                 <img class="mobile-pwa-fallback-icon" src="/icons/icon-192.png" alt="">
                 <div class="mobile-pwa-fallback-copy">
-                    <strong>Installer PRO-SELLER</strong>
+                    <strong>Installer MAXANOU</strong>
                     <span>Votre navigateur permet l’installation depuis son menu.</span>
                 </div>
             </div>
@@ -227,7 +227,7 @@
         const guide = document.createElement('aside');
         guide.id = 'ios-pwa-install-guide';
         guide.setAttribute('role', 'dialog');
-        guide.setAttribute('aria-label', 'Installer PRO-SELLER sur votre iPhone');
+        guide.setAttribute('aria-label', 'Installer MAXANOU sur votre iPhone');
 
         const browserNotice = isSafariOnIos()
             ? 'Installez l’application pour y accéder comme une application native.'
@@ -237,7 +237,7 @@
             <div class="ios-pwa-head">
                 <img class="ios-pwa-icon" src="/icons/apple-touch-icon-180.png" alt="">
                 <div class="ios-pwa-copy">
-                    <strong>Installer PRO-SELLER</strong>
+                    <strong>Installer MAXANOU</strong>
                     <span>${browserNotice}</span>
                 </div>
                 <button class="ios-pwa-close" type="button" aria-label="Fermer">&times;</button>

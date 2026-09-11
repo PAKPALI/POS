@@ -42,6 +42,12 @@ class SendInventoryWhatsappJob implements ShouldQueue
         $inventory = Inventory::with(['product', 'user'])->find($this->inventoryId);
 
         if (!$inventory) return;
+        if ((int) $inventory->type === 2 && str_starts_with(trim((string) $inventory->note), 'Vente #')) {
+            Log::info('Notification d’inventaire ignorée : mouvement généré par une vente', [
+                'company_id' => $company->id, 'inventory_id' => $inventory->id,
+            ]);
+            return;
+        }
 
         if (!$company->inventory_whatsapp_enabled && !$company->inventory_sms_enabled) {
             Log::info('Notifications d’inventaire WhatsApp/SMS désactivées', ['company_id' => $company->id]);

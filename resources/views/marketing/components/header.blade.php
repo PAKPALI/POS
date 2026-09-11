@@ -34,13 +34,20 @@
             @include('marketing.components.icon', ['name' => 'menu'])
             <span>Menu</span>
         </button>
+        @php
+            $marketingNavigation = [
+                ['label' => 'Fonctionnalités', 'route' => 'marketing.features', 'active' => request()->routeIs('marketing.features', 'marketing.invoices')],
+                ['label' => 'Solutions', 'route' => 'marketing.sectors', 'active' => request()->routeIs('marketing.sectors')],
+                ['label' => 'Partenaires', 'route' => 'marketing.partners', 'active' => request()->routeIs('marketing.partners')],
+                ['label' => 'Tarifs', 'route' => 'marketing.pricing', 'active' => request()->routeIs('marketing.pricing')],
+                ['label' => 'Sécurité', 'route' => 'marketing.security', 'active' => request()->routeIs('marketing.security')],
+                ['label' => 'Aide', 'route' => 'marketing.help', 'active' => request()->routeIs('marketing.help')],
+            ];
+        @endphp
         <nav class="marketing-nav" id="marketing-nav" aria-label="Navigation principale">
-            <a href="{{ route('marketing.features') }}">Fonctionnalités</a>
-            <a href="{{ route('marketing.sectors') }}">Solutions</a>
-            <a href="{{ route('marketing.partners') }}">Partenaires</a>
-            <a href="{{ route('marketing.pricing') }}">Tarifs</a>
-            <a href="{{ route('marketing.security') }}">Sécurité</a>
-            <a href="{{ route('marketing.help') }}">Aide</a>
+            @foreach($marketingNavigation as $item)
+                <a class="{{ $item['active'] ? 'is-active' : '' }}" href="{{ route($item['route']) }}" @if($item['active']) aria-current="page" @endif>{{ $item['label'] }}</a>
+            @endforeach
             <div class="marketing-nav-actions">
                 <a class="marketing-button marketing-button-ghost" href="{{ route('marketing.login') }}">Se connecter</a>
                 <a class="marketing-button marketing-button-primary" data-event="hero_try" href="{{ route('marketing.register') }}">Essayer gratuitement</a>

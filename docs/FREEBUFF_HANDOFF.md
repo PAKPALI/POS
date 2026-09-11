@@ -1,6 +1,6 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 7 septembre 2026 — validation staging et état consolidé après ajout de l’enforcement individuel et du kit de composants SaaS.
+Dernière mise à jour : 11 septembre 2026 — trésorerie sécurisée, cohérence PWA MAXANOU et correctifs UI consolidés.
 
 ## Mise à jour du 7 septembre 2026 — migration UI SaaS transversale
 
@@ -10,13 +10,15 @@ Le propriétaire confirme également la fin de la recette staging : contrôle vi
 
 Le 7 septembre, une recette de charge locale a également été exécutée exclusivement sur `pos_testing` : volume intermédiaire (12 000 ventes et 24 000 lignes) sous 300 ms sur tous les parcours mesurés, deux scénarios de concurrence stock/commande sans doublon ni survente, et 1 000 notifications traitées par quatre workers sans doublon ni échec. Les métriques détaillées sont dans `docs/RAPPORT_GLOBAL_SAAS.md`. Le volume maximal reste rejouable depuis un terminal persistant.
 
-## État de référence au 7 septembre 2026
+## État de référence au 11 septembre 2026
 
 Cette section prévaut sur les anciennes entrées historiques de ce handoff. Le développement fonctionnel du plan d’abonnement est terminé pour le périmètre prévu : catalogue versionné, essai de 14 jours, choix de 1 à 12 mois avec remise uniquement à 12 mois, montée de plan sans descente, règlement KPrimePay séparé des quotas, webhooks idempotents, expiration et rappels par e-mail, contrôle des fonctionnalités et limites compagnie/utilisateur/produit, SweetAlert avec proposition d’amélioration pour les propriétaires et administrateurs, et notification des paiements confirmés aux administrateurs plateforme.
 
 Les tests ciblés abonnement, quotas, webhooks, expiration, pré-contrôle et catalogue passent. Le checkout réel KPrimePay, les webhooks, le SMTP réel de staging, la recette visuelle mobile/desktop, le cron/queue, les sauvegardes, les logs et les alertes ont été validés par le propriétaire. La suite de développement et la validation staging sont terminées à **100 %** ; restent uniquement le déploiement de production, ses secrets/URL et l’activation progressive de `subscriptions.enforcement_enabled`.
 
 La fixture locale du compte `didierlombardo48@gmail.com` est mutable et a servi à plusieurs recettes manuelles (Basic, Bronze, Argent, Gold puis Essai). Elle ne doit donc pas être considérée comme une vérité permanente dans ce document : vérifier l’état courant directement dans la base locale avant chaque test et ne jamais reproduire cette fixture en production.
+
+Les évolutions ultérieures couvrent également les retraits partenaires et administrateur, la présentation responsive des tables et formulaires, et la PWA MAXANOU. Les paiements sortants conservent leurs contrôles serveur, leurs journaux et leur vérification asynchrone ; ils ne doivent pas être assimilés à un solde disponible chez le prestataire.
 
 ## Mise à jour du 7 septembre 2026 — enforcement individuel par entreprise
 
@@ -1514,6 +1516,15 @@ Je m’arrête après cette correction. La suite attend ta validation visuelle d
 - Les tables d’adhésions et d’invitations restent contenues dans leurs panneaux avec défilement horizontal lorsque nécessaire.
 - Vérification visuelle locale sur mobile et contrôles `php artisan view:cache` / `git diff --check` réussis.
 
+## Mise à jour du 11 septembre 2026 — Notification e-mail immédiate d’inventaire
+
+- Les entrées et sorties créées depuis le module Inventaire déclenchent désormais `SendInventoryEmailJob` après validation de la transaction.
+- Le job respecte le canal `inventory_email_enabled`, les destinataires e-mail configurés dans la catégorie `inventory`, la disponibilité globale du canal et `NotificationDeliveryService` pour éviter les doublons et tracer les échecs.
+- Un modèle e-mail dédié détaille le type de mouvement, le produit, le fournisseur, les quantités avant/après, l’auteur, la date et la note.
+- Les mouvements de sortie générés automatiquement par une vente (`note` commençant par `Vente #`) sont explicitement ignorés par les alertes d’inventaire : la vente conserve sa notification propre.
+- Le job WhatsApp/SMS applique le même garde-fou pour éviter toute double alerte si un mouvement de vente lui est transmis.
+- Contrôles : syntaxe PHP, `php artisan view:cache`, `git diff --check` réussis. Les tests fonctionnels d’inventaire restent bloqués par l’environnement Windows (`proc_open(): Command conversion failed`), tandis que le test unitaire de fiabilité des jobs passe.
+
 ### Gate
 
 Je m’arrête après cette correction. La suite attend ta validation manuelle sur ton appareil mobile (sélection de plusieurs entreprises et défilement), puis ton autorisation explicite de continuer.
@@ -1938,3 +1949,258 @@ Phase 7A préparatoire terminée côté serveur et interface, en attente de rece
 ### État
 
 Lot opérateurs/validation/OTP terminé. Reste la Phase 7C : client KPrimePay `from-collection-balance`, liste blanche IP, clé `payouts:write` séparée, webhook signé, réconciliation `credit-status`, traitement des frais, des échecs et des statuts inconnus en staging.
+
+## Ajustement du 10 septembre 2026 — confirmation autonome du compte Mobile Money
+
+- La vérification ne nécessite plus d’intervention administrative. Après l’enregistrement d’un compte, le partenaire est redirigé vers un écran de confirmation et reçoit un code e-mail dédié (`withdrawal_account`).
+- Le code est à usage unique, limité à 6 chiffres, valable 10 minutes et limité à 5 tentatives. Après validation, le compte passe immédiatement de `pending_verification` à `verified` et devient sélectionnable pour un retrait.
+- Le code de confirmation du compte reste distinct du code e-mail demandé au moment de confirmer un retrait (`withdrawal`). Aucun retrait n’est créé lors de la vérification du compte.
+- L’interface affiche désormais « Confirmation e-mail requise » au lieu d’un état ambigu « À vérifier ». Les flux de paiement et de quota restent inchangés.
+
+### Contrôles complémentaires
+
+- `PartnerWithdrawalPreparationTest`, `PlatformPartnerSettingTest`, `PartnerInsightsTest`, `PartnerCommissionLifecycleTest` : **21 tests, 111 assertions, 0 échec**.
+- `php artisan view:cache`, `php artisan ui:lint --changed`, `php artisan route:list --name=partner.withdrawals` et `git diff --check` : succès.
+
+### Recette manuelle complémentaire
+
+1. Ouvrir **Mes retraits > Ajouter un compte** et saisir un numéro Flooz valide.
+2. Vérifier la redirection vers **Confirmer le compte Mobile Money** et la réception du code e-mail.
+3. Saisir le code : le compte doit afficher « Vérifié » et apparaître dans le sélecteur de retrait.
+4. Tester un code erroné, expiré ou réutilisé : le compte ne doit pas être vérifié.
+5. Vérifier qu’aucun retrait KPrimePay n’est déclenché pendant cette confirmation.
+
+## Mise à jour du 10 septembre 2026 — Phase 7C, exécution KPrimePay à solde de collecte
+
+- Le retrait effectif utilise maintenant exclusivement `POST /v2/payouts/from-collection-balance`. Il ne touche ni `payouts/from-collection` (transaction unique), ni le client `KprimePayService` des checkouts SMS, WhatsApp et abonnements.
+- La clé est strictement séparée : `KPRIMEPAY_PAYOUT_TOKEN`, avec l’URL optionnelle `KPRIMEPAY_PAYOUT_BASE_URL`. L’ancienne variable `KPRIMEPAY_TOKEN` continue de servir aux encaissements et ne doit jamais recevoir le droit `payouts:write`.
+- Chaque transfert inclut la clé d’idempotence immuable du retrait. Le montant reste en réserve lors de l’acceptation fournisseur ; le grand livre ne passe en `paid` qu’après une lecture authentifiée de `POST /v2/transactions/credit-status`, déclenchée par le webhook `transfer.*` ou la réconciliation planifiée.
+- Un rejet explicite `INSUFFICIENT_COLLECTION_BALANCE` ou `GATEWAY_REJECTED` libère la réserve. Toute réponse réseau ambiguë conserve l’état `unknown` et le solde réservé : aucune relance avec une nouvelle clé n’est effectuée.
+- Les événements sont dédoublonnés dans `partner_payout_events`, avec empreinte SHA-256 et charge expurgée (ni e-mail, ni numéro Mobile Money). Le webhook ne solde jamais un retrait sur sa seule déclaration : il vérifie d’abord le statut avec la clé payout.
+- Historiquement, `partners:reconcile-payouts --limit=100` était planifié toutes les dix minutes. Depuis l’architecture queue du 11 septembre, la détection automatique est réalisée chaque minute par `partners.dispatch-reconciliations`, et cette commande reste disponible pour une vérification opérateur ponctuelle (`--pretend` ne modifie rien).
+- L’exécution automatique était initialement protégée par `risk_review_enabled` et un plafond positif. Depuis l’ajustement opérationnel du 10 septembre 2026, le premier réglage est supprimé : seul le plafond automatique, ainsi que les contrôles métier et la confirmation e-mail, encadre l’envoi.
+
+### Fichiers principaux
+
+- `config/services.php`, `app/Services/KprimePayPayoutService.php`, `app/Services/PartnerPayoutService.php`.
+- `app/Jobs/ExecutePartnerWithdrawal.php`, `app/Console/Commands/ReconcilePartnerPayouts.php`, `app/Console/Kernel.php`.
+- `app/Exceptions/KprimePayPayoutException.php`, `app/Services/PartnerWithdrawalService.php`.
+- `app/Http/Controllers/Api/KprimePayWebhookController.php`, `app/Http/Controllers/Partner/WithdrawalController.php`.
+- `resources/views/partner/withdrawals.blade.php` (états et suivi des demandes).
+- `tests/Feature/PartnerPayoutIntegrationTest.php`.
+
+### Contrôles Phase 7C
+
+- Tests ciblés finaux `PartnerPayoutIntegrationTest`, `PartnerWithdrawalPreparationTest`, `PlatformPartnerSettingTest`, `PartnerInsightsTest`, `PartnerCommissionLifecycleTest` : **27 tests, 147 assertions, 0 échec**.
+- Vérifications : syntaxe PHP des nouveaux services/commande/contrôleur, `php artisan partners:reconcile-payouts --pretend --limit=5`, `php artisan view:cache`, `php artisan ui:lint --changed`, `php artisan route:list --name=partner.withdrawals` et `git diff --check` : succès.
+- Inspection visuelle : la page de connexion partenaire rend correctement dans le navigateur intégré. La session authentifiée n’était plus disponible, donc aucun clic sur le formulaire de retrait ni aucun paiement n’a été lancé.
+
+### Préparation staging indispensable avant toute activation
+
+1. Créer dans KPrimePay une clé serveur dédiée aux retraits, limitée au minimum à `payouts:write` et à la lecture de statut, puis la poser dans `KPRIMEPAY_PAYOUT_TOKEN` sur staging. Ne jamais la communiquer dans le dépôt, les logs ou l’interface.
+2. Ajouter l’IP sortante exacte de staging à la liste blanche payout KPrimePay.
+3. Définir et valider la politique de frais via `KPRIMEPAY_PAYOUT_WITH_FEES=0` : aucun supplément `with_fees` ne doit être envoyé au bénéficiaire. Les frais réels KPrimePay sont imputés séparément au portefeuille partenaire.
+4. Garder `partners.payouts_enabled=false` jusqu’à une recette de faible montant. Pour un essai automatique, désactiver temporairement la revue de risque et fixer un plafond strictement limité ; remettre les réglages de sécurité juste après le test.
+5. Configurer le webhook `POST /api/kprimepay/webhook` pour les événements `transfer.succeeded` et `transfer.failed`, puis vérifier le retour de `credit-status` et les lignes `reserved → paid` ou `reserved → available`.
+
+### État
+
+Phase 7C développée et testée sans transfert réel. L’activation staging demeure volontairement bloquée par défaut tant que la clé payout dédiée, la liste blanche IP et la politique de frais n’ont pas été mises en place et validées manuellement.
+
+## Ajustement du 10 septembre 2026 — frais KPrimePay transparents avant retrait
+
+- Le pourcentage KPrimePay est maintenant administrable via **Programme partenaires > Frais KPrimePay (%)**. La valeur initiale est `1,00 %` (`partners.payout_fee_bps=100`) et est auditée comme les autres réglages sensibles.
+- Le partenaire saisit le **montant à recevoir**. L’interface calcule immédiatement les frais arrondis au franc supérieur et le **montant final débité** : à 1 %, `1 000 XOF` envoyé implique `10 XOF` de frais et `1 010 XOF` débités du portefeuille.
+- Quand le total dépasse le solde disponible, le récapitulatif devient rouge, explique l’insuffisance et désactive le bouton d’envoi du code e-mail. À solde égal ou supérieur, il explique le montant réellement reçu et le montant retiré du portefeuille. Le serveur refait exactement le même calcul : le navigateur ne peut pas contourner ce garde-fou.
+- La réservation, la restitution après rejet et la comptabilisation du payout portent désormais sur `montant + frais`. Les allocations de commissions couvrent également ce total. Une différence entre les frais réservés et ceux confirmés par KPrimePay force l’état `unknown` et conserve le solde protégé pour contrôle.
+- Une commande d’aperçu exclusivement `local/testing` est disponible : `php artisan partners:seed-withdrawal-preview {id_partenaire}`. Elle crédite une seule fois 10 000 XOF fictifs, rend un compte de démonstration vérifié et remplit la condition de clients qualifiés ; elle ne crée pas de retrait, ne transmet aucun e-mail et n’appelle jamais KPrimePay. Elle a été exécutée localement pour le partenaire de recette actuellement connecté.
+
+### Fichiers complémentaires
+
+- `database/migrations/2026_09_10_110000_add_partner_payout_fee_setting.php`, `config/partners.php`.
+- `app/Services/PartnerWithdrawalService.php`, `app/Services/PartnerPayoutService.php`.
+- `app/Http/Controllers/Partner/WithdrawalController.php`, `app/Http/Controllers/Platform/PartnerSettingController.php`.
+- `resources/views/partner/withdrawals.blade.php`, `resources/views/platform/settings/partners.blade.php`, `public/hub/assets/css/saas-pages.css`.
+- `app/Console/Commands/SeedPartnerWithdrawalPreview.php`, `tests/Feature/PartnerWithdrawalPreparationTest.php`.
+
+## Ajustement UI/UX du 10 septembre 2026 — carte « Demander un retrait »
+
+- La carte utilise désormais la grille SaaS dédiée : champs lisibles et empilés sur mobile, compte Mobile Money vérifié clairement séparé du montant et du mot de passe, puis récapitulatif financier et action de sécurité.
+- Le récapitulatif est visuellement priorisé : montant reçu, frais KPrimePay et montant final débité. Le dépassement de solde adopte l’état rouge du design system et désactive l’action ; l’état conforme reste explicite et rappelle qu’aucun versement ne part avant l’étape suivante.
+- La version d’asset `saas-pages.css` a été incrémentée pour éviter que le navigateur conserve l’ancien rendu.
+- Contrôle visuel effectué dans le navigateur intégré sur le compte local de recette : formulaire actif, calcul `1 000 → 10 → 1 010`, puis état bloqué `10 000 → 100 → 10 100` avec alerte rouge. Aucun formulaire n’a été soumis.
+
+## Historique du 10 septembre 2026 — `with_fees` distinct du tarif KPrimePay
+
+- La configuration finale conserve `with_fees=0` : ce drapeau est distinct des frais propres à KPrimePay et évite d’ajouter un supplément technique au bénéficiaire.
+- Ce drapeau technique est indépendant du tarif KPrimePay affiché et calculé par la plateforme (`partners.payout_fee_bps`). Le partenaire reçoit toujours exactement le montant saisi ; le portefeuille réserve et débite ce montant augmenté du tarif KPrimePay configuré.
+- Les tests vérifient simultanément le payload API (`with_fees=0`) et le calcul métier séparé (`1 000 → 10 → 1 010`). Aucun changement n’est apporté au client KPrimePay des paiements de quotas, SMS, WhatsApp ou abonnements.
+
+## Correctif financier du 11 septembre 2026 — frais réels à la charge du partenaire
+
+- La politique de retrait est désormais explicite : le bénéficiaire Mobile Money reçoit **exactement le montant demandé**. Les frais facturés par KPrimePay sont supportés par le portefeuille du partenaire ; la plateforme ne les absorbe pas.
+- L’appel `POST /v2/payouts/from-collection-balance` utilise `with_fees=0` (`KPRIMEPAY_PAYOUT_WITH_FEES=0`). Ce drapeau est distinct des frais KPrimePay et ne modifie pas les paiements de quotas, SMS, WhatsApp ni abonnements.
+- Avant l’envoi, le système réserve le montant demandé augmenté d’un **plafond de frais** réglable dans l’administration. Après la confirmation authentifiée KPrimePay, il débite seulement le coût réellement rapporté (`total_amount_debited - transaction_amount`) et restitue automatiquement la différence au solde disponible.
+- La table `partner_withdrawals` conserve désormais `estimated_fees` pour l’audit de la réserve ; `fees` devient le frais réel confirmé lors d’un versement réussi. Une différence favorable ne bloque plus le retrait. Si le frais réel dépasse le plafond réservé, l’état reste `unknown` pour ne pas masquer un écart comptable.
+- L’interface partenaire indique « Estimation des frais KPrimePay » et « Montant maximal réservé ». L’administration parle désormais de « Plafond des frais KPrimePay (%) » et précise qu’il doit couvrir le tarif actif du prestataire.
+- Tests ajoutés : payload `with_fees=0`, règlement idempotent, restitution d’une réserve trop élevée, et mise en attente d’un coût réel supérieur au plafond. `PartnerPayoutIntegrationTest` : **6 tests, 34 assertions, succès**.
+
+### Recette manuelle — retrait avec frais KPrimePay
+
+1. Redémarrer le serveur PHP/Laragon local après le déploiement afin qu’il recharge les vues, la configuration et `KPRIMEPAY_PAYOUT_WITH_FEES=0`.
+2. Dans **Administration > Programme partenaires**, renseigner un plafond de frais au moins égal au tarif KPrimePay de l’opérateur, puis activer uniquement l’opérateur à tester.
+3. Avec un partenaire éligible, saisir par exemple `1 000 XOF` sur **Mes retraits** : vérifier que le récapitulatif annonce `1 000 XOF` à recevoir, une estimation de frais et un montant maximal réservé ; le bouton doit se désactiver si ce total dépasse le solde disponible.
+4. Confirmer le mot de passe puis le code e-mail. Vérifier dans le payload/les logs que `with_fees` vaut `0` et que KPrimePay reçoit `amount=1000`.
+5. Après le webhook et le contrôle `credit-status`, vérifier que le Mobile Money a reçu `1 000 XOF`, que le portefeuille partenaire a été débité de `1 000 + frais réels`, et que la différence entre la réserve et le coût réel a été restituée.
+6. Rejouer le même webhook : aucun second débit, aucune seconde écriture de portefeuille. Si le coût confirmé dépasse le plafond, ne pas corriger manuellement le solde : le retrait doit rester `À vérifier` pour analyse.
+
+### Limite de contrôle local
+
+Le processus PHP qui sert `127.0.0.1:1111` est détenu par une autre session Windows et refuse son arrêt depuis cette session. Les caches Laravel du projet ont bien été régénérés, mais un redémarrage de Laragon/PHP par son propriétaire est requis avant l’inspection visuelle de cette nouvelle vue sur ce serveur précis.
+
+## Architecture de réconciliation en queue — 11 septembre 2026
+
+- Le scheduler Laravel détecte chaque minute les retraits `processing` et `unknown` suffisamment anciens, puis place un `ReconcilePartnerWithdrawal` dans la queue `withdrawals`.
+- Le job est unique par retrait, utilise un verrou `WithoutOverlapping`, applique des reprises progressives (10, 30 et 60 secondes) et appelle uniquement `credit-status`. Il ne relance jamais `from-collection-balance`.
+- Le worker à lancer en staging/production est `php artisan queue:work --queue=withdrawals --sleep=1 --tries=3`. Le scheduler doit être maintenu actif via `php artisan schedule:work` ou le planificateur système qui exécute `schedule:run` chaque minute.
+- `ExecutePartnerWithdrawal` est également routé vers `withdrawals`, afin que l’envoi initial et les réconciliations soient traités par le même worker dédié.
+- Le test d’architecture confirme l’isolation de la queue et l’absence de relance pour un retrait clôturé. Les tests forcent l’environnement `testing` et refusent toute base qui ne se termine pas par `_testing`.
+
+## Ajustement visuel du 10 septembre 2026 — écran de retrait SaaS
+
+- Les blocs **Compte de versement** et **Demander un retrait** sont maintenant regroupés dans une grille à deux colonnes sur desktop et repassent automatiquement sur une colonne sur tablette/mobile.
+- Le récapitulatif de frais conserve une hiérarchie claire : montant reçu, frais KPrimePay, total débité. Le total insuffisant utilise l’accent danger et reste accessible via `aria-live`.
+- Le suivi des dix dernières demandes reste séparé sous la grille pour éviter de mélanger action et historique.
+- Contrôles après ajustement : `24 tests, 108 assertions, 0 échec`, `view:cache`, `ui:lint --changed` et `git diff --check` OK.
+
+## Correctif du 10 septembre 2026 — minimum de retrait explicite
+
+- Un montant inférieur au minimum configuré ne donne plus l'impression que le bouton est bloqué : le clic affiche une alerte SweetAlert en français, indiquant le minimum requis et le montant saisi.
+- Le navigateur ne porte plus de contrainte HTML `min`/`max` susceptible d'intercepter silencieusement ce retour. Le serveur conserve ses validations métier ; le total supérieur au solde disponible reste affiché en rouge et désactive l'action.
+- Ce contrôle ne déclenche ni code e-mail, ni réservation, ni appel KPrimePay.
+
+## Correctif du 10 septembre 2026 — opérateurs de retrait désactivés
+
+- Un compte Mobile Money déjà vérifié reste conservé dans le profil, mais il est marqué **Retrait indisponible** et retiré du sélecteur dès que son opérateur est désactivé dans l’administration.
+- L’interface affiche une alerte SaaS rouge et ne propose que les comptes dont l’opérateur est activé. Si aucun compte utilisable ne reste, elle explique comment réactiver un opérateur ou ajouter un compte autorisé.
+- Le serveur vérifie ce réglage avant l’envoi du code e-mail, lors de la création du retrait et juste avant un éventuel envoi KPrimePay. Une demande devenue interdite est refusée ou libérée sans appel au prestataire.
+- Contrôles : `PartnerWithdrawalPreparationTest` et `PartnerPayoutIntegrationTest` — **19 tests, 95 assertions, 0 échec** ; `view:cache`, `ui:lint --changed` et `git diff --check` OK. Vérification visuelle locale : Mixx by Yas désactivé absent du sélecteur, Flooz seul disponible.
+
+## Ajustement UI/UX du 10 septembre 2026 — sélecteur de compte de retrait
+
+- Le champ **Compte Mobile Money vérifié** utilise désormais le composant `saas-select-wrap` du template : icône opérateur, flèche personnalisée, largeur cohérente et focus accessible.
+- La version de `saas-pages.css` a été incrémentée afin que le rendu soit immédiatement actualisé dans le navigateur.
+- Vérification visuelle effectuée sur la page locale des retraits, en responsive mobile : sélecteur Flooz lisible, aligné et cohérent avec les autres contrôles SaaS.
+
+## Changement opérationnel du 10 septembre 2026 — versement automatique
+
+- Le réglage administrateur **Revue de risque obligatoire** a été retiré. Une demande éligible et confirmée par code e-mail est automatiquement approuvée puis transmise au job de versement.
+- Le plafond d’envoi automatique reste le dernier garde-fou configurable. Une migration le fixe à `100 000 000 XOF` lorsqu’il était à zéro ou absent ; les contrôles de compte vérifié, opérateur actif, solde, minimum, frais et 2FA restent obligatoires.
+- Le statut `En contrôle` ne sera plus produit pour les nouvelles demandes à cause de la revue de risque. Les demandes historiques déjà dans cet état ne sont pas relancées ni envoyées rétroactivement par cette modification.
+- Les flux de paiement KPrimePay des quotas SMS, WhatsApp et abonnements ne sont pas modifiés.
+
+## Ajustement e-mail du 10 septembre 2026 — confirmation de retrait
+
+- La notification de code e-mail des retraits utilise désormais une vue Blade dédiée : `resources/views/emails/partner/withdrawalConfirmation.blade.php`.
+- Cette vue reprend le gabarit SaaS déjà en place (`emails.design.emailStyle` et `emails.design.emailFooter`) : en-tête de marque, sous-titre de sécurité partenaire, bloc de code lisible et pied de page légal commun.
+- Le contenu est entièrement en français et précise l’action attendue, l’expiration de 10 minutes, l’usage unique du code et le fait qu’aucun versement ne part avant la validation.
+- Le format texte générique de `MailMessage` n’est plus utilisé pour cette notification ; le sujet reste `confirmation de retrait`.
+- Test de rendu ajouté dans `PartnerWithdrawalPreparationTest` : vue, en-tête, code, message de sécurité et copyright vérifiés. Contrôles finaux : **25 tests, 128 assertions, 0 échec**, `view:cache`, `ui:lint --changed` et `git diff --check` OK.
+
+## Ajout du 11 septembre 2026 — trésorerie et retraits administrateur
+
+- La console SaaS expose désormais **Monétisation > Trésorerie & retraits** (`/platform/treasury`). Le rôle Finance peut consulter les chiffres ; les opérations sur un bénéficiaire et les sorties sont réservées au super-administrateur.
+- Le tableau de bord dissocie les encaissements KPrimePay **confirmés** : abonnements et achats de quotas. Il présente également les commissions partenaires retirables, réservées et déjà versées, les sorties administrateur réalisées/en attente, puis la **capacité administrateur proposée**.
+- La capacité proposée est volontairement conservatrice : `encaissements confirmés − engagements partenaires (disponibles + réservés + versés) − retraits admin réussis − réservations admin`. Elle n’est jamais présentée comme la balance KPrimePay : celle-ci reste contrôlée par le prestataire au moment de l’envoi.
+- Un compte Mobile Money administrateur est chiffré en base, masqué à l’affichage et doit être vérifié via un code e-mail à usage unique (10 minutes, cinq essais). La demande de retrait demande ensuite le mot de passe plateforme et un second code e-mail. Toutes les étapes sont journalisées dans `platform_audit_logs`.
+- Comme pour les partenaires, un compte vérifié dont l’opérateur est désactivé reste dans l’historique mais disparaît du sélecteur de retrait ; le serveur refait le contrôle juste avant la création.
+- Le retrait utilise le même endpoint isolé `POST /v2/payouts/from-collection-balance`, avec une clé d’idempotence propre. `with_fees` est imposé à **0** : le bénéficiaire reçoit exactement le montant demandé ; les frais KPrimePay réels sont confirmés via `credit-status` et déduits de la capacité du coffre.
+- Après soumission, `ExecutePlatformWithdrawal` passe par la queue `withdrawals`. Le scheduler publie chaque minute les vérifications des retraits `processing`/`unknown` vers `ReconcilePlatformWithdrawal`; ce job appelle uniquement `credit-status` et ne rejoue jamais un transfert.
+
+### Fichiers principaux
+
+- `database/migrations/2026_09_11_090000_create_platform_treasury_withdrawal_tables.php`.
+- `app/Http/Controllers/Platform/TreasuryController.php`, `app/Services/PlatformTreasuryService.php`, `app/Services/PlatformTreasuryPayoutService.php`.
+- `app/Models/PlatformWithdrawal*.php`, `app/Jobs/ExecutePlatformWithdrawal.php`, `app/Jobs/ReconcilePlatformWithdrawal.php`.
+- `resources/views/platform/treasury/index.blade.php`, `routes/web.php`, `resources/views/layouts/platform.blade.php`.
+
+### Contrôles effectués
+
+- Migration complète exécutée exclusivement sur `pos_testing` ; la base `POS` n’a pas été modifiée.
+- `PlatformTreasuryTest` ciblé : tableau super-administrateur, accès lecture seule Finance, historique et payload KPrimePay `with_fees=0` — **4 tests, 13 assertions, succès**.
+- Syntaxe PHP de tous les nouveaux fichiers, routes `platform.treasury.*`, cache des vues et `git diff --check` à exécuter avant livraison staging.
+- Inspection navigateur : `/platform/treasury` redirige correctement vers l’authentification plateforme. L’écran est conservé dans le navigateur intégré ; une session super-administrateur est nécessaire pour la recette visuelle complète. Aucun compte, code ou retrait réel n’a été créé par cette vérification.
+
+### Recette manuelle recommandée (staging)
+
+1. Se connecter avec un super-administrateur, ouvrir **Trésorerie & retraits**, puis vérifier que les montants abonnements et quotas correspondent aux paiements confirmés.
+2. Contrôler que les sommes partenaires « retirables » et « réservées » réduisent bien la capacité administrateur. Se connecter avec le rôle Finance : il doit voir ces chiffres mais aucun formulaire d’action.
+3. Enregistrer un numéro Flooz valide : l’indicatif/pays, les préfixes et les huit chiffres doivent être contrôlés ; saisir le code e-mail pour le passer à « Vérifié ».
+4. Demander un montant minime : vérifier le calcul `montant + plafond de frais`, saisir le mot de passe, puis confirmer le second code e-mail. Vérifier qu’une seule demande apparaît dans l’historique.
+5. Avec la clé payout staging et l’IP autorisée, vérifier le payload (`amount` demandé, `with_fees: 0`, `Idempotency-Key`), le crédit Mobile Money, puis le statut final via webhook ou `credit-status`. Rejouer le webhook : aucune seconde sortie ne doit apparaître.
+
+## Complément du 11 septembre 2026 — trésorerie : comptes visibles et doublons refusés
+
+- La page `/platform/treasury` liste maintenant les comptes Mobile Money administrateur sans exposer leur numéro complet : téléphone masqué, pays/opérateur, état et compte principal sont visibles immédiatement après le formulaire.
+- Un numéro normalisé déjà associé au même administrateur est refusé côté serveur avant toute nouvelle création. La vérification exploite l’empreinte du numéro et reste protégée par une transaction, afin d’éviter les doublons même si deux requêtes arrivent presque simultanément.
+- Le parcours a été repris visuellement en deux cartes claires : bénéficiaire à enregistrer/vérifier, puis sortie de trésorerie. L’espacement et le contenu des formulaires sont responsives, notamment pour les champs de mot de passe, les codes e-mail et les actions de confirmation.
+- Recette locale authentifiée : la liste masquée, les formulaires et leur espacement ont été vérifiés dans le navigateur. `php -l`, `php artisan view:cache` et `git diff --check` sont passés. `PlatformTreasuryTest` est à rejouer : le processus de test Windows a échoué avant les assertions sur une conversion `proc_open`.
+
+## Mise à jour du 11 septembre 2026 — cohérence PWA MAXANOU
+
+- Le manifeste, l’écran hors connexion, le script d’installation et les layouts public, partenaire et plateforme utilisent désormais l’identité **MAXANOU**. Le point d’entrée du manifeste reste `/user_login`.
+- Le service worker courant est `maxanou-pwa-v8`. Il évacue également les caches historiques `pro-seller-pwa-*` et ne met jamais en cache les pages authentifiées, API ou données propres aux entreprises.
+- Après déploiement HTTPS, désinstaller et réinstaller une ancienne PWA si elle garde le manifeste ou la marque précédente ; l’installation réelle reste une étape de recette sur le domaine canonique.
+
+## Ajustement paiement abonnement — consentement avant redirection
+
+- La fenêtre « Préparer votre abonnement » affiche désormais un encadré **Termes et conditions de paiement** avant toute initialisation. Il précise la redirection vers KPrimePay et le fait que les frais éventuels du moyen de paiement sont appliqués par l’opérateur, indépendamment de MAXANOU.
+- Le bouton « Continuer vers le paiement » reste désactivé tant que la case n’est pas cochée. Le serveur exige également `terms_accepted=1` sur `subscriptions.checkout`, afin qu’une requête fabriquée côté navigateur ne puisse pas contourner le consentement.
+- La version des conditions et l’horodatage d’acceptation sont conservés dans le snapshot du paiement (`payment_terms_version`, `payment_terms_accepted_at`) pour la traçabilité.
+- Aucun paiement n’est créé et aucune redirection KPrimePay n’a lieu sans cette acceptation explicite. Le texte est intégré au composant modal SaaS et adapté aux petits écrans.
+
+## Téléphone utilisateur et garde-fou SMS/WhatsApp — 11 septembre 2026
+
+- Le profil personnel contient maintenant un onglet **Téléphone** permettant à tout utilisateur connecté d’ajouter, modifier ou retirer son numéro et de choisir le pays associé. Le numéro est normalisé avant validation puis enregistré sur le compte utilisateur ; il n’est pas nécessaire d’avoir renseigné ce champ lors de l’inscription.
+- Le pays du numéro reprend désormais exactement le sélecteur de l’inscription (`country-select` + Select2) : recherche intégrée, largeur 100 %, styles SaaS et comportement utilisable au clavier comme sur mobile.
+- La validation est maintenant spécifique au pays : longueur locale attendue et indicatif affiché dynamiquement. Les indicatifs ne sont pas stockés dans `users.phone`, puisque les services SMS/WhatsApp transmettent déjà le pays séparément. Une ancienne valeur avec indicatif est nettoyée dans le champ du profil afin d’être corrigée lors du prochain enregistrement.
+- Le formulaire téléphone aligne désormais le sélecteur et le champ sur grand écran. Sur mobile, les onglets du profil gardent une largeur lisible et se défilent horizontalement avec points d’ancrage, au lieu de se compresser ou de tronquer les libellés.
+- Dans **Paramètres > Communications**, les interrupteurs SMS et WhatsApp d’un utilisateur sans numéro restent visuellement inactifs. Un clic ne modifie pas le formulaire et ouvre une SweetAlert : « Veuillez renseigner un numéro de téléphone avant d’activer WhatsApp ou SMS. »
+- Le contrôleur refuse également toute requête forgée qui tenterait d’activer SMS/WhatsApp pour un utilisateur sans téléphone. Le contrôle serveur reste donc effectif même si le JavaScript est désactivé ou contourné.
+- Les destinataires sans téléphone ne sont jamais sélectionnés par défaut pour ces deux canaux ; l’e-mail reste indépendant.
+
+### Recette manuelle locale
+
+1. Ouvrir **Mon profil > Téléphone**, saisir un numéro local (par exemple `90859488`), choisir le pays puis enregistrer. Vérifier le message de succès et la présence du numéro dans le résumé du profil.
+2. Dans **Paramètres > Communications**, prendre un utilisateur sans téléphone et cliquer sur les interrupteurs WhatsApp puis SMS : ils doivent rester désactivés et afficher l’alerte SweetAlert demandant de renseigner un numéro.
+3. Ajouter le numéro depuis le profil de cet utilisateur, revenir aux communications puis vérifier que les interrupteurs deviennent activables.
+4. Vérifier côté serveur qu’une requête HTTP manuelle avec `recipients[*][*][whatsapp]=1` ou `sms=1` sans téléphone est refusée avec le message de numéro requis.
+
+## Correctif contraste POS en mode clair — 11 septembre 2026
+
+- Les actions **Sauvegarder** et **En cours** de la caisse n’utilisent plus un texte blanc fixe sur une surface claire : elles héritent désormais de `--ds-text-primary`, comme les autres contrôles lisibles du template SaaS.
+- Le cache-busting de `saas-pos.css` a été incrémenté afin que le correctif soit immédiatement chargé après déploiement.
+- Contrôles : cache Blade, `ui:lint --changed`, syntaxe Blade et `git diff --check` réussis.
+
+## Finalisation de l’audit de traçabilité — 11 septembre 2026
+
+- Le cahier d’architecture a été aligné sur la décision produit validée : les commissions sont disponibles immédiatement après confirmation serveur du paiement ; le paramètre de délai reste versionné pour une éventuelle réactivation future.
+- Le seul échec relevé par l’audit venait du scénario `PartnerFoundationTest` qui utilisait `actingAs()` sans renseigner la clé de session `partner_auth_version`. Le test initialise maintenant cette clé comme le ferait une session partenaire réelle ; aucun garde de sécurité ni code financier de production n’a été assoupli.
+- Contrôle ciblé final : **74 tests, 434 assertions, 0 échec** couvrant authentification, codes, attribution, commissions, retraits, queue, opérateurs, réglages, trésorerie administrateur et conditions de paiement.
+- Contrôles complémentaires : `php artisan view:cache`, `php artisan ui:lint --changed`, `php artisan schedule:list` et `git diff --check` réussis. Le scheduler publie bien les réconciliations partenaire et plateforme chaque minute.
+- Restent des gates de livraison et non des corrections de code : migration additive sur l’environnement cible, recette KPrimePay staging avec IP autorisée, tests de concurrence MySQL/charge, sauvegarde-restauration et validation juridique/KYC.
+
+## Renforcement local — supervision et bornes financières — 11 septembre 2026
+
+- La page **Santé du système** expose maintenant le nombre de retraits partenaire et plateforme en `processing` ou `unknown`, afin de rendre visibles les réserves qui attendent une réconciliation. Cette lecture reste passive et ne contacte jamais KPrimePay.
+- Les bornes de la grille de commission (1, 5, 6, 25, 26, 35, 36, 75, 76, 95, 96, 175, 176 et plafond) sont désormais couvertes par un test unitaire dédié.
+- Une recette locale ciblée a validé la supervision et la grille : **19 tests, 36 assertions, 0 échec**. `view:cache`, `ui:lint --changed` et `git diff --check` restent verts.
+- Aucun appel KPrimePay réel, aucune migration destructive et aucune modification de la base `POS` n’ont été effectués.
+
+## Validation locale complète — 11 septembre 2026
+
+- La suite PHPUnit complète a été rejouée sur `pos_testing` avec l’environnement de test forcé et sécurisé : **351 tests, 2 014 assertions, 0 échec**.
+- Les assertions obsolètes ont été réalignées sur l’interface actuelle (libellés français, contrôles de visibilité, PWA `maxanou-pwa-v8`, catalogue publié et journal de communication). Aucun comportement métier n’a été dégradé pour satisfaire les tests.
+- Le modèle `Company` garantit désormais à la création les invariants de tenant (`active`, `TG`, `FCFA`, `Africa/Douala`, `fr`) même si une installation historique conserve des colonnes nullable ; cela évite qu’un job de notification ou de réconciliation ignore silencieusement une entreprise.
+- `git diff --check`, `php artisan view:cache` et `php artisan ui:lint --changed` sont verts après cette validation. Le contrôle de planification confirme les réconciliations partenaire et plateforme chaque minute.
+- Cette validation est strictement locale : `POS` et staging n’ont pas été touchés, aucun transfert KPrimePay réel n’a été lancé et aucune donnée de production n’a été modifiée.

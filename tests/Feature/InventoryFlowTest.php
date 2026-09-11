@@ -10,10 +10,13 @@ use App\Models\Supplier;
 use App\Models\User;
 use App\Models\NotificationRecipient;
 use App\Jobs\SendInventoryWhatsappJob;
+use App\Jobs\SendInventoryEmailJob;
+use App\Models\NotificationDelivery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 use Tests\Concerns\InteractsWithCompanies;
 
@@ -80,6 +83,97 @@ class InventoryFlowTest extends TestCase
             SendInventoryWhatsappJob::class,
             fn ($job) => $job->companyId === $this->company->id
         );
+        Queue::assertPushed(
+            SendInventoryEmailJob::class,
+            fn ($job) => $job->companyId === $this->company->id
+        );
+    }
+
+    public function test_inventory_email_is_sent_to_configured_recipient(): void
+    {
+        Mail::fake();
+        $this->company->update(['inventory_email_enabled' => true]);
+        NotificationRecipient::updateOrCreate([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'category' => 'inventory',
+        ], [
+            'email_enabled' => true,
+            'whatsapp_enabled' => false,
+            'sms_enabled' => false,
+        ]);
+        $inventory = Inventory::create([
+            'product_id' => $this->product->id,
+            'supplier_id' => $this->supplier->id,
+            'type' => 1,
+            'qte_before' => 50,
+            'qte_added' => 5,
+            'qte_after' => 55,
+            'note' => 'Contrôle e-mail',
+            'created_by' => $this->user->id,
+        ]);
+
+        (new SendInventoryEmailJob($inventory->id, $this->company->id))->handle();
+        $this->assertSame(1, NotificationDelivery::where('event_key', (string) $inventory->id)
+            ->where('channel', 'email')->where('status', 'sent')->count());
+        $this->assertDatabaseHas('notification_deliveries', [
+            'company_id' => $this->company->id,
+            'event_type' => 'inventory',
+            'event_key' => (string) $inventory->id,
+            'channel' => 'email',
+            'user_id' => $this->user->id,
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_sale_generated_inventory_does_not_send_inventory_email(): void
+    {
+        Mail::fake();
+        $this->company->update(['inventory_email_enabled' => true]);
+        NotificationRecipient::updateOrCreate([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'category' => 'inventory',
+        ], ['email_enabled' => true, 'whatsapp_enabled' => false, 'sms_enabled' => false]);
+        $inventory = Inventory::create([
+            'product_id' => $this->product->id,
+            'type' => 2,
+            'qte_before' => 50,
+            'qte_added' => 1,
+            'qte_after' => 49,
+            'note' => 'Vente #TEST-001',
+            'created_by' => $this->user->id,
+        ]);
+
+        (new SendInventoryEmailJob($inventory->id, $this->company->id))->handle();
+
+        Mail::assertNothingOutgoing();
+        $this->assertSame(0, NotificationDelivery::where('event_key', (string) $inventory->id)->count());
+    }
+
+    public function test_inventory_email_respects_company_channel_toggle(): void
+    {
+        Mail::fake();
+        $this->company->update(['inventory_email_enabled' => false]);
+        NotificationRecipient::updateOrCreate([
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'category' => 'inventory',
+        ], ['email_enabled' => true, 'whatsapp_enabled' => false, 'sms_enabled' => false]);
+        $inventory = Inventory::create([
+            'product_id' => $this->product->id,
+            'type' => 1,
+            'qte_before' => 50,
+            'qte_added' => 1,
+            'qte_after' => 51,
+            'note' => 'Canal désactivé',
+            'created_by' => $this->user->id,
+        ]);
+
+        (new SendInventoryEmailJob($inventory->id, $this->company->id))->handle();
+
+        Mail::assertNothingOutgoing();
+        $this->assertSame(0, NotificationDelivery::where('event_key', (string) $inventory->id)->count());
     }
 
     public function test_disabled_inventory_channels_prevent_whatsapp_and_sms_requests(): void

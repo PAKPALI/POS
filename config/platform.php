@@ -15,7 +15,7 @@ return [
         'finance' => [
             'label' => 'Finance',
             'description' => 'Consultation des paiements, quotas et rentabilité, avec réconciliation.',
-            'permissions' => ['platform.dashboard.view', 'platform.payments.view', 'platform.payments.reconcile', 'platform.partners.view', 'platform.partner_commissions.view', 'platform.partner_withdrawals.view'],
+            'permissions' => ['platform.dashboard.view', 'platform.payments.view', 'platform.payments.reconcile', 'platform.partners.view', 'platform.partner_commissions.view', 'platform.partner_withdrawals.view', 'platform.treasury.view'],
         ],
         'technical' => [
             'label' => 'Technique',

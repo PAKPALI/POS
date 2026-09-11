@@ -17,7 +17,10 @@ class MarketingSiteTest extends TestCase
     public function test_pricing_data_is_centralized_and_future_offers_are_not_subscriptions(): void
     {
         $response = $this->get('/tarifs')->assertOk();
-        $response->assertSee('Offres prévisionnelles', false)->assertSee('Être informé', false)->assertSee('data-price-annual="55000"', false)->assertDontSee('Souscrire', false);
+        $response->assertSee('Les offres affichées reprennent les plans actuellement publiés.', false)
+            ->assertSee('Choisir ce plan', false)
+            ->assertSee('data-price-annual="55000"', false)
+            ->assertDontSee('Souscrire', false);
     }
 
     public function test_marketing_shortcuts_redirect_to_existing_authentication_routes(): void

@@ -39,6 +39,7 @@ use App\Http\Controllers\Platform\GeneralSettingController as PlatformGeneralSet
 use App\Http\Controllers\Platform\PartnerSettingController as PlatformPartnerSettingController;
 use App\Http\Controllers\Platform\SubscriptionPreflightController as PlatformSubscriptionPreflightController;
 use App\Http\Controllers\Platform\SubscriptionPlanCatalogController as PlatformSubscriptionPlanCatalogController;
+use App\Http\Controllers\Platform\TreasuryController as PlatformTreasuryController;
 use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
 use App\Http\Controllers\Partner\CodeController as PartnerCodeController;
 use App\Http\Controllers\Partner\PortalController as PartnerPortalController;
@@ -71,6 +72,9 @@ $partnerRoutes = function (): void {
         Route::get('commissions', [PartnerInsightsController::class, 'commissions'])->name('commissions');
         Route::get('withdrawals', [PartnerWithdrawalController::class, 'index'])->name('withdrawals');
         Route::post('withdrawals/accounts', [PartnerWithdrawalController::class, 'storeAccount'])->middleware('throttle:5,1')->name('withdrawals.accounts.store');
+        Route::get('withdrawals/accounts/confirm', [PartnerWithdrawalController::class, 'showAccountConfirmation'])->name('withdrawals.accounts.confirm');
+        Route::post('withdrawals/accounts/confirm', [PartnerWithdrawalController::class, 'confirmAccount'])->middleware('throttle:10,1')->name('withdrawals.accounts.confirm.submit');
+        Route::post('withdrawals/accounts/confirm/resend', [PartnerWithdrawalController::class, 'resendAccountConfirmation'])->middleware('throttle:1,1')->name('withdrawals.accounts.confirm.resend');
         Route::post('withdrawals/request', [PartnerWithdrawalController::class, 'beginWithdrawal'])->middleware('throttle:3,1')->name('withdrawals.request');
         Route::get('withdrawals/confirm', [PartnerWithdrawalController::class, 'showConfirm'])->name('withdrawals.confirm');
         Route::post('withdrawals/confirm', [PartnerWithdrawalController::class, 'confirmWithdrawal'])->middleware('throttle:10,1')->name('withdrawals.confirm.submit');
@@ -125,6 +129,11 @@ Route::prefix('platform')->name('platform.')->group(function () {
             Route::get('payments/{payment}', [PlatformPaymentController::class, 'show'])->middleware('platform.permission:platform.payments.view')->name('payments.show');
             Route::post('payments/{payment}/reconcile', [PlatformPaymentController::class, 'reconcile'])
                 ->middleware(['platform.permission:platform.payments.reconcile', 'throttle:10,1'])->name('payments.reconcile');
+            Route::get('treasury', [PlatformTreasuryController::class, 'index'])->middleware('platform.permission:platform.treasury.view')->name('treasury.index');
+            Route::post('treasury/accounts', [PlatformTreasuryController::class, 'registerAccount'])->middleware(['platform.permission:platform.treasury.manage', 'throttle:5,1'])->name('treasury.accounts.store');
+            Route::post('treasury/accounts/verify', [PlatformTreasuryController::class, 'verifyAccount'])->middleware(['platform.permission:platform.treasury.manage', 'throttle:10,1'])->name('treasury.accounts.verify');
+            Route::post('treasury/withdrawals/start', [PlatformTreasuryController::class, 'startWithdrawal'])->middleware(['platform.permission:platform.treasury.manage', 'throttle:5,1'])->name('treasury.withdrawals.start');
+            Route::post('treasury/withdrawals/confirm', [PlatformTreasuryController::class, 'confirmWithdrawal'])->middleware(['platform.permission:platform.treasury.manage', 'throttle:10,1'])->name('treasury.withdrawals.confirm');
             Route::get('settings', [PlatformSettingController::class, 'edit'])->middleware('platform.permission:platform.pricing.manage')->name('settings.edit');
             Route::put('settings/pricing', [PlatformSettingController::class, 'update'])
                 ->middleware(['platform.permission:platform.pricing.manage', 'throttle:10,1'])->name('settings.pricing.update');
@@ -183,7 +192,7 @@ Route::get('/fonctionnalites', fn () => app(MarketingController::class)->page('f
 Route::get('/factures-sms-whatsapp', fn () => app(MarketingController::class)->page('factures-sms-whatsapp'))->name('marketing.invoices');
 Route::get('/secteurs', fn () => app(MarketingController::class)->page('secteurs'))->name('marketing.sectors');
 Route::get('/partenaires', fn () => app(MarketingController::class)->page('partenaires'))->name('marketing.partners');
-Route::get('/tarifs', fn () => view('marketing.pricing', ['pricing' => config('marketing.plans'), 'pricingNote' => config('marketing.pricing_note')]))->name('marketing.pricing');
+Route::get('/tarifs', [MarketingController::class, 'pricing'])->name('marketing.pricing');
 Route::get('/securite', fn () => app(MarketingController::class)->page('securite'))->name('marketing.security');
 Route::get('/aide', fn () => app(MarketingController::class)->page('aide'))->name('marketing.help');
 Route::get('/mentions-legales', fn () => app(MarketingController::class)->page('mentions-legales'))->name('marketing.legal');
@@ -270,6 +279,8 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
     // Route::get('getEmployeList', 'getEmployeList')->name('getEmployeList');
     // update email
     Route::post('updateEmail', 'updateEmail')->middleware('throttle:10,1')->name('profile.email.update');
+    // add or update phone number used by SMS/WhatsApp notifications
+    Route::put('profile/phone', 'updatePhone')->middleware('throttle:10,1')->name('profile.phone.update');
     // update password
     Route::post('updatePassword', 'updatePassword')->middleware('throttle:10,1')->name('profile.password.update');
     Route::put('profile/appearance', 'updateAppearance')->middleware('throttle:20,1')->name('profile.appearance.update');

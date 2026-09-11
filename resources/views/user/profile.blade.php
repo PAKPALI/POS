@@ -4,11 +4,23 @@
 @section('eyebrow', 'Compte personnel')
 @section('page-title', 'Mon profil')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+@endpush
+
 @section('content')
 @php
     $user = auth()->user();
     $mode = in_array($user->appearance_mode, ['system', 'dark', 'light'], true) ? $user->appearance_mode : 'dark';
     $accent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $user->accent_color) ? strtoupper($user->accent_color) : '#3B82F6';
+    $phoneCountry = $user->country_code ?? 'TG';
+    $phoneRule = config('african_phone_rules.'.$phoneCountry, []);
+    $storedPhone = preg_replace('/\D+/', '', (string) $user->phone);
+    $profilePhone = $storedPhone;
+    if ($storedPhone !== '' && !empty($phoneRule['dial_code']) && str_starts_with($storedPhone, $phoneRule['dial_code'])) {
+        $candidate = substr($storedPhone, strlen($phoneRule['dial_code']));
+        if (strlen($candidate) >= ($phoneRule['min_length'] ?? 0) && strlen($candidate) <= ($phoneRule['max_length'] ?? PHP_INT_MAX)) $profilePhone = $candidate;
+    }
 @endphp
 
 <section class="saas-page-heading profile-page-heading">
@@ -24,12 +36,14 @@
         <p>{{ $user->email }}</p>
         <div class="profile-company"><span><i class="bi bi-buildings"></i>Entreprise active</span><strong>{{ $activeCompany->name ?? 'Non sélectionnée' }}</strong></div>
         <div class="profile-company"><span><i class="bi bi-shield-check"></i>Rôle actuel</span><strong>{{ $currentMembership?->role?->name ?? 'Membre' }}</strong></div>
+        <div class="profile-company"><span><i class="bi bi-phone"></i>Téléphone</span><strong>{{ $profilePhone ? (!empty($phoneRule['dial_code']) ? '+'.$phoneRule['dial_code'].' ' : $phoneCountry.' ').$profilePhone : 'Non renseigné' }}</strong></div>
         <a href="{{ route('companies.select') }}" class="profile-company-link"><i class="bi bi-arrow-left-right"></i>Changer d’entreprise</a>
     </aside>
 
     <section class="profile-settings saas-panel">
         <div class="profile-tabs" role="tablist" aria-label="Paramètres du profil">
             <button type="button" class="profile-tab is-active" id="profileTabEmail" data-profile-tab="email" role="tab" aria-selected="true" aria-controls="profilePanelEmail"><i class="bi bi-envelope"></i><span>Adresse e-mail</span></button>
+            <button type="button" class="profile-tab" id="profileTabPhone" data-profile-tab="phone" role="tab" aria-selected="false" aria-controls="profilePanelPhone"><i class="bi bi-phone"></i><span>Téléphone</span></button>
             <button type="button" class="profile-tab" id="profileTabPassword" data-profile-tab="password" role="tab" aria-selected="false" aria-controls="profilePanelPassword"><i class="bi bi-key"></i><span>Mot de passe</span></button>
             <button type="button" class="profile-tab" id="profileTabAppearance" data-profile-tab="appearance" role="tab" aria-selected="false" aria-controls="profilePanelAppearance"><i class="bi bi-palette"></i><span>Apparence</span></button>
         </div>
@@ -45,6 +59,19 @@
                 </div>
                 <div class="profile-field"><label for="emailCurrentPassword">Mot de passe actuel</label><div class="profile-password-control"><input id="emailCurrentPassword" name="current_password" type="password" autocomplete="current-password" required placeholder="Confirmez votre identité"><button type="button" data-password-toggle="emailCurrentPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
                 <div class="profile-form-actions"><button type="submit" class="saas-primary-action" data-loading-text="Modification…"><i class="bi bi-check2"></i>Modifier mon e-mail</button></div>
+            </form>
+        </div>
+
+        <div class="profile-panel" id="profilePanelPhone" data-profile-panel="phone" role="tabpanel" aria-labelledby="profileTabPhone" hidden>
+            <div class="profile-panel-heading"><span class="profile-panel-icon"><i class="bi bi-phone-fill"></i></span><div><h2>Ajouter ou modifier mon téléphone</h2><p>Ce numéro est utilisé uniquement pour les notifications SMS et WhatsApp que vous autorisez.</p></div></div>
+            <form id="profilePhoneForm" class="profile-form" action="{{ route('profile.phone.update') }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="profile-form-grid profile-phone-grid">
+                    <div class="profile-field"><label for="profilePhoneCountry">Pays du numéro</label><select id="profilePhoneCountry" name="country_code" class="country-select" data-placeholder="Rechercher un pays" required>@foreach(config('african_countries', []) as $iso => $countryName)<option value="{{ $iso }}" @selected($phoneCountry === $iso)>{{ $countryName }} ({{ $iso }})</option>@endforeach</select></div>
+                    <div class="profile-field"><label for="profilePhone">Numéro de téléphone local</label><input id="profilePhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" value="{{ $profilePhone }}" placeholder="Ex. 90859488" aria-describedby="profilePhoneHelp"><small id="profilePhoneHelp">Saisissez le numéro local, sans indicatif. Vous pouvez laisser vide pour le retirer.</small></div>
+                </div>
+                <div class="profile-form-actions"><button type="submit" class="saas-primary-action" data-loading-text="Enregistrement…"><i class="bi bi-check2-circle"></i>Enregistrer mon téléphone</button></div>
             </form>
         </div>
 
@@ -100,8 +127,28 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.jQuery && jQuery.fn.select2) {
+        jQuery('select.country-select').select2({ width: '100%', placeholder: 'Rechercher un pays', minimumResultsForSearch: 0 });
+    }
+    const phoneRules = @json(config('african_phone_rules'));
+    const profilePhoneCountry = document.getElementById('profilePhoneCountry');
+    const profilePhone = document.getElementById('profilePhone');
+    const profilePhoneHelp = document.getElementById('profilePhoneHelp');
+    function updatePhoneRuleHint() {
+        const rule = phoneRules[profilePhoneCountry.value];
+        if (!rule) return;
+        const count = rule.min_length === rule.max_length ? `${rule.min_length} chiffres` : `entre ${rule.min_length} et ${rule.max_length} chiffres`;
+        profilePhone.minLength = rule.min_length;
+        profilePhone.maxLength = rule.max_length;
+        profilePhone.placeholder = `Ex. ${'0'.repeat(rule.min_length)}`;
+        profilePhoneHelp.textContent = `Saisissez le numéro local pour ce pays : ${count}, sans l’indicatif +${rule.dial_code}. Vous pouvez laisser vide pour le retirer.`;
+    }
+    profilePhoneCountry.addEventListener('change', updatePhoneRuleHint);
+    profilePhone.addEventListener('input', () => { profilePhone.value = profilePhone.value.replace(/\D/g, ''); });
+    updatePhoneRuleHint();
     const feedback = document.getElementById('profileFeedback');
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
     const tabs = [...document.querySelectorAll('[data-profile-tab]')];
@@ -122,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.profileTab)));
     const initialTab = ({ '#pills-appearance': 'appearance', '#pills-profile': 'password', '#pills-home': 'email' })[location.hash] || location.hash.slice(1);
-    if (['email', 'password', 'appearance'].includes(initialTab)) activateTab(initialTab, false);
+    if (['email', 'phone', 'password', 'appearance'].includes(initialTab)) activateTab(initialTab, false);
 
     document.querySelectorAll('[data-password-toggle]').forEach((button) => button.addEventListener('click', () => {
         const input = document.getElementById(button.dataset.passwordToggle);
@@ -147,6 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profilePasswordForm').addEventListener('submit', function (event) {
         event.preventDefault(); const button = event.submitter;
         window.ServerButtonLoader.withLoader(button, () => submitJson(this, () => this.reset()), 'Modification…').catch((error) => showFeedback('error', error.message));
+    });
+    document.getElementById('profilePhoneForm').addEventListener('submit', function (event) {
+        event.preventDefault(); const button = event.submitter;
+        window.ServerButtonLoader.withLoader(button, () => submitJson(this), 'Enregistrement…').then(() => setTimeout(() => location.reload(), 900)).catch((error) => showFeedback('error', error.message));
     });
 
     const appearanceForm = document.getElementById('profileAppearanceForm');

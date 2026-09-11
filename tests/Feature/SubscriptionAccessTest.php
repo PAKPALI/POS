@@ -4,12 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\Company;
 use App\Models\PlatformSetting;
+use App\Models\Role;
 use App\Models\User;
 use App\Exceptions\SubscriptionLimitReached;
 use App\Services\CompanyContext;
 use App\Services\CompanyProvisioner;
 use App\Services\EntitlementService;
 use App\Services\SubscriptionAccountService;
+use App\Services\SubscriptionCheckoutService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -38,7 +40,25 @@ class SubscriptionAccessTest extends TestCase
     {
         [$owner] = $this->ownerWithCompany();
 
-        $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk()->assertSee('Choisir la durée')->assertSee('Durée souhaitée')->assertSee('Expiration estimée')->assertSee('Réduction annuelle appliquée (1 mois offert)')->assertSee('partner-promo-input')->assertSee('Code promotionnel partenaire')->assertSee('Continuer vers le paiement')->assertDontSee('Continuer vers KPrimePay');
+        $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk()->assertSee('Choisir la durée')->assertSee('Durée souhaitée')->assertSee('Expiration estimée')->assertSee('Réduction annuelle appliquée (1 mois offert)')->assertSee('partner-promo-input')->assertSee('Code promotionnel partenaire')->assertSee('Continuer vers le paiement')->assertSee('Termes et conditions de paiement')->assertSee('redirigé vers la page de paiement KPrimePay')->assertSee('terms_accepted', false)->assertDontSee('Continuer vers KPrimePay');
+    }
+
+    public function test_subscription_checkout_requires_payment_terms_on_the_server(): void
+    {
+        [$owner] = $this->ownerWithCompany();
+
+        $this->actingAs($owner)->postJson(route('subscriptions.checkout'), [
+            'plan' => 'bronze', 'months' => 1,
+        ])->assertStatus(422)->assertJsonValidationErrors(['terms_accepted']);
+    }
+
+    public function test_accepted_payment_terms_are_snapshotted_on_subscription_payment(): void
+    {
+        [$owner, $company] = $this->ownerWithCompany();
+        $payment = app(SubscriptionCheckoutService::class)->create($company->id, $owner->id, 'bronze', 1, null, '2026-09-11');
+
+        $this->assertSame('2026-09-11', $payment->snapshot['payment_terms_version']);
+        $this->assertNotEmpty($payment->snapshot['payment_terms_accepted_at']);
     }
 
     public function test_expired_plan_keeps_subscription_readable_but_blocks_member_and_role_writes(): void
@@ -52,6 +72,12 @@ class SubscriptionAccessTest extends TestCase
         $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk();
         $this->actingAs($owner)->post(route('roles.store'), ['name' => 'Opérateur', 'permissions' => []])->assertForbidden();
         $this->actingAs($owner)->post(route('user.attach-existing'), ['email' => 'new-member@example.test', 'role_id' => 999999])->assertForbidden();
+        $this->actingAs($owner)->postJson(route('user.store'), [
+            'name' => 'Utilisateur bloqué',
+            'email' => 'utilisateur-bloque@example.test',
+            'role_id' => Role::where('company_id', $company->id)->where('key', 'cashier')->value('id'),
+            'phone' => '90000001',
+        ])->assertForbidden();
     }
 
     public function test_expired_plan_blocks_quota_checkout_but_keeps_subscription_management_available(): void

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#070B14">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
     <meta name="description" content="@yield('meta-description', 'Maxanou : le POS simple pour vendre, suivre votre stock, piloter votre caisse et envoyer vos reçus par SMS ou WhatsApp.')">
     <link rel="canonical" href="{{ url()->current() }}">
     <meta property="og:type" content="website">
@@ -16,6 +18,7 @@
     <title>@yield('title', 'Maxanou — POS de vente et gestion')</title>
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/marketing.css') }}?v=20260902-6" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260911-5" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="marketing-body">
@@ -25,7 +28,8 @@
         @yield('content')
     </main>
     @include('marketing.components.footer')
-    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260902-3" defer></script>
+    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260911-4" defer></script>
+    <script src="{{ asset('pwa-register.js') }}" defer></script>
     @stack('scripts')
     @yield('structured-data')
 </body>

@@ -137,7 +137,7 @@
                     <tr>
                         <td><strong>{{ $company->name }}</strong><small class="platform-table-subtext">{{ $company->email }}</small></td>
                         <td><span class="platform-status-chip {{ $company->status === 'active' ? 'is-success' : 'is-danger' }}"><i class="bi bi-circle-fill" aria-hidden="true"></i>{{ $company->status === 'active' ? 'Active' : 'Suspendue' }}</span></td>
-                        <td><span class="platform-status-chip {{ $mode === 'enabled' ? 'is-warning' : ($mode === 'disabled' ? 'is-danger' : 'is-muted') }}"><i class="bi bi-shield-check" aria-hidden="true"></i>{{ $mode === 'enabled' ? 'Activé pour cette entreprise' : ($mode === 'disabled' ? 'Désactivé pour cette entreprise' : 'Hérite du réglage global') }}</span></td>
+                            <td><span class="platform-status-chip {{ $mode === 'enabled' ? 'is-warning' : ($mode === 'disabled' ? 'is-danger' : 'is-muted') }}"><i class="bi bi-shield-check" aria-hidden="true"></i>{{ $mode === 'enabled' ? 'Contrôle activé pour cette entreprise' : ($mode === 'disabled' ? 'Contrôle désactivé (exception)' : 'Hérite du réglage global') }}</span></td>
                         <td class="text-end"><button type="button" class="platform-action-btn btn-warning" data-bs-toggle="modal" data-bs-target="#companyEnforcementModal-{{ $company->id }}" aria-label="Configurer l’abonnement de {{ $company->name }}" title="Configurer"><i class="bi bi-sliders2" aria-hidden="true"></i></button></td>
                     </tr>
                 @empty
@@ -148,7 +148,7 @@
         </div>
         @foreach($companies as $company)
             @php($mode = $company->subscription_enforcement_enabled === null ? 'inherit' : ($company->subscription_enforcement_enabled ? 'enabled' : 'disabled'))
-            @php($modeLabel = $mode === 'enabled' ? 'Activé pour cette entreprise' : ($mode === 'disabled' ? 'Désactivé pour cette entreprise' : 'Hérite du réglage global'))
+            @php($modeLabel = $mode === 'enabled' ? 'Contrôle activé pour cette entreprise' : ($mode === 'disabled' ? 'Contrôle désactivé (exception)' : 'Hérite du réglage global'))
             <div class="modal fade platform-company-enforcement-dialog" id="companyEnforcementModal-{{ $company->id }}" tabindex="-1" aria-labelledby="companyEnforcementModalTitle-{{ $company->id }}" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
                     <form method="POST" action="{{ route('platform.settings.general.companies.subscription-enforcement', $company) }}" class="modal-content saas-modal-content platform-company-enforcement-modal">
@@ -166,7 +166,7 @@
                                 <div><span>Réglage actuel</span><strong>{{ $modeLabel }}</strong><small>Cette exception agit uniquement sur le contrôle d’accès de l’entreprise.</small></div>
                             </div>
                             <div class="platform-company-enforcement-modal-grid">
-                                <div class="platform-settings-field"><label for="company-mode-{{ $company->id }}"><i class="bi bi-toggles" aria-hidden="true"></i> Mode de contrôle</label><select id="company-mode-{{ $company->id }}" name="mode" class="form-select" required><option value="inherit" @selected($mode === 'inherit')>Hériter du réglage global</option><option value="enabled" @selected($mode === 'enabled')>Activer pour cette entreprise</option><option value="disabled" @selected($mode === 'disabled')>Désactiver pour cette entreprise</option></select><small>Le mode choisi ne modifie ni l’abonnement ni les paiements.</small></div>
+                                <div class="platform-settings-field"><label for="company-mode-{{ $company->id }}"><i class="bi bi-toggles" aria-hidden="true"></i> Mode de contrôle</label><select id="company-mode-{{ $company->id }}" name="mode" class="form-select" required><option value="inherit" @selected($mode === 'inherit')>Hériter du réglage global</option><option value="enabled" @selected($mode === 'enabled')>Activer pour cette entreprise</option><option value="disabled" @selected($mode === 'disabled')>Désactiver le contrôle (autoriser malgré l’expiration)</option></select><small>Le mode choisi ne modifie ni l’abonnement ni les paiements. L’exception désactivée autorise les actions métier malgré un abonnement expiré.</small></div>
                                 <div class="platform-settings-field"><label for="company-reason-{{ $company->id }}"><i class="bi bi-chat-left-text" aria-hidden="true"></i> Motif de la modification</label><textarea id="company-reason-{{ $company->id }}" name="reason" class="form-control" minlength="5" maxlength="500" rows="3" placeholder="Expliquez la raison de cette exception…" required></textarea></div>
                                 <div class="platform-settings-field"><label for="company-password-{{ $company->id }}"><i class="bi bi-key" aria-hidden="true"></i> Mot de passe plateforme</label><input id="company-password-{{ $company->id }}" name="current_password" type="password" class="form-control" autocomplete="current-password" required><small>Votre mot de passe confirme cette action sensible et sera journalisé.</small></div>
                             </div>

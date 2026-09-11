@@ -26,11 +26,11 @@ class SubscriptionCheckoutService
         return $quote + ['plan_key' => $plan->key, 'plan_name' => $plan->name, 'duration_months' => $months];
     }
 
-    public function create(int $companyId, int $userId, string $planKey, int|string $duration, ?string $promoCode = null): SubscriptionPayment
+    public function create(int $companyId, int $userId, string $planKey, int|string $duration, ?string $promoCode = null, ?string $paymentTermsVersion = null): SubscriptionPayment
     {
         $months = $this->months($duration);
 
-        return DB::transaction(function () use ($companyId, $userId, $planKey, $months, $promoCode): SubscriptionPayment {
+        return DB::transaction(function () use ($companyId, $userId, $planKey, $months, $promoCode, $paymentTermsVersion): SubscriptionPayment {
             $company = Company::withoutGlobalScopes()->lockForUpdate()->findOrFail($companyId);
             $account = $company->subscriptionAccount()->with('owner')->lockForUpdate()->firstOrFail();
             $plan = SubscriptionPlan::where('key', $planKey)->where('is_active', true)->with('features')->firstOrFail();
@@ -53,6 +53,8 @@ class SubscriptionCheckoutService
                 'discount_amount' => (int) $quote['discount_amount'],
                 'net_amount' => (int) $quote['net_amount'],
                 'promotion_rule_version' => $quote['eligible'] ? PartnerPromotionService::RULE_VERSION : null,
+                'payment_terms_version' => $paymentTermsVersion,
+                'payment_terms_accepted_at' => $paymentTermsVersion ? now()->toIso8601String() : null,
             ]);
             $reference = 'SUB-'.$account->id.'-'.strtoupper(Str::random(16));
             $payment = SubscriptionPayment::create([

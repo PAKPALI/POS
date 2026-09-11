@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex,nofollow">
     <meta name="theme-color" content="#070B14">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
     <title>@yield('title', 'Accès plateforme') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
@@ -23,6 +25,7 @@
 <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
 <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
 <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
+<script src="{{ asset('pwa-register.js') }}" defer></script>
 @stack('scripts')
 </body>
 </html>

@@ -41,7 +41,16 @@ class NotificationSettingController extends Controller
         $allowedUsers = User::where('status', 1)
             ->whereHas('memberships', function ($query) use ($company) {
                 $query->where('company_id', $company->id)->where('status', 'active');
-            })->pluck('id');
+            })->get(['id', 'phone']);
+
+        foreach ($allowedUsers as $allowedUser) {
+            foreach (['sale', 'inventory'] as $category) {
+                $channels = $request->input("recipients.$category.{$allowedUser->id}", []);
+                if (!$allowedUser->phone && (isset($channels['sms']) || isset($channels['whatsapp']))) {
+                    return back()->with('error', 'Veuillez renseigner un numéro de téléphone pour cet utilisateur avant d’activer SMS ou WhatsApp.');
+                }
+            }
+        }
 
         DB::transaction(function () use ($request, $company, $allowedUsers) {
             $company->update([
@@ -54,7 +63,8 @@ class NotificationSettingController extends Controller
                 'inventory_whatsapp_enabled' => $request->boolean('inventory_whatsapp_enabled'),
                 'inventory_sms_enabled' => $request->boolean('inventory_sms_enabled'),
             ]);
-            foreach ($allowedUsers as $userId) {
+            foreach ($allowedUsers as $allowedUser) {
+                $userId = $allowedUser->id;
                 foreach (['sale', 'inventory'] as $category) {
                     $channels = $request->input("recipients.$category.$userId", []);
                     NotificationRecipient::updateOrCreate(

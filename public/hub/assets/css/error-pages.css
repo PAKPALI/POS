@@ -1,1 +1,32 @@
-.permission-denied-card .card-body{display:flex;flex-direction:column;align-items:center;text-align:center}.permission-denied-card h1,.permission-denied-card p{text-align:center}.permission-illustration{width:min(230px,72vw);height:auto;filter:drop-shadow(0 18px 28px rgba(0,0,0,.32));animation:permissionGuardFloat 3.2s ease-in-out infinite}.permission-actions{width:100%;justify-content:center}.permission-button{display:inline-flex;align-items:center;justify-content:center;min-width:10.5rem;min-height:2.75rem;padding:.7rem 1.1rem;border:1px solid transparent;border-radius:12px;font-weight:700;line-height:1.2;text-decoration:none!important;transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease}.permission-button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(15,23,42,.16)}.permission-button-primary{color:#fff!important;background:var(--ds-accent,#3b82f6);border-color:var(--ds-accent,#3b82f6)}.permission-button-secondary{color:#e2e8f0!important;background:rgba(255,255,255,.06);border-color:rgba(148,163,184,.48)}.permission-button-secondary:hover{color:#fff!important;background:rgba(255,255,255,.12)}.permission-button:focus-visible{outline:3px solid color-mix(in srgb,var(--ds-accent) 55%,white);outline-offset:3px}@media(max-width:575.98px){.permission-actions{display:grid!important;grid-template-columns:1fr;width:100%}.permission-button{width:100%;min-width:0}}.maintenance-icon{display:grid;place-items:center;width:72px;height:72px;margin:0 auto 20px;color:var(--ds-accent);font-size:2rem;background:var(--ds-accent-soft);border:1px solid rgba(var(--ds-accent-rgb),.35);border-radius:20px}@keyframes permissionGuardFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}@media(prefers-reduced-motion:reduce){.permission-illustration{animation:none}}
+.permission-denied-card .card-body,.robot-error-card .card-body{display:flex;flex-direction:column;align-items:center;text-align:center}
+.permission-denied-card h1,.permission-denied-card p,.robot-error-card h1,.robot-error-card p{text-align:center}
+.permission-illustration,.robot-error-illustration{width:min(230px,72vw);height:auto;filter:drop-shadow(0 18px 28px rgba(0,0,0,.32));animation:permissionGuardFloat 3.2s ease-in-out infinite}
+.robot-error-illustration{width:min(210px,64vw);margin:-.35rem auto .35rem}
+.robot-error-illustration.is-not-found{animation-name:robotSearchFloat}
+.robot-error-illustration.is-session-expired{animation-name:robotSessionFloat;filter:drop-shadow(0 18px 28px rgba(245,158,11,.25)) sepia(.12)}
+.robot-error-illustration.is-rate-limited{animation-duration:2.1s;filter:drop-shadow(0 18px 28px rgba(249,115,22,.28)) saturate(1.15)}
+.robot-error-illustration.is-server-error{animation-name:robotRepairFloat;filter:drop-shadow(0 18px 28px rgba(239,68,68,.27)) grayscale(.1)}
+.robot-error-illustration.is-maintenance{animation-duration:4s;filter:drop-shadow(0 18px 28px rgba(124,92,252,.3)) hue-rotate(8deg)}
+.robot-error-signal{display:inline-flex;align-items:center;gap:.45rem;padding:.42rem .72rem;border:1px solid rgba(148,163,184,.35);border-radius:999px;color:#dbeafe;background:rgba(59,130,246,.12);font-size:.74rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.robot-error-signal.is-warning{color:#fde68a;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35)}
+.robot-error-signal.is-danger{color:#fecaca;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35)}
+.robot-error-signal.is-violet{color:#ddd6fe;background:rgba(124,92,252,.14);border-color:rgba(124,92,252,.38)}
+.robot-error-code{display:block;margin-top:.72rem;color:var(--ds-text-muted,#94a3b8);font-size:.76rem;font-weight:800;letter-spacing:.16em}
+.robot-error-card{max-width:43rem;margin:0 auto;background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(30,41,59,.94));border:1px solid rgba(148,163,184,.24)!important;border-radius:1.35rem;box-shadow:0 24px 65px rgba(2,6,23,.28)}
+[data-theme="light"] .robot-error-card{background:linear-gradient(145deg,#fff,#f8fafc);box-shadow:0 24px 65px rgba(15,23,42,.12)}
+.robot-error-card .text-secondary{max-width:34rem}
+.permission-actions,.robot-error-actions{width:100%;justify-content:center}
+.permission-button,.robot-error-button{display:inline-flex;align-items:center;justify-content:center;min-width:10.5rem;min-height:2.75rem;padding:.7rem 1.1rem;border:1px solid transparent;border-radius:12px;font-weight:700;line-height:1.2;text-decoration:none!important;transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease}
+.permission-button:hover,.robot-error-button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(15,23,42,.16)}
+.permission-button-primary,.robot-error-button-primary{color:#fff!important;background:var(--ds-accent,#3b82f6);border-color:var(--ds-accent,#3b82f6)}
+.permission-button-secondary,.robot-error-button-secondary{color:#e2e8f0!important;background:rgba(255,255,255,.06);border-color:rgba(148,163,184,.48)}
+[data-theme="light"] .robot-error-button-secondary{color:#334155!important;background:rgba(255,255,255,.7)}
+.permission-button-secondary:hover,.robot-error-button-secondary:hover{color:#fff!important;background:rgba(255,255,255,.12)}
+.permission-button:focus-visible,.robot-error-button:focus-visible{outline:3px solid color-mix(in srgb,var(--ds-accent) 55%,white);outline-offset:3px}
+.maintenance-icon{display:grid;place-items:center;width:72px;height:72px;margin:0 auto 20px;color:var(--ds-accent);font-size:2rem;background:var(--ds-accent-soft);border:1px solid rgba(var(--ds-accent-rgb),.35);border-radius:20px}
+@keyframes permissionGuardFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+@keyframes robotSearchFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+@keyframes robotSessionFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px) rotate(-2deg)}}
+@keyframes robotRepairFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(1.5deg)}}
+@media(max-width:575.98px){.permission-actions,.robot-error-actions{display:grid!important;grid-template-columns:1fr;width:100%}.permission-button,.robot-error-button{width:100%;min-width:0}.robot-error-card .card-body{padding:2rem 1.2rem!important}}
+@media(prefers-reduced-motion:reduce){.permission-illustration,.robot-error-illustration{animation:none}}

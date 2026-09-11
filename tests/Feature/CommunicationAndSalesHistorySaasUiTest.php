@@ -72,7 +72,7 @@ class CommunicationAndSalesHistorySaasUiTest extends TestCase
         $styles = file_get_contents(public_path('hub/assets/css/saas-pages.css'));
 
         $this->assertStringContainsString('.communication-log-table { width: 100%; min-width: 840px; table-layout: fixed; }', $styles);
-        $this->assertStringContainsString('width: 16.6667%; text-align: left;', $styles);
+        $this->assertStringContainsString('width: 16.6667%; text-align: center;', $styles);
         $this->assertStringContainsString('.communication-log-table .communication-log-recipient', $styles);
         $this->assertStringContainsString('.communication-log-table th:nth-child(6)', $styles);
         $this->assertStringContainsString('.communication-log-pagination .page-link', $styles);

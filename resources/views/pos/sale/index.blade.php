@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260909-4" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260911-2" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -85,9 +85,15 @@
                             <h1 id="posCatalogTitle">Choisir des produits</h1>
                             <p id="posCatalogDescription">Recherchez, ajoutez au panier, puis finalisez la vente.</p>
                         </div>
-                        <div class="pos-catalog-status" aria-label="Nombre de produits disponibles">
-                            <i class="bi bi-box-seam"></i>
-                            <span><strong>{{ $productCount }}</strong> produits</span>
+                        <div class="pos-catalog-actions">
+                            <div class="pos-catalog-status" aria-label="Nombre de produits disponibles">
+                                <i class="bi bi-box-seam" aria-hidden="true"></i>
+                                <span><strong>{{ $productCount }}</strong> produits</span>
+                            </div>
+                            <button type="button" class="pos-appearance-trigger" data-bs-toggle="modal" data-bs-target="#navbarAppearanceModal" aria-label="Personnaliser l’apparence" title="Personnaliser l’apparence">
+                                <i class="bi bi-palette" aria-hidden="true"></i>
+                                <span class="pos-appearance-trigger-copy">Apparence</span>
+                            </button>
                         </div>
                     </div>
                     <div id="posTabHint" class="pos-tab-hint is-command" role="status" aria-live="polite" tabindex="0">

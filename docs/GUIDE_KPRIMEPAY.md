@@ -19,6 +19,32 @@ KPRIMEPAY_WHATSAPP_UNIT_PRICE=30
 
 La clé doit posséder les droits `payments:write` et `read`. Elle ne doit jamais être committée, affichée dans l’administration ou transmise dans les journaux.
 
+### Retraits partenaires depuis la balance de collecte
+
+Les retraits utilisent une clé dédiée, distincte de la clé checkout ci-dessus :
+
+```env
+KPRIMEPAY_PAYOUT_BASE_URL=https://api.kprimepay.com/v2
+KPRIMEPAY_PAYOUT_TOKEN=
+KPRIMEPAY_PAYOUT_WITH_FEES=0
+KPRIMEPAY_PAYOUT_CA_BUNDLE=D:\laragon\etc\ssl\cacert.pem
+```
+
+- La clé payout doit disposer de `payouts:write` et du droit de lecture du statut ; l’IP sortante doit être autorisée par KPrimePay.
+- `KPRIMEPAY_PAYOUT_WITH_FEES=0` est requis pour la politique partenaire actuelle : aucun supplément technique n’est ajouté au bénéficiaire. Les frais propres à KPrimePay sont traités séparément et supportés par le partenaire.
+- Le portail réserve un plafond de frais configuré dans **Programme partenaires**, puis régularise le portefeuille selon le coût réellement confirmé par KPrimePay. Configurez ce plafond au moins au tarif actif de l’opérateur ; l’excédent est rendu automatiquement.
+- Cette configuration ne change pas `KPRIMEPAY_WITH_FEES`, qui reste réservé aux checkouts et quotas.
+
+### Certificat SSL en local (Laragon)
+
+Si PHP affiche `cURL error 60` parce qu’aucun bundle CA n’est déclaré, indiquez le certificat CA de Laragon dans `.env` :
+
+```env
+KPRIMEPAY_CA_BUNDLE=D:\laragon\etc\ssl\cacert.pem
+```
+
+La vérification SSL reste active. En staging et en production, installez le bundle CA dans PHP ou renseignez un chemin adapté à l’environnement ; n’utilisez pas `verify=false`.
+
 Webhook public :
 
 ```text

@@ -8,6 +8,7 @@ class SubscriptionPayment extends Model
     protected $casts = ['snapshot'=>'array','duration_months'=>'integer','gross_amount'=>'integer','discount_amount'=>'integer','expires_at'=>'datetime','paid_at'=>'datetime','failed_at'=>'datetime'];
 
     public function plan() { return $this->belongsTo(SubscriptionPlan::class,'subscription_plan_id'); }
+    public function user() { return $this->belongsTo(User::class,'user_id'); }
     public function subscription() { return $this->belongsTo(Subscription::class,'subscription_id'); }
     public function subscriptionAccount() { return $this->belongsTo(SubscriptionAccount::class); }
     public function partnerCheckoutIntent() { return $this->hasOne(PartnerCheckoutIntent::class,'subscription_payment_id'); }

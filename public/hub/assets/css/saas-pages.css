@@ -1538,6 +1538,65 @@ table.dataTable tbody tr td.dataTables_empty { padding: 32px 14px; color: var(--
 .partner-code-history-empty { display: flex; align-items: center; gap: 9px; padding: 14px; color: var(--ds-text-muted); background: var(--ds-bg-elevated); border: 1px dashed var(--ds-border-soft); border-radius: 11px; font-size: .75rem; }
 .partner-code-history-empty i { color: var(--ds-accent); }
 
+/* Retraits partenaire : compte Mobile Money et formulaire de versement. */
+.partner-withdrawal-layout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr); align-items: start; gap: 18px; }
+.partner-withdrawal-layout > .saas-card { min-width: 0; height: auto; }
+.partner-withdrawal-empty { min-height: 164px; margin: 0; background: linear-gradient(135deg, rgba(var(--ds-accent-rgb), .07), transparent 72%); }
+.partner-withdrawal-blockers { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.partner-withdrawal-blockers li { display: flex; align-items: flex-start; gap: 8px; padding: 9px 11px; color: var(--ds-text-secondary); background: rgba(var(--ds-warning-rgb, 245, 185, 66), .07); border: 1px solid rgba(var(--ds-warning-rgb, 245, 185, 66), .2); border-radius: 10px; font-size: .76rem; line-height: 1.45; }
+.partner-withdrawal-blockers li > i { flex: 0 0 auto; margin-top: .15em; color: var(--ds-warning, #f5b942); }
+.partner-withdrawal-account-item { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 13px; background: var(--ds-bg-elevated); border: 1px solid var(--ds-border-soft); border-radius: 13px; }
+.partner-withdrawal-account-icon,.partner-withdrawal-editor-icon { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; color: var(--ds-accent); background: var(--ds-accent-soft); border-radius: 12px; font-size: 1.05rem; }
+.partner-withdrawal-account-copy { display: grid; min-width: 0; gap: 3px; }
+.partner-withdrawal-account-copy strong { overflow-wrap: anywhere; color: var(--ds-text-primary); font-size: .86rem; }
+.partner-withdrawal-account-copy span { overflow-wrap: anywhere; color: var(--ds-text-muted); font-size: .74rem; }
+.partner-withdrawal-account-editor { margin-top: 16px; overflow: hidden; background: rgba(var(--ds-accent-rgb), .035); border: 1px solid var(--ds-border-soft); border-radius: 14px; }
+.partner-withdrawal-account-editor > summary { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 13px; color: var(--ds-text-primary); cursor: pointer; list-style: none; transition: background-color .18s ease; }
+.partner-withdrawal-account-editor > summary::-webkit-details-marker { display: none; }
+.partner-withdrawal-account-editor > summary:hover { background: rgba(var(--ds-accent-rgb), .07); }
+.partner-withdrawal-account-editor[open] > summary { background: rgba(var(--ds-accent-rgb), .09); border-bottom: 1px solid var(--ds-border-soft); }
+.partner-withdrawal-editor-copy { display: grid; min-width: 0; gap: 3px; }
+.partner-withdrawal-editor-copy strong { color: var(--ds-text-primary); font-size: .84rem; }
+.partner-withdrawal-editor-copy small { color: var(--ds-text-muted); font-size: .72rem; line-height: 1.4; }
+.partner-withdrawal-editor-chevron { color: var(--ds-text-muted); transition: transform .18s ease; }
+.partner-withdrawal-account-editor[open] .partner-withdrawal-editor-chevron { transform: rotate(180deg); }
+.partner-withdrawal-account-form { display: grid; gap: 16px; padding: 16px; }
+.partner-withdrawal-account-form .saas-form-group { margin: 0; }
+.partner-withdrawal-account-form .saas-form-group small { display: flex; align-items: flex-start; gap: 6px; }
+.partner-withdrawal-account-form .saas-form-group small > i { display: none; flex: 0 0 auto; margin-top: 2px; color: var(--ds-danger, #ff626e); }
+.partner-withdrawal-account-form .saas-form-group small.saas-field-error > i { display: inline-block; }
+.partner-withdrawal-account-form .saas-form-group small.saas-field-error,
+.partner-withdrawal-account-form .saas-form-group small.saas-field-error > span { color: var(--ds-danger, #ff626e) !important; }
+.partner-withdrawal-form-notice { display: flex; align-items: flex-start; gap: 9px; padding: 11px 12px; color: var(--ds-text-secondary); background: rgba(var(--ds-info-rgb, 85, 167, 255), .08); border: 1px solid rgba(var(--ds-info-rgb, 85, 167, 255), .2); border-radius: 10px; font-size: .74rem; line-height: 1.5; }
+.partner-withdrawal-form-notice i { flex: 0 0 auto; margin-top: 2px; color: var(--ds-info, #55a7ff); }
+.partner-withdrawal-form-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 2px; }
+.partner-withdrawal-form-actions > span { display: flex; align-items: flex-start; gap: 6px; max-width: 31rem; color: var(--ds-text-muted); font-size: .7rem; line-height: 1.45; }
+.partner-withdrawal-form-actions > span i { flex: 0 0 auto; margin-top: 2px; color: var(--ds-accent); }
+.partner-withdrawal-form-actions .saas-btn { flex: 0 0 auto; min-height: 44px; white-space: nowrap; }
+.partner-withdrawal-status-action { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 38px; max-width: 100%; padding: 6px 10px; color: var(--ds-warning, #f5b942); background: rgba(var(--ds-warning-rgb, 245, 185, 66), .11); border: 1px solid rgba(var(--ds-warning-rgb, 245, 185, 66), .3); border-radius: 999px; font: inherit; font-size: .68rem; font-weight: 800; line-height: 1.2; text-align: center; cursor: pointer; transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease; }
+.partner-withdrawal-status-main { display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.partner-withdrawal-status-action:hover { color: var(--ds-text-primary); background: rgba(var(--ds-warning-rgb, 245, 185, 66), .2); border-color: rgba(var(--ds-warning-rgb, 245, 185, 66), .55); }
+.partner-withdrawal-status-action:active { transform: scale(.97); }
+.partner-withdrawal-status-action:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(var(--ds-warning-rgb, 245, 185, 66), .2); }
+.partner-withdrawal-status-action.is-cooldown,
+.partner-withdrawal-status-action:disabled { color: var(--ds-text-muted); background: var(--ds-glass-1); border-color: var(--ds-border-soft); cursor: not-allowed; opacity: .86; }
+.partner-account-confirm-intro { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; padding: 14px; background: rgba(var(--ds-accent-rgb), .07); border: 1px solid rgba(var(--ds-accent-rgb), .18); border-radius: 12px; }
+.partner-account-confirm-icon { display: grid; place-items: center; flex: 0 0 auto; width: 40px; height: 40px; color: var(--ds-accent); background: var(--ds-accent-soft); border-radius: 11px; font-size: 1.05rem; }
+.partner-account-confirm-intro h3 { margin: 0 0 5px; color: var(--ds-text-primary); font-size: .92rem; }
+.partner-account-confirm-intro p { margin: 0; color: var(--ds-text-secondary); font-size: .78rem; line-height: 1.55; }
+.partner-account-confirm-form { display: grid; gap: 4px; }
+.partner-account-confirm-form .saas-form-group { margin: 0; }
+.partner-account-confirm-form input { text-align: center; letter-spacing: .3em; font-size: 1.15rem; font-weight: 800; }
+.partner-account-confirm-help { display: block; margin-top: 7px; color: var(--ds-text-muted); font-size: .72rem; }
+.partner-account-confirm-resend { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; color: var(--ds-text-muted); font-size: .72rem; }
+.partner-account-confirm-resend form { flex: 0 0 auto; }
+.partner-account-confirm-resend-button { min-height: 36px !important; padding: 6px 11px !important; font-size: .72rem !important; }
+.partner-account-confirm-resend-button.is-cooldown { flex-direction: column; gap: 2px; }
+.partner-account-confirm-resend-countdown { display: block; font-size: .6rem; line-height: 1.1; }
+.partner-account-confirm-resend-button:not(.is-cooldown) .partner-account-confirm-resend-countdown { display: none; }
+.partner-account-confirm-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--ds-border-soft); }
+.partner-account-confirm-actions .saas-btn { min-height: 44px; }
+
 @media (max-width: 767.98px) {
     .quota-history-table-wrap { overflow: visible !important; border: 0; background: transparent; }
     .quota-history-table { min-width: 0 !important; border: 0; }
@@ -1579,6 +1638,15 @@ table.dataTable tbody tr td.dataTables_empty { padding: 32px 14px; color: var(--
     .partner-code-history-item { grid-template-columns: 1fr; gap: 9px; }
     .partner-code-history-codes { gap: 8px; }
     .partner-code-history-codes code { font-size: .8rem; }
+    .partner-withdrawal-form-actions { align-items: stretch; flex-direction: column; }
+    .partner-withdrawal-form-actions .saas-btn { width: 100%; }
+    .partner-withdrawal-status-action { width: 100%; }
+    .partner-account-confirm-intro { padding: 12px; }
+    .partner-account-confirm-resend { align-items: stretch; flex-direction: column; gap: 8px; }
+    .partner-account-confirm-resend form,
+    .partner-account-confirm-resend-button { width: 100%; }
+    .partner-account-confirm-actions { align-items: stretch; flex-direction: column-reverse; }
+    .partner-account-confirm-actions .saas-btn { width: 100%; }
     .saas-settings-grid { grid-template-columns: 1fr; }
     .saas-form-grid { grid-template-columns: 1fr; }
     .saas-form-group-wide { grid-column: auto; }
@@ -1690,7 +1758,38 @@ table.dataTable tbody tr td.dataTables_empty { padding: 32px 14px; color: var(--
 .partner-calculation dl div { display: flex; justify-content: space-between; gap: 12px; }
 .partner-calculation dt { color: var(--ds-text-muted); font-weight: 500; }
 .partner-calculation dd { margin: 0; color: var(--ds-text-primary); font-weight: 700; text-align: right; }
+.partner-withdrawal-estimate { display: grid; gap: 0; max-width: 660px; overflow: hidden; border: 1px solid var(--ds-border-soft); border-radius: 12px; background: var(--ds-bg-elevated); }
+.partner-withdrawal-estimate > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 13px; border-bottom: 1px solid var(--ds-border-soft); color: var(--ds-text-secondary); font-size: .8rem; }
+.partner-withdrawal-estimate > div strong { color: var(--ds-text-primary); font-variant-numeric: tabular-nums; }
+.partner-withdrawal-estimate .partner-withdrawal-estimate-total { padding-block: 12px; color: var(--ds-text-primary); font-weight: 700; background: color-mix(in srgb, var(--ds-accent) 8%, var(--ds-bg-elevated)); }
+.partner-withdrawal-estimate .partner-withdrawal-estimate-total strong { font-size: 1rem; }
+.partner-withdrawal-estimate p { margin: 0; padding: 10px 13px; color: var(--ds-text-muted); font-size: .75rem; line-height: 1.5; }
+.partner-withdrawal-request-form { display: grid; gap: 18px; }
+.partner-withdrawal-request-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.partner-withdrawal-layout .partner-withdrawal-request-fields { grid-template-columns: 1fr; }
+.partner-withdrawal-request-fields .saas-form-group { min-width: 0; margin: 0; }
+.partner-withdrawal-request-fields .saas-form-group > small { display: block; margin-top: 2px; color: var(--ds-text-muted); font-size: .72rem; line-height: 1.4; }
+.partner-withdrawal-request-fields label { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; color: var(--ds-text-primary); font-size: .76rem; font-weight: 700; }
+.partner-withdrawal-field-unit { color: var(--ds-text-muted); font-size: .68rem; font-weight: 600; letter-spacing: .04em; }
+.partner-withdrawal-request-fields input,
+.partner-withdrawal-request-fields select { width: 100%; min-height: 44px; }
+.partner-withdrawal-request-fields .partner-withdrawal-select-wrap { width: 100%; }
+.partner-withdrawal-password-wrap { position: relative; }
+.partner-withdrawal-password-wrap input { padding-right: 38px; }
+.partner-withdrawal-password-wrap > i { position: absolute; top: 50%; right: 13px; color: var(--ds-text-muted); pointer-events: none; transform: translateY(-50%); }
+.partner-withdrawal-request-summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(210px, .42fr); align-items: end; gap: 18px; }
+.partner-withdrawal-layout .partner-withdrawal-request-summary { grid-template-columns: 1fr; }
+.partner-withdrawal-request-action { display: grid; gap: 8px; }
+.partner-withdrawal-request-action .saas-btn { width: 100%; min-height: 44px; }
+.partner-withdrawal-request-action small { color: var(--ds-text-muted); font-size: .7rem; line-height: 1.4; text-align: center; }
+.partner-withdrawal-request-action small i { margin-right: 3px; }
+.is-over-balance .partner-withdrawal-estimate { border-color: var(--ds-danger, #ff626e); }
+.is-over-balance .partner-withdrawal-estimate .partner-withdrawal-estimate-total { background: color-mix(in srgb, var(--ds-danger, #ff626e) 13%, var(--ds-bg-elevated)); }
+.is-over-balance .partner-withdrawal-estimate .partner-withdrawal-estimate-total strong,
+.is-over-balance .partner-withdrawal-estimate p { color: var(--ds-danger, #ff626e); }
 @media (max-width: 991.98px) { .partner-dashboard-grid { grid-template-columns: 1fr; } .partner-filter-grid-commissions { grid-template-columns: repeat(2, minmax(140px, 1fr)); } }
+@media (max-width: 767.98px) { .partner-withdrawal-request-fields, .partner-withdrawal-request-summary { grid-template-columns: 1fr; } .partner-withdrawal-request-summary { gap: 14px; } }
+@media (max-width: 991.98px) { .partner-withdrawal-layout { grid-template-columns: 1fr; } }
 @media (max-width: 575.98px) { .partner-filter-grid, .partner-filter-grid-commissions { grid-template-columns: 1fr; } .partner-filter-actions, .partner-filter-actions .saas-btn, .partner-export-form .saas-btn { width: 100%; } .partner-filter-actions { align-items: stretch; flex-direction: column; } .partner-export-form { align-items: stretch; flex-direction: column; } .partner-export-history > div { align-items: stretch; flex-direction: column; } .partner-export-history .saas-btn { width: 100%; } .partner-bar-chart { gap: 2px; } .partner-bar-chart-value { display: none; } }
 
 /* Inventaire : conserver les raccourcis Entrée/Sortie côte à côte sur mobile. */

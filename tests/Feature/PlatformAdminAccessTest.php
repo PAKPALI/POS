@@ -139,9 +139,9 @@ class PlatformAdminAccessTest extends TestCase
         $this->actingAs($admin, 'platform')
             ->get(route('platform.password.edit'))
             ->assertOk()
-            ->assertSee('data-target="current_password"', false)
-            ->assertSee('data-target="password"', false)
-            ->assertSee('data-target="password_confirmation"', false)
+            ->assertSee('data-password-toggle="current_password"', false)
+            ->assertSee('data-password-toggle="password"', false)
+            ->assertSee('data-password-toggle="password_confirmation"', false)
             ->assertSee('bi-eye');
     }
 

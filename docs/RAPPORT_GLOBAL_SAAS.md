@@ -1,6 +1,6 @@
 # Rapport global permanent — SaaS POS
 
-Dernière mise à jour : 7 septembre 2026
+Dernière mise à jour : 11 septembre 2026
 
 ## Rôle du document
 
@@ -10,7 +10,7 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 
 - environnement staging validé par le propriétaire ;
 - fonctionnement réel avec plusieurs entreprises et changement de contexte ;
-- PWA mobile opérationnelle ;
+- PWA mobile opérationnelle et identité harmonisée sous **MAXANOU** (manifeste, écran hors connexion et messages d’installation) ;
 - paiements KPrimePay réels, webhooks idempotents et absence de double crédit confirmée ;
 - sauvegarde et restauration testées ;
 - queues et tâches cron surveillées ;
@@ -36,6 +36,13 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 - exceptions d’enforcement par entreprise, avec héritage du réglage global, activation/désactivation ciblée et audit plateforme ;
 - PWA Android/iOS, panier persistant et interfaces mobiles ;
 - console centrale SaaS documentée séparément dans `RAPPORT_ADMINISTRATION_SAAS.md`.
+
+## Mise à jour du 11 septembre 2026 — retraits et cohérence PWA
+
+- Le programme partenaires inclut le retrait sécurisé vers Mobile Money : compte vérifié par code e-mail, protections contre les renvois abusifs, états de demande et contrôles d’éligibilité côté serveur. Les détails d’exploitation et de paiement sont maintenus dans `GUIDE_KPRIMEPAY.md`.
+- La console plateforme propose le suivi des encaissements confirmés, des engagements partenaires et des sorties administrateur. Les numéros Mobile Money administrateur sont chiffrés, masqués et uniques par administrateur ; le rôle Finance est en lecture seule. Le suivi détaillé figure dans `RAPPORT_ADMINISTRATION_SAAS.md`.
+- La PWA est cohérente avec la marque MAXANOU sur les shells publics, partenaire et plateforme. Le cache courant est `maxanou-pwa-v8` et purge les caches historiques ; les pages authentifiées et leurs données restent exclues du cache applicatif.
+- La validation d’installation réelle demeure une étape de recette HTTPS sur le domaine de déploiement, avec désinstallation/réinstallation d’un ancien raccourci lorsque le manifeste est mis à jour.
 
 ## Validation SQL à gros volume
 

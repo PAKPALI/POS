@@ -204,6 +204,10 @@ a.saas-metric:active { transform: translateY(-1px) scale(.985); transition-durat
 .profile-panel-heading p { margin: 0; color: var(--ds-text-secondary); font-size: .78rem; line-height: 1.55; }
 .profile-form { display: grid; gap: 18px; }
 .profile-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.profile-phone-grid { align-items: start; }
+.profile-phone-grid > .profile-field { align-content: start; }
+.profile-phone-grid .select2-container { width: 100% !important; }
+.profile-phone-grid .select2-container--default .select2-selection--single { height: 46px; min-height: 46px; }
 .profile-field { min-width: 0; display: grid; gap: 7px; }
 .profile-field label, .profile-fieldset legend { color: var(--ds-text-primary); font-size: .76rem; font-weight: 700; }
 .profile-field input:not([type="color"]) { width: 100%; min-height: 46px; padding: 10px 12px; color: var(--ds-text-primary); background: var(--ds-bg-elevated); border: 1px solid var(--ds-border-soft); border-radius: 10px; outline: 0; transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease; }
@@ -300,6 +304,8 @@ a.saas-metric:active { transform: translateY(-1px) scale(.985); transition-durat
     .saas-filter-button { flex: 1 1 100%; }
     .saas-chart { min-height: 250px; }
     .profile-form-grid, .profile-mode-grid, .profile-accent-row { grid-template-columns: 1fr; }
+    .profile-tabs { padding-inline: 12px; overscroll-behavior-x: contain; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+    .profile-tab { flex: 0 0 132px; min-width: 132px; scroll-snap-align: start; }
     .profile-form-actions, .profile-form-actions-split { flex-direction: column-reverse; }
     .profile-form-actions > button { width: 100%; }
     .profile-theme-preview { align-items: stretch; flex-direction: column; }
@@ -324,9 +330,9 @@ a.saas-metric:active { transform: translateY(-1px) scale(.985); transition-durat
     .saas-activity time { grid-column: 2; }
     .profile-settings { margin-inline: -2px; }
     .profile-panel { padding: 18px 14px; }
-    .profile-tab { min-width: 0; flex: 1 1 0; gap: 5px; padding-inline: 6px; font-size: .68rem; }
-    .profile-tab i { display: none; }
-    .profile-tab span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .profile-tab { min-width: 132px; flex: 0 0 132px; gap: 8px; padding-inline: 12px; font-size: .72rem; }
+    .profile-tab i { display: inline-block; }
+    .profile-tab span { min-width: auto; overflow: visible; text-overflow: clip; }
     .profile-mode { grid-template-columns: 34px minmax(0, 1fr) 20px; gap: 8px; padding: 12px; }
     .profile-mode > i { width: 34px; height: 34px; }
     .profile-collapse-copy small { white-space: normal; }

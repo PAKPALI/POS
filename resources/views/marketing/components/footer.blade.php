@@ -8,5 +8,5 @@
         <div><strong>Confiance</strong><a href="{{ route('marketing.security') }}">Sécurité</a><a href="{{ route('marketing.help') }}">Aide</a><a href="{{ route('marketing.legal') }}">Mentions légales</a></div>
         <div><strong>Accès</strong><a href="{{ route('marketing.login') }}">Se connecter</a><a href="{{ route('marketing.register') }}">Créer un espace</a><span class="marketing-footer-note">Français · autres langues à venir</span></div>
     </div>
-    <div class="marketing-container marketing-footer-bottom"><span>© {{ date('Y') }} Maxanou</span><span>Les offres affichées sont prévisionnelles.</span></div>
+    <div class="marketing-container marketing-footer-bottom"><span>© {{ date('Y') }} Maxanou</span><span>Les offres affichées reprennent les plans actuellement publiés.</span></div>
 </footer>

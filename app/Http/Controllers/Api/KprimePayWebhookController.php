@@ -5,7 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\QuotaPayment;
 use App\Models\SubscriptionPayment;
+use App\Models\PartnerWithdrawal;
+use App\Models\PlatformWithdrawal;
 use App\Services\KprimePayService;
+use App\Services\PartnerPayoutService;
+use App\Services\PlatformTreasuryPayoutService;
 use App\Services\QuotaPaymentSettlementService;
 use App\Services\SubscriptionSettlementService;
 use Illuminate\Http\Request;
@@ -14,11 +18,29 @@ use Throwable;
 
 class KprimePayWebhookController extends Controller
 {
-    public function __invoke(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement, SubscriptionSettlementService $subscriptionSettlement)
+    public function __invoke(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement, SubscriptionSettlementService $subscriptionSettlement, PartnerPayoutService $payouts, PlatformTreasuryPayoutService $treasuryPayouts)
     {
         $webhook = $this->normalizeWebhook($request, $request->all());
         if ($webhook === null) {
             return response()->json(['status' => false, 'message' => 'INVALID_WEBHOOK'], 400);
+        }
+
+        $withdrawal = PartnerWithdrawal::where('transaction_id', $webhook['transaction_id'])->first();
+        if ($withdrawal) {
+            if (!str_starts_with($webhook['event'], 'transfer.')) {
+                return response()->json(['status' => true, 'message' => 'IGNORED']);
+            }
+            $result = $payouts->handleWebhook($withdrawal, $webhook, $request->all());
+            return response()->json(['status' => $result !== 'VERIFICATION_UNAVAILABLE', 'message' => $result], $result === 'VERIFICATION_UNAVAILABLE' ? 503 : 200);
+        }
+
+        $platformWithdrawal = PlatformWithdrawal::where('transaction_id', $webhook['transaction_id'])->first();
+        if ($platformWithdrawal) {
+            if (!str_starts_with($webhook['event'], 'transfer.')) {
+                return response()->json(['status' => true, 'message' => 'IGNORED']);
+            }
+            $result = $treasuryPayouts->handleWebhook($platformWithdrawal, $webhook);
+            return response()->json(['status' => $result !== 'VERIFICATION_UNAVAILABLE', 'message' => $result], $result === 'VERIFICATION_UNAVAILABLE' ? 503 : 200);
         }
 
         $subscriptionPayment = SubscriptionPayment::where('transaction_id', $webhook['transaction_id'])->first();
@@ -105,6 +127,7 @@ class KprimePayWebhookController extends Controller
                 'currency' => (string) data_get($payload, 'data.transaction_details.currency', ''),
                 'kpp_reference' => (string) data_get($payload, 'data.kpp_reference', ''),
                 'failure_reason' => (string) data_get($payload, 'data.failure_reason', 'Paiement échoué'),
+                'provider_status' => (string) data_get($payload, 'data.status', ''),
             ];
         }
 

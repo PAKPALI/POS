@@ -130,6 +130,25 @@
 .platform-settings-preview-grid span, .platform-settings-preview-grid small { color: var(--ds-text-secondary); font-size: .66rem; }
 .platform-settings-preview-grid b { color: var(--ds-text-primary); font-variant-numeric: tabular-nums; }
 .platform-settings-preview-grid small b { color: var(--ds-success, #35c98b); }
+.platform-settings-payout-toggle { margin-top: 18px; background: linear-gradient(135deg, rgba(var(--ds-warning-rgb, 245, 185, 66), .1), transparent 72%), var(--ds-glass-1); border-color: rgba(var(--ds-warning-rgb, 245, 185, 66), .28); }
+.platform-settings-payout-toggle .saas-switch-control { border-color: rgba(var(--ds-warning-rgb, 245, 185, 66), .5); }
+.platform-settings-payout-toggle:has(.saas-switch-input:checked) { background: linear-gradient(135deg, rgba(var(--ds-success-rgb, 53, 201, 139), .1), transparent 72%), var(--ds-glass-1); border-color: rgba(var(--ds-success-rgb, 53, 201, 139), .28); }
+.platform-settings-payout-state { display: grid; gap: 8px; margin-top: 12px; padding: 13px 14px; border: 1px solid var(--ds-border-soft); border-radius: 12px; }
+.platform-settings-payout-state.is-disabled { background: rgba(var(--ds-danger-rgb, 255, 98, 110), .07); border-color: rgba(var(--ds-danger-rgb, 255, 98, 110), .2); }
+.platform-settings-payout-state.is-enabled { background: rgba(var(--ds-success-rgb, 53, 201, 139), .07); border-color: rgba(var(--ds-success-rgb, 53, 201, 139), .2); }
+.platform-settings-payout-state-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.platform-settings-payout-state-head span { display: inline-flex; align-items: center; gap: 7px; color: var(--ds-text-primary); font-size: .74rem; font-weight: 800; }
+.platform-settings-payout-state-head i { color: var(--ds-danger, #ff626e); }
+.platform-settings-payout-state.is-enabled .platform-settings-payout-state-head i { color: var(--ds-success, #35c98b); }
+.platform-settings-payout-state-head strong { color: var(--ds-danger, #ff626e); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
+.platform-settings-payout-state.is-enabled .platform-settings-payout-state-head strong { color: var(--ds-success, #35c98b); }
+.platform-settings-payout-state p { color: var(--ds-text-secondary); font-size: .68rem; line-height: 1.5; }
+.platform-settings-payout-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+.platform-settings-payout-grid .platform-settings-field { min-width: 0; }
+.platform-settings-payout-section .platform-settings-toggle-card > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.platform-settings-payout-section .platform-settings-toggle-card small { display: block; max-width: 100%; overflow-wrap: anywhere; }
+.platform-settings-payout-section .platform-settings-service-copy { min-width: 0; }
+.platform-settings-payout-section .platform-settings-service-copy span { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
 .platform-subscription-page { display: grid; gap: 20px; }
 .platform-subscription-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: clamp(21px, 3vw, 29px); background: linear-gradient(125deg, rgba(var(--ds-accent-rgb), .15), transparent 62%), var(--ds-glass-1); border: 1px solid rgba(var(--ds-accent-rgb), .22); border-radius: 18px; box-shadow: var(--ds-shadow-card); }
 .platform-subscription-hero-copy { max-width: 760px; }
@@ -734,6 +753,7 @@
     .platform-settings-history-search-submit { grid-column: 1 / -1; width: 100%; }
     .platform-settings-history-toolbar .platform-table-clear-search { justify-self: center; grid-column: 1 / -1; }
     .platform-settings-form-grid-three { grid-template-columns: 1fr; }
+    .platform-settings-payout-grid { grid-template-columns: 1fr; gap: 12px; }
     .platform-settings-service-row { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 9px; }
     .platform-settings-service-row .platform-status-chip { grid-column: 2; justify-self: start; }
     .platform-settings-switch { grid-column: 3; grid-row: 1 / span 2; }
@@ -830,4 +850,166 @@
     .platform-user-hero > .platform-status-chip { width: fit-content; margin-top: 0; }
     .platform-user-summary-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
     .platform-user-summary-grid .platform-summary-metric:last-child { grid-column: 1 / -1; }
+}
+
+/* First platform login / password security step */
+.platform-password-page { width: min(100%, 760px); margin: clamp(8px, 5vh, 48px) auto 0; }
+.platform-password-card { position: relative; overflow: hidden; padding: clamp(22px, 3vw, 34px); }
+.platform-password-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, var(--ds-accent), rgba(var(--ds-accent-rgb), .25)); }
+.platform-password-intro { display: flex; align-items: flex-start; gap: 16px; padding-bottom: 23px; border-bottom: 1px solid var(--ds-border-soft); }
+.platform-password-mark { display: grid; place-items: center; flex: 0 0 52px; width: 52px; height: 52px; color: var(--ds-accent); background: var(--ds-accent-soft); border: 1px solid rgba(var(--ds-accent-rgb), .28); border-radius: 15px; box-shadow: 0 9px 24px rgba(var(--ds-accent-rgb), .12); font-size: 1.2rem; }
+.platform-password-intro > div { min-width: 0; }
+.platform-password-intro .platform-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 7px; color: var(--ds-accent); font-size: .67rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.platform-password-intro h2 { margin: 0; color: var(--ds-text-primary); font-size: clamp(1.2rem, 2.2vw, 1.55rem); font-weight: 850; letter-spacing: -.035em; line-height: 1.2; }
+.platform-password-intro p:not(.platform-eyebrow) { margin: 8px 0 0; color: var(--ds-text-secondary); font-size: .78rem; line-height: 1.55; }
+.platform-password-notice { display: flex; align-items: flex-start; gap: 12px; margin: 22px 0; padding: 14px 15px; color: var(--ds-text-primary); background: color-mix(in srgb, var(--ds-warning, #f59e0b) 9%, var(--ds-glass-1)); border: 1px solid color-mix(in srgb, var(--ds-warning, #f59e0b) 28%, var(--ds-border-soft)); border-radius: 13px; }
+.platform-password-notice-icon { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; color: var(--ds-warning, #f59e0b); background: color-mix(in srgb, var(--ds-warning, #f59e0b) 14%, transparent); border-radius: 9px; font-size: .95rem; }
+.platform-password-notice > div { min-width: 0; }
+.platform-password-notice strong { display: block; font-size: .76rem; line-height: 1.35; }
+.platform-password-notice p { margin: 4px 0 0; color: var(--ds-text-secondary); font-size: .7rem; line-height: 1.5; }
+.platform-password-errors { margin: 0 0 20px !important; }
+.platform-password-errors > i { flex: 0 0 auto; margin-top: 2px; color: var(--ds-danger, #ff626e); }
+.platform-password-errors ul { padding-left: 18px; }
+.platform-password-form { display: grid; gap: 18px; }
+.platform-password-field { display: grid; gap: 8px; }
+.platform-password-field .form-label { margin: 0; }
+.platform-password-field .input-group { display: flex; align-items: stretch; flex-wrap: nowrap; width: 100%; min-width: 0; }
+.platform-password-field .input-group > .form-control { flex: 1 1 auto; width: 1%; min-width: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.platform-password-field .password-toggle { min-width: 48px; width: 48px; flex: 0 0 48px; display: inline-flex; align-items: center; justify-content: center; padding: 0; color: var(--ds-text-secondary); background: var(--ds-glass-1); border-color: var(--ds-border-soft); border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.platform-password-field .password-toggle:hover { color: var(--ds-text-primary); background: var(--ds-accent-soft); border-color: rgba(var(--ds-accent-rgb), .3); }
+.platform-password-help { display: flex; align-items: flex-start; gap: 7px; color: var(--ds-text-muted); font-size: .68rem; line-height: 1.45; }
+.platform-password-help i { flex: 0 0 auto; margin-top: 2px; color: var(--ds-accent); }
+.platform-password-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 2px; padding-top: 20px; border-top: 1px solid var(--ds-border-soft); }
+.platform-password-actions > span { display: inline-flex; align-items: center; gap: 6px; color: var(--ds-text-muted); font-size: .66rem; line-height: 1.4; }
+.platform-password-actions > span i { color: var(--ds-success, #35c98b); }
+.platform-password-actions .btn { min-width: 220px; }
+@media (max-width: 575px) {
+    .platform-password-page { margin-top: 4px; }
+    .platform-password-card { padding: 20px 17px; border-radius: 17px; }
+    .platform-password-intro { gap: 12px; padding-bottom: 19px; }
+    .platform-password-mark { flex-basis: 44px; width: 44px; height: 44px; border-radius: 12px; font-size: 1rem; }
+    .platform-password-intro h2 { font-size: 1.15rem; }
+    .platform-password-intro p:not(.platform-eyebrow) { font-size: .72rem; }
+    .platform-password-notice { margin: 18px 0; padding: 12px; }
+    .platform-password-actions { align-items: stretch; flex-direction: column; gap: 12px; }
+    .platform-password-actions > span { justify-content: center; order: 2; }
+    .platform-password-actions .btn { width: 100%; min-width: 0; order: 1; }
+}
+
+/* Treasury workspace: keep the financial controls readable beside the fixed sidebar. */
+.platform-treasury-page,
+.platform-treasury-page > *,
+.platform-treasury-page .row,
+.platform-treasury-page .row > [class*="col-"] {
+    min-width: 0;
+}
+.platform-treasury-page .row { width: 100%; }
+.platform-treasury-page .platform-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.platform-treasury-page .platform-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.platform-treasury-page .platform-filter-field.is-wide,
+.platform-treasury-page .platform-filter-submit { grid-column: 1 / -1; }
+.platform-treasury-page .platform-filter-card,
+.platform-treasury-page .platform-data-panel,
+.platform-treasury-page .platform-finance-panel { min-width: 0; }
+.platform-treasury-page .platform-data-panel .table-responsive { max-width: 100%; overflow-x: auto; }
+.platform-treasury-page .platform-data-panel table { min-width: 720px; }
+.platform-treasury-note { display: flex; align-items: flex-start; gap: 10px; }
+.platform-treasury-note > i { flex: 0 0 auto; margin-top: 2px; }
+.platform-treasury-note > div { display: grid; gap: 3px; min-width: 0; }
+.platform-treasury-note strong { color: var(--ds-text-primary); font-size: .74rem; }
+.platform-treasury-note span { color: var(--ds-text-secondary); font-size: .7rem; line-height: 1.5; }
+.platform-treasury-confirm-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 10px; margin-top: 16px; }
+.platform-treasury-confirm-form .form-control { min-width: 0; }
+.platform-treasury-confirm-form .btn { min-width: 155px; white-space: nowrap; }
+.platform-treasury-page .platform-filter-field.ds-password-field { min-width: 0; }
+.platform-treasury-page .platform-filter-field.ds-password-field > .form-control { box-sizing: border-box; width: 100%; max-width: 100%; }
+@media (max-width: 1100px) {
+    .platform-treasury-page .platform-finance-panel .platform-panel-head { flex-direction: column; }
+    .platform-treasury-page .platform-profit-chip { width: fit-content; }
+}
+@media (max-width: 575px) {
+    .platform-treasury-page .platform-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .platform-treasury-page .platform-data-panel table { min-width: 680px; }
+    .platform-treasury-confirm-form { grid-template-columns: 1fr; }
+    .platform-treasury-confirm-form .btn { width: 100%; }
+}
+@media (max-width: 420px) {
+    .platform-treasury-page .platform-summary-grid { grid-template-columns: 1fr; }
+}
+
+/* Trésorerie : parcours de retrait en deux étapes, lisible et rassurant. */
+.platform-treasury-section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 17px; }
+.platform-treasury-section-title { display: flex; align-items: flex-start; gap: 11px; min-width: 0; }
+.platform-treasury-section-title > div { min-width: 0; }
+.platform-treasury-section-title .platform-eyebrow { margin-bottom: 5px; }
+.platform-treasury-section-title h2 { margin: 0; color: var(--ds-text-primary); font-size: 1rem; font-weight: 820; letter-spacing: -.025em; line-height: 1.25; }
+.platform-treasury-section-title p:not(.platform-eyebrow) { max-width: 54ch; margin: 6px 0 0; color: var(--ds-text-secondary); font-size: .71rem; line-height: 1.5; }
+.platform-treasury-step { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; margin-top: 2px; color: var(--ds-accent); background: var(--ds-accent-soft); border: 1px solid rgba(var(--ds-accent-rgb), .3); border-radius: 10px; font-size: .65rem; font-weight: 850; letter-spacing: .04em; }
+.platform-treasury-section-head > .platform-status-chip { flex: 0 0 auto; margin-top: 2px; }
+.platform-treasury-account-card, .platform-treasury-request-card { padding: 20px; }
+.platform-treasury-account-form, .platform-treasury-request-form { gap: 14px; }
+.platform-treasury-account-form .form-text, .platform-treasury-request-form .platform-field-help { display: block; margin-top: 6px; color: var(--ds-text-muted); font-size: .63rem; line-height: 1.4; }
+.platform-treasury-account-form .platform-filter-submit, .platform-treasury-request-form .platform-filter-submit { min-height: 44px; margin-top: 2px; }
+.platform-treasury-security-note { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 15px; padding: 10px 12px; color: var(--ds-text-secondary); background: rgba(var(--ds-accent-rgb), .07); border: 1px solid rgba(var(--ds-accent-rgb), .18); border-radius: 11px; font-size: .68rem; line-height: 1.45; }
+.platform-treasury-security-note > i { flex: 0 0 auto; margin-top: 1px; color: var(--ds-accent); font-size: .9rem; }
+.platform-treasury-empty-note { gap: 10px !important; padding: 13px 14px; }
+.platform-treasury-empty-note > i { flex: 0 0 auto; margin-top: 2px; color: var(--ds-warning, #ffcf4a); }
+.platform-treasury-empty-note > div { display: grid; gap: 3px; min-width: 0; }
+.platform-treasury-empty-note strong { color: var(--ds-text-primary); font-size: .73rem; }
+.platform-treasury-empty-note span { color: var(--ds-text-secondary); font-size: .68rem; line-height: 1.45; }
+.platform-treasury-fee-summary { display: flex; align-items: flex-start; gap: 10px; padding: 12px 13px !important; }
+.platform-treasury-fee-summary > i { flex: 0 0 auto; margin-top: 2px; color: var(--ds-accent); font-size: .95rem; }
+.platform-treasury-fee-summary > div { display: grid; gap: 4px; min-width: 0; }
+.platform-treasury-fee-summary strong { color: var(--ds-text-primary); font-size: .7rem; font-weight: 750; line-height: 1.4; }
+.platform-treasury-fee-summary small { color: var(--ds-text-muted); font-size: .63rem; line-height: 1.4; }
+.platform-treasury-fee-summary.alert-danger > i, .platform-treasury-fee-summary.alert-danger strong { color: var(--ds-danger, #ff626e); }
+.platform-treasury-confirm-box { display: grid; gap: 12px; margin-top: 18px; padding: 14px; background: rgba(7, 11, 20, .2); border: 1px solid var(--ds-border-soft); border-radius: 13px; }
+.platform-treasury-confirm-intro { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.platform-treasury-confirm-icon { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; color: var(--ds-accent); background: var(--ds-accent-soft); border-radius: 9px; font-size: .85rem; }
+.platform-treasury-confirm-intro > div { display: grid; gap: 3px; min-width: 0; }
+.platform-treasury-confirm-intro strong { color: var(--ds-text-primary); font-size: .73rem; line-height: 1.35; }
+.platform-treasury-confirm-intro small { color: var(--ds-text-muted); font-size: .64rem; line-height: 1.4; }
+.platform-treasury-confirm-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; margin-top: 0; }
+.platform-treasury-confirm-form > .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+.platform-treasury-confirm-form .form-control { min-width: 0; min-height: 44px; letter-spacing: .12em; }
+.platform-treasury-confirm-form .btn { min-width: 174px; min-height: 44px; white-space: nowrap; }
+.platform-treasury-request-card .ds-password-field { min-width: 0; }
+.platform-treasury-request-card .ds-password-toggle { right: 5px; }
+.platform-treasury-account-list { display: grid; gap: 9px; margin-top: 20px; padding-top: 17px; border-top: 1px solid var(--ds-border-soft); }
+.platform-treasury-account-list-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.platform-treasury-account-list-head > div { display: grid; gap: 3px; min-width: 0; }
+.platform-treasury-account-list-head strong { color: var(--ds-text-primary); font-size: .75rem; }
+.platform-treasury-account-list-head small { color: var(--ds-text-muted); font-size: .62rem; line-height: 1.35; }
+.platform-treasury-count { display: grid; place-items: center; min-width: 27px; height: 27px; padding: 0 7px; color: var(--ds-accent); background: var(--ds-accent-soft); border: 1px solid rgba(var(--ds-accent-rgb), .22); border-radius: 8px; font-size: .68rem; font-weight: 850; }
+.platform-treasury-account-item { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px; background: rgba(7, 11, 20, .18); border: 1px solid var(--ds-border-soft); border-radius: 11px; }
+.platform-treasury-account-icon { display: grid; place-items: center; flex: 0 0 31px; width: 31px; height: 31px; color: var(--ds-accent); background: var(--ds-accent-soft); border-radius: 9px; font-size: .8rem; }
+.platform-treasury-account-copy { display: grid; gap: 3px; min-width: 0; flex: 1 1 auto; }
+.platform-treasury-account-copy strong { overflow: hidden; color: var(--ds-text-primary); font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }
+.platform-treasury-account-copy small { overflow: hidden; color: var(--ds-text-muted); font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
+.platform-treasury-account-meta { display: grid; justify-items: end; gap: 3px; flex: 0 0 auto; }
+.platform-treasury-account-meta .platform-status-chip { padding: 3px 7px; font-size: .6rem; }
+.platform-treasury-account-meta > small { color: var(--ds-text-muted); font-size: .58rem; }
+.platform-treasury-account-empty { display: flex; align-items: center; gap: 8px; padding: 11px; color: var(--ds-text-muted); background: rgba(7, 11, 20, .15); border: 1px dashed var(--ds-border-soft); border-radius: 10px; font-size: .66rem; }
+.platform-treasury-account-empty i { color: var(--ds-accent); }
+.platform-treasury-page > .row { display: grid; grid-template-columns: 1fr; gap: 18px; margin-right: 0; margin-left: 0; }
+.platform-treasury-page > .row > [class*="col-"] { width: auto; max-width: none; padding-right: 0; padding-left: 0; }
+@media (min-width: 1200px) {
+    .platform-treasury-page > .row { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+}
+@media (max-width: 1100px) {
+    .platform-treasury-section-head { flex-direction: column; }
+    .platform-treasury-section-head > .platform-status-chip { margin-top: 0; }
+}
+@media (max-width: 575px) {
+    .platform-treasury-account-card, .platform-treasury-request-card { padding: 16px; }
+    .platform-treasury-section-title { gap: 9px; }
+    .platform-treasury-section-title h2 { font-size: .94rem; }
+    .platform-treasury-section-title p:not(.platform-eyebrow) { font-size: .68rem; }
+    .platform-treasury-step { flex-basis: 30px; width: 30px; height: 30px; border-radius: 9px; font-size: .6rem; }
+    .platform-treasury-section-head > .platform-status-chip { width: fit-content; }
+    .platform-treasury-confirm-box { padding: 12px; }
+    .platform-treasury-confirm-form { grid-template-columns: 1fr; }
+    .platform-treasury-confirm-form .btn { width: 100%; }
+    .platform-treasury-account-item { align-items: flex-start; }
+    .platform-treasury-account-meta { align-items: end; }
 }

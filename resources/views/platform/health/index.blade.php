@@ -15,7 +15,7 @@
         <span class="platform-system-chip is-{{ $schedulerLabels[$schedulerStatus][1] }}"><i class="bi bi-circle-fill" aria-hidden="true"></i>{{ $schedulerLabels[$schedulerStatus][0] }}</span>
     </section>
 
-    <section class="platform-summary-grid platform-summary-grid-four" aria-label="Indicateurs système">
+    <section class="platform-summary-grid" aria-label="Indicateurs système">
         <article class="platform-summary-metric is-{{ $schedulerLabels[$schedulerStatus][1] }}">
             <span class="platform-summary-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
             <span>Cron Laravel</span>
@@ -35,6 +35,13 @@
             <span class="platform-summary-icon"><i class="bi bi-credit-card" aria-hidden="true"></i></span>
             <span>Paiements en attente depuis plus de 2 h</span>
             <div class="metric-value">{{ number_format($blockedPayments) }}</div>
+        </article>
+        @php($withdrawalsToReconcile = $withdrawalHealth['partner_processing'] + $withdrawalHealth['partner_unknown'] + $withdrawalHealth['platform_processing'] + $withdrawalHealth['platform_unknown'])
+        <article class="platform-summary-metric is-{{ $withdrawalsToReconcile>0?'warning':'success' }}">
+            <span class="platform-summary-icon"><i class="bi bi-arrow-left-right" aria-hidden="true"></i></span>
+            <span>Retraits à réconcilier</span>
+            <strong>{{ number_format($withdrawalsToReconcile) }}</strong>
+            <small class="text-secondary">{{ $withdrawalHealth['partner_unknown'] + $withdrawalHealth['platform_unknown'] }} inconnus</small>
         </article>
     </section>
 

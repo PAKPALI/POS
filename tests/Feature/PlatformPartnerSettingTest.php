@@ -64,6 +64,20 @@ class PlatformPartnerSettingTest extends TestCase
         ])->assertSessionHasErrors('registration_enabled');
     }
 
+    public function test_partner_settings_expose_the_payout_toggle_and_operational_state(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin, 'platform')
+            ->get(route('platform.settings.partners.edit'))
+            ->assertOk()
+            ->assertSee('Activer les retraits partenaires')
+            ->assertSee('État opérationnel')
+            ->assertSee('Désactivé')
+            ->assertSee('Plafond d’envoi automatique')
+            ->assertDontSee('Revue de risque obligatoire');
+    }
+
     public function test_super_admin_can_enable_mixx_for_partner_withdrawals_without_opening_payouts(): void
     {
         $admin = $this->admin();
@@ -78,5 +92,24 @@ class PlatformPartnerSettingTest extends TestCase
         $this->assertDatabaseHas('platform_settings', ['key' => 'partners.payout_gateways', 'value' => '{"TG":["MOOV-MONEY-TG","MIXX-YAS-TG"]}']);
         $this->assertDatabaseHas('platform_audit_logs', ['action' => 'platform.partner_setting.updated', 'target_id' => 'partners.payout_gateways']);
         $this->assertDatabaseHas('platform_settings', ['key' => 'partners.payouts_enabled', 'value' => 'false']);
+    }
+
+    public function test_super_admin_can_enable_partner_withdrawals_with_audited_guardrails(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin, 'platform')->put(route('platform.settings.partners.update'), [
+            'partners_enabled' => '1',
+            'countries' => ['TG'],
+            'payouts_enabled' => '1',
+            'payout_min_xof' => 5000,
+            'payout_min_qualified_clients' => 3,
+            'payout_fee_percent' => '1.25',
+            'reason' => 'Ouverture contrôlée des retraits partenaires',
+            'current_password' => 'SecurePassword!123',
+        ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('platform_settings', ['key' => 'partners.payouts_enabled', 'value' => 'true']);
+        $this->assertDatabaseHas('platform_settings', ['key' => 'partners.payout_fee_bps', 'value' => '125']);
+        $this->assertDatabaseHas('platform_audit_logs', ['action' => 'platform.partner_setting.updated', 'target_id' => 'partners.payouts_enabled']);
     }
 }

@@ -30,6 +30,7 @@ class InvitationAcceptanceController extends Controller
         $invitation = $service->findByToken($token);
         abort_unless($invitation->isPending(), 410, 'Cette invitation n’est plus valide.');
         $existingUser = User::whereRaw('LOWER(email) = ?', [mb_strtolower($invitation->email)])->first();
+        $createdNewUser = false;
 
         if ($existingUser) {
             abort_unless((int) $existingUser->status === 1, 403, 'Le compte associé à cette invitation est désactivé.');
@@ -45,9 +46,18 @@ class InvitationAcceptanceController extends Controller
                 'phone' => $validated['phone'] ?? null, 'password' => $validated['password'],
                 'status' => 1,
             ]));
+            $createdNewUser = true;
         }
 
-        $service->accept($invitation, $user);
+        $membership = $service->accept($invitation, $user);
+
+        if ($createdNewUser) {
+            app(\App\Services\PlatformAdminNotificationService::class)->newUserRegistered(
+                $user,
+                $invitation->company,
+                $invitation->role?->name ?? 'Utilisateur',
+            );
+        }
 
         // The invitation token authorizes the onboarding flow. Do not require
         // a prior browser session: links are commonly opened from another

@@ -205,6 +205,11 @@ class UserController extends Controller
             );
             if ($user->wasRecentlyCreated) {
                 $this->sendEmail($email,$name,$code);
+                app(\App\Services\PlatformAdminNotificationService::class)->newUserRegistered(
+                    $user,
+                    app(CompanyContext::class)->getCompany(),
+                    $role->name,
+                );
             }
             return response()->json([
                 "status" => true,
@@ -489,6 +494,75 @@ class UserController extends Controller
             'redirect_to' => '0',
             'title' => 'ADRESSE E-MAIL MODIFIÉE',
             'msg' => 'Votre adresse e-mail a été mise à jour.',
+        ]);
+    }
+
+    /**
+     * Add or update the authenticated user's phone number used by SMS/WhatsApp.
+     */
+    public function updatePhone(Request $request)
+    {
+        $request->merge([
+            'phone' => ($value = preg_replace('/[^0-9]/', '', (string) $request->input('phone', ''))) !== '' ? $value : null,
+            'country_code' => strtoupper((string) $request->input('country_code', 'TG')),
+        ]);
+
+        $validator = Validator::make($request->all(), [
+            'phone' => ['nullable', 'digits_between:6,15'],
+            'country_code' => ['required', Rule::in(array_keys(config('african_countries', [])))],
+        ], [
+            'phone.digits_between' => 'Le numéro doit comporter entre 6 et 15 chiffres.',
+            'country_code.required' => 'Sélectionnez le pays du numéro.',
+            'country_code.in' => 'Le pays sélectionné est invalide.',
+        ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $phone = (string) $request->input('phone', '');
+            if ($phone === '' || $validator->errors()->has('country_code')) {
+                return;
+            }
+
+            $countryCode = $request->string('country_code')->upper()->toString();
+            $rule = config("african_phone_rules.$countryCode");
+            if (!$rule) {
+                $validator->errors()->add('phone', 'La règle de numéro de ce pays n’est pas disponible.');
+                return;
+            }
+
+            $length = strlen($phone);
+            if ($length < $rule['min_length'] || $length > $rule['max_length']) {
+                $countryName = config("african_countries.$countryCode", $countryCode);
+                $expected = $rule['min_length'] === $rule['max_length']
+                    ? $rule['min_length'].' chiffres'
+                    : 'entre '.$rule['min_length'].' et '.$rule['max_length'].' chiffres';
+                $prefixMessage = str_starts_with($phone, $rule['dial_code'])
+                    ? ' Ne saisissez pas l’indicatif +'.$rule['dial_code'].'.'
+                    : '';
+                $validator->errors()->add('phone', "Le numéro local pour $countryName doit contenir $expected.$prefixMessage");
+            }
+        });
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'reload' => false,
+                'title' => 'NUMÉRO NON ENREGISTRÉ',
+                'msg' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $request->user()->update([
+            'phone' => $validator->validated()['phone'],
+            'country_code' => $validator->validated()['country_code'],
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'reload' => false,
+            'title' => 'NUMÉRO ENREGISTRÉ',
+            'msg' => $validator->validated()['phone']
+                ? 'Votre numéro peut maintenant recevoir les notifications SMS et WhatsApp autorisées.'
+                : 'Votre numéro a été retiré de votre profil.',
         ]);
     }
 

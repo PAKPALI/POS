@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\NotificationDelivery;
 use App\Models\PlatformAuditLog;
 use App\Models\PlatformSystemHeartbeat;
+use App\Models\PlatformWithdrawal;
+use App\Models\PartnerWithdrawal;
 use App\Models\QuotaPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -37,7 +39,21 @@ class HealthController extends Controller
         $webhookPayments = QuotaPayment::withoutCompanyScope()->whereNotNull('event_id')->where('updated_at', '>=', now()->subDays(7))->count();
         $failedJobs = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->latest('failed_at')->limit(15)->get() : collect();
 
-        return view('platform.health.index', compact('heartbeat', 'heartbeatAge', 'schedulerStatus', 'queue', 'deliveryStats', 'blockedPayments', 'webhookPayments', 'failedJobs'));
+        // Les retraits en traitement ou inconnus nécessitent une visibilité
+        // opérationnelle, sans jamais appeler KPrimePay depuis cette page.
+        $withdrawalHealth = ['partner_processing' => 0, 'partner_unknown' => 0, 'platform_processing' => 0, 'platform_unknown' => 0];
+        if (Schema::hasTable('partner_withdrawals')) {
+            $counts = PartnerWithdrawal::query()->whereIn('status', ['processing', 'unknown'])->select('status', DB::raw('COUNT(*) AS total'))->groupBy('status')->pluck('total', 'status');
+            $withdrawalHealth['partner_processing'] = (int) ($counts['processing'] ?? 0);
+            $withdrawalHealth['partner_unknown'] = (int) ($counts['unknown'] ?? 0);
+        }
+        if (Schema::hasTable('platform_withdrawals')) {
+            $counts = PlatformWithdrawal::query()->whereIn('status', ['processing', 'unknown'])->select('status', DB::raw('COUNT(*) AS total'))->groupBy('status')->pluck('total', 'status');
+            $withdrawalHealth['platform_processing'] = (int) ($counts['processing'] ?? 0);
+            $withdrawalHealth['platform_unknown'] = (int) ($counts['unknown'] ?? 0);
+        }
+
+        return view('platform.health.index', compact('heartbeat', 'heartbeatAge', 'schedulerStatus', 'queue', 'deliveryStats', 'blockedPayments', 'webhookPayments', 'failedJobs', 'withdrawalHealth'));
     }
 
     public function retryJob(Request $request, string $uuid)

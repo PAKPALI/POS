@@ -57,7 +57,8 @@ class PlatformPaymentPricingTest extends TestCase
             'sms_unit_cost' => 15, 'whatsapp_unit_cost' => 15,
             'reason' => 'Changement non autorisé', 'current_password' => 'WrongPassword!123',
         ])->assertSessionHasErrors(['current_password' => 'Le mot de passe plateforme est incorrect.']);
-        $this->assertDatabaseCount('platform_settings', 0);
+        $this->assertDatabaseMissing('platform_settings', ['key' => PlatformPricingService::SMS_KEY]);
+        $this->assertDatabaseMissing('platform_settings', ['key' => PlatformPricingService::WHATSAPP_KEY]);
 
         $support = $this->admin('support');
         $this->actingAs($support, 'platform')->get(route('platform.settings.edit'))->assertForbidden();

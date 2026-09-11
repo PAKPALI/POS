@@ -83,21 +83,28 @@
                     </div>
                 </section>
 
-                <section class="platform-settings-section">
+                <section class="platform-settings-section platform-settings-payout-section">
                     <header class="platform-settings-section-head">
                         <p class="platform-eyebrow"><i class="bi bi-shield-lock" aria-hidden="true"></i> Garde-fou</p>
                         <h2>Retraits partenaires</h2>
-                        <p>Les transferts restent désactivés pendant la préparation KPrimePay, mais leurs garde-fous sont configurables et journalisés ici.</p>
+                        <p>Activez les retraits uniquement lorsque le compte KPrimePay Payout et les contrôles de recette sont prêts. Chaque changement est journalisé.</p>
                     </header>
-                    <div class="platform-settings-preview">
-                        <div class="platform-settings-preview-head"><span><i class="bi bi-lock-fill" aria-hidden="true"></i> Payouts</span><small>Hors périmètre</small></div>
-                        <p class="mb-0">État opérationnel : <strong>{{ $payoutsEnabled ? 'activé' : 'désactivé' }}</strong>. Aucun appel KPrimePay n’est effectué par cet écran.</p>
+                    <label class="platform-settings-toggle-card platform-settings-payout-toggle">
+                        <span class="saas-switch-line">
+                            <input type="checkbox" name="payouts_enabled" value="1" class="saas-switch-input" @checked($payoutsEnabled)>
+                            <span class="saas-switch-control"></span>
+                        </span>
+                        <span><strong>Activer les retraits partenaires</strong><small>Autorise les partenaires éligibles à préparer une demande de retrait. Les contrôles de solde, de seuil, de compte vérifié et de 2FA restent obligatoires.</small></span>
+                    </label>
+                    <div class="platform-settings-payout-state {{ $payoutsEnabled ? 'is-enabled' : 'is-disabled' }}">
+                        <div class="platform-settings-payout-state-head"><span><i class="bi {{ $payoutsEnabled ? 'bi-unlock-fill' : 'bi-lock-fill' }}" aria-hidden="true"></i> État opérationnel</span><strong>{{ $payoutsEnabled ? 'Activé' : 'Désactivé' }}</strong></div>
+                        <p class="mb-0">{{ $payoutsEnabled ? 'Les demandes peuvent être préparées selon les garde-fous configurés ci-dessous.' : 'Les demandes restent bloquées pour tous les partenaires tant que ce réglage est désactivé.' }}</p>
                     </div>
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-6 platform-settings-field"><label class="form-label" for="payout-min-xof">Montant minimum (XOF)</label><input id="payout-min-xof" class="form-control" type="number" name="payout_min_xof" min="1" value="{{ old('payout_min_xof', $payoutMinXof) }}"><small class="form-text">Seuil de demande, sans frais KPrimePay.</small></div>
-                        <div class="col-md-6 platform-settings-field"><label class="form-label" for="payout-min-clients">Clients qualifiés minimum</label><input id="payout-min-clients" class="form-control" type="number" name="payout_min_qualified_clients" min="0" value="{{ old('payout_min_qualified_clients', $payoutMinQualifiedClients) }}"></div>
-                        <div class="col-md-6 platform-settings-field"><label class="form-label" for="auto-approval-max">Approbation automatique max. (XOF)</label><input id="auto-approval-max" class="form-control" type="number" name="auto_approval_max_xof" min="0" value="{{ old('auto_approval_max_xof', $autoApprovalMaxXof) }}"><small class="form-text">0 = revue manuelle systématique.</small></div>
-                        <div class="col-md-6 platform-settings-field"><label class="platform-settings-toggle-card h-100"><span class="saas-switch-line"><input type="checkbox" name="risk_review_enabled" value="1" class="saas-switch-input" @checked($riskReviewEnabled)><span class="saas-switch-control"></span></span><span><strong>Revue de risque obligatoire</strong><small>Conserve les demandes en attente d’un contrôle.</small></span></label></div>
+                    <div class="platform-settings-payout-grid">
+                        <div class="platform-settings-field"><label class="form-label" for="payout-min-xof">Montant minimum (XOF)</label><input id="payout-min-xof" class="form-control" type="number" name="payout_min_xof" min="1" value="{{ old('payout_min_xof', $payoutMinXof) }}"><small class="form-text">Seuil de demande, sans frais KPrimePay.</small></div>
+                        <div class="platform-settings-field"><label class="form-label" for="payout-min-clients">Clients qualifiés minimum</label><input id="payout-min-clients" class="form-control" type="number" name="payout_min_qualified_clients" min="0" value="{{ old('payout_min_qualified_clients', $payoutMinQualifiedClients) }}"></div>
+                        <div class="platform-settings-field"><label class="form-label" for="payout-fee-percent">Plafond des frais KPrimePay (%)</label><input id="payout-fee-percent" class="form-control" type="number" name="payout_fee_percent" min="0" max="50" step="0.01" value="{{ old('payout_fee_percent', number_format($payoutFeeBps / 100, 2, '.', '')) }}"><small class="form-text">Réglez-le au moins au tarif KPrimePay actif. Il détermine la réserve maximale : le partenaire reçoit le montant demandé et seul le coût réel lui est facturé ; l’excédent est restitué.</small></div>
+                        <div class="platform-settings-field"><label class="form-label" for="auto-approval-max">Plafond d’envoi automatique (XOF)</label><input id="auto-approval-max" class="form-control" type="number" name="auto_approval_max_xof" min="1" value="{{ old('auto_approval_max_xof', max(1, $autoApprovalMaxXof)) }}"><small class="form-text">Toute demande éligible jusqu’à ce plafond est envoyée automatiquement après confirmation e-mail.</small></div>
                     </div>
                     <div class="platform-settings-field mt-4">
                         <label class="form-label">Opérateurs de retrait disponibles</label>

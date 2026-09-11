@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Component;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendInventoryWhatsappJob;
+use App\Jobs\SendInventoryEmailJob;
 use App\Models\Action;
 use App\Models\Inventory;
 use App\Models\Product;
@@ -240,6 +241,7 @@ class InventoryController extends Controller
 
             // dispatch notification WhatsApp
             SendInventoryWhatsappJob::dispatch($inventory->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
+            SendInventoryEmailJob::dispatch($inventory->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
 
             DB::commit();
 
@@ -331,6 +333,7 @@ class InventoryController extends Controller
 
             // dispatch notification WhatsApp
             SendInventoryWhatsappJob::dispatch($inventory->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
+            SendInventoryEmailJob::dispatch($inventory->id, app(CompanyContext::class)->getCompanyId())->afterCommit();
 
             DB::commit();
 

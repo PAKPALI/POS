@@ -12,6 +12,8 @@
     .notification-user-row td { vertical-align: middle; }
     .notification-user-name { font-weight: 650; color: var(--ds-text-primary); display: block; }
     .notification-user-email { font-size: .76rem; color: var(--ds-text-muted); display: block; }
+    .recipient-toggle.is-phone-required { opacity: .62; }
+    .recipient-toggle.is-phone-required:hover { opacity: .9; }
 </style>
 @endpush
 
@@ -22,6 +24,7 @@
 </div>
 
 @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+@if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
 <form method="POST" action="{{ route('notifications.update') }}">
     @csrf
@@ -92,10 +95,13 @@
                         </td>
                         <td data-label="Rôle"><span class="saas-status-badge {{ $isPrivileged ? 'is-info' : 'is-neutral' }}">{{ $user->memberships->first()?->role?->name ?: 'Sans rôle' }}</span></td>
                         @foreach(['email', 'whatsapp', 'sms'] as $channel)
-                            @php $isEnabled = $preference ? $preference->{$channel.'_enabled'} : ($isPrivileged && in_array($channel, ['email', 'whatsapp'], true)); @endphp
+                            @php
+                                $isEnabled = $preference ? $preference->{$channel.'_enabled'} : ($isPrivileged && in_array($channel, ['email', 'whatsapp'], true));
+                                if ($channel !== 'email' && !$user->phone) $isEnabled = false;
+                            @endphp
                             <td class="recipient-switch-cell" data-label="{{ ucfirst($channel) }}">
-                                <label class="recipient-toggle">
-                                    <input class="saas-switch-input" type="checkbox" role="switch" name="recipients[{{ $category }}][{{ $user->id }}][{{ $channel }}]" value="1" {{ $isEnabled ? 'checked' : '' }} {{ $channel !== 'email' && !$user->phone ? 'disabled' : '' }}>
+                                <label class="recipient-toggle {{ $channel !== 'email' && !$user->phone ? 'is-phone-required' : '' }}" @if($channel !== 'email' && !$user->phone) data-phone-required="true" @endif>
+                                    <input class="saas-switch-input" type="checkbox" role="switch" name="recipients[{{ $category }}][{{ $user->id }}][{{ $channel }}]" value="1" {{ $isEnabled ? 'checked' : '' }} @if($channel !== 'email' && !$user->phone) data-phone-required="true" aria-disabled="true" title="Veuillez renseigner un numéro de téléphone" @endif>
                                     <span class="saas-switch-control" aria-hidden="true"></span>
                                 </label>
                             </td>
@@ -115,3 +121,25 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('click', function (event) {
+        const toggle = event.target.closest('.recipient-toggle[data-phone-required]');
+        if (!toggle) return;
+        const input = toggle.querySelector('input');
+        event.preventDefault();
+        input.checked = false;
+        Swal.fire({
+            icon: 'info',
+            title: 'Numéro requis',
+            text: 'Veuillez renseigner un numéro de téléphone avant d’activer WhatsApp ou SMS.',
+            confirmButtonText: 'OK',
+            buttonsStyling: false,
+            customClass: { popup: 'saas-swal', confirmButton: 'saas-btn saas-btn-primary' }
+        });
+    });
+});
+</script>
+@endpush

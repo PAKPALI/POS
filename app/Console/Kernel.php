@@ -4,6 +4,10 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Jobs\ReconcilePartnerWithdrawal;
+use App\Jobs\ReconcilePlatformWithdrawal;
+use App\Models\PartnerWithdrawal;
+use App\Models\PlatformWithdrawal;
 
 class Kernel extends ConsoleKernel
 {
@@ -21,6 +25,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\CheckPlatformAlerts::class,
         \App\Console\Commands\ExpireSubscriptions::class,
         \App\Console\Commands\MaturePartnerCommissions::class,
+        \App\Console\Commands\ReconcilePartnerPayouts::class,
+        \App\Console\Commands\SeedPartnerWithdrawalPreview::class,
     ];
     protected function schedule(Schedule $schedule): void
     {
@@ -32,6 +38,40 @@ class Kernel extends ConsoleKernel
         $schedule->command('platform:check-alerts')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('subscriptions:expire')->dailyAt('00:05')->withoutOverlapping();
         $schedule->command('partners:mature-commissions --limit=200')->hourly()->withoutOverlapping();
+        // Le scheduler ne contacte jamais KPrimePay : il ne fait que mettre les retraits
+        // en attente dans la queue. Le worker `queue:work --queue=withdrawals` les traite.
+        $schedule->call(function (): void {
+            PartnerWithdrawal::query()
+                ->whereIn('status', ['processing', 'unknown'])
+                ->where(function ($query): void {
+                    $query->where(function ($processing): void {
+                            $processing->where('status', 'processing')
+                                ->whereNotNull('processing_at')
+                                ->where('processing_at', '<=', now()->subMinute());
+                        })
+                        ->orWhere(function ($unknown): void {
+                            $unknown->where('status', 'unknown')
+                                ->whereNotNull('unknown_at')
+                                ->where('unknown_at', '<=', now()->subMinute());
+                        });
+                })
+                ->oldest('id')
+                ->limit(100)
+                ->pluck('id')
+                ->each(fn ($id) => ReconcilePartnerWithdrawal::dispatch((int) $id)->onQueue('withdrawals'));
+        })->name('partners.dispatch-reconciliations')->everyMinute()->withoutOverlapping(1);
+        $schedule->call(function (): void {
+            PlatformWithdrawal::query()
+                ->whereIn('status', ['processing', 'unknown'])
+                ->where(function ($query): void {
+                    $query->where(function ($processing): void {
+                        $processing->where('status', 'processing')->whereNotNull('processing_at')->where('processing_at', '<=', now()->subMinute());
+                    })->orWhere(function ($unknown): void {
+                        $unknown->where('status', 'unknown')->whereNotNull('unknown_at')->where('unknown_at', '<=', now()->subMinute());
+                    });
+                })->oldest('id')->limit(50)->pluck('id')
+                ->each(fn ($id) => ReconcilePlatformWithdrawal::dispatch((int) $id)->onQueue('withdrawals'));
+        })->name('platform.dispatch-treasury-reconciliations')->everyMinute()->withoutOverlapping(1);
         // $schedule->command('actions:clean')->everyMinute();
     }
 

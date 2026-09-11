@@ -66,7 +66,13 @@ class KprimePayService
             throw new RuntimeException('La clé KPrimePay n’est pas configurée.');
         }
 
-        return Http::acceptJson()->asJson()->withToken($token)->connectTimeout(5)->timeout(20);
+        $client = Http::acceptJson()->asJson()->withToken($token)->connectTimeout(5)->timeout(20);
+        $caBundle = config('services.kprimepay.ca_bundle');
+        if (is_string($caBundle) && $caBundle !== '' && is_file($caBundle)) {
+            $client = $client->withOptions(['verify' => $caBundle]);
+        }
+
+        return $client;
     }
 
     private function url(string $path): string

@@ -15,6 +15,54 @@
         menuToggle?.setAttribute('aria-expanded', 'false');
     }));
 
+    const header = document.querySelector('[data-marketing-header]');
+    const syncHeaderDepth = () => header?.classList.toggle('is-scrolled', window.scrollY > 12);
+    syncHeaderDepth();
+    window.addEventListener('scroll', syncHeaderDepth, { passive: true });
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reducedMotion && 'IntersectionObserver' in window) {
+        const revealSelector = [
+            '.marketing-hero-copy > *',
+            '.marketing-hero-visual',
+            '.marketing-page-hero .marketing-container > *',
+            '.marketing-section-heading',
+            '.marketing-detail-card',
+            '.marketing-metric-card',
+            '.marketing-feature-card',
+            '.marketing-sector-card',
+            '.pricing-card',
+            '.marketing-ecommerce-panel',
+            '.marketing-page-band-inner',
+            '.marketing-final-cta-inner',
+            '.security-proof-list > div',
+            '.marketing-faq-item',
+            '.partner-rule-grid > article',
+            '.partner-value-flow > div'
+        ].join(',');
+        const revealItems = [...document.querySelectorAll(revealSelector)];
+        revealItems.forEach(item => {
+            const siblings = [...item.parentElement.children].filter(sibling => sibling.matches?.(revealSelector));
+            const siblingIndex = Math.max(0, siblings.indexOf(item));
+            item.classList.add('marketing-reveal');
+            item.style.setProperty('--marketing-reveal-delay', `${Math.min(siblingIndex, 4) * 55}ms`);
+        });
+        document.body.classList.add('marketing-motion');
+
+        const revealObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+                revealObserver.unobserve(entry.target);
+                window.setTimeout(() => {
+                    entry.target.classList.remove('marketing-reveal', 'is-visible');
+                    entry.target.style.removeProperty('--marketing-reveal-delay');
+                }, 760);
+            });
+        }, { threshold: .12, rootMargin: '0px 0px -7% 0px' });
+        revealItems.forEach(item => revealObserver.observe(item));
+    }
+
     const appearance = document.querySelector('[data-marketing-appearance]');
     if (appearance) {
         const root = document.documentElement;

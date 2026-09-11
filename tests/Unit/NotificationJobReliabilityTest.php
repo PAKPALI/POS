@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Jobs\SendEcommerceOrderEmailJob;
 use App\Jobs\SendInventoryWhatsappJob;
+use App\Jobs\SendInventoryEmailJob;
 use App\Jobs\SendMarginEmailJob;
 use App\Jobs\SendSaleEmailJob;
 use App\Jobs\SendSaleWhatsappJob;
@@ -18,6 +19,7 @@ class NotificationJobReliabilityTest extends TestCase
             [new SendSaleEmailJob(1, 1)],
             [new SendSaleWhatsappJob(1, 1)],
             [new SendInventoryWhatsappJob(1, 1)],
+            [new SendInventoryEmailJob(1, 1)],
             [new SendMarginEmailJob('Produit', 5, 4, 1)],
             [new SendEcommerceOrderEmailJob(1, 1)],
         ];

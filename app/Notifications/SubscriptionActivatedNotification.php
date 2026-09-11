@@ -25,33 +25,56 @@ class SubscriptionActivatedNotification extends Notification
     {
         $payment = $this->payment;
         $account = $payment->subscriptionAccount;
-        $company = $account?->billingCompany?->name ?? 'Entreprise non renseignée';
+        $company = $account?->billingCompany;
+        $companyName = $company?->name ?? 'Entreprise non renseignée';
         $plan = $payment->snapshot['name'] ?? $payment->plan?->name ?? 'Plan non renseigné';
         $months = (int) ($payment->duration_months ?: ($payment->billing_period === 'annual' ? 12 : 1));
         $subscription = $payment->subscription;
         $startsAt = $subscription?->starts_at?->format('d/m/Y H:i') ?? '—';
         $endsAt = $subscription?->ends_at?->format('d/m/Y H:i') ?? '—';
-        $amount = number_format((float) $payment->amount, 0, ',', ' ').' '.($payment->currency ?: 'XOF');
+        $currency = $payment->currency ?: 'XOF';
+        $grossAmount = (int) ($payment->gross_amount ?? data_get($payment->snapshot, 'gross_amount', $payment->amount));
+        $discountAmount = (int) ($payment->discount_amount ?? data_get($payment->snapshot, 'discount_amount', 0));
+        $netAmount = (int) $payment->amount;
         $operation = match ($payment->operation) {
             'upgrade' => 'Montée de plan',
             'renewal' => 'Renouvellement',
             default => ucfirst((string) $payment->operation),
         };
 
-        $mail = (new MailMessage)
-            ->subject(config('app.name').' — nouvel abonnement confirmé')
-            ->greeting('Bonjour '.$notifiable->name.',')
-            ->line('Un abonnement vient d’être confirmé pour l’entreprise '.$company.'.')
-            ->line('Plan : '.$plan.' — '.$months.' mois ('.$operation.')')
-            ->line('Montant confirmé : '.$amount)
-            ->line('Période : du '.$startsAt.' au '.$endsAt)
-            ->line('Transaction : '.$payment->transaction_id)
-            ->line('Référence de paiement : '.($payment->kpp_reference ?: '—'))
-            ->salutation('L’équipe '.config('app.name'));
+        $attribution = $account?->partnerAttribution;
+        $commission = $payment->partnerCommission;
+        $isFirstSubscription = $attribution
+            && (int) $attribution->first_subscription_payment_id === (int) $payment->id;
+        $actionUrl = null;
+        $actionLabel = null;
 
         if ($notifiable instanceof PlatformAdmin && $notifiable->hasPlatformPermission('platform.admins.manage')) {
-            $mail->action('Ouvrir le pré-contrôle', route('platform.subscriptions.preflight'));
+            $actionUrl = route('platform.subscriptions.preflight');
+            $actionLabel = 'Ouvrir le pré-contrôle';
         }
+
+        $mail = (new MailMessage)
+            ->subject(config('app.name').' — nouvel abonnement confirmé')
+            ->view('emails.platform.subscriptionActivated', [
+                'payment' => $payment,
+                'company' => $company,
+                'companyName' => $companyName,
+                'plan' => $plan,
+                'months' => $months,
+                'operation' => $operation,
+                'currency' => $currency,
+                'grossAmount' => $grossAmount,
+                'discountAmount' => $discountAmount,
+                'netAmount' => $netAmount,
+                'startsAt' => $startsAt,
+                'endsAt' => $endsAt,
+                'attribution' => $attribution,
+                'commission' => $commission,
+                'isFirstSubscription' => (bool) $isFirstSubscription,
+                'actionUrl' => $actionUrl,
+                'actionLabel' => $actionLabel,
+            ]);
 
         return $mail;
     }

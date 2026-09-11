@@ -14,7 +14,7 @@ class CompanyOnboardingService
     /** @return array{user: User, company: Company} */
     public function registerOwner(array $data): array
     {
-        return DB::transaction(function () use ($data) {
+        $result = DB::transaction(function () use ($data) {
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
@@ -42,5 +42,13 @@ class CompanyOnboardingService
 
             return compact('user', 'company');
         });
+
+        app(PlatformAdminNotificationService::class)->newUserRegistered(
+            $result['user'],
+            $result['company'],
+            'Propriétaire',
+        );
+
+        return $result;
     }
 }

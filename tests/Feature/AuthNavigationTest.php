@@ -50,10 +50,10 @@ class AuthNavigationTest extends TestCase
         $this->get(route('password.request'))->assertOk()
             ->assertSee(route('password.email'))
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
-            ->assertSeeText('MOT DE PASSE OUBLIÉ');
+            ->assertSeeText('Mot de passe oublié');
         $this->get(route('password.reset', ['token' => 'test-token']))->assertOk()
             ->assertSee(asset('hub/assets/css/public-auth.css'))
-            ->assertSeeText('NOUVEAU MOT DE PASSE');
+            ->assertSeeText('Nouveau mot de passe');
         $this->get(route('user_login'))->assertSee(route('password.request'));
 
         $this->get(route('login'))
@@ -80,7 +80,7 @@ class AuthNavigationTest extends TestCase
         $manifest = json_decode(file_get_contents(public_path('manifest.json')), true, flags: JSON_THROW_ON_ERROR);
 
         $this->assertSame('/user_login', $manifest['start_url']);
-        $this->assertStringContainsString('pro-seller-pwa-v7', file_get_contents(public_path('sw.js')));
+        $this->assertStringContainsString('maxanou-pwa-v8', file_get_contents(public_path('sw.js')));
         $this->assertStringContainsString('beforeinstallprompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('android-pwa-install-prompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('mobile-pwa-install-fallback', file_get_contents(public_path('pwa-register.js')));

@@ -18,10 +18,10 @@ class PartnerWithdrawalConfirmationNotification extends Notification
     {
         return (new MailMessage)
             ->subject(config('app.name').' — confirmation de retrait')
-            ->greeting('Bonjour '.$notifiable->name.',')
-            ->line('Votre code de confirmation de retrait est :')
-            ->line($this->code)
-            ->line('Il expire dans 10 minutes. Ne le communiquez à personne.')
-            ->salutation('L’équipe '.config('app.name'));
+            ->view('emails.partner.withdrawalConfirmation', [
+                'name' => $notifiable->name,
+                'code' => $this->code,
+                'expiry' => '10 minutes',
+            ]);
     }
 }

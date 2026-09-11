@@ -8,6 +8,7 @@ use App\Models\PartnerTwoFactorChallenge;
 use App\Notifications\PartnerEmailVerificationNotification;
 use App\Notifications\PartnerTwoFactorNotification;
 use App\Notifications\PartnerWithdrawalConfirmationNotification;
+use App\Notifications\PartnerWithdrawalAccountConfirmationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -111,6 +112,26 @@ class PartnerAuthenticationService
     public function verifyWithdrawalConfirmation(Partner $partner, string $code): bool
     {
         $challenge = PartnerTwoFactorChallenge::query()->where('partner_id', $partner->id)->where('purpose', 'withdrawal')->whereNull('consumed_at')->latest('id')->first();
+        if (!$challenge || $challenge->expires_at->isPast() || $challenge->attempts >= $challenge->max_attempts) return false;
+        if (!Hash::check($code, $challenge->code_hash)) { $challenge->increment('attempts'); return false; }
+        $challenge->update(['consumed_at' => now()]);
+        return true;
+    }
+
+    public function issueWithdrawalAccountConfirmation(Partner $partner, Request $request): PartnerTwoFactorChallenge
+    {
+        $code = (string) random_int(100000, 999999);
+        $challenge = DB::transaction(function () use ($partner, $code, $request): PartnerTwoFactorChallenge {
+            PartnerTwoFactorChallenge::query()->where('partner_id', $partner->id)->where('purpose', 'withdrawal_account')->whereNull('consumed_at')->update(['consumed_at' => now()]);
+            return PartnerTwoFactorChallenge::create(['partner_id' => $partner->id, 'purpose' => 'withdrawal_account', 'code_hash' => Hash::make($code), 'expires_at' => now()->addMinutes(10), 'request_ip' => $request->ip(), 'user_agent_hash' => hash('sha256', (string) $request->userAgent())]);
+        });
+        $partner->notify(new PartnerWithdrawalAccountConfirmationNotification($code));
+        return $challenge;
+    }
+
+    public function verifyWithdrawalAccountConfirmation(Partner $partner, string $code): bool
+    {
+        $challenge = PartnerTwoFactorChallenge::query()->where('partner_id', $partner->id)->where('purpose', 'withdrawal_account')->whereNull('consumed_at')->latest('id')->first();
         if (!$challenge || $challenge->expires_at->isPast() || $challenge->attempts >= $challenge->max_attempts) return false;
         if (!Hash::check($code, $challenge->code_hash)) { $challenge->increment('attempts'); return false; }
         $challenge->update(['consumed_at' => now()]);

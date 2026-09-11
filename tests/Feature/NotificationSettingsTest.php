@@ -19,7 +19,7 @@ class NotificationSettingsTest extends TestCase
 
     public function test_owner_can_manage_recipients_by_category_and_channel(): void
     {
-        $owner = User::factory()->create(['status' => 1, 'user_type' => 2]);
+        $owner = User::factory()->create(['status' => 1, 'user_type' => 2, 'phone' => '90000000']);
         $company = $this->activateCompanyFor($owner, 'notifications');
 
         $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
@@ -106,5 +106,22 @@ class NotificationSettingsTest extends TestCase
         $this->artisan('inventory:weekly-report')->assertSuccessful();
 
         Mail::assertNothingOutgoing();
+    }
+
+    public function test_sms_and_whatsapp_recipients_without_phone_are_rejected(): void
+    {
+        $owner = User::factory()->create(['status' => 1, 'user_type' => 2]);
+        $company = $this->activateCompanyFor($owner, 'notification-phone-required');
+
+        $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
+            ->put(route('notifications.update'), [
+                'recipients' => ['sale' => [$owner->id => ['whatsapp' => 1]]],
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Veuillez renseigner un numéro de téléphone pour cet utilisateur avant d’activer SMS ou WhatsApp.');
+
+        $this->assertDatabaseMissing('notification_recipients', [
+            'company_id' => $company->id, 'user_id' => $owner->id, 'category' => 'sale', 'whatsapp_enabled' => 1,
+        ]);
     }
 }

@@ -31,6 +31,10 @@ return [
     'commission_hold_days' => 7,
     'payout_min_xof' => 5000,
     'payout_min_qualified_clients' => 3,
+    // Pourcentage KPrimePay exprimé en points de base : 100 = 1,00 %.
+    'payout_fee_bps' => 100,
+    // Plafond de sécurité pour l’envoi automatique après confirmation e-mail.
+    'auto_approval_max_xof' => 100000000,
     'code_change_cooldown_days' => 30,
     'reserved_codes' => [
         'ADMIN', 'ADMINS', 'API', 'CONTACT', 'DISCOUNT', 'HELP', 'MAXANOU', 'PARTENAIRE',

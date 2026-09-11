@@ -85,13 +85,19 @@ class PartnerFoundationTest extends TestCase
         ])->assertSessionHas('success');
         $this->assertDatabaseHas('partners', ['id' => $partner->id, 'normalized_username' => 'nouveau-partenaire']);
 
-        $this->actingAs($partner->fresh(), 'partner')->put(route('partner.profile.password.update'), [
+        // `actingAs` authenticates the guard but does not populate the
+        // versioned session key used by EnsurePartnerActive. Re-seed it with
+        // the current value so this test models an already authenticated
+        // browser session after the identity update.
+        $this->withSession(['partner_auth_version' => $partner->fresh()->auth_version])
+            ->actingAs($partner->fresh(), 'partner')->put(route('partner.profile.password.update'), [
             'current_password' => 'Password!123456', 'password' => 'NewPartnerPassword!123', 'password_confirmation' => 'NewPartnerPassword!123',
         ])->assertSessionHas('success');
         $this->assertTrue(Hash::check('NewPartnerPassword!123', $partner->fresh()->password));
 
         Notification::fake();
-        $this->actingAs($partner->fresh(), 'partner')->put(route('partner.profile.email.update'), [
+        $this->withSession(['partner_auth_version' => $partner->fresh()->auth_version])
+            ->actingAs($partner->fresh(), 'partner')->put(route('partner.profile.email.update'), [
             'email' => 'new-partner@example.test', 'current_password' => 'NewPartnerPassword!123',
         ])->assertRedirect(route('partner.login'));
         $this->assertDatabaseHas('partners', ['id' => $partner->id, 'normalized_email' => 'new-partner@example.test', 'status' => 'pending_email']);
