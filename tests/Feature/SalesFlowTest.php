@@ -8,9 +8,11 @@ use App\Models\AMS\Setting;
 use App\Models\AMS\Transaction;
 use App\Models\Category;
 use App\Models\Client;
+use App\Models\CommunicationLog;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleInvoicePreference;
 use App\Models\User;
 use App\Models\NotificationRecipient;
 use App\Jobs\SendSaleEmailJob;
@@ -200,6 +202,42 @@ class SalesFlowTest extends TestCase
         });
     }
 
+    public function test_pos_invoice_channel_preference_is_saved_immediately(): void
+    {
+        $this->company->update(['invoice_sms_enabled' => true, 'sms_count' => 1]);
+
+        $this->actingAs($this->user)->withSession(['active_company_id' => $this->company->id])
+            ->patchJson(route('sale.invoice-preferences.toggle'), [
+                'channel' => 'sms',
+                'enabled' => true,
+            ])
+            ->assertOk()
+            ->assertJson(['status' => true, 'enabled' => true]);
+
+        $this->assertDatabaseHas('sale_invoice_preferences', [
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'sms_enabled' => 1,
+        ]);
+    }
+
+    public function test_pos_invoice_channel_preference_cannot_enable_unauthorized_channel(): void
+    {
+        $this->actingAs($this->user)->withSession(['active_company_id' => $this->company->id])
+            ->patchJson(route('sale.invoice-preferences.toggle'), [
+                'channel' => 'whatsapp',
+                'enabled' => true,
+            ])
+            ->assertStatus(422)
+            ->assertJson(['status' => false, 'title' => 'Canal non autorisé']);
+
+        $this->assertDatabaseMissing('sale_invoice_preferences', [
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'whatsapp_enabled' => 1,
+        ]);
+    }
+
     public function test_queued_manual_sms_invoice_is_delivered_by_the_worker(): void
     {
         Queue::fake();
@@ -215,7 +253,7 @@ class SalesFlowTest extends TestCase
         Http::assertSent(fn ($request) => $request['country'] === 'BJ' && $request['phone_number'] === '90000000');
         $this->assertDatabaseHas('communication_logs', [
             'company_id' => $this->company->id, 'channel' => 'sms', 'function' => 'invoice',
-            'recipient' => '90000000', 'country_code' => 'BJ', 'units' => 1,
+            'sale_id' => $sale->id, 'recipient' => '90000000', 'country_code' => 'BJ', 'units' => 1,
         ]);
     }
 
@@ -245,6 +283,34 @@ class SalesFlowTest extends TestCase
             && $request['country'] === 'CI'
             && $request['phone_number'] === '0700000000'
             && $request['response_url'] === config('services.kprimesms.response_url'));
+        $this->assertDatabaseHas('communication_logs', [
+            'company_id' => $this->company->id, 'sale_id' => $sale->id,
+            'channel' => 'whatsapp', 'function' => 'invoice', 'recipient' => '0700000000',
+        ]);
+    }
+
+    public function test_sale_details_show_invoice_delivery_history(): void
+    {
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+        CommunicationLog::create([
+            'company_id' => $this->company->id, 'sale_id' => $sale->id,
+            'channel' => 'whatsapp', 'function' => 'invoice', 'recipient' => '90000000',
+            'country_code' => 'TG', 'units' => 1, 'sent_at' => now(),
+        ]);
+        CommunicationLog::create([
+            'company_id' => $this->company->id, 'sale_id' => $sale->id,
+            'channel' => 'sms', 'function' => 'invoice', 'recipient' => '90000000',
+            'country_code' => 'TG', 'units' => 1, 'sent_at' => now()->subMinute(),
+        ]);
+
+        $this->actingAs($this->user)->get(route('sale.show', $sale))
+            ->assertOk()
+            ->assertSee('Historique des envois de facture')
+            ->assertSee('WHATSAPP')
+            ->assertSee('SMS')
+            ->assertSee('90000000')
+            ->assertSee('TG');
     }
 
     public function test_disabled_sale_channels_prevent_whatsapp_and_sms_requests(): void

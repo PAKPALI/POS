@@ -2,7 +2,7 @@
 
 @push('styles')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-19" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/saas-page-fixes.css') }}?v=20260902-5" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-page-fixes.css') }}?v=20260914-1" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 @endpush
 
@@ -107,10 +107,10 @@
                     </div>
                 </div>
 
-                <form id="addManagerForm" style="margin-bottom: 16px;">
+                <form id="addManagerForm" class="saas-manager-form" style="margin-bottom: 16px;">
                     @csrf
-                    <div style="display: flex; gap: 8px;">
-                        <select name="user_id" id="managerUserSelect" class="form-select" required style="flex: 1;">
+                    <div class="saas-manager-form-row">
+                        <select name="user_id" id="managerUserSelect" class="form-select saas-manager-select" required>
                             <option value="">Rechercher un utilisateur…</option>
                         </select>
                         <button type="submit" class="saas-btn saas-btn-primary saas-btn-sm" data-loading-text="Ajout…">Ajouter</button>

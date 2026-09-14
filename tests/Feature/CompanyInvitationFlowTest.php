@@ -63,7 +63,7 @@ class CompanyInvitationFlowTest extends TestCase
         $token = 'existing-token';
         $invitation = $this->invitation($target, $targetRole, $owner, $user->email, $token);
 
-        $this->post(route('invitations.accept', $token))->assertRedirect(route('profil'));
+        $this->actingAs($user)->post(route('invitations.accept', $token))->assertRedirect(route('profil'));
 
         $this->assertAuthenticatedAs($user);
         $this->assertSame($target->id, session('active_company_id'));
@@ -85,7 +85,7 @@ class CompanyInvitationFlowTest extends TestCase
 
         $this->post(route('invitations.accept', $token), [
             'name' => 'Nouvel utilisateur', 'phone' => '90000000',
-            'password' => 'Password123', 'password_confirmation' => 'Password123',
+            'password' => 'Password123!', 'password_confirmation' => 'Password123!',
         ])->assertRedirect(route('profil'));
 
         $user = User::where('email', 'new-user@test.local')->firstOrFail();
@@ -93,7 +93,7 @@ class CompanyInvitationFlowTest extends TestCase
         $this->assertDatabaseHas('company_user', ['company_id' => $company->id, 'user_id' => $user->id, 'role_id' => $role->id]);
     }
 
-    public function test_expired_and_revoked_invitations_cannot_be_accepted_and_valid_link_switches_to_invited_account(): void
+    public function test_expired_and_revoked_invitations_cannot_be_accepted_and_existing_account_cannot_be_switched_to_from_a_link(): void
     {
         $owner = User::factory()->create(['user_type' => 2, 'status' => 1]);
         $company = $this->activateCompanyFor($owner, 'invite-invalid');
@@ -106,9 +106,15 @@ class CompanyInvitationFlowTest extends TestCase
         $this->actingAs($wrongUser)->post(route('invitations.accept', 'revoked-token'))->assertStatus(410);
         $invitedUser = User::factory()->create(['user_type' => 3, 'status' => 1, 'email' => 'right@test.local']);
         $valid = $this->invitation($company, $role, $owner, $invitedUser->email, 'right-token');
-        $this->actingAs($wrongUser)->postJson(route('invitations.accept', 'right-token'))->assertRedirect();
+        $this->actingAs($wrongUser)->postJson(route('invitations.accept', 'right-token'))
+            ->assertRedirect()
+            ->assertSessionHasErrors('email');
 
         $this->assertDatabaseMissing('company_user', ['company_id' => $company->id, 'user_id' => $wrongUser->id]);
+        $this->assertDatabaseMissing('company_user', ['company_id' => $company->id, 'user_id' => $invitedUser->id]);
+        $this->assertAuthenticatedAs($wrongUser);
+        $this->assertNull($valid->fresh()->accepted_at);
+        $this->actingAs($invitedUser)->post(route('invitations.accept', 'right-token'))->assertRedirect(route('profil'));
         $this->assertDatabaseHas('company_user', ['company_id' => $company->id, 'user_id' => $invitedUser->id, 'role_id' => $role->id, 'status' => 'active']);
         $this->assertAuthenticatedAs($invitedUser);
         $this->assertNotNull($valid->fresh()->accepted_at);

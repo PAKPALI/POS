@@ -1,6 +1,6 @@
 # Déploiement de PRO-SELLER sur O2switch
 
-Ce guide prépare un premier déploiement SaaS avec **Laravel 10**, **PHP 8.2**, **MySQL**, une queue en base de données et sans Redis.
+Ce guide prépare un premier déploiement SaaS avec **Laravel 12**, **PHP 8.2 minimum**, **MySQL**, une queue en base de données et sans Redis.
 
 > **Statut au 3 septembre 2026 : staging O2switch validé pour le périmètre testé.** Le checkout KPrimePay de test, les webhooks, le SMTP réel et la recette visuelle mobile/desktop des abonnements et quotas ont été validés. La production commerciale reste distincte : secrets, URL webhook HTTPS, cron, supervision et activation progressive de l’enforcement doivent encore être configurés et approuvés.
 

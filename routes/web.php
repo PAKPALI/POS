@@ -5,6 +5,7 @@ use App\Http\Controllers\AMS\DashboardController;
 use App\Http\Controllers\AMS\SettingController;
 use App\Http\Controllers\AMS\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\InvitationAcceptanceController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\CodePromo\CodePromoController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\Platform\AlertController as PlatformAlertController;
 use App\Http\Controllers\Platform\CommunicationController as PlatformCommunicationController;
 use App\Http\Controllers\Platform\GeneralSettingController as PlatformGeneralSettingController;
 use App\Http\Controllers\Platform\PartnerSettingController as PlatformPartnerSettingController;
+use App\Http\Controllers\Platform\PartnerController as PlatformPartnerController;
 use App\Http\Controllers\Platform\SubscriptionPreflightController as PlatformSubscriptionPreflightController;
 use App\Http\Controllers\Platform\SubscriptionPlanCatalogController as PlatformSubscriptionPlanCatalogController;
 use App\Http\Controllers\Platform\TreasuryController as PlatformTreasuryController;
@@ -125,6 +127,8 @@ Route::prefix('platform')->name('platform.')->group(function () {
                 ->middleware(['platform.permission:platform.companies.manage', 'throttle:20,1'])->name('companies.status');
             Route::get('users', [PlatformUserController::class, 'index'])->middleware('platform.permission:platform.users.view')->name('users.index');
             Route::get('users/{user}', [PlatformUserController::class, 'show'])->middleware('platform.permission:platform.users.view')->name('users.show');
+            Route::get('partners', [PlatformPartnerController::class, 'index'])->middleware('platform.permission:platform.partners.view')->name('partners.index');
+            Route::get('partners/{partner}', [PlatformPartnerController::class, 'show'])->middleware('platform.permission:platform.partners.view')->name('partners.show');
             Route::get('payments', [PlatformPaymentController::class, 'index'])->middleware('platform.permission:platform.payments.view')->name('payments.index');
             Route::get('payments/{payment}', [PlatformPaymentController::class, 'show'])->middleware('platform.permission:platform.payments.view')->name('payments.show');
             Route::post('payments/{payment}/reconcile', [PlatformPaymentController::class, 'reconcile'])
@@ -149,6 +153,8 @@ Route::prefix('platform')->name('platform.')->group(function () {
             Route::get('audit', [PlatformAuditController::class, 'index'])->middleware('platform.permission:platform.audit.view')->name('audit.index');
             Route::get('audit/{audit}', [PlatformAuditController::class, 'show'])->middleware('platform.permission:platform.audit.view')->name('audit.show');
             Route::get('health', [PlatformHealthController::class, 'index'])->middleware('platform.permission:platform.health.view')->name('health.index');
+            Route::get('health/jobs/{uuid}', [PlatformHealthController::class, 'failedJobDetails'])
+                ->whereUuid('uuid')->middleware('platform.permission:platform.health.view')->name('health.jobs.details');
             Route::post('health/jobs/{uuid}/retry', [PlatformHealthController::class, 'retryJob'])
                 ->whereUuid('uuid')->middleware(['platform.permission:platform.health.jobs.retry', 'throttle:10,1'])->name('health.jobs.retry');
             Route::get('alerts', [PlatformAlertController::class, 'index'])->middleware('platform.permission:platform.health.view')->name('alerts.index');
@@ -204,13 +210,7 @@ Route::get('/sitemap.xml', function () {
 })->name('marketing.sitemap');
 Route::get('/robots.txt', fn () => response("User-agent: *\nAllow: /\nSitemap: ".route('marketing.sitemap')."\n", 200, ['Content-Type' => 'text/plain']))->name('marketing.robots');
 
-Route::get('/old-entry', function () {
-    if (!User::exists()) {
-        return view('admin/register');
-    }
-
-    return view('admin/login');
-})->name('user_verify_auth');
+Route::redirect('/old-entry', '/user_login')->name('user_verify_auth');
 
 // manage user before auth-login
 Route::get('user_login', function () {
@@ -227,14 +227,15 @@ Route::get('user_login', function () {
         ]);
     }
 })->name('user_login');
+Route::get('login', [LoginController::class, 'showLoginForm'])
+    ->middleware('guest')->name('login');
 
-Route::post('admin_register', [UserController::class, "register"])
-    ->middleware(['guest', 'throttle:5,1'])->name('admin_register');
-Route::get('signup', fn () => response()->view('admin.register')->withHeaders([
-    'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-    'Pragma' => 'no-cache',
-    'Expires' => '0',
-]))->middleware('guest')->name('signup');
+Route::get('register', [RegisterController::class, 'showRegistrationForm'])
+    ->middleware('guest')->name('register');
+Route::post('register', [UserController::class, 'register'])
+    ->middleware(['guest', 'throttle:5,1'])->name('register.store');
+Route::get('signup', fn () => redirect()->route('register'))
+    ->middleware('guest')->name('signup');
 Route::get('invitations/{token}', [InvitationAcceptanceController::class, 'show'])
     ->middleware('throttle:30,1')->name('invitations.show');
 Route::post('invitations/{token}/accept', [InvitationAcceptanceController::class, 'accept'])
@@ -343,6 +344,8 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
     //sale
     Route::controller(SaleController::class)->group(function () {
         Route::resource('sale', SaleController::class);
+        Route::patch('sale/invoice-preferences/toggle', 'toggleInvoicePreference')
+            ->middleware('throttle:60,1')->name('sale.invoice-preferences.toggle');
         //history
         Route::get('history', 'history')->name('history');
         Route::get('history/export/pdf', 'exportHistoryPdf')->name('history.export.pdf');
@@ -439,17 +442,19 @@ Route::prefix('subscription')->middleware(['auth','company.resolve','company.sel
 
 Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:notifications.manage', 'subscription.writable'])->group(function () {
     Route::get('notifications', [NotificationSettingController::class, 'index'])->name('notifications.index');
+    Route::patch('notifications/toggle', [NotificationSettingController::class, 'toggle'])
+        ->middleware('throttle:60,1')->name('notifications.toggle');
     Route::put('notifications', [NotificationSettingController::class, 'update'])->name('notifications.update');
 });
 Route::get('setting/communications', [CommunicationLogController::class, 'index'])
     ->middleware(['auth', 'company.resolve', 'company.selected', 'permission:communications.view'])
     ->name('communications.index');
 
-Auth::routes();
+Auth::routes(['login' => false, 'register' => false]);
 Route::get('/home', fn () => redirect(app(\App\Services\AuthorizedLandingPage::class)->forUser(
     Auth::user(),
     session('active_company_id')
 )))->middleware('auth')->name('home');
-Route::post('outUser', [UserController::class, 'outUser'])->name('outUser');
+Route::post('outUser', [UserController::class, 'outUser'])->middleware('auth')->name('outUser');
 Route::post('/login', [LoginController::class, 'login'])
-    ->middleware(['guest', 'throttle:10,1'])->name('login');
+    ->middleware(['guest', 'throttle:10,1'])->name('login.submit');

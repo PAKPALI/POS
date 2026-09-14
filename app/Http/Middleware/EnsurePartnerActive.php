@@ -16,7 +16,8 @@ class EnsurePartnerActive
 
         if (!$partner || $partner->status !== 'active' || $sessionVersion !== (int) $partner->auth_version) {
             Auth::guard('partner')->logout();
-            $request->session()->forget(['partner_auth_version', 'partner_2fa_partner_id']);
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
             return redirect()->route('partner.login')->withErrors(['email' => 'Cette session partenaire n’est plus active.']);
         }
 

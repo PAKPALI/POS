@@ -23,23 +23,38 @@
     .sales-top-meta-item strong { color: var(--ds-text-primary); font-variant-numeric: tabular-nums; }
 
     /* SweetAlert invoice delivery modal */
-    .swal-country-list { max-height: 180px; overflow-y: auto; border: 1px solid var(--ds-border-soft); border-radius: 10px; background: var(--ds-bg-elevated); margin-bottom: 14px; }
-    .swal-country-item { padding: 8px 14px; cursor: pointer; font-size: .82rem; color: var(--ds-text-secondary); border-bottom: 1px solid var(--ds-border-soft); transition: background .12s, color .12s; }
-    .swal-country-item:last-child { border-bottom: none; }
-    .swal-country-item:hover { background: rgba(255,255,255,.06); color: var(--ds-text-primary); }
-    .swal-country-item.is-selected { background: var(--ds-accent-soft); color: var(--ds-accent); font-weight: 650; }
-    .swal-country-item small { opacity: .55; font-weight: 400; }
-    .swal-channels-row { display: flex; justify-content: center; gap: 20px; margin-top: 14px; }
+    .swal-delivery-form { display: grid; gap: 12px; text-align: left; }
+    .swal-delivery-field { display: grid; gap: 6px; }
+    .swal-delivery-field > label { color: var(--ds-text-secondary); font-size: .78rem; font-weight: 650; }
+    .swal-delivery-input, .swal-delivery-select { width: 100%; min-height: 44px; margin: 0 !important; box-sizing: border-box; border: 1px solid var(--ds-border-soft); border-radius: 10px; background: var(--ds-bg-elevated); color: var(--ds-text-primary); padding: 10px 12px; font-size: .9rem; }
+    .swal-delivery-input:focus, .swal-delivery-select:focus { border-color: var(--ds-accent); outline: 2px solid var(--ds-accent-soft); }
+    .swal-delivery-select option { background: var(--ds-bg-elevated); color: var(--ds-text-primary); }
+    .swal-channels-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
     .swal-switch-label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: 10px; background: var(--ds-glass-1); border: 1px solid var(--ds-border-soft); }
     .swal-switch-label .saas-switch-control { flex: 0 0 40px; width: 40px; height: 22px; }
     .swal-switch-label .saas-switch-control::after { width: 16px; height: 16px; top: 3px; left: 3px; }
     .swal-switch-label .saas-switch-input:checked + .saas-switch-control::after { transform: translateX(18px); }
     .swal-switch-text { display: flex; align-items: center; gap: 5px; font-size: .82rem; color: var(--ds-text-primary); }
     .swal-switch-text small { color: var(--ds-text-muted); }
+    .pos-preference-toast { position: fixed; top: 18px; right: 18px; z-index: 2000; display: flex; align-items: flex-start; gap: 10px; width: min(360px, calc(100vw - 36px)); padding: 12px 14px; border: 1px solid var(--ds-border-soft); border-radius: 12px; background: var(--ds-bg-elevated); color: var(--ds-text-primary); box-shadow: 0 16px 36px rgba(0,0,0,.28); animation: pos-preference-toast-in .18s ease-out; }
+    .pos-preference-toast.is-success { border-color: rgba(25, 135, 84, .55); }
+    .pos-preference-toast.is-error { border-color: rgba(220, 53, 69, .55); }
+    .pos-preference-toast i { font-size: 1.1rem; color: var(--ds-accent); }
+    .pos-preference-toast.is-error i { color: var(--bs-danger, #dc3545); }
+    .pos-preference-toast strong, .pos-preference-toast span { display: block; }
+    .pos-preference-toast span { margin-top: 2px; color: var(--ds-text-secondary); font-size: .82rem; }
+    .pos-preference-toast.is-hiding { animation: pos-preference-toast-out .18s ease-in forwards; }
+    @keyframes pos-preference-toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pos-preference-toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
+    @media (prefers-reduced-motion: reduce) { .pos-preference-toast { animation: none; } .pos-preference-toast.is-hiding { animation: none; opacity: 0; } }
 </style>
 @endpush
 
 @section('content')
+@php
+    $invoiceWhatsappDefault = $invoicePreference ? (bool) $invoicePreference->whatsapp_enabled : true;
+    $invoiceSmsDefault = $invoicePreference ? (bool) $invoicePreference->sms_enabled : !$company->invoice_whatsapp_enabled;
+@endphp
     {{-- Page heading --}}
     <div class="saas-page-heading sales-history-top">
         <div>
@@ -378,35 +393,90 @@ $(function() {
     var invoiceSmsQuota = {{ (int) ($company?->sms_count ?? 0) }};
     var invoiceWhatsappAuthorized = {{ $company?->invoice_whatsapp_enabled ? 'true' : 'false' }};
     var invoiceSmsAuthorized = {{ $company?->invoice_sms_enabled ? 'true' : 'false' }};
+    var invoiceWhatsappDefault = {{ $invoiceWhatsappDefault ? 'true' : 'false' }};
+    var invoiceSmsDefault = {{ $invoiceSmsDefault ? 'true' : 'false' }};
+    var invoicePreferenceUrl = @json(route('sale.invoice-preferences.toggle'));
+
+    function showInvoicePreferenceToast(icon, title, text) {
+        var toast = document.createElement('div');
+        toast.className = 'pos-preference-toast is-' + icon;
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        var iconNode = document.createElement('i');
+        iconNode.className = icon === 'success' ? 'bi bi-check-circle' : 'bi bi-exclamation-circle';
+        iconNode.setAttribute('aria-hidden', 'true');
+        var copy = document.createElement('div');
+        var titleNode = document.createElement('strong');
+        titleNode.textContent = title;
+        var textNode = document.createElement('span');
+        textNode.textContent = text;
+        copy.append(titleNode, textNode);
+        toast.append(iconNode, copy);
+        document.body.appendChild(toast);
+        window.setTimeout(function() {
+            toast.classList.add('is-hiding');
+            window.setTimeout(function() { toast.remove(); }, 220);
+        }, icon === 'error' ? 3000 : 2200);
+    }
+
+    function persistInvoicePreference(input) {
+        var previous = input.dataset.persistedChecked === '1';
+        var enabled = input.checked;
+        input.disabled = true;
+        return fetch(invoicePreferenceUrl, {
+            method: 'PATCH',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+            },
+            body: JSON.stringify({channel: input.dataset.invoicePreferenceChannel, enabled: enabled}),
+        }).then(async function(response) {
+            var data = {};
+            try { data = await response.json(); } catch (_) { /* response without JSON */ }
+            if (!response.ok || data.status === false) {
+                var validationMessage = data.errors ? Object.values(data.errors).flat()[0] : null;
+                throw new Error(data.message || data.msg || validationMessage || 'Impossible d’enregistrer ce choix.');
+            }
+            input.checked = Boolean(data.enabled);
+            input.dataset.persistedChecked = input.checked ? '1' : '0';
+            if (input.dataset.invoicePreferenceChannel === 'whatsapp') invoiceWhatsappDefault = input.checked;
+            if (input.dataset.invoicePreferenceChannel === 'sms') invoiceSmsDefault = input.checked;
+            showInvoicePreferenceToast('success', data.title || 'Préférence enregistrée', data.message || 'Choix mémorisé.');
+        }).catch(function(error) {
+            input.checked = previous;
+            showInvoicePreferenceToast('error', 'Enregistrement impossible', error.message || 'Impossible de communiquer avec le serveur.');
+        }).finally(function() {
+            input.disabled = false;
+        });
+    }
 
     $('body').on('click', '.deliver-invoice', function() {
         var saleId = $(this).data('id');
         var clientPhone = $(this).data('phone') || '';
         var clientCountry = $(this).data('country') || '{{ $company->country_code ?? 'TG' }}';
         var countries = @json(collect(config('african_countries'))->map(fn($name, $iso) => ['iso' => $iso, 'name' => $name])->values());
-        var countryListHtml = countries.map(function(c) {
-            var sel = c.iso === clientCountry ? ' is-selected' : '';
-            return '<div class="swal-country-item' + sel + '" data-iso="' + c.iso + '">' + c.name + ' <small>(' + c.iso + ')</small></div>';
+        var countryOptionsHtml = countries.map(function(c) {
+            return '<option value="' + c.iso + '"' + (c.iso === clientCountry ? ' selected' : '') + '>' + c.name + ' (' + c.iso + ')</option>';
         }).join('');
         Swal.fire({
             title: 'Envoyer la facture',
             html:
-                '<input id="deliveryPhone" type="tel" inputmode="numeric" minlength="6" maxlength="15" class="swal2-input" value="' + String(clientPhone).replace(/"/g, '&quot;') + '" placeholder="Numéro local sans indicatif">' +
-                '<input id="deliveryCountrySearch" type="text" class="swal2-input" placeholder="Rechercher un pays..." autocomplete="off" style="margin-bottom:6px;font-size:.9rem;">' +
-                '<div id="deliveryCountryList" class="swal-country-list">' + countryListHtml + '</div>' +
-                '<input type="hidden" id="deliveryCountry" value="' + clientCountry + '">' +
-                '<div class="swal-channels-row">' +
+                '<div class="swal-delivery-form">' +
+                '<div class="swal-delivery-field"><label for="deliveryPhone">Numéro du client</label><input id="deliveryPhone" type="tel" inputmode="numeric" minlength="6" maxlength="15" class="swal-delivery-input" value="' + String(clientPhone).replace(/"/g, '&quot;') + '" placeholder="Numéro local sans indicatif"></div>' +
+                '<div class="swal-delivery-field"><label for="deliveryCountry">Pays du numéro</label><select id="deliveryCountry" class="swal-delivery-select">' + countryOptionsHtml + '</select></div>' +
+                '<div class="swal-delivery-field"><span class="swal-delivery-field-label">Canal d’envoi</span><small class="text-muted">Votre dernière sélection est mémorisée pour les prochains envois.</small><div class="swal-channels-row">' +
                 '<label class="swal-switch-label">' +
-                    '<input type="checkbox" id="deliveryWhatsapp" class="saas-switch-input" role="switch" ' + (invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? 'checked' : 'disabled') + '>' +
+                    '<input type="checkbox" id="deliveryWhatsapp" class="saas-switch-input" role="switch" data-invoice-preference-channel="whatsapp" ' + (invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 && invoiceWhatsappDefault ? 'checked' : '') + (invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? '' : ' disabled') + '>' +
                     '<span class="saas-switch-control"></span>' +
                     '<span class="swal-switch-text"><i class="bi bi-whatsapp"></i> WhatsApp <small>(' + invoiceWhatsappQuota + ')</small></span>' +
                 '</label>' +
                 '<label class="swal-switch-label">' +
-                    '<input type="checkbox" id="deliverySms" class="saas-switch-input" role="switch" ' + (invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : 'disabled') + '>' +
-                    '<span class="saas-switch-control"></span>' +
-                    '<span class="swal-switch-text"><i class="bi bi-chat-text"></i> SMS <small>(' + invoiceSmsQuota + ')</small></span>' +
+                    '<input type="checkbox" id="deliverySms" class="saas-switch-input" role="switch" data-invoice-preference-channel="sms" ' + (invoiceSmsAuthorized && invoiceSmsQuota > 0 && invoiceSmsDefault ? 'checked' : '') + (invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : ' disabled') + '>' +
+                '<span class="saas-switch-control"></span>' +
+                '<span class="swal-switch-text"><i class="bi bi-chat-text"></i> SMS <small>(' + invoiceSmsQuota + ')</small></span>' +
                 '</label>' +
-                '</div>' +
+                '</div></div></div>' +
                 (!invoiceWhatsappAuthorized && !invoiceSmsAuthorized ? '<div class="small text-warning mt-3">Activez WhatsApp ou SMS dans la section « Envoi des factures aux clients » de Communications &gt; SMS &amp; WhatsApp &gt; Configuration.@if($currentMembership?->hasPermission("notifications.manage")) <a href="{{ route("notifications.index") }}" class="text-warning text-decoration-underline">Ouvrir la configuration</a>@endif</div>' : ''),
             showCancelButton: true,
             confirmButtonText: 'Envoyer',
@@ -415,27 +485,12 @@ $(function() {
             allowOutsideClick: function() { return !Swal.isLoading(); },
             allowEscapeKey: function() { return !Swal.isLoading(); },
             didOpen: function() {
-                var list = document.getElementById('deliveryCountryList');
-                var search = document.getElementById('deliveryCountrySearch');
-                var hidden = document.getElementById('deliveryCountry');
-                if (list) {
-                    list.addEventListener('click', function(e) {
-                        var item = e.target.closest('.swal-country-item');
-                        if (!item) return;
-                        list.querySelectorAll('.swal-country-item').forEach(function(el) { el.classList.remove('is-selected'); });
-                        item.classList.add('is-selected');
-                        hidden.value = item.dataset.iso;
-                    });
-                }
-                if (search && list) {
-                    search.addEventListener('input', function() {
-                        var q = this.value.toLowerCase();
-                        list.querySelectorAll('.swal-country-item').forEach(function(el) {
-                            el.style.display = el.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
-                        });
-                    });
-                    search.focus();
-                }
+                var phone = document.getElementById('deliveryPhone');
+                if (phone) phone.focus();
+                document.querySelectorAll('#deliveryWhatsapp, #deliverySms').forEach(function(input) {
+                    input.dataset.persistedChecked = input.checked ? '1' : '0';
+                    input.addEventListener('change', function() { if (!this.disabled) persistInvoicePreference(this); });
+                });
             },
             preConfirm: async function() {
                 var phone = document.getElementById('deliveryPhone').value.trim();

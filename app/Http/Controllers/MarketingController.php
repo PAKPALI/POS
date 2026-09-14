@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
+use App\Models\Partner;
+use App\Models\PartnerAttribution;
+use App\Models\PartnerWithdrawal;
+use App\Models\Subscription;
+use App\Models\User;
 use App\Services\MarketingPlanCatalogService;
 use App\Services\PartnerCountryService;
 use App\Services\PlatformConfigurationService;
 use Illuminate\View\View;
+use Throwable;
 
 class MarketingController extends Controller
 {
@@ -20,6 +27,7 @@ class MarketingController extends Controller
         return view('marketing.home', [
             'pricing' => $this->plans->plans(),
             'pricingNote' => config('marketing.pricing_note'),
+            'publicStats' => $this->publicStats(),
         ]);
     }
 
@@ -43,7 +51,57 @@ class MarketingController extends Controller
             'pricing' => $this->plans->plans(),
             'pricingNote' => config('marketing.pricing_note'),
             'partnerProgram' => $page === 'partenaires' ? $this->partnerProgram() : null,
+            'publicStats' => $page === 'partenaires' ? $this->publicStats() : null,
         ]);
+    }
+
+    /**
+     * Return only anonymous platform totals suitable for the public website.
+     * No names, contacts, financial amounts or per-account data are exposed.
+     */
+    private function publicStats(): array
+    {
+        $empty = [
+            'users' => 0, 'companies' => 0, 'active_companies' => 0,
+            'active_subscriptions' => 0, 'active_paid_subscriptions' => 0, 'active_trial_subscriptions' => 0,
+            'partners' => 0, 'active_partners' => 0, 'partner_clients' => 0, 'completed_withdrawals' => 0,
+        ];
+
+        try {
+            $now = now();
+            $companyStats = Company::query()
+                ->selectRaw('COUNT(*) as total')
+                ->selectRaw("SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active")
+                ->first();
+            $subscriptionStats = Subscription::query()
+                ->whereIn('status', ['trial', 'active'])
+                ->where('ends_at', '>', $now)
+                ->selectRaw('COUNT(*) as current')
+                ->selectRaw("SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as paid")
+                ->selectRaw("SUM(CASE WHEN status = 'trial' THEN 1 ELSE 0 END) as trials")
+                ->first();
+            $partnerStats = Partner::query()
+                ->selectRaw('COUNT(*) as total')
+                ->selectRaw("SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active")
+                ->first();
+
+            return [
+                'users' => (int) User::query()->count(),
+                'companies' => (int) ($companyStats->total ?? 0),
+                'active_companies' => (int) ($companyStats->active ?? 0),
+                'active_subscriptions' => (int) ($subscriptionStats->current ?? 0),
+                'active_paid_subscriptions' => (int) ($subscriptionStats->paid ?? 0),
+                'active_trial_subscriptions' => (int) ($subscriptionStats->trials ?? 0),
+                'partners' => (int) ($partnerStats->total ?? 0),
+                'active_partners' => (int) ($partnerStats->active ?? 0),
+                'partner_clients' => (int) PartnerAttribution::query()->where('status', 'active')->count(),
+                'completed_withdrawals' => (int) PartnerWithdrawal::query()->where('status', 'succeeded')->count(),
+            ];
+        } catch (Throwable) {
+            // Le site marketing reste disponible même lorsqu'une ancienne
+            // installation n'a pas encore les tables de statistiques.
+            return $empty;
+        }
     }
 
     private function partnerProgram(): array

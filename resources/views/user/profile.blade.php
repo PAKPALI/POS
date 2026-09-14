@@ -76,13 +76,13 @@
         </div>
 
         <div class="profile-panel" id="profilePanelPassword" data-profile-panel="password" role="tabpanel" aria-labelledby="profileTabPassword" hidden>
-            <div class="profile-panel-heading"><span class="profile-panel-icon"><i class="bi bi-shield-lock"></i></span><div><h2>Modifier le mot de passe</h2><p>Utilisez au moins huit caractères avec une majuscule, une minuscule et un chiffre.</p></div></div>
+            <div class="profile-panel-heading"><span class="profile-panel-icon"><i class="bi bi-shield-lock"></i></span><div><h2>Modifier le mot de passe</h2><p>Utilisez au moins 12 caractères avec une majuscule, une minuscule, un chiffre et un symbole.</p></div></div>
             <form id="profilePasswordForm" class="profile-form" action="{{ route('profile.password.update') }}" method="POST">
                 @csrf
                 <div class="profile-field"><label for="currentPassword">Mot de passe actuel</label><div class="profile-password-control"><input id="currentPassword" name="AM" type="password" autocomplete="current-password" required><button type="button" data-password-toggle="currentPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
                 <div class="profile-form-grid">
-                    <div class="profile-field"><label for="newPassword">Nouveau mot de passe</label><div class="profile-password-control"><input id="newPassword" name="NM" type="password" autocomplete="new-password" minlength="8" required><button type="button" data-password-toggle="newPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
-                    <div class="profile-field"><label for="confirmPassword">Confirmer le nouveau mot de passe</label><div class="profile-password-control"><input id="confirmPassword" name="CM" type="password" autocomplete="new-password" minlength="8" required><button type="button" data-password-toggle="confirmPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
+                    <div class="profile-field"><label for="newPassword">Nouveau mot de passe</label><div class="profile-password-control"><input id="newPassword" name="NM" type="password" autocomplete="new-password" minlength="12" required><button type="button" data-password-toggle="newPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
+                    <div class="profile-field"><label for="confirmPassword">Confirmer le nouveau mot de passe</label><div class="profile-password-control"><input id="confirmPassword" name="CM" type="password" autocomplete="new-password" minlength="12" required><button type="button" data-password-toggle="confirmPassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button></div></div>
                 </div>
                 <div class="profile-form-actions"><button type="submit" class="saas-primary-action" data-loading-text="Modification…"><i class="bi bi-shield-check"></i>Modifier mon mot de passe</button></div>
             </form>

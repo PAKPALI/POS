@@ -97,7 +97,7 @@ class SubscriptionPartnerPromotionTest extends TestCase
         $this->assertFalse(app(PartnerPromotionService::class)->quote($company->fresh()->subscriptionAccount()->with('owner')->first(), SubscriptionPlan::where('key', 'bronze')->firstOrFail(), 1, $code->code)['eligible']);
     }
 
-    public function test_partner_can_use_own_code_for_any_company_account(): void
+    public function test_partner_cannot_use_own_code_for_its_subscription_account(): void
     {
         [$user, $company] = $this->account();
         $partner = Partner::factory()->create([
@@ -116,8 +116,9 @@ class SubscriptionPartnerPromotionTest extends TestCase
 
         $quote = app(SubscriptionCheckoutService::class)->preview($company->id, 'bronze', 1, $code->code);
 
-        $this->assertTrue($quote['eligible']);
-        $this->assertSame(500, $quote['discount_amount']);
-        $this->assertSame(4500, $quote['net_amount']);
+        $this->assertFalse($quote['eligible']);
+        $this->assertSame(0, $quote['discount_amount']);
+        $this->assertSame(5000, $quote['net_amount']);
+        $this->assertSame('Un partenaire ne peut pas utiliser son propre code.', $quote['message']);
     }
 }

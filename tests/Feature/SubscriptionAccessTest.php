@@ -90,6 +90,7 @@ class SubscriptionAccessTest extends TestCase
         $this->actingAs($owner)->post(route('sms-quota.checkout'), [
             'sms_quantity' => 1,
             'whatsapp_quantity' => 0,
+            'terms_accepted' => true,
         ])->assertForbidden();
     }
 

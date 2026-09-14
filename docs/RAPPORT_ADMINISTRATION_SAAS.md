@@ -1,6 +1,15 @@
 # Rapport permanent — Administration SaaS
 
-Dernière mise à jour : 11 septembre 2026 — trésorerie sécurisée, comptes Mobile Money et parcours d’administration alignés
+Dernière mise à jour : 14 septembre 2026 — pilotage partenaires, graphiques, alertes e-mail et clôture staging
+
+## Mise à jour du 14 septembre 2026 — pilotage partenaires et alertes
+
+- **Monétisation > Partenaires** fournit une vue d’ensemble des partenaires, de leur activité, des clients qualifiés, des commissions, des soldes et des retraits, avec filtres serveur et fenêtres de 30, 90 ou 365 jours.
+- Chaque partenaire dispose d’une fiche détaillée avec identité, code promotionnel, attributions, commissions, retraits et journal d’audit. Les droits `platform.partner_commissions.view` et `platform.partner_withdrawals.view` protègent les données financières sensibles.
+- Les graphiques ApexCharts sont responsives, utilisent les tokens de `design-system.css` et exposent leurs valeurs dans des tableaux consultables sans survol.
+- **Paramètres > Partenaires** permet d’activer les alertes e-mail, choisir des destinataires et sélectionner les événements : inscription, activation, changement de code, commission, demande de retrait, réussite, échec ou réponse inconnue.
+- Les alertes sont déclenchées après commit depuis les services métier et dédupliquées par clé d’événement. Une panne de planification est journalisée sans annuler l’opération métier.
+- Validation locale : `php artisan ui:lint --changed`, `php artisan view:cache`, routes partenaires et **9 tests ciblés / 43 assertions** réussis.
 
 ## Mise à jour du 11 septembre 2026 — trésorerie : comptes Mobile Money visibles et doublons refusés
 
@@ -27,7 +36,7 @@ Ce fichier est l’unique rapport d’avancement de la partie administrative Saa
 
 La console d’administration centrale est opérationnelle et séparée des comptes `owner` et `admin` propres aux entreprises. Elle est accessible par `/admin-saas` ou `/platform/login`.
 
-Dernière non-régression complète documentée : **185 tests, 1 109 assertions, 0 échec**. Des suites ciblées supplémentaires ont ensuite couvert le catalogue, le pré-contrôle, les abonnements, l’expiration et les notifications.
+Dernière non-régression complète documentée : **356 tests, 2 034 assertions, 0 échec**. Des suites ciblées supplémentaires ont ensuite couvert le catalogue, le pré-contrôle, les abonnements, l’expiration, les notifications et le pilotage partenaires.
 
 ## Accès et sécurité plateforme
 
@@ -226,10 +235,10 @@ Le cron serveur doit exécuter `php artisan schedule:run` chaque minute afin d�
 7. Contrôler le cron, les queues, les communications et la relance d’un job de test corrigé.
 8. Tester séparément les accès Support, Finance et Technique, y compris une URL interdite.
 
-## Améliorations suivantes envisagées
+## Suite après migration production
 
-- recette complète de la console sur staging avec chaque rôle ;
-- alertes d’exploitation automatiques selon des seuils définis.
+- surveillance de la console en production après migration : erreurs, queues, cron, temps de réponse et alertes ;
+- revue périodique des seuils d’exploitation et des droits des rôles, sans nouveau blocage de développement identifié.
 
 ## Historique des mises à jour
 

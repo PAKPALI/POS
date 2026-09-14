@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CommunicationLog;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -16,8 +17,8 @@ class CommunicationLogController extends Controller
             'per_page' => ['nullable', Rule::in([10, 25, 50])],
         ]);
         $query = CommunicationLog::query()
-            ->when($filters['from'] ?? null, fn ($q, $date) => $q->whereDate('sent_at', '>=', $date))
-            ->when($filters['to'] ?? null, fn ($q, $date) => $q->whereDate('sent_at', '<=', $date))
+            ->when($filters['from'] ?? null, fn ($q, $date) => $q->where('sent_at', '>=', CarbonImmutable::parse($date)->startOfDay()))
+            ->when($filters['to'] ?? null, fn ($q, $date) => $q->where('sent_at', '<=', CarbonImmutable::parse($date)->endOfDay()))
             ->when($filters['channel'] ?? null, fn ($q, $value) => $q->where('channel', $value))
             ->when($filters['function'] ?? null, fn ($q, $value) => $q->where('function', $value));
         $totals = (clone $query)->selectRaw('channel, SUM(units) total')->groupBy('channel')->pluck('total', 'channel');

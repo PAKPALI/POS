@@ -17,14 +17,41 @@
 .saas-accounting-flow-grid { display: grid; grid-template-columns: 1fr; row-gap: 28px; margin-inline: 0; }
 .saas-accounting-flow-grid > .col-xl-8,
 .saas-accounting-flow-grid > .col-xl-4 { width: 100%; }
-.saas-ecommerce-settings-grid { display: grid; grid-template-columns: 1fr; row-gap: 28px; margin-inline: 0; }
+.saas-ecommerce-settings-grid { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 28px; margin-inline: 0; }
 .saas-ecommerce-settings-grid > .col-lg-7,
-.saas-ecommerce-settings-grid > .col-lg-5 { width: 100%; }
+.saas-ecommerce-settings-grid > .col-lg-5 { width: 100%; min-width: 0; }
 .saas-ecommerce-settings-card, .saas-ecommerce-managers-card { height: 100%; }
 .saas-ecommerce-managers-card { margin-top: 0 !important; }
+.saas-ecommerce-settings-card,
+.saas-ecommerce-managers-card { min-width: 0; }
+.saas-manager-form-row {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    gap: 8px;
+}
+.saas-manager-form-row .select2-container {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+}
+.saas-manager-form-row .select2-selection__rendered {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.saas-manager-form-row > .saas-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
 .notifications-save-actions { display: flex; justify-content: flex-end; margin-top: 28px; }
 @media (max-width: 767.98px) {
     .saas-accounting-settings { padding: 18px; }
     .saas-cash-summary-grid { grid-template-columns: 1fr; gap: 12px; }
     .saas-accounting-section, .saas-transaction-balance { margin-bottom: 20px !important; }
+}
+@media (max-width: 359.98px) {
+    .saas-manager-form-row { display: grid; grid-template-columns: 1fr; }
+    .saas-manager-form-row > .saas-btn { width: 100%; justify-content: center; }
 }

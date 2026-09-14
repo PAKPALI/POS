@@ -106,4 +106,35 @@ class SecurityRemediationTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_registration_uses_one_canonical_hardened_endpoint(): void
+    {
+        $this->postJson('/admin_register', [])->assertNotFound();
+
+        $this->postJson(route('register.store'), [
+            'name' => 'Compte Faible',
+            'company_name' => 'Entreprise Faible',
+            'email' => 'weak-registration@test.local',
+            'password' => 'LongPassword123',
+            'password_confirmation' => 'LongPassword123',
+            'country_code' => 'TG',
+        ])->assertOk()->assertJson(['status' => false]);
+
+        $this->assertDatabaseMissing('users', ['email' => 'weak-registration@test.local']);
+    }
+
+    public function test_ajax_logout_destroys_authentication_and_session_data(): void
+    {
+        $user = User::factory()->create(['status' => 1]);
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => 999, 'sensitive_marker' => 'must-disappear'])
+            ->postJson(route('outUser'))
+            ->assertOk()
+            ->assertJson(['status' => true, 'check' => false])
+            ->assertSessionMissing('active_company_id')
+            ->assertSessionMissing('sensitive_marker');
+
+        $this->assertGuest();
+    }
 }

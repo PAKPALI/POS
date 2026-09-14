@@ -36,7 +36,11 @@ class LoginController extends Controller
      */
     protected $redirectTo = '/dashboard';
 
-    public function __construct(private AuthorizedLandingPage $landingPage) {}
+    public function __construct(private AuthorizedLandingPage $landingPage)
+    {
+        $this->middleware('guest')->except('logout');
+        $this->middleware('auth')->only('logout');
+    }
 
     /** Keep every login entry point on the styled POS authentication page. */
     public function showLoginForm()
@@ -99,12 +103,14 @@ class LoginController extends Controller
             'email' => mb_strtolower(trim((string) $request->input('email'))),
         ]);
         $throttleKey = Str::lower((string) $request->input('email')).'|'.$request->ip();
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+        $accountThrottleKey = 'pos-login-account|'.hash('sha256', (string) $request->input('email'));
+        if (RateLimiter::tooManyAttempts($throttleKey, 5) || RateLimiter::tooManyAttempts($accountThrottleKey, 20)) {
+            $retryAfter = max(RateLimiter::availableIn($throttleKey), RateLimiter::availableIn($accountThrottleKey));
             return response()->json([
                 'status' => false,
                 'reload' => false,
                 'title' => 'TROP DE TENTATIVES',
-                'msg' => 'Patientez '.RateLimiter::availableIn($throttleKey).' secondes avant de réessayer.',
+                'msg' => 'Patientez '.$retryAfter.' secondes avant de réessayer.',
             ], 429);
         }
         $error_messages = [
@@ -130,6 +136,7 @@ class LoginController extends Controller
         if($user){
             if(Hash::check($request-> password, $user-> password)){
                 RateLimiter::clear($throttleKey);
+                RateLimiter::clear($accountThrottleKey);
                 // Le statut est global. Les droits sont déterminés par le rôle
                 // de l'adhésion dans la compagnie active, jamais par user_type.
                 if ((int) $user->status !== 1) {
@@ -145,6 +152,7 @@ class LoginController extends Controller
                 return $this->loginUser($user, $request);
             }else{
                 RateLimiter::hit($throttleKey, 60);
+                RateLimiter::hit($accountThrottleKey, 600);
                 return response()->json([
                     "status" => false,
                     "reload" => true,
@@ -155,6 +163,7 @@ class LoginController extends Controller
             }
         }else{
             RateLimiter::hit($throttleKey, 60);
+            RateLimiter::hit($accountThrottleKey, 600);
             return response()->json([
                 "status" => false,
                 "reload" => true,

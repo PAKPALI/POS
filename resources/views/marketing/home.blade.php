@@ -21,6 +21,23 @@
 
 <section class="marketing-trust-strip"><div class="marketing-container"><span class="marketing-trust-label">Pensé pour les équipes qui veulent</span><span>vendre plus vite</span><span>réduire les erreurs</span><span>servir mieux</span><span>voir juste</span></div></section>
 
+<section class="marketing-section marketing-public-stats-section" aria-labelledby="public-stats-title">
+    <div class="marketing-container">
+        <div class="marketing-section-heading marketing-public-stats-heading">
+            <span class="marketing-eyebrow">Maxanou en chiffres</span>
+            <h2 id="public-stats-title">Une plateforme qui grandit avec les commerces.</h2>
+            <p>Des indicateurs simples pour situer la communauté Maxanou et l’activité de la plateforme.</p>
+        </div>
+        <div class="marketing-public-stats-grid">
+            <article class="marketing-public-stat"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'people'])</span><div><strong>{{ number_format($publicStats['users'], 0, ',', ' ') }}</strong><span>Utilisateurs</span><small>Comptes créés sur Maxanou</small></div></article>
+            <article class="marketing-public-stat is-green"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'buildings'])</span><div><strong>{{ number_format($publicStats['companies'], 0, ',', ' ') }}</strong><span>Entreprises</span><small>{{ number_format($publicStats['active_companies'], 0, ',', ' ') }} espace(s) actuellement actif(s)</small></div></article>
+            <article class="marketing-public-stat is-blue"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'check'])</span><div><strong>{{ number_format($publicStats['active_subscriptions'], 0, ',', ' ') }}</strong><span>Abonnements actifs</span><small>{{ number_format($publicStats['active_paid_subscriptions'], 0, ',', ' ') }} payant(s) · {{ number_format($publicStats['active_trial_subscriptions'], 0, ',', ' ') }} essai(s)</small></div></article>
+            <article class="marketing-public-stat is-purple"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'wallet'])</span><div><strong>{{ number_format($publicStats['active_partners'], 0, ',', ' ') }}</strong><span>Partenaires actifs</span><small>Un programme suivi et encadré</small></div></article>
+        </div>
+        <p class="marketing-public-stats-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Statistiques agrégées et anonymisées : aucun nom, contact ou montant individuel n’est publié.</p>
+    </div>
+</section>
+
 <section class="marketing-section marketing-onboarding-section">
     <div class="marketing-container">
         <div class="marketing-section-heading marketing-section-heading-split"><div><span class="marketing-eyebrow">Votre première vente</span><h2>Un commerce prêt en trois étapes.</h2><p>Vous partez de votre réalité : votre entreprise, quelques produits et une première vente test.</p></div><a class="marketing-button marketing-button-primary" href="{{ route('marketing.register') }}">Créer mon espace @include('marketing.components.icon', ['name' => 'arrow'])</a></div>

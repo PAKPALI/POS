@@ -27,6 +27,10 @@
 @endpush
 
 @section('content')
+@php
+    $invoiceWhatsappDefault = $invoicePreference ? (bool) $invoicePreference->whatsapp_enabled : true;
+    $invoiceSmsDefault = $invoicePreference ? (bool) $invoicePreference->sms_enabled : !$company->invoice_whatsapp_enabled;
+@endphp
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <div id="content" class="app-content p-1 ps-xl-4 pe-xl-4 pt-xl-3 pb-xl-3">
 
@@ -438,7 +442,7 @@
                         <div class="border rounded p-3">
                             <div class="pos-invoice-delivery-heading">
                                 <span><i class="bi bi-send-check"></i> Envoi au client</span>
-                                <p>Choisissez au moins un canal et vérifiez le numéro avant l’envoi.</p>
+                                <p>Choisissez au moins un canal et vérifiez le numéro avant l’envoi. Votre sélection est mémorisée pour vos prochaines factures.</p>
                             </div>
                             <div class="pos-invoice-fields">
                                 <div class="pos-invoice-field">
@@ -453,8 +457,8 @@
                                 </div>
                             </div>
                             <div class="pos-invoice-channels">
-                                <label class="saas-switch-line" for="invoiceWhatsapp"><span><strong>WhatsApp</strong><small><span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
-                                <label class="saas-switch-line" for="invoiceSms"><span><strong>SMS</strong><small><span id="invoiceSmsQuota">{{ $company->sms_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" id="invoiceSms" {{ !$company->invoice_whatsapp_enabled && $company->invoice_sms_enabled && $company->sms_count > 0 ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
+                                <label class="saas-switch-line" for="invoiceWhatsapp"><span><strong>WhatsApp</strong><small><span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" data-invoice-preference-channel="whatsapp" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 && $invoiceWhatsappDefault ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
+                                <label class="saas-switch-line" for="invoiceSms"><span><strong>SMS</strong><small><span id="invoiceSmsQuota">{{ $company->sms_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" data-invoice-preference-channel="sms" id="invoiceSms" {{ $company->invoice_sms_enabled && $company->sms_count > 0 && $invoiceSmsDefault ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
                             </div>
                             <button type="button" id="sendInvoice" class="btn btn-success" data-loading-text="Envoi en cours…" {{ (!$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1) && (!$company->invoice_sms_enabled || $company->sms_count < 1) ? 'disabled' : '' }}>
                                 <i class="bi bi-whatsapp me-1"></i> Envoyer la facture
@@ -536,7 +540,57 @@
 <script>
     $(function() {
         const posCurrency = @json(app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency']);
+        const invoicePreferenceUrl = @json(route('sale.invoice-preferences.toggle'));
         let posModalReturnFocus = null;
+
+        const showInvoicePreferenceToast = (icon, title, text) => Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon,
+            title,
+            text,
+            showConfirmButton: false,
+            timer: 2200,
+            timerProgressBar: true,
+        });
+
+        async function persistInvoicePreference(input) {
+            const previous = input.dataset.persistedChecked === '1';
+            const enabled = input.checked;
+            input.disabled = true;
+            try {
+                const response = await fetch(invoicePreferenceUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    },
+                    body: JSON.stringify({channel: input.dataset.invoicePreferenceChannel, enabled}),
+                });
+                let data = {};
+                try { data = await response.json(); } catch (_) { /* response without JSON */ }
+                if (!response.ok || data.status === false) {
+                    const validationMessage = data.errors ? Object.values(data.errors).flat()[0] : null;
+                    throw new Error(data.message || data.msg || validationMessage || 'Impossible d’enregistrer ce choix.');
+                }
+                input.checked = Boolean(data.enabled);
+                input.dataset.persistedChecked = input.checked ? '1' : '0';
+                showInvoicePreferenceToast('success', data.title || 'Préférence enregistrée', data.message || 'Choix mémorisé.');
+            } catch (error) {
+                input.checked = previous;
+                showInvoicePreferenceToast('error', 'Enregistrement impossible', error.message || 'Impossible de communiquer avec le serveur.');
+            } finally {
+                input.disabled = false;
+            }
+        }
+
+        document.querySelectorAll('[data-invoice-preference-channel]').forEach((input) => {
+            input.dataset.persistedChecked = input.checked ? '1' : '0';
+        });
+        $(document).on('change', '[data-invoice-preference-channel]', function() {
+            if (!this.disabled) persistInvoicePreference(this);
+        });
 
         $(document).on('click', '#showPendingOrders, #confirmSale, .view, [title="Envoyer la facture"]', function() {
             posModalReturnFocus = this;

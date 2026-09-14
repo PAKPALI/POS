@@ -1,9 +1,11 @@
 # Cahier d’architecture — Plateforme Partenaires Maxanou
 
-**Statut :** architecture cible prête pour implémentation  
+**Statut :** référence normative ; implémentation fonctionnelle livrée et validée en staging
 **Version :** 1.0 — 8 septembre 2026  
 **Périmètre :** acquisition par code partenaire, réduction du premier abonnement, commissions récurrentes, portefeuille et retraits Mobile Money  
 **Application hôte :** POS SaaS Maxanou — Laravel, MySQL, Blade, KPrimePay
+
+> **État au 14 septembre 2026 :** ce cahier reste la référence normative des règles partenaires et financières. L’implémentation fonctionnelle est livrée et validée en staging ; les passages formulés comme « cible », « futur » ou « avant codage » décrivent la conception ou l’état historique de rédaction. L’état d’avancement et les seules actions restantes de production sont suivis dans `docs/ETAT_DOCUMENTAIRE_PRODUCTION.md` et `docs/FREEBUFF_HANDOFF.md`.
 
 ---
 

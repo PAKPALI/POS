@@ -21,6 +21,7 @@
 
     <form method="POST" action="{{ route('platform.settings.partners.update') }}">
         @csrf @method('PUT')
+        <input type="hidden" name="partner_alerts_form" value="1">
         <div class="platform-settings-layout">
             <div class="platform-settings-column">
                 <section class="platform-settings-section">
@@ -122,6 +123,67 @@
                                 </div>
                             @endif
                         @endforeach
+                    </div>
+                </section>
+
+                @php($selectedAlertAdmins = old('alert_recipient_admin_ids', $partnerAlertSettings['recipient_admin_ids']))
+                <section class="platform-settings-section platform-partner-alert-settings">
+                    <header class="platform-settings-section-head">
+                        <p class="platform-eyebrow"><i class="bi bi-envelope-exclamation" aria-hidden="true"></i> Supervision</p>
+                        <h2>Alertes e-mail partenaires</h2>
+                        <p>Recevez uniquement les événements qui méritent un suivi humain. Les notifications sont envoyées après la validation de l’opération et contiennent un lien vers la fiche partenaire.</p>
+                    </header>
+                    <label class="platform-settings-toggle-card platform-settings-alert-master">
+                        <span class="saas-switch-line">
+                            <input type="checkbox" name="alerts_enabled" value="1" class="saas-switch-input" @checked(old('alerts_enabled', $partnerAlertSettings['enabled']))>
+                            <span class="saas-switch-control"></span>
+                        </span>
+                        <span><strong>Activer les alertes partenaires</strong><small>Le service e-mail doit également être activé dans les paramètres généraux.</small></span>
+                    </label>
+                    <div class="platform-partner-alert-groups">
+                        <div class="platform-partner-alert-group">
+                            <span class="platform-partner-alert-group-title">Identité et animation</span>
+                            @foreach([
+                                'partner_registered' => ['Nouveau partenaire inscrit', 'Compte créé, en attente de vérification e-mail.'],
+                                'email_verified' => ['Partenaire activé', 'Adresse e-mail confirmée, compte passé actif.'],
+                                'code_changed' => ['Code promotionnel modifié', 'Le code principal a été remplacé.'],
+                                'commission_created' => ['Commission créée', 'À activer seulement si vous souhaitez suivre chaque commission.'],
+                            ] as $key => $copy)
+                                <label class="platform-settings-toggle-card platform-settings-alert-row">
+                                    <span class="saas-switch-line"><input type="checkbox" name="alert_{{ $key }}" value="1" class="saas-switch-input" @checked(old('alert_'.$key, $partnerAlertSettings[$key]))><span class="saas-switch-control"></span></span>
+                                    <span><strong>{{ $copy[0] }}</strong><small>{{ $copy[1] }}</small></span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <div class="platform-partner-alert-group">
+                            <span class="platform-partner-alert-group-title">Retraits et trésorerie</span>
+                            @foreach([
+                                'withdrawal_requested' => ['Demande de retrait', 'À suivre pour lancer ou valider le traitement.'],
+                                'withdrawal_succeeded' => ['Retrait confirmé', 'Confirmation positive du prestataire.'],
+                                'withdrawal_failed' => ['Retrait échoué', 'Montant libéré après un échec confirmé.'],
+                                'withdrawal_unknown' => ['Retrait à réconcilier', 'Réponse prestataire incertaine, solde réservé.'],
+                            ] as $key => $copy)
+                                <label class="platform-settings-toggle-card platform-settings-alert-row">
+                                    <span class="saas-switch-line"><input type="checkbox" name="alert_{{ $key }}" value="1" class="saas-switch-input" @checked(old('alert_'.$key, $partnerAlertSettings[$key]))><span class="saas-switch-control"></span></span>
+                                    <span><strong>{{ $copy[0] }}</strong><small>{{ $copy[1] }}</small></span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="platform-settings-field platform-partner-alert-recipients">
+                        <label class="form-label" for="alert-recipient-admins">Destinataires</label>
+                        <small class="form-text d-block mb-2">Laissez vide pour utiliser automatiquement les administrateurs Super-administrateur et Support pour l’identité, Finance pour les retraits.</small>
+                        <div class="platform-partner-recipient-list" id="alert-recipient-admins">
+                            @forelse($partnerAlertAdmins as $alertAdmin)
+                                <label class="platform-partner-recipient">
+                                    <input type="checkbox" name="alert_recipient_admin_ids[]" value="{{ $alertAdmin->id }}" @checked(in_array($alertAdmin->id, (array) $selectedAlertAdmins, true))>
+                                    <span><strong>{{ $alertAdmin->name }}</strong><small>{{ $alertAdmin->email }} · {{ $alertAdmin->roleLabel() }}</small></span>
+                                </label>
+                            @empty
+                                <p class="form-text mb-0">Aucun administrateur actif avec une adresse e-mail.</p>
+                            @endforelse
+                        </div>
+                        @error('alert_recipient_admin_ids')<small class="saas-field-error" role="alert">{{ $message }}</small>@enderror
                     </div>
                 </section>
 

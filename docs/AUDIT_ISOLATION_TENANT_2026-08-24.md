@@ -4,6 +4,10 @@ Date : 24 août 2026
 Périmètre : schéma MySQL local, données locales, modèles, contrôleurs, routes, exports et jobs  
 Mode : lecture seule — aucune migration, aucun backfill, aucune suppression et aucune donnée métier modifiée
 
+## Addendum de statut — 14 septembre 2026
+
+Ce document conserve les constats et recommandations de l’audit du 24 août. Les remédiations applicatives, les contraintes tenant, les tests IDOR et les validations staging réalisés après cette date sont décrits dans `FREEBUFF_HANDOFF.md` et `RAPPORT_GLOBAL_SAAS.md`. Les mentions de recommandations situées plus bas ne constituent donc pas une nouvelle liste de tâches de développement ; les éléments hérités ou propres à la production doivent être traités selon la checklist de déploiement et non par une modification fonctionnelle improvisée.
+
 ## Verdict exécutif
 
 La base locale auditée contient **2 compagnies** et ne présente actuellement **aucune relation inter-compagnies détectée** sur les 19 relations contrôlées. Les deux compagnies possèdent un propriétaire actif, un réglage comptable, une caisse principale et une caisse de taxe cohérents.

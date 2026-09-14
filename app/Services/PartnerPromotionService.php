@@ -49,6 +49,16 @@ class PartnerPromotionService
             throw new InvalidArgumentException('Ce code partenaire est invalide ou indisponible.');
         }
 
+        // Un partenaire ne peut pas générer une réduction ou une commission
+        // sur son propre compte d'abonnement. La comparaison est faite côté
+        // serveur sur les adresses normalisées, jamais à partir du navigateur.
+        $accountEmail = mb_strtolower(trim((string) $account->owner?->email));
+        $partnerEmail = mb_strtolower(trim((string) $code->partner?->email));
+        if ($accountEmail !== '' && $accountEmail === $partnerEmail) {
+            $quote['message'] = 'Un partenaire ne peut pas utiliser son propre code.';
+            return $quote;
+        }
+
         $alreadyPaid = SubscriptionPayment::query()
             ->where('subscription_account_id', $account->id)
             ->where('status', 'paid')

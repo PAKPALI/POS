@@ -46,6 +46,7 @@ class PartnerAuthenticationService
             'ip_address' => $request->ip(),
             'user_agent_hash' => hash('sha256', (string) $request->userAgent()),
         ]);
+        app(PartnerPlatformAlertService::class)->dispatch('partner_registered', $partner, 'partner:'.$partner->id);
 
         return $partner;
     }
@@ -152,6 +153,7 @@ class PartnerAuthenticationService
             'target_type' => Partner::class,
             'target_id' => (string) $partner->id,
         ]);
+        app(PartnerPlatformAlertService::class)->dispatch('email_verified', $partner->fresh(), 'partner-email-verified:'.$partner->id);
         return true;
     }
 }

@@ -15,6 +15,8 @@ use Throwable;
 
 class SmsQuotaController extends Controller
 {
+    private const PAYMENT_TERMS_VERSION = '2026-09-14';
+
     public function index(PlatformPricingService $pricing)
     {
         $company = CompanySetting::findOrFail(app(CompanyContext::class)->getCompanyId());
@@ -27,20 +29,14 @@ class SmsQuotaController extends Controller
 
     public function checkout(Request $request, KprimePayService $kprimePay, PlatformPricingService $pricing)
     {
-        if (blank(config('services.kprimepay.token'))) {
-            return response()->json([
-                'status' => false,
-                'title' => 'KPrimePay non configuré',
-                'msg' => 'Ajoutez une clé KPrimePay valide dans le fichier .env, puis videz le cache de configuration.',
-            ], 503);
-        }
-
         $validator = Validator::make($request->all(), [
             'sms_quantity' => ['required', 'integer', 'min:0', 'max:100000'],
             'whatsapp_quantity' => ['required', 'integer', 'min:0', 'max:100000'],
+            'terms_accepted' => ['accepted'],
         ], [
             'sms_quantity.integer' => 'Le nombre de SMS doit être un entier.',
             'whatsapp_quantity.integer' => 'Le nombre de WhatsApp doit être un entier.',
+            'terms_accepted.accepted' => 'Vous devez accepter les conditions de paiement avant de continuer.',
         ]);
 
         if ($validator->fails()) {
@@ -48,7 +44,16 @@ class SmsQuotaController extends Controller
                 'status' => false,
                 'title' => 'Validation échouée',
                 'msg' => $validator->errors()->first(),
-            ]);
+                'errors' => $validator->errors()->toArray(),
+            ], 422);
+        }
+
+        if (blank(config('services.kprimepay.token'))) {
+            return response()->json([
+                'status' => false,
+                'title' => 'KPrimePay non configuré',
+                'msg' => 'Ajoutez une clé KPrimePay valide dans le fichier .env, puis videz le cache de configuration.',
+            ], 503);
         }
 
         $smsQuantity = (int) $request->input('sms_quantity');
@@ -85,6 +90,8 @@ class SmsQuotaController extends Controller
             'whatsapp_unit_cost' => $whatsappUnitCost,
             'amount' => $amount,
             'currency' => 'XOF',
+            'payment_terms_version' => self::PAYMENT_TERMS_VERSION,
+            'payment_terms_accepted_at' => now(),
             'status' => 'created',
         ]);
 

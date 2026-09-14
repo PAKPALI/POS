@@ -1,10 +1,38 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 11 septembre 2026 — trésorerie sécurisée, cohérence PWA MAXANOU et correctifs UI consolidés.
+Dernière mise à jour : 14 septembre 2026 — clôture locale du module Partenaires et non-régressions SaaS validées.
 
-## Mise à jour du 7 septembre 2026 — migration UI SaaS transversale
+## Règle de lecture documentaire
 
-La migration contrôlée des interfaces a démarré. Le périmètre et les lots sont documentés dans `docs/PLAN_MIGRATION_INTERFACE_SAAS.md`. Le premier lot aligne les vues Laravel d’authentification historiques sur le shell public SaaS et les composants `x-ui`, sans modifier leurs routes ni leurs champs. Les prochains lots doivent être livrés écran par écran, avec validation fonctionnelle et visuelle ; ne pas appliquer un remplacement global aux écrans POS, DataTables, e-commerce public, PDF ou e-mails.
+La section **Clôture locale — 14 septembre 2026** et les mises à jour qui la précèdent constituent l’état courant du développement. Les entrées datées plus anciennes sont conservées comme journal de décisions et de preuves ; leurs mentions « à faire », « reste à valider » ou « prochaine étape » décrivent l’état du projet à leur date et ne constituent plus des tâches ouvertes. Pour la production, seules les étapes de déploiement, de configuration des secrets/URLs et d’activation progressive indiquées dans la clôture restent applicables.
+
+## Clôture locale — 14 septembre 2026
+
+Le développement et les tests locaux du module Partenaires sont considérés comme terminés. La suite complète a été exécutée sur la base isolée `pos_testing` : **356 tests, 2 034 assertions, 0 échec**. Le contrôle dédié aux parcours partenaire, paiements, webhooks, commissions, retraits, frais, réconciliation et trésorerie a validé 64 tests et 370 assertions.
+
+Deux corrections de non-régression ont été ajoutées pendant cette clôture :
+
+- l’auto-parrainage est refusé côté serveur lorsque l’adresse e-mail du partenaire correspond à celle du propriétaire du compte d’abonnement ; aucun rabais ni aucune commission ne peut alors être créé ;
+- les rappels d’expiration J−1 à J−3 couvrent maintenant les jours calendaires complets, afin de ne pas omettre une expiration à une heure antérieure à l’exécution du cron.
+
+Les paiements et retraits réels KPrimePay avaient déjà été validés par le propriétaire, y compris les callbacks via webhook.site et un retrait côté administration. Aucune nouvelle transaction réelle n’a été créée pendant cette clôture automatisée. Les seules étapes restantes relèvent du déploiement et de l’exploitation de production : secrets, URLs de callback, workers, cron, supervision et activation graduelle des paramètres.
+
+## Mise à jour du 14 septembre 2026 — pilotage plateforme des partenaires
+
+- La console plateforme dispose maintenant de **Partenaires** (`/platform/partners`) pour suivre les volumes de partenaires, la vérification des e-mails, les clients qualifiés, les commissions, les soldes et les retraits.
+- La vue détail (`/platform/partners/{partner}`) regroupe l’identité, le code promotionnel principal, les attributions, les commissions, les retraits et le journal partenaire. Les sections financières restent protégées par `platform.partner_commissions.view` et `platform.partner_withdrawals.view`.
+- Les graphiques ApexCharts utilisent les tokens du design system et sont accompagnés d’un tableau de données consultable, avec adaptation mobile et filtres serveur.
+- Les alertes e-mail partenaires sont configurables depuis **Paramètres > Partenaires**. Par défaut, les inscriptions/activations vont au support et les événements de retrait à la finance ; les retraits inconnus sont signalés pour réconciliation. Les jobs sont idempotents et planifiés après commit.
+- Les réglages sont stockés par la migration `2026_09_14_100000_create_partner_alert_settings.php`. Les fichiers principaux sont `PlatformPartnerInsightsService`, `Platform\PartnerController`, `SendPartnerPlatformAlert` et `PartnerPlatformAlertMail`.
+- Validation locale du lot : lint SaaS, cache Blade, routes dédiées et **9 tests ciblés, 43 assertions, 0 échec** (dont 3 tests de pilotage/alertes).
+
+## Journal historique des lots antérieurs
+
+Les entrées datées ci-dessous sont conservées pour tracer les décisions, contrôles et corrections successifs. Elles ne rouvrent aucune tâche : l’état courant est exclusivement celui de la clôture du 14 septembre 2026 et de la matrice documentaire.
+
+## Mise à jour historique du 7 septembre 2026 — migration UI SaaS transversale
+
+À cette date, la migration contrôlée des interfaces avait démarré. Le périmètre et les lots étaient suivis dans un plan de migration désormais supprimé après clôture. Le premier lot alignait les vues Laravel d’authentification historiques sur le shell public SaaS et les composants `x-ui`, sans modifier leurs routes ni leurs champs. Les lots suivants ont depuis été livrés et validés en staging ; ne pas lire cette entrée comme une liste de tâches ouverte.
 
 Le propriétaire confirme également la fin de la recette staging : contrôle visuel desktop/mobile des écrans secondaires et AJAX, abonnement KPrimePay réel avec webhook, SMTP réel, cron/queues, sauvegardes, logs et alertes. La production ne demande plus de développement fonctionnel, uniquement le déploiement sécurisé et la vérification des secrets et URL propres à cet environnement.
 
@@ -71,7 +99,7 @@ Les évolutions ultérieures couvrent également les retraits partenaires et adm
 - Le prompt impose `subscriptions.enforcement_enabled`, desactive par defaut : ce reglage permet le travail local sans restrictions de plan mais ne contourne jamais authentification, permissions, isolation tenant, statut de compagnie, CSRF, rate limits ou verification KPrimePay.
 - Le prompt impose une mise a jour de ce fichier apres chaque phase et du rapport administration apres chaque progression plateforme, avec tests immediats avant de poursuivre.
 - Aucun code metier, schema, paiement, quota, abonnement ou donnee n'a ete modifie pendant ce cadrage. Les changements deja presents dans le depot ont ete preserves.
-- Validation de ce lot documentaire : lecture et inspection du code/documents, controle visuel des 15 pages du PDF et `git diff --check` passe sans erreur. L'implementation et tous ses tests restent a faire selon les huit phases du prompt.
+- Validation de ce lot documentaire (état du 2 septembre, historique) : lecture et inspection du code/documents, contrôle visuel des 15 pages du PDF et `git diff --check` passaient alors. L’implémentation et les tests ont été réalisés dans les lots ultérieurs ; voir la clôture du 14 septembre.
 
 ## Mise à jour du 2 septembre 2026 — abonnements, lot 1 (socle et protection initiale)
 
@@ -97,18 +125,20 @@ Les évolutions ultérieures couvrent également les retraits partenaires et adm
 - La création/restauration de produit vérifie la capacité produits active quand l'enforcement est activé. La réponse est explicite et aucune donnée n'est supprimée.
 - Ajout de `SubscriptionPaymentTest` : downgrade refusé avant checkout ; règlement annuel Bronze vérifié et rejoué une seconde fois, avec un seul paiement `paid` et un seul crédit annuel (+240 SMS/+240 WhatsApp après les crédits essai). Résultat : 2 tests, 6 assertions, 0 échec.
 - Tests confirmés : `SubscriptionFoundationTest` (3/15), `SubscriptionPaymentTest` (2/6), `QuotaPaymentTest` (5/46), `AuthNavigationTest` (2/49), `view:cache` et `git diff --check`.
-- Reste : contrôle exhaustif des limites utilisateurs/compagnies, contrôle des routes mutantes hors groupes déjà protégés, administration catalogue/préflight, tests HTTP V1/V2 de paiement abonnement, notifications de rappel et recette navigateur. L'enforcement reste OFF par défaut.
+- Reste à la date du lot (historique) : contrôle exhaustif des limites utilisateurs/compagnies, contrôle des routes mutantes hors groupes déjà protégés, administration catalogue/préflight, tests HTTP V1/V2 de paiement abonnement, notifications de rappel et recette navigateur. Ces points ont été couverts dans les lots ultérieurs ; l'enforcement reste OFF par défaut hors activation contrôlée.
 
 ## Mise à jour du 2 septembre 2026 — correction UI Abonnement
 
 - La vue `resources/views/subscription/index.blade.php` a été refondue avec `layouts.saas`, `saas-page-header`, `saas-metric`, `saas-card`, badges d’état et grille de plans responsive. Elle n’injecte plus de contrôles d’apparence dans son contenu.
 - Cause du contenu « Mode d’affichage / Couleur dominante » visible sur la page : le composant d’apparence du topbar était rendu sans règle globale de masquage initial après retrait de la feuille historique. `design-system.css` contient maintenant `.saas-modal { display:none; }` et `.saas-modal.show { display:block; }`, et son cache est passé en `20260902-7`.
 - Le composant d’apparence reste disponible uniquement via le bouton Apparence du topbar, conformément au nouveau template. Aucun réglage d’apparence n’est présent dans la section Abonnement.
-- Validation : `php artisan view:cache`, `SubscriptionFoundationTest`, `SubscriptionPaymentTest` et `git diff --check` passent. Recette navigateur visuelle de la page Abonnement reste à faire.
+- Validation au 2 septembre (historique) : `php artisan view:cache`, `SubscriptionFoundationTest`, `SubscriptionPaymentTest` et `git diff --check` passaient alors. La recette navigateur visuelle a été réalisée ensuite en staging.
 
 Ce fichier est le point de reprise commun pour Codex, Freebuff et tout autre intervenant. Le lire intégralement avant toute modification. Ne pas refaire les fonctions indiquées comme terminées et ne pas faire travailler deux assistants simultanément sur les mêmes fichiers.
 
-## Reprise frontend — état exact au 1er septembre 2026
+## Reprise frontend — état historique exact au 1er septembre 2026
+
+> Cette section conserve le contexte de conception et les décisions de la recette du 1er septembre. Pour l’état actuel, suivre la clôture du 14 septembre et la matrice documentaire.
 
 ### Direction validée
 
@@ -206,7 +236,7 @@ Au retour de l’agent précédent, la reprise doit être possible sans interpr�
 
 État réel au 1er septembre 2026 :
 
-- **Modales POS : partiellement harmonisées.** Reçu, détail de vente et commandes en cours utilisent `pos-modal-content`, mais le composant Blade commun `x-ui.modal` et la recette complète focus/Échap/restauration ne sont pas encore généralisés à tous les modules.
+- **Modales POS : constat historique du 1er septembre.** Reçu, détail de vente et commandes en cours utilisaient alors `pos-modal-content` ; la généralisation et la recette ont été poursuivies dans les lots UI suivants et validées en staging.
 - **DataTable du POS : visuellement adaptée localement.** Les anciennes couleurs injectées dans `drawCallback` ont été retirées, mais il n’existe pas encore de composant ou wrapper DataTable partagé et validé sur tous les écrans.
 - **Généralisation non réalisée.** Le prochain lot transversal doit inventorier les DataTables et modales existantes, créer la primitive CSS/Blade commune, migrer un écran pilote, puis seulement étendre module par module.
 - Il est interdit à un prochain agent de déclarer ces deux chantiers terminés en se fondant uniquement sur le POS.
@@ -705,7 +735,7 @@ La référence active de la console plateforme est `docs/RAPPORT_ADMINISTRATION_
 
 Toute l’implémentation et son avancement sont désormais regroupés dans un seul document permanent : `docs/RAPPORT_ADMINISTRATION_SAAS.md`. Ne plus créer de rapport distinct par phase. Après chaque modification de la partie administrative, mettre à jour dans ce document la date, la fonctionnalité concernée, les contrôles de sécurité, les tests réalisés et, si nécessaire, les instructions de déploiement.
 
-État de référence au 28 août 2026 : garde `platform`, connexion dédiée, tableau de bord global, gestion et consultation des entreprises et utilisateurs, paiements et quotas KPrimePay, tarification et rentabilité SMS/WhatsApp, journal d’audit, santé du système, gestion des administrateurs et rôles Super-administrateur, Support, Finance et Technique. Les permissions protègent les menus et les routes. Dernière suite complète connue : **185 tests, 1 109 assertions, 0 échec**.
+État de référence au 28 août 2026 (historique) : garde `platform`, connexion dédiée, tableau de bord global, gestion et consultation des entreprises et utilisateurs, paiements et quotas KPrimePay, tarification et rentabilité SMS/WhatsApp, journal d’audit, santé du système, gestion des administrateurs et rôles Super-administrateur, Support, Finance et Technique. Les permissions protègent les menus et les routes. La suite de référence de cette date comptait **185 tests, 1 109 assertions, 0 échec** ; elle a été remplacée par la clôture complète du 14 septembre.
 
 Sécurité plateforme ajoutée le 28 août 2026 : double authentification par code e-mail hashé et expirant, renvoi limité, récupération du mot de passe par lien hashé à usage unique, invalidation des anciennes sessions, activation/désactivation individuelle et réinitialisation 2FA auditées depuis **Administrateurs**. Migration : `2026_08_28_200000_add_security_to_platform_admins.php`. Le suivi détaillé reste exclusivement dans `docs/RAPPORT_ADMINISTRATION_SAAS.md`.
 
@@ -1086,7 +1116,7 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - `php artisan view:cache` et `git diff --check` passent après les dernières corrections UI.
 - Contrôle navigateur effectué en session locale authentifiée sur l’écran 403 e-commerce ; aucun paiement ni formulaire métier n’a été soumis.
 
-### À faire lors de la prochaine session (ordre recommandé)
+### Archive — à faire lors de la prochaine session (état du 2 septembre)
 
 1. Auditer toutes les routes mutantes et compléter les protections d’écriture manquantes.
 2. Ajouter les tests HTTP KPrimePay V1/V2 : succès, échec, expiration, signature invalide, doublon et webhook rejoué.
@@ -1112,7 +1142,7 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - **Tests ajoutés** : `SubscriptionWebhookTest` (V1/V2, succès, échec, mismatch, rejeu, réconciliation) et `SubscriptionAccessTest` (permission propriétaire nouvelle compagnie, lecture autorisée/écritures Équipe refusées après expiration).
 - **Validation du lot** : tests abonnement + quotas : **17 tests, 98 assertions, 0 échec**. La suite complète `php artisan test --stop-on-failure --no-coverage` a aussi été exécutée sans arrêt sur échec. `php artisan view:cache` et `git diff --check` restent à exécuter après toute modification ultérieure de ce lot.
 
-### Reste à finaliser avant activation production
+### Archive — reste à finaliser à la date du lot
 
 1. Créer l’administration plateforme du catalogue abonnement et le préflight de publication/activation ; ne jamais modifier un prix déjà souscrit, utiliser une nouvelle version de plan.
 2. Décider puis implémenter les canaux réels de rappel J-3/J-2/J-1/expiration, avec opt-in, destinataires, idempotence et tests ; actuellement les rappels sont seulement journalisés.
@@ -1160,7 +1190,7 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - **Tests et contrôles** : `PlatformSubscriptionPreflightTest`, `SubscriptionAccessTest` et `SubscriptionWebhookTest` passent : **10 tests, 45 assertions, 0 échec**. `php artisan view:cache`, `php artisan route:list --path=platform/subscriptions` et `git diff --check` passent.
 - **Recette visuelle locale authentifiée** : la page a été ouverte avec une session super-administrateur. Aucun débordement horizontal à 1440/1024/768/390 px ; le menu mobile apparaît à 768 et 390 px ; aucune erreur ou alerte console. Aucun formulaire, paiement ou réglage n’a été soumis.
 
-### Reste à finaliser avant activation production
+### Archive — reste à finaliser à la date du lot
 
 1. Implémenter un véritable catalogue plateforme versionné : création d’une nouvelle version de plan, publication/masquage, double confirmation, mot de passe, audit et interdiction stricte d’éditer les snapshots déjà souscrits.
 2. Décider puis implémenter les canaux réels de rappel J-3/J-2/J-1/expiration, avec opt-in, destinataires, idempotence et tests ; actuellement les rappels sont seulement journalisés.
@@ -1174,7 +1204,7 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - **Correction découverte en recette** : le premier rendu contenait deux directives Blade concaténées, produisant une erreur 500. La directive a été séparée, le test HTTP d’ouverture a été ajouté et la page est désormais compilée et rendue correctement.
 - **Tests et recette** : `PlatformSubscriptionCatalogTest` — **4 tests, 20 assertions, 0 échec** ; contrôle local authentifié sans soumission à 1440/1024/768/390 px, aucun débordement et aucune erreur/alerte console.
 
-### Reste à finaliser avant activation production
+### Archive — reste à finaliser à la date du lot
 
 1. Décider puis implémenter les canaux réels de rappel J-3/J-2/J-1/expiration, avec opt-in, destinataires, idempotence et tests ; actuellement les rappels sont seulement journalisés.
 2. Rejouer le parcours complet de checkout KPrimePay sur un environnement de paiement sûr avec une version de plan brouillon puis publiée, sans transaction réelle non autorisée.
@@ -1213,7 +1243,7 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - **Contenu** : la notification `SubscriptionExpiryNotification` distingue le rappel J-3/J-2/J-1 de l’expiration et renvoie vers le menu Abonnement. Aucun SMS ou WhatsApp n’est déclenché.
 - **Tests** : `SubscriptionExpiryCommandTest` vérifie l’envoi au propriétaire et à l’administrateur, l’absence de doublon lors d’une seconde exécution et l’e-mail d’expiration : **2 tests, 13 assertions, 0 échec**.
 
-### Reste à valider avant production
+### Archive — reste à valider à la date du lot
 
 1. Configurer et tester le relais SMTP de production, le domaine d’envoi, le SPF/DKIM/DMARC et la supervision des erreurs ; aucun e-mail réel de production n’a été déclenché ici.
 2. Faire valider le contenu, le fuseau horaire d’envoi et la politique de désinscription/consentement par le responsable produit et juridique.
@@ -1294,9 +1324,8 @@ Accès : `/admin-saas` ou `/platform/login`. Le même e-mail peut ouvrir une ent
 - **KPrimePay** : les encaissements existants restent inchangés. Les payouts devront utiliser un service et une clé distincts, les scopes payout/read, l’IP autorisée, une idempotency key persistée, le statut crédit et les webhooks de transfert. Aucun payout n’a été appelé ni simulé dans ce lot documentaire.
 - **Règle de palier corrigée et fixée** : le taux part de 10 % et s’arrête à 25 %. Il faut 5 nouveaux clients qualifiés par point de 10 à 15 %, puis 10 clients par point de 15 à 20 %, puis 20 clients par point de 20 à 25 %. Ainsi, les rangs 26–35 gagnent 15 %, 36–45 gagnent 16 %, jusqu’aux rangs 156–175 à 24 %, puis le rang 176 et tous les suivants gagnent 25 %. Le taux est acquis par chaque client et conservé lors de ses renouvellements.
 - **Décisions produit/juridiques à confirmer avant implémentation financière** : commission sur brut, taux acquis conservé, maturité 7 jours, minimum de retrait proposé à 5 000 XOF en plus des 3 clients, revue manuelle initiale, frais, fiscalité/KYC et remboursements.
-- **État réel** : architecture/documentation uniquement. Le module partenaire n’est pas encore développé. La reprise doit commencer par la Phase 0 du cahier, puis progresser phase par phase avec tests concomitants et mise à jour de ce handoff à chaque lot.
+- **État réel à la date du 8 septembre (historique)** : architecture/documentation uniquement. Le module partenaire n’était pas encore développé à cette date. Il a depuis été livré et validé en staging ; voir la clôture du 14 septembre. La reprise production porte uniquement sur le déploiement, la configuration et la supervision.
 - **Contrat UI/UX partenaire** : le futur portail doit reprendre concrètement le template SaaS Maxanou. `layouts.partner` sera construit à partir du shell, des tokens, thèmes et assets partagés de `layouts.saas`, avec navigation partenaire uniquement ; il ne doit pas copier une nouvelle feuille CSS ni réintroduire l’ancien template. Les vues doivent employer les composants `x-ui.*` existants, les DataTables partagées, le responsive 320–1440 px, l’accessibilité et `ServerButtonLoader`. `php artisan ui:lint`, `view:cache`, les tests de rendu et la recette clair/sombre mobile/desktop sont des gates obligatoires de chaque lot d’interface.
-- **Prompt de reprise prêt** : `docs/PROMPT_DEMARRAGE_IMPLEMENTATION_PARTENAIRES.md` peut être copié dans une nouvelle discussion. Il impose une fonctionnalité à la fois, tests automatisés concomitants, inspection visuelle par l’agent, rapport complet, mise à jour du handoff, scénario de recette manuelle, arrêt obligatoire et autorisation explicite du propriétaire avant de poursuivre.
 
 ## Mise à jour du 8 septembre 2026 — message d’erreur du mot de passe administrateur
 

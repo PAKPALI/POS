@@ -132,4 +132,30 @@ class PlatformOperationsTest extends TestCase
         $this->actingAs($admin, 'platform')->postJson(route('platform.health.jobs.retry', $uuid), ['reason' => 'Nouvelle tentative contrôlée'])
             ->assertNotFound();
     }
+
+    public function test_failed_job_details_expose_the_feature_and_failure_cause(): void
+    {
+        $admin = $this->admin();
+        $uuid = '22222222-2222-4222-8222-222222222222';
+        DB::table('failed_jobs')->insert([
+            'uuid' => $uuid,
+            'connection' => 'database',
+            'queue' => 'notifications',
+            'payload' => json_encode([
+                'displayName' => 'App\\Jobs\\SendSaleEmailJob',
+                'maxTries' => 3,
+                'timeout' => 120,
+            ]),
+            'exception' => "RuntimeException: SMTP indisponible\n#0 /var/www/app/Jobs/SendSaleEmailJob.php:89",
+            'failed_at' => now(),
+        ]);
+
+        $this->actingAs($admin, 'platform')->getJson(route('platform.health.jobs.details', $uuid))
+            ->assertOk()
+            ->assertJsonPath('feature', 'Ventes et notifications')
+            ->assertJsonPath('job', 'App\\Jobs\\SendSaleEmailJob')
+            ->assertJsonPath('exception_class', 'RuntimeException')
+            ->assertJsonPath('cause', 'SMTP indisponible')
+            ->assertJsonPath('queue', 'notifications');
+    }
 }

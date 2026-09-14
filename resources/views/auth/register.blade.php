@@ -26,6 +26,11 @@
                     <label class="form-label">Pays de l’entreprise</label>
                     <select name="country_code" class="form-select form-select-lg country-select mb-3" data-placeholder="Rechercher un pays" required><option value="">Pays de l’entreprise</option>@foreach(config('african_countries') as $iso => $countryName)<option value="{{ $iso }}" @selected($iso === 'TG')>{{ $countryName }} ({{ $iso }})</option>@endforeach</select>
                 </div>
+                <div class="saas-form-group">
+                    <label class="form-label">Téléphone (facultatif)</label>
+                    <input type="tel" class="form-control form-control-lg bg-inverse bg-opacity-5" name="phone" inputmode="numeric" autocomplete="tel" placeholder="Ex. 90859488">
+                    <div class="form-text text-inverse text-opacity-50">Saisissez le numéro local, sans indicatif.</div>
+                </div>
 
                 <div class="saas-form-group">
                     <label class="form-label">Adresse e-mail</label>
@@ -35,17 +40,18 @@
                 <div class="saas-form-group">
                     <label class="form-label">Mot de passe</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password" name="password" placeholder="mot de passe" required>
+                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password" name="password" placeholder="mot de passe" minlength="12" autocomplete="new-password" aria-describedby="registrationPasswordHelp" required>
                         <span class="input-group-text" id="togglePassword" role="button" tabindex="0" aria-label="Afficher le mot de passe">
                             <i class="bi bi-eye" id="togglePasswordIcon"></i>
                         </span>
                     </div>
+                    <div id="registrationPasswordHelp" class="form-text text-inverse text-opacity-50">12 caractères minimum, avec majuscule, minuscule, chiffre et symbole.</div>
                 </div>
 
                 <div class="saas-form-group">
                     <label class="form-label">Confirmer le mot de passe</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="password_confirmation" placeholder="mot de passe" required>
+                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="password_confirmation" placeholder="mot de passe" minlength="12" autocomplete="new-password" required>
                         <span class="input-group-text" id="togglePassword2" role="button" tabindex="0" aria-label="Afficher le mot de passe">
                             <i class="bi bi-eye" id="togglePasswordIcon2"></i>
                         </span>
@@ -75,7 +81,7 @@
                 const button = this.querySelector('[type="submit"]');
                 window.ServerButtonLoader.withLoader(button, $.ajax({
                     type: 'POST',
-                    url: "{{ route('admin_register') }}",
+                    url: "{{ route('register.store') }}",
                     data: $('#form').serialize(),
                     dataType: 'json',
                 })).then(function(data) {

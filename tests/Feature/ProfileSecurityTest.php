@@ -70,11 +70,11 @@ class ProfileSecurityTest extends TestCase
         $this->postJson(route('profile.password.update'), [
             'user_id' => $victim->id,
             'AM' => 'CurrentPassword123',
-            'NM' => 'NewPassword456',
-            'CM' => 'NewPassword456',
+            'NM' => 'NewPassword!456',
+            'CM' => 'NewPassword!456',
         ])->assertOk()->assertJson(['status' => true]);
 
-        $this->assertTrue(Hash::check('NewPassword456', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewPassword!456', $user->fresh()->password));
         $this->assertSame($victimPassword, $victim->fresh()->password);
     }
 
@@ -85,17 +85,30 @@ class ProfileSecurityTest extends TestCase
 
         $this->postJson(route('profile.password.update'), [
             'AM' => 'MauvaisMotDePasse123',
-            'NM' => 'NewPassword456',
-            'CM' => 'NewPassword456',
+            'NM' => 'NewPassword!456',
+            'CM' => 'NewPassword!456',
         ])->assertUnprocessable()->assertJson(['status' => false]);
 
         $this->postJson(route('profile.password.update'), [
             'AM' => 'CurrentPassword123',
-            'NM' => 'NewPassword456',
+            'NM' => 'NewPassword!456',
             'CM' => 'DifferentPassword789',
         ])->assertUnprocessable()->assertJson(['status' => false]);
 
         $this->assertSame($originalPassword, $user->fresh()->password);
+    }
+
+    public function test_password_change_rejects_a_password_without_a_symbol(): void
+    {
+        [$user] = $this->authenticatedUsers();
+
+        $this->postJson(route('profile.password.update'), [
+            'AM' => 'CurrentPassword123',
+            'NM' => 'LongPassword123',
+            'CM' => 'LongPassword123',
+        ])->assertUnprocessable()->assertJson(['status' => false]);
+
+        $this->assertTrue(Hash::check('CurrentPassword123', $user->fresh()->password));
     }
 
     public function test_user_can_save_personal_appearance_preferences(): void

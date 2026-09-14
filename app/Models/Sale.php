@@ -21,4 +21,9 @@ class Sale extends Model
     {
         return $this->belongsTo(Client::class);
     }
+
+    public function communicationLogs()
+    {
+        return $this->hasMany(CommunicationLog::class)->latest('sent_at');
+    }
 }

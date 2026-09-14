@@ -27,7 +27,13 @@ class ExpireSubscriptions extends Command
                 $this->deliver($event, $subscription, 0, $configuration);
             }
         });
-        Subscription::with(['plan', 'subscriptionAccount.owner', 'subscriptionAccount.billingCompany'])->whereIn('status', ['trial', 'active'])->whereBetween('ends_at', [$now, $now->copy()->addDays(3)])->chunkById(100, function ($subscriptions) use ($configuration, $now) {
+        // Les rappels J-1 à J-3 sont des jours calendaires. Une fenêtre de
+        // 72 heures exactes omettait un abonnement qui expire à midi lorsque
+        // la commande s'exécute plus tard dans la journée à J-3.
+        Subscription::with(['plan', 'subscriptionAccount.owner', 'subscriptionAccount.billingCompany'])
+            ->whereIn('status', ['trial', 'active'])
+            ->whereBetween('ends_at', [$now->copy()->startOfDay(), $now->copy()->addDays(3)->endOfDay()])
+            ->chunkById(100, function ($subscriptions) use ($configuration, $now) {
             foreach ($subscriptions as $subscription) {
                 $days = (int) $now->copy()->startOfDay()->diffInDays($subscription->ends_at->copy()->startOfDay(), false);
                 if (!in_array($days, [1, 2, 3], true)) continue;

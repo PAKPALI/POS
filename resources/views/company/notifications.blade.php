@@ -19,14 +19,14 @@
 
 @section('content')
 <div class="saas-page-heading">
-    <div><h1>Configuration SMS &amp; WhatsApp</h1><p>Canaux d'envoi et destinataires pour {{ $company->name }}.</p></div>
+    <div><h1>Configuration SMS &amp; WhatsApp</h1><p>Canaux d'envoi et destinataires pour {{ $company->name }}. Les changements sont enregistrés automatiquement.</p></div>
     <a class="saas-btn saas-btn-ghost" href="{{ route('communications.index') }}"><i class="bi bi-clock-history"></i> Voir la consommation</a>
 </div>
 
 @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 
-<form method="POST" action="{{ route('notifications.update') }}">
+<form id="notification-settings-form" method="POST" action="{{ route('notifications.update') }}">
     @csrf
     @method('PUT')
 
@@ -41,7 +41,7 @@
                     @foreach(['email' => ['bi-envelope', 'E-mail'], 'whatsapp' => ['bi-whatsapp', 'WhatsApp'], 'sms' => ['bi-chat-text', 'SMS']] as $channel => [$icon, $channelLabel])
                         <label class="saas-switch-line" for="{{ $category }}_{{ $channel }}_enabled">
                             <span><i class="bi {{ $icon }}"></i><strong>{{ $channelLabel }}</strong></span>
-                            <input class="saas-switch-input" type="checkbox" role="switch" name="{{ $category }}_{{ $channel }}_enabled" value="1" id="{{ $category }}_{{ $channel }}_enabled" {{ $company->{$category.'_'.$channel.'_enabled'} ? 'checked' : '' }}>
+                            <input class="saas-switch-input" type="checkbox" role="switch" data-notification-toggle="global" data-setting="{{ $category }}_{{ $channel }}_enabled" name="{{ $category }}_{{ $channel }}_enabled" value="1" id="{{ $category }}_{{ $channel }}_enabled" {{ $company->{$category.'_'.$channel.'_enabled'} ? 'checked' : '' }}>
                             <span class="saas-switch-control" aria-hidden="true"></span>
                         </label>
                     @endforeach
@@ -56,12 +56,12 @@
         <div class="communication-settings-grid">
             <label class="saas-switch-line is-large" for="invoice_whatsapp_enabled">
                 <span><i class="bi bi-whatsapp"></i><span><strong>WhatsApp</strong><small>{{ number_format($company->whatsapp_count, 0, ',', ' ') }} disponible(s)</small></span></span>
-                <input class="saas-switch-input" type="checkbox" role="switch" name="invoice_whatsapp_enabled" value="1" id="invoice_whatsapp_enabled" {{ $company->invoice_whatsapp_enabled ? 'checked' : '' }}>
+                <input class="saas-switch-input" type="checkbox" role="switch" data-notification-toggle="global" data-setting="invoice_whatsapp_enabled" name="invoice_whatsapp_enabled" value="1" id="invoice_whatsapp_enabled" {{ $company->invoice_whatsapp_enabled ? 'checked' : '' }}>
                 <span class="saas-switch-control" aria-hidden="true"></span>
             </label>
             <label class="saas-switch-line is-large" for="invoice_sms_enabled">
                 <span><i class="bi bi-chat-text"></i><span><strong>SMS</strong><small>{{ number_format($company->sms_count, 0, ',', ' ') }} disponible(s)</small></span></span>
-                <input class="saas-switch-input" type="checkbox" role="switch" name="invoice_sms_enabled" value="1" id="invoice_sms_enabled" {{ $company->invoice_sms_enabled ? 'checked' : '' }}>
+                <input class="saas-switch-input" type="checkbox" role="switch" data-notification-toggle="global" data-setting="invoice_sms_enabled" name="invoice_sms_enabled" value="1" id="invoice_sms_enabled" {{ $company->invoice_sms_enabled ? 'checked' : '' }}>
                 <span class="saas-switch-control" aria-hidden="true"></span>
             </label>
         </div>
@@ -101,7 +101,7 @@
                             @endphp
                             <td class="recipient-switch-cell" data-label="{{ ucfirst($channel) }}">
                                 <label class="recipient-toggle {{ $channel !== 'email' && !$user->phone ? 'is-phone-required' : '' }}" @if($channel !== 'email' && !$user->phone) data-phone-required="true" @endif>
-                                    <input class="saas-switch-input" type="checkbox" role="switch" name="recipients[{{ $category }}][{{ $user->id }}][{{ $channel }}]" value="1" {{ $isEnabled ? 'checked' : '' }} @if($channel !== 'email' && !$user->phone) data-phone-required="true" aria-disabled="true" title="Veuillez renseigner un numéro de téléphone" @endif>
+                                    <input class="saas-switch-input" type="checkbox" role="switch" data-notification-toggle="recipient" data-category="{{ $category }}" data-user-id="{{ $user->id }}" data-channel="{{ $channel }}" name="recipients[{{ $category }}][{{ $user->id }}][{{ $channel }}]" value="1" {{ $isEnabled ? 'checked' : '' }} @if($channel !== 'email' && !$user->phone) data-phone-required="true" aria-disabled="true" title="Veuillez renseigner un numéro de téléphone" @endif>
                                     <span class="saas-switch-control" aria-hidden="true"></span>
                                 </label>
                             </td>
@@ -116,15 +116,80 @@
     </section>
     @endforeach
 
-    <div class="notifications-save-actions d-flex justify-content-end mb-5">
-        <button class="saas-btn saas-btn-primary" type="submit" data-loading-text="Enregistrement…"><i class="bi bi-check2-circle"></i> Enregistrer les notifications</button>
-    </div>
 </form>
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('notification-settings-form');
+    const toggleUrl = @json(route('notifications.toggle'));
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    const showToast = (icon, title, text) => Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon,
+        title,
+        text,
+        showConfirmButton: false,
+        timer: 2200,
+        timerProgressBar: true,
+    });
+
+    // Every switch is persisted independently; the legacy form remains only for compatibility.
+    form?.addEventListener('submit', (event) => event.preventDefault());
+
+    document.querySelectorAll('[data-notification-toggle]').forEach((input) => {
+        input.dataset.persistedChecked = input.checked ? '1' : '0';
+    });
+
+    document.addEventListener('change', async function (event) {
+        const input = event.target.closest('[data-notification-toggle]');
+        if (!input || input.disabled || input.dataset.phoneRequired === 'true') return;
+
+        const previous = input.dataset.persistedChecked === '1';
+        const enabled = input.checked;
+        const payload = {
+            scope: input.dataset.notificationToggle,
+            enabled,
+        };
+        if (payload.scope === 'global') {
+            payload.setting = input.dataset.setting;
+        } else {
+            payload.category = input.dataset.category;
+            payload.user_id = Number(input.dataset.userId);
+            payload.channel = input.dataset.channel;
+        }
+
+        input.disabled = true;
+        try {
+            const response = await fetch(toggleUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify(payload),
+            });
+            let data = {};
+            try { data = await response.json(); } catch (_) { /* response without JSON */ }
+            if (!response.ok || data.status === false) {
+                const validationMessage = data.errors ? Object.values(data.errors).flat()[0] : null;
+                throw new Error(data.msg || data.message || validationMessage || 'Impossible d’enregistrer cette préférence.');
+            }
+            input.checked = Boolean(data.enabled);
+            input.dataset.persistedChecked = input.checked ? '1' : '0';
+            showToast('success', data.title || 'Configuration enregistrée', data.msg || 'Modification enregistrée.');
+        } catch (error) {
+            input.checked = previous;
+            showToast('error', 'Enregistrement impossible', error.message || 'Impossible de communiquer avec le serveur.');
+        } finally {
+            input.disabled = false;
+        }
+    });
+
     document.addEventListener('click', function (event) {
         const toggle = event.target.closest('.recipient-toggle[data-phone-required]');
         if (!toggle) return;

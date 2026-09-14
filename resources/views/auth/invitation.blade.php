@@ -30,16 +30,24 @@
             <form method="POST" action="{{ route('invitations.accept', $token) }}" class="invitation-account-panel">
                 @csrf
                 @if($existingUser)
-                    <h2>Votre compte est prêt</h2><p>Votre accès sera activé automatiquement pour <strong>{{ $invitation->email }}</strong> après confirmation. Aucune reconnexion préalable n’est nécessaire.</p>
+                    @if($canAcceptExistingUser)
+                        <h2>Confirmez votre accès</h2><p>Vous êtes connecté avec le compte <strong>{{ $invitation->email }}</strong>. Confirmez pour rejoindre cette entreprise avec le rôle proposé.</p>
+                    @else
+                        <h2>Connexion requise</h2><p>Cette invitation correspond à un compte existant. Connectez-vous avec <strong>{{ $invitation->email }}</strong>, puis revenez sur ce lien pour confirmer votre accès.</p>
+                        @if($errors->any())<x-ui.alert variant="danger">{{ $errors->first() }}</x-ui.alert>@endif
+                        <a class="btn btn-primary w-100" href="{{ route('user_login') }}">Se connecter</a>
+                    @endif
                 @else
                     <h2>Créez votre accès</h2><p>Ces informations vous permettront de vous reconnecter à toutes les entreprises auxquelles vous avez accès.</p>
                     <x-ui.input id="invitation-name" name="name" label="Nom complet" :value="old('name')" autocomplete="name" required />
                     <x-ui.input id="invitation-phone" name="phone" type="tel" label="Téléphone (facultatif)" :value="old('phone')" autocomplete="tel" />
-                    <x-ui.password id="invitation-password" name="password" label="Mot de passe" hint="Au moins 8 caractères." autocomplete="new-password" minlength="8" required />
-                    <x-ui.password id="invitation-password-confirmation" name="password_confirmation" label="Confirmer le mot de passe" autocomplete="new-password" minlength="8" required />
+                    <x-ui.password id="invitation-password" name="password" label="Mot de passe" hint="12 caractères minimum, avec majuscule, minuscule, chiffre et symbole." autocomplete="new-password" minlength="12" required />
+                    <x-ui.password id="invitation-password-confirmation" name="password_confirmation" label="Confirmer le mot de passe" autocomplete="new-password" minlength="12" required />
                 @endif
-                @if($errors->any())<x-ui.alert variant="danger">{{ $errors->first() }}</x-ui.alert>@endif
-                <x-ui.button class="w-100" type="submit" variant="primary" data-loading-text="Validation en cours…">{{ $existingUser ? 'Accepter l’invitation' : 'Créer mon compte et rejoindre l’entreprise' }}</x-ui.button>
+                @if(!$existingUser || $canAcceptExistingUser)
+                    @if($errors->any())<x-ui.alert variant="danger">{{ $errors->first() }}</x-ui.alert>@endif
+                    <x-ui.button class="w-100" type="submit" variant="primary" data-loading-text="Validation en cours…">{{ $existingUser ? 'Accepter l’invitation' : 'Créer mon compte et rejoindre l’entreprise' }}</x-ui.button>
+                @endif
             </form>
             <form method="POST" action="{{ route('invitations.decline', $token) }}" class="invitation-decline-form" data-confirm-message="Refuser définitivement cette invitation ?">@csrf<x-ui.button class="w-100" type="submit" variant="danger" data-loading-text="Refus en cours…">Refuser l’invitation</x-ui.button></form>
             <p class="invitation-security-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Lien sécurisé, personnel et utilisable une seule fois. Ne le transférez à personne.</p>

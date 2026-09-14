@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rules\Password as PasswordRule;
@@ -37,15 +38,20 @@ class AuthController extends Controller
         }
 
         $email = mb_strtolower(trim($validated['email']));
+        $accountKey = 'partner-login-account|'.hash('sha256', $email);
+        if (RateLimiter::tooManyAttempts($accountKey, 20)) {
+            return back()->withErrors(['email' => 'Trop de tentatives. Réessayez dans '.RateLimiter::availableIn($accountKey).' secondes.'])->onlyInput('email');
+        }
         $partner = Partner::where('normalized_email', $email)->first();
         if ($partner && $partner->status === 'pending_email' && !$partner->email_verified_at && Hash::check($validated['password'], $partner->password)) {
-            return back()->withErrors([
-                'email' => 'Votre inscription n’est pas encore validée. Cliquez sur le lien envoyé par e-mail pour activer votre compte, puis revenez vous connecter.',
-            ])->onlyInput('email');
+            RateLimiter::hit($accountKey, 600);
         }
         if (!$partner || $partner->status !== 'active' || !$partner->email_verified_at || !Hash::check($validated['password'], $partner->password)) {
+            RateLimiter::hit($accountKey, 600);
             return back()->withErrors(['email' => 'Les identifiants fournis sont incorrects.'])->onlyInput('email');
         }
+
+        RateLimiter::clear($accountKey);
 
         if ($partner->two_factor_login_enabled) {
             $this->authentication->issueTwoFactor($partner, $request);
@@ -86,6 +92,7 @@ class AuthController extends Controller
         } catch (\InvalidArgumentException $exception) {
             throw ValidationException::withMessages(['phone_number' => $exception->getMessage()]);
         }
+
         if (Partner::where('phone_e164', $validated['phone_e164'])->exists()) {
             throw ValidationException::withMessages(['phone_number' => 'Ce numéro est déjà associé à un compte partenaire.']);
         }
@@ -162,7 +169,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::guard('partner')->logout();
-        $request->session()->forget(['partner_auth_version', 'partner_2fa_partner_id']);
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('partner.login');
     }
@@ -247,4 +254,5 @@ class AuthController extends Controller
             'email.email' => 'Saisissez une adresse e-mail valide.',
         ]);
     }
+
 }

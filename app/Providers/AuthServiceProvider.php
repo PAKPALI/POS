@@ -19,6 +19,7 @@ use App\Policies\InventoryPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\CashAccountPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -43,6 +44,6 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Password::defaults(fn () => Password::min(12)->mixedCase()->numbers()->symbols());
     }
 }

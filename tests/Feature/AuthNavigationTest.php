@@ -13,11 +13,7 @@ class AuthNavigationTest extends TestCase
     public function test_login_and_registration_pages_link_to_each_other(): void
     {
         $this->get(route('signup'))
-            ->assertOk()
-            ->assertSeeText('Vous avez déjà un compte ?')
-            ->assertSee(route('user_login'))
-            ->assertSee(asset('hub/assets/css/vendor.min.css'))
-            ->assertSee(asset('hub/assets/css/public-auth.css'));
+            ->assertRedirect(route('register'));
 
         $this->get(route('user_login'))
             ->assertOk()
@@ -30,6 +26,9 @@ class AuthNavigationTest extends TestCase
 
         $this->get(route('platform.entry'))
             ->assertRedirect('/platform/login');
+
+        $this->get(route('user_verify_auth'))
+            ->assertRedirect(route('user_login'));
 
         $this->get(route('register'))
             ->assertOk()
@@ -44,7 +43,7 @@ class AuthNavigationTest extends TestCase
             ->assertSee('name="email"', false)
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
             ->assertSee(asset('hub/assets/css/public-auth.css'))
-            ->assertSee(route('admin_register'))
+            ->assertSee(route('register.store'))
             ->assertSee(route('user_login'));
 
         $this->get(route('password.request'))->assertOk()

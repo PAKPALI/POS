@@ -59,7 +59,7 @@ class PartnerAuthenticationTest extends TestCase
 
         $response->assertRedirect(route('partner.login'));
         $this->assertSame(
-            'Votre inscription n’est pas encore validée. Cliquez sur le lien envoyé par e-mail pour activer votre compte, puis revenez vous connecter.',
+            'Les identifiants fournis sont incorrects.',
             session('errors')->first('email')
         );
         $this->assertGuest('partner');
@@ -128,6 +128,42 @@ class PartnerAuthenticationTest extends TestCase
         $this->assertSame('Le numéro ne doit pas dépasser 24 caractères.', session('errors')->first('phone_number'));
     }
 
+    public function test_registration_rejects_an_email_already_used_by_a_partner(): void
+    {
+        $this->enable('partners.registration_enabled');
+        Partner::factory()->create([
+            'email' => 'existing-partner@example.test',
+            'normalized_email' => 'existing-partner@example.test',
+        ]);
+
+        $this->from(route('partner.register'))->post(route('partner.register.submit'), [
+            'name' => 'Partenaire Doublon', 'username' => 'partenaire-email-doublon',
+            'email' => 'EXISTING-PARTNER@example.test', 'country_code' => 'TG',
+            'phone_number' => '90 00 00 20', 'password' => 'StrongPassword!123',
+            'password_confirmation' => 'StrongPassword!123', 'accepted_terms' => '1',
+        ])->assertRedirect(route('partner.register'))
+            ->assertSessionHasErrors(['email' => 'Cette adresse e-mail est déjà associée à un compte partenaire.']);
+    }
+
+    public function test_registration_rejects_a_phone_already_used_by_a_partner(): void
+    {
+        $this->enable('partners.registration_enabled');
+        Partner::factory()->create([
+            'email' => 'existing-phone-partner@example.test',
+            'normalized_email' => 'existing-phone-partner@example.test',
+            'phone_country_code' => 'TG', 'country_code' => 'TG',
+            'phone_e164' => '+22890000021',
+        ]);
+
+        $this->from(route('partner.register'))->post(route('partner.register.submit'), [
+            'name' => 'Partenaire Doublon', 'username' => 'partenaire-telephone-doublon',
+            'email' => 'new-partner@example.test', 'country_code' => 'TG',
+            'phone_number' => '+228 90 00 00 21', 'password' => 'StrongPassword!123',
+            'password_confirmation' => 'StrongPassword!123', 'accepted_terms' => '1',
+        ])->assertRedirect(route('partner.register'))
+            ->assertSessionHasErrors(['phone_number' => 'Ce numéro est déjà associé à un compte partenaire.']);
+    }
+
     public function test_signed_email_verification_activates_pending_partner(): void
     {
         $partner = Partner::factory()->create(['status' => 'pending_email', 'email_verified_at' => null]);
@@ -166,5 +202,22 @@ class PartnerAuthenticationTest extends TestCase
         ])->assertRedirect(route('partner.login'));
 
         $this->assertDatabaseHas('partners', ['id' => $partner->id, 'auth_version' => $oldVersion + 1]);
+    }
+
+    public function test_partner_logout_invalidates_the_entire_session(): void
+    {
+        $partner = $this->activePartner();
+
+        $this->actingAs($partner, 'partner')
+            ->withSession([
+                'partner_auth_version' => $partner->auth_version,
+                'sensitive_marker' => 'must-disappear',
+            ])
+            ->post(route('partner.logout'))
+            ->assertRedirect(route('partner.login'))
+            ->assertSessionMissing('partner_auth_version')
+            ->assertSessionMissing('sensitive_marker');
+
+        $this->assertGuest('partner');
     }
 }

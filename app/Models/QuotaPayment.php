@@ -12,13 +12,14 @@ class QuotaPayment extends Model
     protected $fillable = [
         'company_id', 'user_id', 'transaction_id', 'idempotency_key', 'kpp_reference',
         'event_id', 'sms_quantity', 'sms_unit_price', 'sms_unit_cost', 'whatsapp_quantity', 'whatsapp_unit_price', 'whatsapp_unit_cost', 'amount', 'currency', 'status',
-        'checkout_url', 'failure_reason', 'expires_at', 'paid_at', 'failed_at', 'administration_email_status',
+        'checkout_url', 'failure_reason', 'payment_terms_version', 'payment_terms_accepted_at', 'expires_at', 'paid_at', 'failed_at', 'administration_email_status',
     ];
 
     protected $casts = [
         'expires_at' => 'datetime',
         'paid_at' => 'datetime',
         'failed_at' => 'datetime',
+        'payment_terms_accepted_at' => 'datetime',
         'administration_email_status' => 'array',
     ];
 

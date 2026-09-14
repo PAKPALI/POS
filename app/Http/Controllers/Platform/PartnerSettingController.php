@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Models\PlatformAdmin;
 use App\Models\PlatformAuditLog;
 use App\Models\PlatformSetting;
 use App\Models\PlatformSettingHistory;
@@ -31,6 +32,8 @@ class PartnerSettingController extends Controller
             'autoApprovalMaxXof' => $configuration->integer('partners.auto_approval_max_xof', 0),
             'payoutGatewayCatalog' => config('partners.payout_gateway_catalog', []),
             'activePayoutGateways' => $this->payoutGateways($configuration),
+            'partnerAlertAdmins' => PlatformAdmin::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'email', 'role']),
+            'partnerAlertSettings' => $this->partnerAlertSettings($configuration),
         ]);
     }
 
@@ -41,6 +44,17 @@ class PartnerSettingController extends Controller
             'partners_enabled' => ['nullable', 'boolean'],
             'registration_enabled' => ['nullable', 'boolean'],
             'payouts_enabled' => ['nullable', 'boolean'],
+            'alerts_enabled' => ['nullable', 'boolean'],
+            'alert_recipient_admin_ids' => ['nullable', 'array'],
+            'alert_recipient_admin_ids.*' => ['integer', 'exists:platform_admins,id'],
+            'alert_partner_registered' => ['nullable', 'boolean'],
+            'alert_email_verified' => ['nullable', 'boolean'],
+            'alert_code_changed' => ['nullable', 'boolean'],
+            'alert_commission_created' => ['nullable', 'boolean'],
+            'alert_withdrawal_requested' => ['nullable', 'boolean'],
+            'alert_withdrawal_succeeded' => ['nullable', 'boolean'],
+            'alert_withdrawal_failed' => ['nullable', 'boolean'],
+            'alert_withdrawal_unknown' => ['nullable', 'boolean'],
             'countries' => ['required', 'array', 'min:1'],
             'countries.*' => ['required', Rule::in($catalogCodes)],
             'code_cooldown_days' => ['sometimes', 'integer', 'min:1', 'max:365'],
@@ -57,6 +71,9 @@ class PartnerSettingController extends Controller
             'partners_enabled.boolean' => 'Le réglage du portail partenaire est invalide.',
             'registration_enabled.boolean' => 'Le réglage des inscriptions partenaires est invalide.',
             'payouts_enabled.boolean' => 'Le réglage des retraits partenaires est invalide.',
+            'alerts_enabled.boolean' => 'Le réglage des alertes partenaires est invalide.',
+            'alert_recipient_admin_ids.array' => 'La liste des destinataires d’alertes est invalide.',
+            'alert_recipient_admin_ids.*.exists' => 'Un destinataire sélectionné n’existe plus.',
             'countries.required' => 'Sélectionnez au moins un pays actif.',
             'countries.array' => 'La sélection des pays actifs est invalide.',
             'countries.min' => 'Sélectionnez au moins un pays actif.',
@@ -89,6 +106,22 @@ class PartnerSettingController extends Controller
             'partners.payouts_enabled' => ['value' => $payoutsEnabled ? 'true' : 'false', 'type' => 'boolean'],
             'partners.active_countries' => ['value' => json_encode($activeCodes), 'type' => 'json'],
         ];
+        if ($request->boolean('partner_alerts_form')) {
+            $changes['partners.alerts.enabled'] = ['value' => $request->boolean('alerts_enabled') ? 'true' : 'false', 'type' => 'boolean'];
+            $changes['partners.alerts.recipient_admin_ids'] = ['value' => json_encode(array_values(array_unique(array_map('intval', (array) ($data['alert_recipient_admin_ids'] ?? []))))), 'type' => 'json'];
+            foreach ([
+                'alert_partner_registered' => 'partners.alerts.partner_registered',
+                'alert_email_verified' => 'partners.alerts.email_verified',
+                'alert_code_changed' => 'partners.alerts.code_changed',
+                'alert_commission_created' => 'partners.alerts.commission_created',
+                'alert_withdrawal_requested' => 'partners.alerts.withdrawal_requested',
+                'alert_withdrawal_succeeded' => 'partners.alerts.withdrawal_succeeded',
+                'alert_withdrawal_failed' => 'partners.alerts.withdrawal_failed',
+                'alert_withdrawal_unknown' => 'partners.alerts.withdrawal_unknown',
+            ] as $field => $key) {
+                $changes[$key] = ['value' => $request->boolean($field) ? 'true' : 'false', 'type' => 'boolean'];
+            }
+        }
         if (array_key_exists('code_cooldown_days', $data)) {
             $changes['partners.code_change_cooldown_days'] = ['value' => (string) $data['code_cooldown_days'], 'type' => 'integer'];
         }
@@ -154,5 +187,26 @@ class PartnerSettingController extends Controller
         $fallback = config('partners.payout_gateways', []);
         $stored = $configuration->get('partners.payout_gateways', json_encode($fallback));
         return is_array($stored) ? $stored : (json_decode((string) $stored, true) ?: $fallback);
+    }
+
+    private function partnerAlertSettings(PlatformConfigurationService $configuration): array
+    {
+        $recipientIds = $configuration->get('partners.alerts.recipient_admin_ids', '[]');
+        if (!is_array($recipientIds)) {
+            $recipientIds = json_decode((string) $recipientIds, true) ?: [];
+        }
+
+        return [
+            'enabled' => $configuration->boolean('partners.alerts.enabled', true),
+            'recipient_admin_ids' => array_values(array_map('intval', $recipientIds)),
+            'partner_registered' => $configuration->boolean('partners.alerts.partner_registered', true),
+            'email_verified' => $configuration->boolean('partners.alerts.email_verified', true),
+            'code_changed' => $configuration->boolean('partners.alerts.code_changed', false),
+            'commission_created' => $configuration->boolean('partners.alerts.commission_created', false),
+            'withdrawal_requested' => $configuration->boolean('partners.alerts.withdrawal_requested', true),
+            'withdrawal_succeeded' => $configuration->boolean('partners.alerts.withdrawal_succeeded', true),
+            'withdrawal_failed' => $configuration->boolean('partners.alerts.withdrawal_failed', true),
+            'withdrawal_unknown' => $configuration->boolean('partners.alerts.withdrawal_unknown', true),
+        ];
     }
 }

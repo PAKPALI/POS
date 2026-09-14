@@ -17,6 +17,74 @@ class NotificationSettingsTest extends TestCase
 {
     use InteractsWithCompanies, RefreshDatabase;
 
+    public function test_global_switch_can_be_toggled_immediately(): void
+    {
+        $owner = User::factory()->create(['status' => 1, 'user_type' => 2, 'phone' => '90000000']);
+        $company = $this->activateCompanyFor($owner, 'notification-toggle-global');
+
+        $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
+            ->patchJson(route('notifications.toggle'), [
+                'scope' => 'global',
+                'setting' => 'sale_sms_enabled',
+                'enabled' => true,
+            ])
+            ->assertOk()
+            ->assertJson(['status' => true, 'enabled' => true]);
+
+        $this->assertDatabaseHas('company_settings', [
+            'id' => $company->id,
+            'sale_sms_enabled' => 1,
+        ]);
+    }
+
+    public function test_recipient_switch_can_be_toggled_immediately(): void
+    {
+        $owner = User::factory()->create(['status' => 1, 'user_type' => 2, 'phone' => '90000000']);
+        $company = $this->activateCompanyFor($owner, 'notification-toggle-recipient');
+
+        $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
+            ->patchJson(route('notifications.toggle'), [
+                'scope' => 'recipient',
+                'category' => 'sale',
+                'user_id' => $owner->id,
+                'channel' => 'sms',
+                'enabled' => true,
+            ])
+            ->assertOk()
+            ->assertJson(['status' => true, 'enabled' => true]);
+
+        $this->assertDatabaseHas('notification_recipients', [
+            'company_id' => $company->id,
+            'user_id' => $owner->id,
+            'category' => 'sale',
+            'sms_enabled' => 1,
+        ]);
+    }
+
+    public function test_recipient_switch_without_phone_is_rejected_immediately(): void
+    {
+        $owner = User::factory()->create(['status' => 1, 'user_type' => 2, 'phone' => null]);
+        $company = $this->activateCompanyFor($owner, 'notification-toggle-phone-required');
+
+        $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
+            ->patchJson(route('notifications.toggle'), [
+                'scope' => 'recipient',
+                'category' => 'sale',
+                'user_id' => $owner->id,
+                'channel' => 'whatsapp',
+                'enabled' => true,
+            ])
+            ->assertStatus(422)
+            ->assertJson(['status' => false, 'title' => 'Numéro requis']);
+
+        $this->assertDatabaseMissing('notification_recipients', [
+            'company_id' => $company->id,
+            'user_id' => $owner->id,
+            'category' => 'sale',
+            'whatsapp_enabled' => 1,
+        ]);
+    }
+
     public function test_owner_can_manage_recipients_by_category_and_channel(): void
     {
         $owner = User::factory()->create(['status' => 1, 'user_type' => 2, 'phone' => '90000000']);

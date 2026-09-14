@@ -10,6 +10,7 @@ use App\Services\AuthorizedLandingPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class InvitationAcceptanceController extends Controller
 {
@@ -17,7 +18,8 @@ class InvitationAcceptanceController extends Controller
     {
         $invitation = $service->findByToken($token);
         $existingUser = User::whereRaw('LOWER(email) = ?', [mb_strtolower($invitation->email)])->first();
-        return view('auth.invitation', compact('invitation', 'existingUser', 'token'));
+        $canAcceptExistingUser = $existingUser && (int) Auth::id() === (int) $existingUser->id;
+        return view('auth.invitation', compact('invitation', 'existingUser', 'token', 'canAcceptExistingUser'));
     }
 
     public function accept(
@@ -34,12 +36,21 @@ class InvitationAcceptanceController extends Controller
 
         if ($existingUser) {
             abort_unless((int) $existingUser->status === 1, 403, 'Le compte associé à cette invitation est désactivé.');
+            if ((int) Auth::id() !== (int) $existingUser->id) {
+                $message = 'Connectez-vous avec le compte invité avant d’accepter cette invitation.';
+
+                if (!Auth::check()) {
+                    return redirect()->route('invitations.show', $token)->withErrors(['email' => $message]);
+                }
+
+                return back()->withErrors(['email' => $message]);
+            }
             $user = $existingUser;
         } else {
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'phone' => ['nullable', 'string', 'max:30'],
-                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                'password' => ['required', 'string', 'confirmed', PasswordRule::min(12)->mixedCase()->numbers()->symbols()],
             ]);
             $user = DB::transaction(fn () => User::create([
                 'name' => $validated['name'], 'email' => $invitation->email,
@@ -59,10 +70,11 @@ class InvitationAcceptanceController extends Controller
             );
         }
 
-        // The invitation token authorizes the onboarding flow. Do not require
-        // a prior browser session: links are commonly opened from another
-        // browser or while a different account is currently signed in.
-        Auth::login($user);
+        // Only a newly created account may be logged in from the invitation
+        // flow. Existing accounts must already own the current session.
+        if ($createdNewUser) {
+            Auth::login($user);
+        }
         $request->session()->regenerate();
 
         $request->session()->forget(['active_company_id', 'active_company_name']);

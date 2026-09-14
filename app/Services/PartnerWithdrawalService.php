@@ -101,7 +101,7 @@ class PartnerWithdrawalService
         if (!$otpVerified) throw new RuntimeException('PAYOUT_OTP_REQUIRED');
         if ($amount < 1) throw new RuntimeException('PAYOUT_AMOUNT_INVALID');
 
-        return DB::transaction(function () use ($partner, $account, $amount, $request): PartnerWithdrawal {
+        $withdrawal = DB::transaction(function () use ($partner, $account, $amount, $request): PartnerWithdrawal {
             $partner = Partner::query()->whereKey($partner->id)->lockForUpdate()->firstOrFail();
             $account = PartnerWithdrawalAccount::query()->whereKey($account->id)->where('partner_id', $partner->id)->lockForUpdate()->firstOrFail();
             if ($account->status !== 'verified' || !$account->verified_at) throw new RuntimeException('PAYOUT_ACCOUNT_NOT_VERIFIED');
@@ -120,11 +120,19 @@ class PartnerWithdrawalService
             PartnerAuditLog::create(['partner_id' => $partner->id, 'action' => 'partner.withdrawal.requested', 'target_type' => PartnerWithdrawal::class, 'target_id' => (string) $withdrawal->id, 'new_values' => ['amount' => $amount, 'estimated_fees' => $fees, 'maximum_reserved' => $total, 'status' => $withdrawal->status], 'ip_address' => $request->ip(), 'user_agent_hash' => hash('sha256', (string) $request->userAgent())]);
             return $withdrawal;
         }, 3);
+
+        app(PartnerPlatformAlertService::class)->dispatch('withdrawal_requested', $partner, 'withdrawal:'.$withdrawal->id, [
+            'withdrawal_id' => $withdrawal->id,
+            'amount' => $withdrawal->amount,
+            'fees' => $withdrawal->estimated_fees,
+            'status' => $withdrawal->status,
+        ]);
+        return $withdrawal;
     }
 
     public function failAndRelease(PartnerWithdrawal $withdrawal, string $reason, Request $request): PartnerWithdrawal
     {
-        return DB::transaction(function () use ($withdrawal, $reason, $request): PartnerWithdrawal {
+        $withdrawal = DB::transaction(function () use ($withdrawal, $reason, $request): PartnerWithdrawal {
             $withdrawal = PartnerWithdrawal::query()->whereKey($withdrawal->id)->lockForUpdate()->firstOrFail();
             // Un résultat inconnu reste réservé jusqu’à la future réconciliation KPrimePay.
             if (in_array($withdrawal->status, ['succeeded', 'failed', 'cancelled', 'unknown'], true)) return $withdrawal;
@@ -134,12 +142,26 @@ class PartnerWithdrawalService
             PartnerAuditLog::create(['partner_id' => $withdrawal->partner_id, 'action' => 'partner.withdrawal.failed_released', 'target_type' => PartnerWithdrawal::class, 'target_id' => (string) $withdrawal->id, 'reason' => $reason, 'ip_address' => $request->ip(), 'user_agent_hash' => hash('sha256', (string) $request->userAgent())]);
             return $withdrawal;
         }, 3);
+
+        if ($withdrawal->status === 'failed') {
+            $partner = Partner::query()->find($withdrawal->partner_id);
+            if ($partner) {
+                app(PartnerPlatformAlertService::class)->dispatch('withdrawal_failed', $partner, 'withdrawal-failed:'.$withdrawal->id, [
+                    'withdrawal_id' => $withdrawal->id,
+                    'amount' => $withdrawal->amount,
+                    'fees' => $withdrawal->fees,
+                    'status' => $withdrawal->status,
+                    'reason' => $reason,
+                ]);
+            }
+        }
+        return $withdrawal;
     }
 
     /** Le débit réservé n'est soldé qu'après une confirmation fournisseur vérifiée. */
     public function settleSucceeded(PartnerWithdrawal $withdrawal, array $provider, int $actualFees, ?Request $request = null): PartnerWithdrawal
     {
-        return DB::transaction(function () use ($withdrawal, $provider, $actualFees, $request): PartnerWithdrawal {
+        $withdrawal = DB::transaction(function () use ($withdrawal, $provider, $actualFees, $request): PartnerWithdrawal {
             $withdrawal = PartnerWithdrawal::query()->whereKey($withdrawal->id)->lockForUpdate()->firstOrFail();
             if ($withdrawal->status === 'succeeded') return $withdrawal;
             if (in_array($withdrawal->status, ['failed', 'cancelled'], true)) return $withdrawal;
@@ -167,11 +189,24 @@ class PartnerWithdrawalService
             PartnerAuditLog::create(['partner_id' => $withdrawal->partner_id, 'action' => 'partner.withdrawal.succeeded', 'target_type' => PartnerWithdrawal::class, 'target_id' => (string) $withdrawal->id, 'new_values' => ['provider_status' => $withdrawal->provider_status, 'kpp_reference' => $withdrawal->kpp_reference, 'actual_fees' => $actualFees, 'fee_refund' => $refund, 'total_paid' => $paidTotal], 'ip_address' => $request?->ip(), 'user_agent_hash' => $request ? hash('sha256', (string) $request->userAgent()) : null]);
             return $withdrawal;
         }, 3);
+
+        if ($withdrawal->status === 'succeeded') {
+            $partner = Partner::query()->find($withdrawal->partner_id);
+            if ($partner) {
+                app(PartnerPlatformAlertService::class)->dispatch('withdrawal_succeeded', $partner, 'withdrawal-succeeded:'.$withdrawal->id, [
+                    'withdrawal_id' => $withdrawal->id,
+                    'amount' => $withdrawal->amount,
+                    'fees' => $withdrawal->fees,
+                    'status' => $withdrawal->status,
+                ]);
+            }
+        }
+        return $withdrawal;
     }
 
     public function markUnknown(PartnerWithdrawal $withdrawal, string $reason, ?array $provider = null): PartnerWithdrawal
     {
-        return DB::transaction(function () use ($withdrawal, $reason, $provider): PartnerWithdrawal {
+        $withdrawal = DB::transaction(function () use ($withdrawal, $reason, $provider): PartnerWithdrawal {
             $withdrawal = PartnerWithdrawal::query()->whereKey($withdrawal->id)->lockForUpdate()->firstOrFail();
             if (in_array($withdrawal->status, ['succeeded', 'failed', 'cancelled'], true)) return $withdrawal;
             $withdrawal->update([
@@ -183,6 +218,20 @@ class PartnerWithdrawalService
             PartnerAuditLog::create(['partner_id' => $withdrawal->partner_id, 'action' => 'partner.withdrawal.unknown', 'target_type' => PartnerWithdrawal::class, 'target_id' => (string) $withdrawal->id, 'reason' => $reason]);
             return $withdrawal;
         }, 3);
+
+        if ($withdrawal->status === 'unknown') {
+            $partner = Partner::query()->find($withdrawal->partner_id);
+            if ($partner) {
+                app(PartnerPlatformAlertService::class)->dispatch('withdrawal_unknown', $partner, 'withdrawal-unknown:'.$withdrawal->id, [
+                    'withdrawal_id' => $withdrawal->id,
+                    'amount' => $withdrawal->amount,
+                    'fees' => $withdrawal->estimated_fees,
+                    'status' => $withdrawal->status,
+                    'reason' => $reason,
+                ]);
+            }
+        }
+        return $withdrawal;
     }
 
     public function markProcessing(PartnerWithdrawal $withdrawal): PartnerWithdrawal

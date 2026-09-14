@@ -80,6 +80,7 @@ class PlatformPaymentPricingTest extends TestCase
 
         $this->actingAs($owner)->postJson(route('sms-quota.checkout'), [
             'sms_quantity' => 2, 'whatsapp_quantity' => 3,
+            'terms_accepted' => true,
         ])->assertOk();
 
         $payment = QuotaPayment::firstOrFail();

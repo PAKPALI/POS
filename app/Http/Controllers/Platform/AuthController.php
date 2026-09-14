@@ -43,10 +43,12 @@ class AuthController extends Controller
 
         $email = mb_strtolower(trim($validated['email']));
         $key = 'platform-login|'.$email.'|'.$request->ip();
+        $accountKey = 'platform-login-account|'.hash('sha256', $email);
 
-        if (RateLimiter::tooManyAttempts($key, 5)) {
+        if (RateLimiter::tooManyAttempts($key, 5) || RateLimiter::tooManyAttempts($accountKey, 20)) {
+            $retryAfter = max(RateLimiter::availableIn($key), RateLimiter::availableIn($accountKey));
             return back()->withErrors([
-                'email' => 'Trop de tentatives. Réessayez dans '.RateLimiter::availableIn($key).' secondes.',
+                'email' => 'Trop de tentatives. Réessayez dans '.$retryAfter.' secondes.',
             ])->onlyInput('email');
         }
 
@@ -54,10 +56,12 @@ class AuthController extends Controller
 
         if (!$admin || !$admin->is_active || !Hash::check($validated['password'], $admin->password)) {
             RateLimiter::hit($key, 60);
+            RateLimiter::hit($accountKey, 600);
             return back()->withErrors(['email' => 'Les identifiants fournis sont incorrects.'])->onlyInput('email');
         }
 
         RateLimiter::clear($key);
+        RateLimiter::clear($accountKey);
 
         if ($admin->two_factor_enabled) {
             $this->issueTwoFactorCode($request, $admin);

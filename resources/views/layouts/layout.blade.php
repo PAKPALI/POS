@@ -416,51 +416,37 @@
 
 			$(function () {
 				//ajax pour se deconnecter
-				$('#form-logout').submit(function(){ 
-					let chemin = "connexion"
+				$('#form-logout').submit(function(event){
 					event.preventDefault();
+					const form = this;
 					Swal.fire({
 						icon: "question",
 						title: "DECONNEXION",
-						text: "Etes vous sur de vous deconnecter?",
+						text: "Êtes-vous sûr de vouloir vous déconnecter ?",
 						showCancelButton: true,
 						cancelButtonText: 'NON',
 						confirmButtonText:  'OUI',
 						confirmButtonColor: '#d33',
 						cancelButtonColor:  '#3085d6',
+						showLoaderOnConfirm: true,
+						allowOutsideClick: () => !Swal.isLoading(),
+						preConfirm: () => $.ajax({
+							type: 'POST',
+							url: "{{ route('outUser') }}",
+							data: $(form).serialize(),
+							dataType: 'json',
+						}).catch(function (xhr) {
+							const response = xhr.responseJSON || {};
+							Swal.showValidationMessage(response.message || 'La déconnexion a échoué. Réessayez.');
+							return false;
+						}),
 					}).then((result) => {
-						if (result.isConfirmed){
-							$.ajax({
-								type: 'POST',
-								url: "{{ route('outUser') }}",
-								//enctype: 'multipart/form-data',
-								data: $('#form-logout').serialize(),
-								datatype: 'json',
-								success: function (data){
-									if (data.status)
-									{
-										Swal.fire({
-											icon: "success",
-											title: data.title,
-											text: data.msg,
-										}).then(() => {
-											window.location.replace("{{ route('user_login') }}");
-										})
-									}
-								},
-								error: function (data){
-									console.log(data)
-									Swal.fire({
-										icon: "error",
-										title: "erreur",
-										timer: 3600,
-									})
-								}
-							});
+						if (result.isConfirmed && result.value && result.value.status){
+							window.location.replace(result.value.redirect_to || "{{ route('user_login') }}");
 						}
 					})
+					return false;
 				});
-				return false;
 			});
 
 			// $('.menu-item').on('click', function() {

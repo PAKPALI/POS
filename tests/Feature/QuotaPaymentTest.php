@@ -88,6 +88,7 @@ class QuotaPaymentTest extends TestCase
         $checkout = $this->actingAs($owner)->postJson(route('sms-quota.checkout'), [
             'sms_quantity' => 2,
             'whatsapp_quantity' => 3,
+            'terms_accepted' => true,
         ])->assertOk()->assertJson([
             'status' => true,
             'checkout_url' => 'https://payments.kprimepay.test/checkout/test',
@@ -100,6 +101,8 @@ class QuotaPaymentTest extends TestCase
         $this->assertSame(15, (int) $payment->sms_unit_cost);
         $this->assertSame(15, (int) $payment->whatsapp_unit_cost);
         $this->assertSame('pending', $payment->status);
+        $this->assertSame('2026-09-14', $payment->payment_terms_version);
+        $this->assertNotNull($payment->payment_terms_accepted_at);
         $checkout->assertJson(['transaction_id' => $payment->transaction_id]);
         $this->getJson(route('sms-quota.status', $payment->transaction_id))
             ->assertOk()->assertJson(['payment_status' => 'pending']);
@@ -217,12 +220,25 @@ class QuotaPaymentTest extends TestCase
         $this->actingAs($owner)->postJson(route('sms-quota.checkout'), [
             'sms_quantity' => 1,
             'whatsapp_quantity' => 0,
+            'terms_accepted' => true,
         ])->assertStatus(503)->assertJson([
             'status' => false,
             'title' => 'KPrimePay non configuré',
         ]);
 
         $this->assertDatabaseCount('quota_payments', 0);
+    }
+
+    public function test_quota_checkout_requires_payment_terms_on_the_server(): void
+    {
+        config(['services.kprimepay.token' => 'sandbox-secret']);
+        $owner = User::factory()->create(['status' => 1]);
+        $this->activateCompanyFor($owner, 'quota-payment-terms');
+
+        $this->actingAs($owner)->postJson(route('sms-quota.checkout'), [
+            'sms_quantity' => 1,
+            'whatsapp_quantity' => 0,
+        ])->assertStatus(422)->assertJsonValidationErrors(['terms_accepted']);
     }
 
     public function test_reconciliation_settles_failed_and_expired_payments_without_double_credit(): void

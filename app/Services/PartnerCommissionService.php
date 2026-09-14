@@ -88,6 +88,14 @@ class PartnerCommissionService
         ]);
 
         $this->appendEntry($commission, 'commission_credit', $status, 'credit', $settledAt, 'commission-credit');
+        app(PartnerPlatformAlertService::class)->dispatch('commission_created', $attribution->partner, 'commission:'.$commission->id, [
+            'type' => $type,
+            'gross_amount' => $gross,
+            'discount_amount' => $discount,
+            'net_paid_amount' => $net,
+            'commission_rate' => $rate,
+            'commission_amount' => $commissionAmount,
+        ]);
 
         return $commission;
     }

@@ -93,7 +93,7 @@
         <div class="table-responsive">
             <table class="table table-dark table-hover align-middle">
                 <thead>
-                    <tr><th>Date</th><th>File</th><th>Connexion</th><th>Identifiant</th><th><span class="visually-hidden">Action</span></th></tr>
+                    <tr><th>Date</th><th>File</th><th>Connexion</th><th>Identifiant</th><th><span class="visually-hidden">Actions</span></th></tr>
                 </thead>
                 <tbody>
                 @forelse($failedJobs as $job)
@@ -103,6 +103,9 @@
                         <td>{{ $job->connection }}</td>
                         <td><small>{{ $job->uuid }}</small></td>
                         <td>
+                            <button class="btn btn-sm btn-outline-info details-job" data-url="{{ route('platform.health.jobs.details',$job->uuid) }}">
+                                <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Détails
+                            </button>
                             <button class="btn btn-sm btn-outline-warning retry-job" data-url="{{ route('platform.health.jobs.retry',$job->uuid) }}">
                                 <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Relancer
                             </button>
@@ -125,6 +128,38 @@
 
 @push('scripts')
 <script>
+const escapeFailedJobHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character]));
+document.querySelectorAll('.details-job').forEach(button=>button.addEventListener('click',async()=>{
+    button.disabled = true;
+    try {
+        const response = await fetch(button.dataset.url,{headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});
+        const details = await response.json().catch(()=>({}));
+        if (!response.ok) throw new Error(details.message || 'Impossible de charger les détails du job.');
+        const configuration = details.configuration || {};
+        await Swal.fire({
+            title: 'Détails du job échoué',
+            width: 760,
+            confirmButtonText: 'Fermer',
+            buttonsStyling: false,
+            customClass: { confirmButton: 'saas-btn saas-btn-primary' },
+            html: `<div class="text-start">
+                <dl class="row mb-3">
+                    <dt class="col-sm-4">Fonctionnalité</dt><dd class="col-sm-8">${escapeFailedJobHtml(details.feature)}</dd>
+                    <dt class="col-sm-4">Job technique</dt><dd class="col-sm-8"><code>${escapeFailedJobHtml(details.job)}</code></dd>
+                    <dt class="col-sm-4">Cause</dt><dd class="col-sm-8 text-danger">${escapeFailedJobHtml(details.cause)}</dd>
+                    <dt class="col-sm-4">Exception</dt><dd class="col-sm-8"><code>${escapeFailedJobHtml(details.exception_class)}</code></dd>
+                    <dt class="col-sm-4">File / connexion</dt><dd class="col-sm-8">${escapeFailedJobHtml(details.queue)} / ${escapeFailedJobHtml(details.connection)}</dd>
+                    <dt class="col-sm-4">Échec</dt><dd class="col-sm-8">${escapeFailedJobHtml(details.failed_at)}</dd>
+                    <dt class="col-sm-4">UUID</dt><dd class="col-sm-8"><code>${escapeFailedJobHtml(details.uuid)}</code></dd>
+                </dl>
+                <details><summary>Trace technique</summary><pre class="small text-start mt-2" style="max-height:260px;overflow:auto;white-space:pre-wrap">${escapeFailedJobHtml(details.trace)}</pre></details>
+                <details class="mt-2"><summary>Configuration du job</summary><pre class="small text-start mt-2">${escapeFailedJobHtml(JSON.stringify(configuration,null,2))}</pre></details>
+            </div>`
+        });
+    } catch (error) {
+        Swal.fire({icon:'error',title:'Détails indisponibles',text:error.message});
+    } finally { button.disabled = false; }
+}));
 document.querySelectorAll('.retry-job').forEach(button=>button.addEventListener('click',()=>Swal.fire({title:'Relancer ce job ?',text:'Vérifiez d\'abord que la cause de l\'échec est corrigée.',icon:'warning',input:'textarea',inputLabel:'Motif obligatoire',showCancelButton:true,confirmButtonText:'Oui, relancer',cancelButtonText:'Annuler',showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),preConfirm:async reason=>{if(!reason||reason.trim().length<5)return Swal.showValidationMessage('Indiquez un motif d\'au moins 5 caractères.');const r=await fetch(button.dataset.url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({reason:reason.trim()})});const d=await r.json().catch(()=>({}));if(!r.ok)return Swal.showValidationMessage(d.message||'Relance impossible.');return d}}).then(result=>{if(result.isConfirmed)Swal.fire({icon:'success',title:'Job relancé',text:result.value.message}).then(()=>location.reload())})));
 </script>
 @endpush

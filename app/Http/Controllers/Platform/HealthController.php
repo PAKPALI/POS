@@ -70,4 +70,52 @@ class HealthController extends Controller
         ]);
         return response()->json(['message' => $exitCode === 0 ? 'Le job a été remis dans la file.' : 'La relance du job a échoué.'], $exitCode === 0 ? 200 : 500);
     }
+
+    public function failedJobDetails(string $uuid)
+    {
+        abort_unless(Schema::hasTable('failed_jobs'), 404);
+
+        $job = DB::table('failed_jobs')->where('uuid', $uuid)->first();
+        abort_unless($job, 404);
+
+        $payload = json_decode((string) $job->payload, true) ?: [];
+        $jobClass = (string) ($payload['displayName'] ?? $payload['job'] ?? 'Job inconnu');
+        $exception = trim((string) $job->exception);
+        $firstLine = trim((string) (preg_split('/\\R/', $exception)[0] ?? ''));
+        $separatorPosition = strpos($firstLine, ':');
+        $exceptionClass = $separatorPosition === false ? $firstLine : trim(substr($firstLine, 0, $separatorPosition));
+        $cause = $separatorPosition === false ? $firstLine : trim(substr($firstLine, $separatorPosition + 1));
+
+        return response()->json([
+            'uuid' => $job->uuid,
+            'failed_at' => $job->failed_at,
+            'queue' => $job->queue,
+            'connection' => $job->connection,
+            'feature' => $this->failedJobFeature($jobClass),
+            'job' => $jobClass,
+            'exception_class' => $exceptionClass ?: 'Exception inconnue',
+            'cause' => $cause ?: 'Cause non précisée.',
+            'trace' => Str::limit($exception, 12000, "\n…"),
+            'configuration' => [
+                'max_tries' => $payload['maxTries'] ?? null,
+                'max_exceptions' => $payload['maxExceptions'] ?? null,
+                'timeout' => $payload['timeout'] ?? null,
+                'backoff' => $payload['backoff'] ?? null,
+            ],
+        ]);
+    }
+
+    private function failedJobFeature(string $jobClass): string
+    {
+        return match (true) {
+            Str::contains($jobClass, ['SaleEmail', 'SaleWhatsapp', 'CustomerInvoice']) => 'Ventes et notifications',
+            Str::contains($jobClass, ['InventoryEmail', 'InventoryWhatsapp', 'MarginEmail']) => 'Inventaire et alertes de marge',
+            Str::contains($jobClass, 'EcommerceOrder') => 'Commandes e-commerce',
+            Str::contains($jobClass, ['PartnerCommission', 'PartnerExport']) => 'Partenaires — exports et commissions',
+            Str::contains($jobClass, 'PartnerWithdrawal') => 'Partenaires — retraits',
+            Str::contains($jobClass, 'PlatformWithdrawal') => 'Trésorerie plateforme — retraits',
+            Str::contains($jobClass, 'Reconcile') => 'Réconciliation des opérations',
+            default => 'Tâche système',
+        };
+    }
 }

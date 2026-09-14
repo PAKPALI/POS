@@ -590,7 +590,7 @@ La direction glassmorphisme est pertinente pour différencier le produit, à con
 
 ### Phase 1 — Fondations et préférences personnelles
 
-État au 31 août 2026 : **socle initial réalisé, validation manuelle attendue**.
+État au 14 septembre 2026 : **validé en staging**.
 
 - tokens centralisés pour les modes sombre et clair ;
 - préférence **Sombre**, **Clair** ou **Selon l’appareil** enregistrée par utilisateur ;
@@ -609,7 +609,7 @@ La migration visuelle complète des écrans n’est pas incluse dans cette premi
 
 ### Phase 2 — Nouveau shell SaaS et tableau de bord pilote
 
-État au 31 août 2026 : **implémenté, validation visuelle manuelle attendue**.
+État au 14 septembre 2026 : **validé en staging**.
 
 - nouveau layout `layouts.saas` indépendant des composants visuels de l’ancien template ;
 - nouvelle navigation latérale groupée par domaines et filtrée par permissions ;
@@ -630,7 +630,7 @@ Le tableau de bord est le premier écran basculé. Ne pas migrer plusieurs modul
 
 ### Phase 3 — Profil utilisateur
 
-État au 31 août 2026 : **implémenté, validation manuelle attendue**.
+État au 14 septembre 2026 : **validé en staging**.
 
 - profil entièrement migré vers le nouveau shell propriétaire ;
 - résumé clair du compte, de l’entreprise active et du rôle courant ;
@@ -644,3 +644,9 @@ Le tableau de bord est le premier écran basculé. Ne pas migrer plusieurs modul
 - appels serveur sans jQuery, loaders dans les boutons et erreurs affichées dans la page ;
 - micro-interactions, responsive mobile et réduction des animations ;
 - test garantissant que le profil n’utilise plus le panneau visuel de l’ancien template.
+
+### État final de la migration UI — 14 septembre 2026
+
+La migration UI prévue par ce cahier est considérée comme terminée sur staging. Les écrans internes, l’administration plateforme, le POS, l’e-commerce et la boutique publique ont été contrôlés avec leurs contrats de rendu respectifs. La recette couvre les largeurs mobile et desktop, les thèmes clair/sombre/système, les actions serveur avec loader, les permissions et l’absence de régression fonctionnelle.
+
+Les e-mails, PDF, tickets, impressions et pages de maintenance restent volontairement hors du shell SaaS et suivent leur propre contrat visuel. Après migration production, seules les vérifications de fumée et la surveillance réelle restent nécessaires ; aucun lot UI de développement n’est ouvert.

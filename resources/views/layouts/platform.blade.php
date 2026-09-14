@@ -12,7 +12,7 @@
     <title>@yield('title', 'Administration SaaS') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
-    <link href="{{ asset('hub/assets/css/platform.css') }}?v=20260911-9" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/platform.css') }}?v=20260914-7" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/platform-components.css') }}?v=20260907-11" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
     @stack('styles')
@@ -46,8 +46,9 @@
             @if(auth('platform')->user()->hasPlatformPermission('platform.companies.view'))<a class="platform-nav-link {{ request()->routeIs('platform.companies.*') ? 'active' : '' }}" href="{{ route('platform.companies.index') }}" @if(request()->routeIs('platform.companies.*')) aria-current="page" @endif><i class="bi bi-buildings" aria-hidden="true"></i><span>Entreprises</span></a>@endif
             @if(auth('platform')->user()->hasPlatformPermission('platform.users.view'))<a class="platform-nav-link {{ request()->routeIs('platform.users.*') ? 'active' : '' }}" href="{{ route('platform.users.index') }}" @if(request()->routeIs('platform.users.*')) aria-current="page" @endif><i class="bi bi-people" aria-hidden="true"></i><span>Utilisateurs</span></a>@endif
 
-            @if(auth('platform')->user()->hasPlatformPermission('platform.payments.view') || auth('platform')->user()->hasPlatformPermission('platform.treasury.view') || auth('platform')->user()->hasPlatformPermission('platform.pricing.manage'))
+            @if(auth('platform')->user()->hasPlatformPermission('platform.partners.view') || auth('platform')->user()->hasPlatformPermission('platform.payments.view') || auth('platform')->user()->hasPlatformPermission('platform.treasury.view') || auth('platform')->user()->hasPlatformPermission('platform.pricing.manage'))
                 <div class="platform-nav-section">Monétisation</div>
+                @if(auth('platform')->user()->hasPlatformPermission('platform.partners.view'))<a class="platform-nav-link {{ request()->routeIs('platform.partners.*') ? 'active' : '' }}" href="{{ route('platform.partners.index') }}" @if(request()->routeIs('platform.partners.*')) aria-current="page" @endif><i class="bi bi-person-badge-fill" aria-hidden="true"></i><span>Partenaires</span></a>@endif
                 @if(auth('platform')->user()->hasPlatformPermission('platform.payments.view'))<a class="platform-nav-link {{ request()->routeIs('platform.payments.*') ? 'active' : '' }}" href="{{ route('platform.payments.index') }}" @if(request()->routeIs('platform.payments.*')) aria-current="page" @endif><i class="bi bi-credit-card" aria-hidden="true"></i><span>Paiements & quotas</span></a>@endif
                 @if(auth('platform')->user()->hasPlatformPermission('platform.treasury.view'))<a class="platform-nav-link {{ request()->routeIs('platform.treasury.*') ? 'active' : '' }}" href="{{ route('platform.treasury.index') }}" @if(request()->routeIs('platform.treasury.*')) aria-current="page" @endif><i class="bi bi-safe2-fill" aria-hidden="true"></i><span>Trésorerie & retraits</span></a>@endif
                 @if(auth('platform')->user()->hasPlatformPermission('platform.pricing.manage'))<a class="platform-nav-link {{ request()->routeIs('platform.settings.*') ? 'active' : '' }}" href="{{ route('platform.settings.general') }}" @if(request()->routeIs('platform.settings.*')) aria-current="page" @endif><i class="bi bi-sliders2" aria-hidden="true"></i><span>Paramètres</span></a>@endif

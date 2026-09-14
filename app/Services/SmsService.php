@@ -44,12 +44,12 @@ class SmsService
         return is_array($payload) && in_array($payload['status'] ?? null, [true, 1, '1'], true);
     }
 
-    private function consumeAndRecord(CompanySetting $company, string $channel, string $function, string $phoneNumber, string $countryCode, array $payload): void
+    private function consumeAndRecord(CompanySetting $company, string $channel, string $function, string $phoneNumber, string $countryCode, array $payload, ?int $saleId = null): void
     {
-        DB::transaction(function () use ($company, $channel, $function, $phoneNumber, $countryCode, $payload) {
+        DB::transaction(function () use ($company, $channel, $function, $phoneNumber, $countryCode, $payload, $saleId) {
             $company->decrement($channel === 'sms' ? 'sms_count' : 'whatsapp_count');
             CommunicationLog::create([
-                'company_id' => $company->id, 'channel' => $channel, 'function' => $function,
+                'company_id' => $company->id, 'sale_id' => $saleId, 'channel' => $channel, 'function' => $function,
                 'recipient' => $phoneNumber, 'country_code' => strtoupper($countryCode), 'units' => 1,
                 'provider_message_id' => $payload['message_id'] ?? $payload['response_token'] ?? data_get($payload, 'data.message_id'),
                 'sent_at' => now(),
@@ -57,7 +57,7 @@ class SmsService
         });
     }
 
-    public function sendSms($phoneNumber, $message, ?string $countryCode = null, string $function = 'other')
+    public function sendSms($phoneNumber, $message, ?string $countryCode = null, string $function = 'other', ?int $saleId = null)
     {
         if (!app(PlatformConfigurationService::class)->channelEnabled('sms')) {
             return ['status' => false, 'message' => 'Les SMS sont temporairement désactivés par la plateforme.'];
@@ -85,7 +85,7 @@ class SmsService
         $payload = $response->json();
         $accepted = $response->successful() && $this->providerAccepted($payload);
         if ($accepted) {
-            $this->consumeAndRecord($company, 'sms', $function, $phoneNumber, $countryCode ?: $company->country_code ?: 'TG', $payload);
+            $this->consumeAndRecord($company, 'sms', $function, $phoneNumber, $countryCode ?: $company->country_code ?: 'TG', $payload, $saleId);
         } else {
             Log::warning('Erreur SMS API', [
                 'http_status' => $response->status(),
@@ -101,7 +101,7 @@ class SmsService
             : ['status' => false, 'message' => 'Réponse SMS invalide', 'http_status' => $response->status()];
     }
 
-    public function sendWhatsappSms($phoneNumber, $title, $message, ?string $countryCode = null, string $function = 'other')
+    public function sendWhatsappSms($phoneNumber, $title, $message, ?string $countryCode = null, string $function = 'other', ?int $saleId = null)
     {
         if (!app(PlatformConfigurationService::class)->channelEnabled('whatsapp')) {
             return ['status' => false, 'message' => 'WhatsApp est temporairement désactivé par la plateforme.'];
@@ -131,7 +131,7 @@ class SmsService
             $accepted = $response->successful() && $this->providerAccepted($payload);
             if ($accepted) {
                 $payload['status'] = true;
-                $this->consumeAndRecord($company, 'whatsapp', $function, $phoneNumber, $countryCode ?: $company->country_code ?: 'TG', $payload);
+                $this->consumeAndRecord($company, 'whatsapp', $function, $phoneNumber, $countryCode ?: $company->country_code ?: 'TG', $payload, $saleId);
             } else {
                 Log::warning('Erreur WhatsApp API', [
                     'http_status' => $response->status(),
@@ -176,7 +176,7 @@ class SmsService
         }
     }
 
-    public function sendWhatsappDocument(string $phoneNumber, string $mediaId, string $message, ?string $countryCode = null, string $function = 'other')
+    public function sendWhatsappDocument(string $phoneNumber, string $mediaId, string $message, ?string $countryCode = null, string $function = 'other', ?int $saleId = null)
     {
         if (!app(PlatformConfigurationService::class)->channelEnabled('whatsapp')) {
             return ['status' => false, 'message' => 'WhatsApp est temporairement désactivé par la plateforme.'];
@@ -206,7 +206,7 @@ class SmsService
             $accepted = $response->successful() && $this->providerAccepted($payload);
             if ($accepted) {
                 $payload['status'] = true;
-                $this->consumeAndRecord($company, 'whatsapp', $function, $phoneNumber, $countryCode ?: $company->country_code ?: 'TG', $payload);
+                $this->consumeAndRecord($company, 'whatsapp', $function, $phoneNumber, $countryCode ?: $company->country_code ?: 'TG', $payload, $saleId);
             }
             return is_array($payload) ? $payload : ['status' => false, 'message' => 'Réponse WhatsApp invalide'];
         } catch (\Throwable $e) {

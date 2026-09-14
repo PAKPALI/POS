@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Yajra\DataTables\DataTables;
 
 class UserController extends Controller
@@ -41,7 +42,9 @@ class UserController extends Controller
     public function dashboard()
     {
         $canViewFinancials = app(CompanyContext::class)->hasPermission('reports.view_margin');
-        $Action = Action::with('user:id,name')->whereDate('created_at', today())->latest()->paginate(10);
+        $todayStart = now()->startOfDay();
+        $todayEnd = now()->endOfDay();
+        $Action = Action::with('user:id,name')->whereBetween('created_at', [$todayStart, $todayEnd])->latest()->paginate(10);
         $categoryCount = Category::count();
         $productCount = Product::count();
         $salesSummary = Sale::query()
@@ -352,28 +355,61 @@ class UserController extends Controller
 
     public function register(Request $request, CompanyOnboardingService $onboarding)
     {
+        // L'identité d'un compte POS est indépendante de celle d'un partenaire.
+        // On normalise ici les valeurs saisies avant de vérifier les doublons
+        // uniquement dans la table users.
+        $countryCode = strtoupper((string) $request->input('country_code', 'TG'));
+        $phone = preg_replace('/[^0-9]/', '', (string) $request->input('phone', ''));
+        $phoneRule = config("african_phone_rules.$countryCode");
+        if ($phone !== '' && $phoneRule && str_starts_with($phone, $phoneRule['dial_code']) && strlen($phone) > $phoneRule['max_length']) {
+            $phone = substr($phone, strlen($phoneRule['dial_code']));
+        }
+
+        $request->merge([
+            'email' => mb_strtolower(trim((string) $request->input('email', ''))),
+            'phone' => $phone !== '' ? $phone : null,
+            'country_code' => $countryCode,
+        ]);
+
         $error_messages = [
             "name.required" => "Remplir le champ nom!",
             "name.max" => "Le nombre de caractere du nom depasse les 255!",
             "email.required" => "Remplir le champ email!",
             "email.email" => "La structure d'un email n'est pas respecte!",
             "email.unique" => "Ce mail existe deja",
+            "phone.digits_between" => "Le numéro doit comporter entre 6 et 15 chiffres.",
             "company_name.required" => "Renseignez le nom de votre entreprise",
             "password.required" => "Remplir le champ mot de passe!",
-            "password.min" => "Le mot de passe doit comporter au moins 8 caracteres!",
+            "password.min" => "Le mot de passe doit comporter au moins 12 caractères.",
+            "password.mixed" => "Le mot de passe doit contenir une majuscule et une minuscule.",
+            "password.numbers" => "Le mot de passe doit contenir au moins un chiffre.",
+            "password.symbols" => "Le mot de passe doit contenir au moins un symbole.",
             "password.confirmed" => "Les mots de passe ne correspondent pas",
         ];
 
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone' => ['nullable', 'digits_between:6,15'],
             'company_name' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'confirmed', PasswordRule::min(12)->mixedCase()->numbers()->symbols()],
             'default_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
             'appearance_mode' => ['nullable', Rule::in(['light', 'dark', 'system'])],
             'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ], $error_messages);
+
+        $validator->after(function ($validator) use ($request) {
+            $phone = $request->input('phone');
+            if (!$phone || $validator->errors()->has('country_code') || $validator->errors()->has('phone')) {
+                return;
+            }
+
+            $countryCode = (string) $request->input('country_code', 'TG');
+            if (User::query()->where('country_code', $countryCode)->where('phone', $phone)->exists()) {
+                $validator->errors()->add('phone', 'Ce numéro est déjà associé à un compte POS.');
+            }
+        });
 
         if($validator->fails())
         {
@@ -408,15 +444,17 @@ class UserController extends Controller
         $error_messages = [
             'AM.required' => 'Saisissez votre mot de passe actuel.',
             'NM.required' => 'Saisissez votre nouveau mot de passe.',
-            'NM.min' => 'Le nouveau mot de passe doit comporter au moins 8 caractères.',
-            'NM.regex' => 'Le nouveau mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.',
+            'NM.min' => 'Le nouveau mot de passe doit comporter au moins 12 caractères.',
+            'NM.mixed' => 'Le nouveau mot de passe doit contenir une majuscule et une minuscule.',
+            'NM.numbers' => 'Le nouveau mot de passe doit contenir au moins un chiffre.',
+            'NM.symbols' => 'Le nouveau mot de passe doit contenir au moins un symbole.',
             'NM.same' => 'Le nouveau mot de passe et sa confirmation sont différents.',
             'CM.required' => 'Confirmez votre nouveau mot de passe.',
         ];
 
         $validator = Validator::make($request->all(), [
             'AM' => ['required', 'string'],
-            'NM' => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/', 'same:CM'],
+            'NM' => ['required', 'string', 'same:CM', PasswordRule::min(12)->mixedCase()->numbers()->symbols()],
             'CM' => ['required', 'string'],
         ], $error_messages);
 
@@ -747,8 +785,9 @@ class UserController extends Controller
 
     public function outUser(Request $request)
     {
-        // Auth::logout($user);
+        Auth::logout();
         $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             "status" => true,

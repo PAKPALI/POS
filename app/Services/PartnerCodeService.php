@@ -159,6 +159,10 @@ class PartnerCodeService
             }
 
             $this->audit($partner, 'partner.code.customized', $created, $ipAddress, $userAgent, $current?->normalized_code);
+            app(PartnerPlatformAlertService::class)->dispatch('code_changed', $partner, 'code:'.$created->id, [
+                'old_code' => $current?->normalized_code,
+                'new_code' => $created->normalized_code,
+            ]);
             return $created;
         });
     }

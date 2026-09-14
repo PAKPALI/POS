@@ -18,6 +18,7 @@ use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleDetail;
+use App\Models\SaleInvoicePreference;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\SmsService;
@@ -93,6 +94,9 @@ class SaleController extends Controller
         $mainCash = CashAccount::where('is_default', 1)->first();
         $taxCash = CashAccount::where('is_tax', 1)->first();
         $setting  = Setting::first();
+        $invoicePreference = SaleInvoicePreference::query()
+            ->where('user_id', request()->user()->id)
+            ->first();
 
         $salesSummary = Sale::query()
             ->whereBetween('created_at', [$dayStart, $dayEnd])
@@ -111,8 +115,56 @@ class SaleController extends Controller
             compact(
                 'Category','productCount','mostSoldProducts','saleCount','sale_total_profit',
                 'product_count','total_amount','company','mainCash','taxCash','setting',
-                'canViewFinancials'
+                'canViewFinancials','invoicePreference'
             ));
+    }
+
+    /**
+     * Remember the channels selected in the standalone POS invoice dialog.
+     * The company-level authorization remains managed from Communications.
+     */
+    public function toggleInvoicePreference(Request $request)
+    {
+        $this->authorize('viewAny', Sale::class);
+
+        $validated = $request->validate([
+            'channel' => ['required', Rule::in(['whatsapp', 'sms'])],
+            'enabled' => ['required', 'boolean'],
+        ]);
+
+        $company = CompanySetting::firstOrFail();
+        $channel = $validated['channel'];
+        $enabled = (bool) $validated['enabled'];
+        $authorizationField = 'invoice_'.$channel.'_enabled';
+        $quotaField = $channel.'_count';
+
+        if ($enabled && !$company->{$authorizationField}) {
+            return response()->json([
+                'status' => false,
+                'title' => 'Canal non autorisé',
+                'message' => 'Ce canal doit d’abord être activé dans Communications > Configuration.',
+            ], 422);
+        }
+
+        if ($enabled && (int) $company->{$quotaField} < 1) {
+            return response()->json([
+                'status' => false,
+                'title' => 'Quota épuisé',
+                'message' => 'Le quota de ce canal est épuisé.',
+            ], 422);
+        }
+
+        $preference = SaleInvoicePreference::updateOrCreate(
+            ['company_id' => $company->id, 'user_id' => $request->user()->id],
+            [$channel.'_enabled' => $enabled]
+        );
+
+        return response()->json([
+            'status' => true,
+            'title' => 'Préférence enregistrée',
+            'message' => $enabled ? 'Canal sélectionné par défaut.' : 'Canal retiré de la sélection par défaut.',
+            'enabled' => (bool) $preference->{$channel.'_enabled'},
+        ]);
     }
 
     public function searchClients(Request $request)
@@ -566,7 +618,7 @@ class SaleController extends Controller
      */
     public function show(string $id)
     {
-        $Sale = Sale::findOrFail($id);
+        $Sale = Sale::with(['client', 'saleDetails.product', 'communicationLogs'])->findOrFail($id);
         $this->authorize('view', $Sale);
         return view('pos.sale.show_detail', compact('Sale'));
     }
@@ -666,7 +718,10 @@ class SaleController extends Controller
         $company = CompanySetting::first();
         $clients = Client::query()->where('status', 1)->orderBy('name')->get(['id', 'name']);
         $suppliers = Supplier::query()->where('status', 1)->orderBy('name')->get(['id', 'name']);
-        return view('pos.sale.history', compact('canViewFinancials', 'company', 'clients', 'suppliers'));
+        $invoicePreference = SaleInvoicePreference::query()
+            ->where('user_id', $request->user()->id)
+            ->first();
+        return view('pos.sale.history', compact('canViewFinancials', 'company', 'clients', 'suppliers', 'invoicePreference'));
     }
 
     private function validatedHistoryFilters(Request $request): array
