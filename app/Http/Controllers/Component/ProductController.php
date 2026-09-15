@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Action;
 use App\Models\AMS\Setting;
 use App\Models\Category;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Services\CompanyContext;
@@ -14,6 +15,7 @@ use App\Exceptions\SubscriptionLimitReached;
 use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
@@ -201,17 +203,16 @@ class ProductController extends Controller
             "category.exists" => "La catégorie sélectionnée n'appartient pas à la compagnie active!",
             "supplier_id.exists" => "Le fournisseur sélectionné n'appartient pas à la compagnie active!",
             "name.required" => "Remplir le champ Nom!",
-            // "qte.required" => "Remplir le champ Quantité!",
-            // "qte.numeric" => "Le champ Quantité doit être un nombre!",
-            // "qte.min" => "La quantité ne doit pas être négative!",
+            "qte.integer" => "La quantité doit être un nombre entier!",
+            "qte.min" => "La quantité ne doit pas être négative!",
             "price.required" => "Remplir le champ Prix unitaire!",
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
             "price.min" => "Le prix unitaire ne doit pas être négatif!",
-            "purchase_price.required" => "Remplir le champ Prix d'achat!",
             "purchase_price.numeric" => "Le champ Prix d'achat doit être un nombre!",
             "purchase_price.min" => "Le Prix d'achat ne doit pas être négatif!",
             "margin.numeric" => "Le champ Marge doit être un nombre!",
             "margin.min" => "La marge ne doit pas être négative!",
+            "margin.lt" => "La marge de sécurité doit être strictement inférieure à la quantité disponible!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
@@ -222,12 +223,16 @@ class ProductController extends Controller
             'category' => ['required', 'integer', $this->companyExistsRule('categories')],
             'supplier_id' => ['nullable', 'integer', $this->companyExistsRule('suppliers')],
             'name' => ['required'],
-            // 'qte' => ['required', 'numeric', 'min:0'],
+            'qte' => ['nullable', 'integer', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
-            'purchase_price' => ['required', 'numeric', 'min:0'],
-            'margin' => ['numeric', 'min:0'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'margin' => ['nullable', 'numeric', 'min:0'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ], $error_messages);
+
+        $validator->after(function (ValidatorContract $validator) use ($request): void {
+            $this->validateSafetyMargin($validator, $request->input('margin'), $request->input('qte', 0));
+        });
         
         
         if($validator->fails())
@@ -244,17 +249,24 @@ class ProductController extends Controller
             // calcul TTC
             $price_ttc = $request->price + ($request->price * $tax / 100);
 
+            $purchasePriceInput = $request->input('purchase_price');
+            $purchasePrice = $purchasePriceInput === null || $purchasePriceInput === ''
+                ? null
+                : (float) $purchasePriceInput;
+            $marginInput = $request->input('margin');
+            $margin = $marginInput === null || $marginInput === '' ? null : (int) $marginInput;
+
             $data = [
                 'category_id' => $request-> category,
                 'supplier_id' => $request->supplier_id ?: null,
                 'name' => $request-> name,
-                'qte' => $request-> qte??0,
+                'qte' => (int) ($request->input('qte') ?? 0),
                 'price' => $request-> price,
                 'price_ttc' => $price_ttc,
-                'purchase_price' => $request-> purchase_price,
+                'purchase_price' => $purchasePrice,
                 'type' => $request-> type,
-                'margin' => $request-> margin,
-                'profit' => $request-> profit,
+                'margin' => $margin,
+                'profit' => $purchasePrice === null ? null : (float) $request->price - $purchasePrice,
                 'created_by' => Auth::user()->id,
             ];
 
@@ -269,12 +281,25 @@ class ProductController extends Controller
             try {
                 DB::transaction(function () use ($data, $request) {
                     $this->entitlements->assertCanAdd($this->companyContext->getCompany(), 'product');
-                    Product::create($data);
+                    $product = Product::create($data);
+
+                    if ((int) $product->qte > 0) {
+                        Inventory::create([
+                            'type' => 1,
+                            'supplier_id' => $product->supplier_id,
+                            'product_id' => $product->id,
+                            'qte_before' => 0,
+                            'qte_added' => $product->qte,
+                            'qte_after' => $product->qte,
+                            'note' => 'Stock initial à la création du produit',
+                            'created_by' => auth()->user()->id,
+                        ]);
+                    }
 
                     Action::create([
                         'user_id' => auth()->user()->id,
                         'function' => 'AJOUT PRODUIT',
-                        'text' => auth()->user()->name." a modifié le produit '".$request->name."'",
+                        'text' => auth()->user()->name." a créé le produit '".$request->name."'",
                     ]);
                 });
             } catch (SubscriptionLimitReached $exception) {
@@ -332,17 +357,14 @@ class ProductController extends Controller
             "category.exists" => "La catégorie sélectionnée n'appartient pas à la compagnie active!",
             "supplier_id.exists" => "Le fournisseur sélectionné n'appartient pas à la compagnie active!",
             "name.required" => "Remplir le champ Nom!",
-            "qte.required" => "Remplir le champ Quantité!",
-            "qte.numeric" => "Le champ Quantité doit être un nombre!",
-            "qte.min" => "La quantité ne doit pas être négative!",
             "price.required" => "Remplir le champ Prix unitaire!",
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
             "price.min" => "Le prix unitaire ne doit pas être négatif!",
-            "purchase_price.required" => "Remplir le champ Prix d'achat!",
             "purchase_price.numeric" => "Le champ Prix d'achat doit être un nombre!",
             "purchase_price.min" => "Le Prix d'achat ne doit pas être négatif!",
             "margin.numeric" => "Le champ Marge doit être un nombre!",
             "margin.min" => "La marge ne doit pas être négative!",
+            "margin.lt" => "La marge de sécurité doit être strictement inférieure à la quantité disponible!",
             "image.image" => "Le fichier doit être une image!",
             "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
             "image.max" => "L'image ne doit pas dépasser 2 Mo!",
@@ -352,12 +374,15 @@ class ProductController extends Controller
             'category' => ['required', 'integer', $this->companyExistsRule('categories')],
             'supplier_id' => ['nullable', 'integer', $this->companyExistsRule('suppliers')],
             'name' => ['required'],
-            // 'qte' => ['required', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
-            'purchase_price' => ['required', 'numeric', 'min:0'],
-            'margin' => ['numeric', 'min:0'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'margin' => ['nullable', 'numeric', 'min:0'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ], $error_messages);
+
+        $validator->after(function (ValidatorContract $validator) use ($request, $Product): void {
+            $this->validateSafetyMargin($validator, $request->input('margin'), $Product->qte);
+        });
 
         if($validator->fails())
             return response()->json([
@@ -372,6 +397,13 @@ class ProductController extends Controller
 
             $price_ttc = $request->price + ($request->price * $tax / 100);
 
+            $purchasePriceInput = $request->input('purchase_price');
+            $purchasePrice = $purchasePriceInput === null || $purchasePriceInput === ''
+                ? null
+                : (float) $purchasePriceInput;
+            $marginInput = $request->input('margin');
+            $margin = $marginInput === null || $marginInput === '' ? null : (int) $marginInput;
+
             $data = [
                 'category_id' => $request-> category,
                 'supplier_id' => $request->supplier_id ?: null,
@@ -379,9 +411,9 @@ class ProductController extends Controller
                 // 'qte' => $request-> qte??0,
                 'price' => $request-> price,
                 'price_ttc' => $price_ttc,
-                'purchase_price' => $request-> purchase_price,
-                'margin' => $request-> margin,
-                'profit' => $request-> profit,
+                'purchase_price' => $purchasePrice,
+                'margin' => $margin,
+                'profit' => $purchasePrice === null ? null : (float) $request->price - $purchasePrice,
                 'created_by' => Auth::user()->id,
             ];
 
@@ -401,11 +433,8 @@ class ProductController extends Controller
             }
 
             // verify if new qte of product > product margin
-            if ($Product->email ==1) {
-                if ($request->qte > $request->margin) {
-                    // Log::info('ok');
-                    $data['email'] = 0;
-                }
+            if ((int) $Product->email === 1 && ($margin === null || (int) $Product->qte > $margin)) {
+                $data['email'] = 0;
             }
             
             $Product->update($data);
@@ -421,8 +450,20 @@ class ProductController extends Controller
                 "reload" => true,
                 // "redirect_to" => route('user'),
                 "title" => "MISE A JOUR REUSSIE",
-                "msg" => "La catégorie au nom de '".$request-> name."' a bien été mis à jour".$request-> profit
+                "msg" => "Le produit au nom de '".$request->name."' a bien été mis à jour"
             ]);
+    }
+
+    private function validateSafetyMargin(ValidatorContract $validator, mixed $margin, mixed $quantity): void
+    {
+        // Zero or an empty value means that no safety threshold was configured.
+        if ($margin === null || $margin === '' || (float) $margin === 0.0) {
+            return;
+        }
+
+        if ((float) $margin >= (float) ($quantity ?? 0)) {
+            $validator->errors()->add('margin', 'La marge de sécurité doit être strictement inférieure à la quantité disponible.');
+        }
     }
 
     // public function exportPdf()
@@ -491,7 +532,7 @@ class ProductController extends Controller
             (float) $product->purchase_price,
             (float) $product->price,
             (float) $product->price_ttc,
-            (float) $product->price - (float) $product->purchase_price,
+            $product->profit !== null ? (float) $product->profit : null,
             (int) $product->status === 1 ? 'Actif' : 'Archivé',
         ]);
         Action::create([

@@ -4,6 +4,24 @@
 @push('styles')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <style>
+        .product-registration-notice { align-items: flex-start; gap: 14px; margin: 18px 0 0; padding: 16px 18px; }
+        .product-registration-notice > .product-registration-notice-icon { flex: 0 0 auto; margin-top: 2px; font-size: 1.25rem; }
+        .product-registration-notice-copy { min-width: 0; flex: 1 1 auto; }
+        .product-registration-notice-copy > strong { display: block; margin-bottom: 5px; color: currentColor; font-size: .88rem; }
+        .product-registration-notice-copy p { margin: 0 0 8px; color: var(--ds-text-secondary); font-size: .76rem; line-height: 1.55; }
+        .product-registration-notice-copy ul { margin: 0; padding-left: 18px; color: var(--ds-text-secondary); font-size: .76rem; line-height: 1.55; }
+        .product-registration-notice-copy li + li { margin-top: 4px; }
+        .product-registration-notice-actions { display: flex; flex: 0 0 auto; align-items: center; margin-left: auto; }
+        .product-registration-notice-dismiss { white-space: nowrap; }
+        .product-registration-notice-dismiss .bi { font-size: .95rem; }
+        .product-registration-notice-dismiss.is-checked .bi::before { content: "\\f26a"; }
+        @media (max-width: 767.98px) {
+            .product-registration-notice { flex-direction: column; }
+            .product-registration-notice-actions { width: 100%; margin-left: 0; }
+            .product-registration-notice-dismiss { width: 100%; justify-content: center; }
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -53,20 +71,28 @@
                                 <input type="text" name="name" placeholder="Nom du produit" required>
                             </div>
                             <div class="col-md-12 saas-form-group">
-                                <label>Marge de sécurité</label>
-                                <input type="number" name="margin" value="0" placeholder="0">
+                                <label for="product_margin">Marge de sécurité <small>(facultative)</small></label>
+                                <input id="product_margin" type="number" name="margin" min="0" step="1" placeholder="Ex. 5">
+                                <small>Elle doit rester strictement inférieure au stock disponible.</small>
                             </div>
                             <div class="col-md-4 saas-form-group">
-                                <label>Prix de vente</label>
-                                <input type="number" name="price" class="price" min="0" step="0.01" placeholder="0" required>
+                                <label for="product_initial_quantity">Quantité disponible</label>
+                                <input id="product_initial_quantity" type="number" name="qte" min="0" step="1" value="0" placeholder="0">
+                                <small>Stock initial facultatif ; les entrées suivantes se font dans Inventaire.</small>
                             </div>
                             <div class="col-md-4 saas-form-group">
-                                <label>Prix d'achat</label>
-                                <input type="number" name="purchase_price" class="purchase_price" min="0" step="0.01" placeholder="0" required>
+                                <label for="product_price">Prix de vente</label>
+                                <input id="product_price" type="number" name="price" class="price" min="0" step="0.01" placeholder="0" required>
                             </div>
                             <div class="col-md-4 saas-form-group">
-                                <label>Bénéfice</label>
-                                <input type="number" name="profit" class="profit" readonly placeholder="0">
+                                <label for="product_purchase_price">Prix d'achat <small>(facultatif)</small></label>
+                                <input id="product_purchase_price" type="number" name="purchase_price" class="purchase_price" min="0" step="0.01" placeholder="Non renseigné">
+                                <small>Sans ce prix, le bénéfice normal ne sera pas calculé.</small>
+                            </div>
+                            <div class="col-md-4 saas-form-group">
+                                <label for="product_profit">Bénéfice estimé</label>
+                                <input id="product_profit" type="number" name="profit" class="profit" readonly placeholder="0">
+                                <small>Sans prix d'achat, le prix de vente est affiché à titre indicatif.</small>
                             </div>
                             <div class="col-md-4 saas-form-group">
                                 <label>Prix TTC</label>
@@ -77,6 +103,25 @@
                                 <input type="file" name="image" class="form-control">
                             </div>
                         </div>
+                        @if (!auth()->user()->product_registration_notice_dismissed)
+                            <div id="productRegistrationNotice" class="saas-alert saas-alert-danger product-registration-notice" role="alert">
+                                <i class="bi bi-exclamation-octagon-fill product-registration-notice-icon" aria-hidden="true"></i>
+                                <div class="product-registration-notice-copy">
+                                    <strong>Informations importantes pour le suivi du produit</strong>
+                                    <p>Ces deux informations restent facultatives, mais elles déterminent la qualité de vos alertes et de vos statistiques.</p>
+                                    <ul>
+                                        <li><strong>Sans marge de sécurité :</strong> vous ne serez pas alerté lorsque le stock du produit sera presque épuisé.</li>
+                                        <li><strong>Sans prix d'achat :</strong> le bénéfice normal ne pourra pas être calculé et les statistiques financières seront incomplètes.</li>
+                                    </ul>
+                                </div>
+                                <div class="product-registration-notice-actions">
+                                    <button type="button" id="dismissProductRegistrationNotice" class="saas-btn saas-btn-ghost product-registration-notice-dismiss" data-loading-text="Enregistrement…">
+                                        <i class="bi bi-square" aria-hidden="true"></i>
+                                        <span>Ne plus me montrer</span>
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
                         <div class="d-flex justify-content-end mt-3">
                             <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Création…">
                                 <span>Créer le produit</span>
@@ -426,14 +471,65 @@
 
             let TAX = {{ \App\Models\AMS\Setting::first()->default_tax ?? 0 }};
 
-            $('.price, .purchase_price').on('input', function() {
-                var unitPrice = parseFloat($('.price').val()) || 0;
-                var purchasePrice = parseFloat($('.purchase_price').val()) || 0;
-                var profit = unitPrice - purchasePrice;
+            function updateProductPricing() {
+                var unitPriceRaw = $('.price').val().trim();
+                var purchasePriceRaw = $('.purchase_price').val().trim();
+                var unitPrice = unitPriceRaw === '' ? null : parseFloat(unitPriceRaw);
+                var purchasePrice = purchasePriceRaw === '' ? null : parseFloat(purchasePriceRaw);
+
+                if (unitPrice === null || Number.isNaN(unitPrice)) {
+                    $('.profit').val('');
+                    $('.price_ttc').val('');
+                    return;
+                }
+
+                // Sans prix d'achat, l'interface affiche le prix de vente comme
+                // repère provisoire ; le serveur conserve alors profit à null.
+                var profit = purchasePrice === null || Number.isNaN(purchasePrice)
+                    ? unitPrice
+                    : unitPrice - purchasePrice;
                 $('.profit').val(profit);
+
                 var ttc = unitPrice + (unitPrice * TAX / 100);
                 $('.price_ttc').val(ttc.toFixed(0));
-            });
+            }
+
+            $('.price, .purchase_price').on('input', updateProductPricing);
+            updateProductPricing();
+
+            const productNotice = document.getElementById('productRegistrationNotice');
+            const dismissProductNoticeButton = document.getElementById('dismissProductRegistrationNotice');
+            if (productNotice && dismissProductNoticeButton) {
+                dismissProductNoticeButton.addEventListener('click', function() {
+                    const button = this;
+                    const savePreference = () => fetch(@json(route('profile.product-registration-notice.dismiss')), {
+                        method: 'PATCH',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    }).then(async function(response) {
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok || !data.status) {
+                            throw new Error(data.msg || 'Impossible d’enregistrer cette préférence.');
+                        }
+                        return data;
+                    });
+
+                    const request = window.ServerButtonLoader
+                        ? window.ServerButtonLoader.withLoader(button, savePreference, 'Enregistrement…')
+                        : savePreference();
+
+                    request.then(function() {
+                        button.classList.add('is-checked');
+                        button.setAttribute('aria-pressed', 'true');
+                        productNotice.remove();
+                    }).catch(function(error) {
+                        Swal.fire({ icon: 'error', title: 'Préférence non enregistrée', text: error.message });
+                    });
+                });
+            }
 
             $('body').on('click', '.archive', function() {
                 var id = $(this).data("id");

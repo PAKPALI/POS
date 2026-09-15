@@ -31,6 +31,7 @@ class User extends Authenticatable
         'status',
         'appearance_mode',
         'accent_color',
+        'product_registration_notice_dismissed',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'product_registration_notice_dismissed' => 'boolean',
     ];
 
     // ─── Multi-Tenant Relations ──────────────────────────

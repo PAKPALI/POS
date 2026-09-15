@@ -37,26 +37,24 @@
                 <label for="exampleInputText0">Nom</label>
                 <input type="text" name="name" value="{{$Product->name}}" class="form-control" id="exampleInputText0" placeholder="Nom">
             </div>
-            <!-- <div class="form-group col-6">
-                <label for="exampleInputText0">Quantité</label>
-                <input type="number" name="qte" value="{{$Product->qte}}" class="form-control" id="exampleInputText0" placeholder="0">
-            </div> -->
             <div class="form-group col-12 mb-3">
-                <label for="exampleInputText0">Marge de sécurité</label>
-                <input type="number" name="margin" value="{{$Product->margin}}" class="form-control" id="exampleInputText0" placeholder="0">
+                <label for="product_edit_margin">Marge de sécurité <small>(facultative)</small></label>
+                <input type="number" name="margin" value="{{$Product->margin}}" class="form-control" id="product_edit_margin" min="0" step="1" max="{{ max((int) $Product->qte - 1, 0) }}" placeholder="0">
+                <small>Stock actuel : {{ (int) $Product->qte }}. La marge doit lui être strictement inférieure.</small>
             </div>
             <div class="form-group col-6 mb-3">
-                <label for="exampleInputText0">Prix de vente</label>
-                <input type="number" name="price" value="{{$Product->price}}" class="form-control price1" id="exampleInputText0" placeholder="0">
+                <label for="product_edit_price">Prix de vente</label>
+                <input type="number" name="price" value="{{$Product->price}}" class="form-control price1" id="product_edit_price" min="0" step="0.01" placeholder="0">
             </div>
             <div class="form-group col-6">
-                <label for="exampleInputText0">Prix d'achat</label>
-                <input type="number" name="purchase_price" value="{{$Product->purchase_price}}" class="form-control purchase_price1" id="exampleInputText0" placeholder="0">
+                <label for="product_edit_purchase_price">Prix d'achat <small>(facultatif)</small></label>
+                <input type="number" name="purchase_price" value="{{$Product->purchase_price}}" class="form-control purchase_price1" id="product_edit_purchase_price" min="0" step="0.01" placeholder="Non renseigné">
             </div>
 
             <div class="form-group col-6 mb-3">
-                <label for="exampleInputText0">Bénefice</label>
-                <input type="number" name="profit" value="{{$Product->profit}}" class="form-control profit1" id="exampleInputText0" readonly placeholder="0">
+                <label for="product_edit_profit">Bénéfice estimé</label>
+                <input type="number" name="profit" value="{{$Product->profit}}" class="form-control profit1" id="product_edit_profit" readonly placeholder="0">
+                <small>Sans prix d'achat, le prix de vente est affiché à titre indicatif.</small>
             </div>
 
             <div class="form-group col-6 mb-3">
@@ -169,15 +167,28 @@
         // when unit price and purchase price are updated
         jQuery('.price1, .purchase_price1').on('input', function() {
             // Récupérer les valeurs des champs
-            var unitPrice = parseFloat(jQuery('.price1').val()) || 0;
-            var purchasePrice = parseFloat(jQuery('.purchase_price1').val()) || 0;
+            var unitPriceRaw = jQuery('.price1').val().trim();
+            var purchasePriceRaw = jQuery('.purchase_price1').val().trim();
+            var unitPrice = unitPriceRaw === '' ? null : parseFloat(unitPriceRaw);
+            var purchasePrice = purchasePriceRaw === '' ? null : parseFloat(purchasePriceRaw);
+
+            if (unitPrice === null || Number.isNaN(unitPrice)) {
+                jQuery('.profit1').val('');
+                jQuery('.price_ttc1').val('');
+                return;
+            }
             
-            // Calculate profit
-            var profit = unitPrice - purchasePrice;
+            // Sans prix d'achat, afficher le prix de vente comme repère ;
+            // le serveur conservera le bénéfice à null.
+            var profit = purchasePrice === null || Number.isNaN(purchasePrice)
+                ? unitPrice
+                : unitPrice - purchasePrice;
             jQuery('.profit1').val(profit);
 
             var ttc = unitPrice + (unitPrice * TAX / 100);
             jQuery('.price_ttc1').val(ttc.toFixed(0));
         });
+
+        jQuery('.price1, .purchase_price1').trigger('input');
     });
 </script>

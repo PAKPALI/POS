@@ -52,15 +52,15 @@
             <tbody>
                 @foreach($products as $product)
                 @php
-                $profit = $product->price - $product->purchase_price;
+                $profit = $product->profit;
                 @endphp
                 <tr>
                     <td>{{ $product->name }}</td>
                     <td>{{ $product->qte }}</td>
-                    <td>{{ number_format($product->purchase_price, 0, ',', ' ') }}</td>
+                    <td>{{ $product->purchase_price !== null ? number_format($product->purchase_price, 0, ',', ' ') : '—' }}</td>
                     <td>{{ number_format($product->price, 0, ',', ' ') }}</td>
                     <td>{{ number_format($product->price_ttc, 0, ',', ' ') }}</td>
-                    <td>{{ number_format($profit, 0, ',', ' ') }}</td>
+                    <td>{{ $profit !== null ? number_format($profit, 0, ',', ' ') : 'Non calculé' }}</td>
                 </tr>
                 @endforeach
             </tbody>

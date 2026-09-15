@@ -623,6 +623,19 @@ class UserController extends Controller
         ]);
     }
 
+    public function dismissProductRegistrationNotice(Request $request)
+    {
+        $request->user()->update([
+            'product_registration_notice_dismissed' => true,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'title' => 'PRÉFÉRENCE ENREGISTRÉE',
+            'msg' => 'Ce rappel ne sera plus affiché sur votre compte.',
+        ]);
+    }
+
     public function topSellingProducts(Request $request)
     {
         try {

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class MarketingSiteTest extends TestCase
@@ -32,7 +33,21 @@ class MarketingSiteTest extends TestCase
 
     public function test_public_seo_files_are_coherent(): void
     {
+        $this->get('/robots.txt')->assertOk()
+            ->assertSee('Disallow: /', false)
+            ->assertDontSee('Sitemap:', false)
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        $this->get('/sitemap.xml')->assertNotFound();
+
+        Config::set('app.env', 'production');
+        Config::set('seo.indexing_enabled', true);
+
         $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml')->assertSee('/tarifs', false);
-        $this->get('/robots.txt')->assertOk()->assertSee('Sitemap: '.route('marketing.sitemap'), false);
+        $this->get('/robots.txt')->assertOk()
+            ->assertSee('Allow: /', false)
+            ->assertSee('Sitemap: '.route('marketing.sitemap'), false)
+            ->assertHeaderMissing('X-Robots-Tag');
+        $this->get('/')->assertSee('name="robots" content="index,follow"', false)
+            ->assertDontSee('noindex,nofollow,noarchive', false);
     }
 }

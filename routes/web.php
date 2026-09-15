@@ -210,10 +210,18 @@ Route::get('/mentions-legales', fn () => app(MarketingController::class)->page('
 Route::redirect('/connexion', '/user_login')->name('marketing.login');
 Route::redirect('/inscription', '/register')->name('marketing.register');
 Route::get('/sitemap.xml', function () {
+    abort_unless(config('app.env') === 'production' && config('seo.indexing_enabled', false), 404);
+
     $paths = ['', 'fonctionnalites', 'factures-sms-whatsapp', 'secteurs', 'partenaires', 'tarifs', 'securite', 'aide', 'mentions-legales'];
     return response()->view('marketing.sitemap', ['urls' => array_map(fn ($path) => url('/'.ltrim($path, '/')), $paths)], 200, ['Content-Type' => 'application/xml']);
 })->name('marketing.sitemap');
-Route::get('/robots.txt', fn () => response("User-agent: *\nAllow: /\nSitemap: ".route('marketing.sitemap')."\n", 200, ['Content-Type' => 'text/plain']))->name('marketing.robots');
+Route::get('/robots.txt', function () {
+    if (config('app.env') !== 'production' || ! config('seo.indexing_enabled', false)) {
+        return response("User-agent: *\nDisallow: /\n", 200, ['Content-Type' => 'text/plain']);
+    }
+
+    return response("User-agent: *\nAllow: /\nSitemap: ".route('marketing.sitemap')."\n", 200, ['Content-Type' => 'text/plain']);
+})->name('marketing.robots');
 
 Route::redirect('/old-entry', '/user_login')->name('user_verify_auth');
 
@@ -290,6 +298,8 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
     // update password
     Route::post('updatePassword', 'updatePassword')->middleware('throttle:10,1')->name('profile.password.update');
     Route::put('profile/appearance', 'updateAppearance')->middleware('throttle:20,1')->name('profile.appearance.update');
+    Route::patch('profile/product-registration-notice', 'dismissProductRegistrationNotice')
+        ->middleware('throttle:10,1')->name('profile.product-registration-notice.dismiss');
 
     // chart
     Route::post('/statistics/top-products', [UserController::class, 'topSellingProducts'])

@@ -81,12 +81,15 @@ Modifier `.env` avec les informations réelles du domaine, de MySQL, de la boît
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://votre-domaine.com
+SEO_INDEXING_ENABLED=true
 CACHE_DRIVER=file
 SESSION_DRIVER=file
 QUEUE_CONNECTION=database
 SESSION_SECURE_COOKIE=true
 KPRIME_SMS_CALLBACK_SECRET=une_valeur_aleatoire_longue
 ```
+
+Sur staging, conserver `APP_ENV=staging` et définir `SEO_INDEXING_ENABLED=false`. Les réponses HTTP ajoutent alors `X-Robots-Tag: noindex, nofollow, noarchive`, les pages marketing utilisent `noindex`, `/robots.txt` interdit l'exploration et `/sitemap.xml` est indisponible. En production, utiliser `APP_ENV=production` et `SEO_INDEXING_ENABLED=true` pour activer les balises canoniques, `robots.txt` et le sitemap.
 
 Le secret du callback SMS doit être différent de la clé API et configuré de la même manière chez le fournisseur. Sans ce secret, le callback répond volontairement `503`.
 
@@ -309,6 +312,8 @@ Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode main
 
 - [ ] Domaine et certificat HTTPS actifs
 - [ ] `APP_DEBUG=false`
+- [ ] `APP_ENV=production` et `SEO_INDEXING_ENABLED=true` uniquement sur le domaine de production
+- [ ] Sur staging, `SEO_INDEXING_ENABLED=false` et `/robots.txt` renvoie `Disallow: /`
 - [ ] `.env` inaccessible depuis le Web
 - [ ] Racine du domaine configurée sur `/public`
 - [ ] Base MySQL sauvegardée
