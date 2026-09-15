@@ -6,19 +6,22 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PartnerTwoFactorNotification extends Notification
+class PartnerTwoFactorSetupNotification extends Notification
 {
     use Queueable;
 
     public function __construct(private string $code) {}
 
-    public function via(object $notifiable): array { return ['mail']; }
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
 
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').' — code de connexion partenaire')
-            ->view('emails.partner.twoFactorLogin', [
+            ->subject(config('app.name').' — activation de la double authentification')
+            ->view('emails.partner.twoFactorSetup', [
                 'name' => $notifiable->name,
                 'code' => $this->code,
                 'expiry' => '10 minutes',

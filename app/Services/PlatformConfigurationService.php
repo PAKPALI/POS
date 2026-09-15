@@ -22,4 +22,33 @@ class PlatformConfigurationService
     public function appName(): string { return (string)$this->get('identity.app_name', config('app.name')); }
     public function maintenanceEnabled(): bool { return $this->boolean('maintenance.enabled', false); }
     public function channelEnabled(string $channel): bool { return $this->boolean('services.'.$channel.'.enabled', true); }
+
+    /**
+     * Liens publics administrés depuis la console. Une plateforme sans lien
+     * configuré ne publie pas l'icône correspondante.
+     */
+    public function socialNetworks(): array
+    {
+        $networks = [
+            'whatsapp' => ['label' => 'Communauté WhatsApp', 'icon' => 'bi-whatsapp', 'setting' => 'social.whatsapp_url', 'description' => 'Échanger avec la communauté Maxanou'],
+            'tiktok' => ['label' => 'TikTok', 'icon' => 'bi-tiktok', 'setting' => 'social.tiktok_url', 'description' => 'Suivre les actualités Maxanou'],
+            'facebook' => ['label' => 'Facebook', 'icon' => 'bi-facebook', 'setting' => 'social.facebook_url', 'description' => 'Suivre les actualités Maxanou'],
+            'instagram' => ['label' => 'Instagram', 'icon' => 'bi-instagram', 'setting' => 'social.instagram_url', 'description' => 'Suivre les actualités Maxanou'],
+        ];
+
+        $active = [];
+        foreach ($networks as $key => $network) {
+            $url = trim((string) $this->get($network['setting'], ''));
+            if (!$this->isPublicHttpsUrl($url)) continue;
+            $active[$key] = [...$network, 'url' => $url];
+        }
+
+        return $active;
+    }
+
+    private function isPublicHttpsUrl(string $url): bool
+    {
+        return filter_var($url, FILTER_VALIDATE_URL)
+            && strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https';
+    }
 }

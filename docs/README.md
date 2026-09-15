@@ -12,6 +12,7 @@ Cette arborescence distingue les références actives, les procédures d’explo
 - `CAHIER_ARCHITECTURE_PLATEFORME_PARTENAIRES.md` : référence normative de l’architecture, des règles financières, du schéma de données, des flux KPrimePay payout et de la sécurité partenaires ; l’implémentation fonctionnelle est livrée.
 - `DEPLOIEMENT_O2SWITCH.md` : déploiement et exploitation de production.
 - `CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` : document maître des règles UI/UX, de l’accessibilité et des attentes des actions serveur ; le PDF est un export de référence.
+- `CONVENTION_EMAILS.md` : contrat visuel et règles de sécurité pour les e-mails HTML applicatifs.
 - `STRATEGIE_TARIFAIRE_ABONNEMENTS_POS_AFRIQUE.html` et `.pdf` : source éditable et export PDF de la référence commerciale normative des plans.
 - `documentation-saas-pos.html` : documentation de migration historique conservée comme archive ; ne pas utiliser ses anciens pourcentages comme état courant.
 - `AUDIT_ISOLATION_TENANT_2026-08-24.md` et `AUDIT_SECURITE_OFFENSIF_2026-08-25.md` : résultats d’audits de sécurité encore utiles comme preuves de référence.
@@ -31,4 +32,4 @@ Un seul document éditable fait foi par sujet. Les PDF conservés sont des expor
 
 ## Source de vérité pour l’état courant
 
-Pour connaître l’avancement réel, consulter d’abord `ETAT_DOCUMENTAIRE_PRODUCTION.md`, puis la section « Clôture locale — 14 septembre 2026 » de `FREEBUFF_HANDOFF.md`, `RAPPORT_GLOBAL_SAAS.md`, `RAPPORT_ADMINISTRATION_SAAS.md` et `DEPLOIEMENT_O2SWITCH.md`. Les entrées datées et les fixtures locales du handoff sont historiques ou mutables, sauf indication contraire.
+Pour connaître l’avancement réel, consulter d’abord `ETAT_DOCUMENTAIRE_PRODUCTION.md`, puis la section « Clôture locale — 15 septembre 2026 » de `FREEBUFF_HANDOFF.md`, `RAPPORT_GLOBAL_SAAS.md`, `RAPPORT_ADMINISTRATION_SAAS.md` et `DEPLOIEMENT_O2SWITCH.md`. Les entrées datées et les fixtures locales du handoff sont historiques ou mutables, sauf indication contraire.

@@ -28,6 +28,7 @@ class MarketingController extends Controller
             'pricing' => $this->plans->plans(),
             'pricingNote' => config('marketing.pricing_note'),
             'publicStats' => $this->publicStats(),
+            'socialNetworks' => $this->configuration->socialNetworks(),
         ]);
     }
 
@@ -36,6 +37,7 @@ class MarketingController extends Controller
         return view('marketing.pricing', [
             'pricing' => $this->plans->plans(),
             'pricingNote' => config('marketing.pricing_note'),
+            'socialNetworks' => $this->configuration->socialNetworks(),
         ]);
     }
 
@@ -52,6 +54,7 @@ class MarketingController extends Controller
             'pricingNote' => config('marketing.pricing_note'),
             'partnerProgram' => $page === 'partenaires' ? $this->partnerProgram() : null,
             'publicStats' => $page === 'partenaires' ? $this->publicStats() : null,
+            'socialNetworks' => $this->configuration->socialNetworks(),
         ]);
     }
 

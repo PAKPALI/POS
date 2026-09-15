@@ -169,4 +169,64 @@
         document.querySelectorAll('[data-period-label]').forEach(label => { label.textContent = period === 'annual' ? 'an' : 'mois'; });
         track('pricing_toggle', { period });
     }));
+
+    const socialInviteModal = document.querySelector('[data-social-invite-modal]');
+    const whatsappCommunityModal = document.querySelector('[data-whatsapp-community-modal]');
+    let socialModalTrigger = null;
+    let socialModalPreviousOverflow = '';
+    const openSocialModal = (modal, trigger = null) => {
+        if (!modal) return;
+        const anotherModalIsOpen = [...document.querySelectorAll('.marketing-social-modal:not([hidden])')].some(item => item !== modal);
+        document.querySelectorAll('.marketing-social-modal:not([hidden])').forEach(item => { if (item !== modal) item.hidden = true; });
+        socialModalTrigger = trigger || document.activeElement;
+        if (!anotherModalIsOpen) socialModalPreviousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        modal.hidden = false;
+        window.setTimeout(() => modal.querySelector('.marketing-social-modal-close, [data-whatsapp-community-consent]')?.focus(), 0);
+    };
+    const closeSocialModal = modal => {
+        if (!modal || modal.hidden) return;
+        modal.hidden = true;
+        if (!document.querySelector('.marketing-social-modal:not([hidden])')) document.body.style.overflow = socialModalPreviousOverflow;
+        socialModalTrigger?.focus?.();
+    };
+
+    socialInviteModal?.querySelectorAll('[data-social-modal-close]').forEach(button => button.addEventListener('click', () => closeSocialModal(socialInviteModal)));
+    whatsappCommunityModal?.querySelectorAll('[data-whatsapp-community-close]').forEach(button => button.addEventListener('click', () => closeSocialModal(whatsappCommunityModal)));
+    document.querySelectorAll('[data-whatsapp-community-trigger]').forEach(trigger => trigger.addEventListener('click', () => {
+        openSocialModal(whatsappCommunityModal, trigger);
+        track('whatsapp_community_rules_open');
+    }));
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        if (whatsappCommunityModal && !whatsappCommunityModal.hidden) closeSocialModal(whatsappCommunityModal);
+        else if (socialInviteModal && !socialInviteModal.hidden) closeSocialModal(socialInviteModal);
+    });
+
+    const communityConsent = whatsappCommunityModal?.querySelector('[data-whatsapp-community-consent]');
+    const communityJoin = whatsappCommunityModal?.querySelector('[data-whatsapp-community-join]');
+    communityConsent?.addEventListener('change', () => {
+        const accepted = communityConsent.checked;
+        communityJoin?.setAttribute('aria-disabled', String(!accepted));
+        if (communityJoin) communityJoin.tabIndex = accepted ? 0 : -1;
+    });
+    communityJoin?.addEventListener('click', event => {
+        if (communityJoin.getAttribute('aria-disabled') === 'true') { event.preventDefault(); return; }
+        track('whatsapp_community_join');
+    });
+
+    if (socialInviteModal) {
+        const inviteStorageKey = 'marketing_social_invite_seen';
+        let alreadySeen = false;
+        try { alreadySeen = window.sessionStorage.getItem(inviteStorageKey) === '1'; } catch {}
+        if (!alreadySeen) {
+            window.setTimeout(() => {
+                if (!document.hidden && (!whatsappCommunityModal || whatsappCommunityModal.hidden)) {
+                    try { window.sessionStorage.setItem(inviteStorageKey, '1'); } catch {}
+                    openSocialModal(socialInviteModal);
+                    track('social_network_invite_shown');
+                }
+            }, 10000);
+        }
+    }
 })();

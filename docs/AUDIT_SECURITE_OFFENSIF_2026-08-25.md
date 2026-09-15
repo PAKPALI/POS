@@ -5,7 +5,7 @@ Périmètre : analyse statique du dépôt `C:\POS` et tests locaux non destructi
 
 > Statut de remédiation : les neuf mesures décrites ci-dessous ont été implémentées localement le 25 août 2026. Leur efficacité en production dépend encore du déploiement des fichiers serveur, de la définition de `KPRIME_SMS_CALLBACK_SECRET` et de la configuration correspondante chez le fournisseur SMS.
 
-## Addendum de statut — 14 septembre 2026
+## Addendum de statut — 15 septembre 2026
 
 Les sections SEC-01 à SEC-09 sont la preuve détaillée de l’état observé le 25 août et de la remédiation engagée. Elles ne doivent pas être relues comme un état courant non corrigé : le code, les tests d’isolation et la recette staging ont depuis été consolidés. Avant production, il reste à reproduire la configuration sécurisée validée en staging (document root `public`, secrets, hôtes autorisés, HTTPS, en-têtes et secret de callback) et à conserver les preuves de smoke tests.
 
@@ -106,7 +106,7 @@ Les artefacts racine ne sont pas servis si le document root pointe correctement 
 ## Vérifications exécutées — état historique du 25 août 2026, actualisé par l’addendum final
 
 - `php artisan route:list` : 306 routes examinées.
-- `php artisan test` : **373 tests réussis, 2 117 assertions**.
+- `php artisan test` : **375 tests réussis, 2 144 assertions**.
 - `npm audit --omit=dev` : aucune vulnérabilité signalée dans l'arbre de production (un seul paquet de production déclaré).
 - `composer audit --locked` : aucune vulnérabilité signalée.
 - Recherche statique ciblée : injections SQL, sorties Blade non échappées, appels système, scopes retirés, uploads, secrets, callbacks, cookies et en-têtes HTTP.
@@ -120,7 +120,7 @@ Les artefacts racine ne sont pas servis si le document root pointe correctement 
 5. Retirer SVG, activer `TrustHosts`, compléter les en-têtes et nettoyer les artefacts.
 6. Ajouter des tests de non-régression pour chaque point, puis exécuter l'audit Composer en CI.
 
-## Addendum final — clôture de la passe d’authentification — 14 septembre 2026
+## Addendum final — clôture de la passe d’authentification — 15 septembre 2026
 
 La passe défensive locale/staging sur les formulaires d’authentification est terminée pour le périmètre testé :
 
@@ -128,9 +128,10 @@ La passe défensive locale/staging sur les formulaires d’authentification est 
 - les mots de passe d’inscription, de modification et de réinitialisation exigent 12 caractères avec majuscule, minuscule, chiffre et symbole ;
 - les échecs de connexion et de réinitialisation sont génériques, avec limitations par IP et par compte ;
 - une réinitialisation réussie ne connecte plus automatiquement le compte ; les déconnexions et expulsions invalident la session complète ;
+- l’acceptation d’une invitation ne peut plus ouvrir la session d’un compte existant : la session active doit déjà correspondre à l’adresse invitée ; le parcours anonyme est couvert par un test dédié ;
 - `/old-entry` ne révèle plus l’existence d’un compte ; CSRF a été vérifié sur les connexions web et plateforme (`419` sans jeton) ;
 - les essais navigateur ont utilisé exclusivement des identifiants fictifs locaux ; aucune information d’un compte enregistré n’a été transmise.
 
-État des dépendances vérifié : Laravel `12.69.2`, Sanctum `4.3.3`, Yajra DataTables `12.7.2`, PHPUnit `11.5.56`, PHP local `8.3.33`. Les audits Composer et npm ne signalent aucune vulnérabilité. La suite complète est verte : **373 tests, 2 117 assertions**. Deux avertissements PHPUnit concernent uniquement des métadonnées de tests par commentaires doc, sans échec fonctionnel.
+État des dépendances vérifié : Laravel `12.69.2`, Sanctum `4.3.3`, Yajra DataTables `12.7.2`, PHPUnit `11.5.56`, PHP local `8.3.33`. Les audits Composer et npm ne signalent aucune vulnérabilité. La suite complète est verte : **375 tests, 2 144 assertions**. Deux avertissements PHPUnit concernent uniquement des métadonnées de tests par commentaires doc, sans échec fonctionnel.
 
 Conditions restant nécessaires avant la bascule production : PHP `>= 8.2` avec `ext-zip`, `APP_DEBUG=false`, HTTPS, cookies sécurisés, hôtes de confiance et document root `public`, secrets/SMTP/KPrimePay propres à la production, workers et cron actifs, sauvegarde restaurable, supervision et smoke tests post-déploiement.

@@ -1,6 +1,6 @@
 # Rapport global permanent — SaaS POS
 
-Dernière mise à jour : 14 septembre 2026 — clôture du développement fonctionnel et validation staging confirmée.
+Dernière mise à jour : 15 septembre 2026 — clôture du développement fonctionnel et validation staging confirmée.
 
 ## Rôle du document
 
@@ -15,7 +15,7 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 - sauvegarde et restauration testées ;
 - queues et tâches cron surveillées ;
 - SPF, DKIM et DMARC validés ;
-- dernière suite complète documentée : **356 tests, 2 034 assertions, 0 échec** ;
+- dernière suite complète documentée : **375 tests, 2 144 assertions, 0 échec** ;
 - développement fonctionnel et validation staging : **terminés** ;
 - reste uniquement le déploiement production, la configuration des secrets/URLs et l’activation progressive des contrôles.
 
@@ -138,7 +138,7 @@ Ils sont configurables avec `PDF_PRODUCTS_MAX_ROWS`, `PDF_INVENTORIES_MAX_ROWS` 
 - le lancement recommandé reste progressif avec quelques entreprises pilotes ;
 - la validation staging des abonnements, webhooks, SMTP, workers, cron, sauvegardes, logs, alertes et recette visuelle est acquise ; la production nécessite encore les secrets/URLs propres à l’environnement, la migration, la supervision et une activation progressive de l’enforcement.
 
-## Statut de bascule production — 14 septembre 2026
+## Statut de bascule production — 15 septembre 2026
 
 Le périmètre de développement est clôturé. La mise en production ne doit pas ouvrir un nouveau chantier fonctionnel : elle consiste à sauvegarder la base, déployer la version validée, injecter les secrets et URLs de production, exécuter les migrations et caches, démarrer les workers, configurer le cron, effectuer les smoke tests puis activer progressivement les réglages sensibles.
 

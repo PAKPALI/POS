@@ -1,19 +1,20 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 14 septembre 2026 — clôture locale du module Partenaires et non-régressions SaaS validées.
+Dernière mise à jour : 15 septembre 2026 — clôture locale du module Partenaires et non-régressions SaaS validées.
 
 ## Règle de lecture documentaire
 
-La section **Clôture locale — 14 septembre 2026** et les mises à jour qui la précèdent constituent l’état courant du développement. Les entrées datées plus anciennes sont conservées comme journal de décisions et de preuves ; leurs mentions « à faire », « reste à valider » ou « prochaine étape » décrivent l’état du projet à leur date et ne constituent plus des tâches ouvertes. Pour la production, seules les étapes de déploiement, de configuration des secrets/URLs et d’activation progressive indiquées dans la clôture restent applicables.
+La section **Clôture locale — 15 septembre 2026** et les mises à jour qui la précèdent constituent l’état courant du développement. Les entrées datées plus anciennes sont conservées comme journal de décisions et de preuves ; leurs mentions « à faire », « reste à valider » ou « prochaine étape » décrivent l’état du projet à leur date et ne constituent plus des tâches ouvertes. Pour la production, seules les étapes de déploiement, de configuration des secrets/URLs et d’activation progressive indiquées dans la clôture restent applicables.
 
-## Clôture locale — 14 septembre 2026
+## Clôture locale — 15 septembre 2026
 
-Le développement et les tests locaux du module Partenaires sont considérés comme terminés. La suite complète a été exécutée sur la base isolée `pos_testing` : **356 tests, 2 034 assertions, 0 échec**. Le contrôle dédié aux parcours partenaire, paiements, webhooks, commissions, retraits, frais, réconciliation et trésorerie a validé 64 tests et 370 assertions.
+Le développement et les tests locaux du module Partenaires sont considérés comme terminés. La suite complète a été exécutée sur la base isolée `pos_testing` : **375 tests, 2 144 assertions, 0 échec**. Les contrôles dédiés aux parcours partenaire, paiements, webhooks, commissions, retraits, frais, réconciliation, trésorerie et sécurité sont également verts.
 
 Deux corrections de non-régression ont été ajoutées pendant cette clôture :
 
 - l’auto-parrainage est refusé côté serveur lorsque l’adresse e-mail du partenaire correspond à celle du propriétaire du compte d’abonnement ; aucun rabais ni aucune commission ne peut alors être créé ;
 - les rappels d’expiration J−1 à J−3 couvrent maintenant les jours calendaires complets, afin de ne pas omettre une expiration à une heure antérieure à l’exécution du cron.
+- la double authentification de connexion est activable volontairement par chaque partenaire depuis son profil, après mot de passe et code e-mail à usage unique ; elle reste désactivée par défaut.
 
 Les paiements et retraits réels KPrimePay avaient déjà été validés par le propriétaire, y compris les callbacks via webhook.site et un retrait côté administration. Aucune nouvelle transaction réelle n’a été créée pendant cette clôture automatisée. Les seules étapes restantes relèvent du déploiement et de l’exploitation de production : secrets, URLs de callback, workers, cron, supervision et activation graduelle des paramètres.
 
@@ -28,7 +29,7 @@ Les paiements et retraits réels KPrimePay avaient déjà été validés par le 
 
 ## Journal historique des lots antérieurs
 
-Les entrées datées ci-dessous sont conservées pour tracer les décisions, contrôles et corrections successifs. Elles ne rouvrent aucune tâche : l’état courant est exclusivement celui de la clôture du 14 septembre 2026 et de la matrice documentaire.
+Les entrées datées ci-dessous sont conservées pour tracer les décisions, contrôles et corrections successifs. Elles ne rouvrent aucune tâche : l’état courant est exclusivement celui de la clôture du 15 septembre 2026 et de la matrice documentaire.
 
 ## Mise à jour historique du 7 septembre 2026 — migration UI SaaS transversale
 

@@ -648,6 +648,9 @@ class SaleController extends Controller
                 $filters['client_id'] ?? null,
                 $filters['supplier_id'] ?? null
             );
+            $companyId = app(CompanyContext::class)->getCompanyId();
+            $clientId = $filters['client_id'] ?? null;
+            $supplierId = $filters['supplier_id'] ?? null;
 
             $summary = $salesFilter(Sale::query())
                 ->selectRaw('COUNT(*) as sale_count, COALESCE(SUM(total_amount), 0) as total_amount')
@@ -657,9 +660,20 @@ class SaleController extends Controller
                 ? (float) $summary->total_profit
                 : null;
             $productDetails = SaleDetail::query()
-                ->whereHas('sale', $salesFilter)
-                ->when($filters['supplier_id'] ?? null, fn ($query, $supplierId) => $query
-                    ->whereHas('product', fn ($product) => $product->where('supplier_id', $supplierId)));
+                ->join('sales as history_sales', function ($join) use ($companyId) {
+                    $join->on('history_sales.id', '=', 'sale_details.sale_id')
+                        ->where('history_sales.company_id', $companyId);
+                })
+                ->whereBetween('history_sales.created_at', [$startDate, $endDate])
+                ->when($clientId, fn ($query, $id) => $query->where('history_sales.client_id', $id))
+                ->when($supplierId, function ($query, $id) use ($companyId) {
+                    return $query
+                        ->join('products as history_products', function ($join) use ($companyId) {
+                            $join->on('history_products.id', '=', 'sale_details.product_id')
+                                ->where('history_products.company_id', $companyId);
+                        })
+                        ->where('history_products.supplier_id', $id);
+                });
             $productCount = (int) (clone $productDetails)->sum('quantity');
 
             $mostSoldProducts = $productDetails

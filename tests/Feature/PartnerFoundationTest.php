@@ -6,6 +6,7 @@ use App\Models\Partner;
 use App\Models\PartnerPromoCode;
 use App\Models\PartnerTwoFactorChallenge;
 use App\Models\PlatformSetting;
+use App\Notifications\PartnerTwoFactorSetupNotification;
 use App\Services\PlatformConfigurationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -102,6 +103,68 @@ class PartnerFoundationTest extends TestCase
         ])->assertRedirect(route('partner.login'));
         $this->assertDatabaseHas('partners', ['id' => $partner->id, 'normalized_email' => 'new-partner@example.test', 'status' => 'pending_email']);
         Notification::assertSentTo($partner->fresh(), \App\Notifications\PartnerEmailVerificationNotification::class);
+    }
+
+    public function test_partner_can_optionally_enable_two_factor_from_profile_with_email_code(): void
+    {
+        $this->enablePartners();
+        Notification::fake();
+        $partner = Partner::factory()->create(['status' => 'active', 'email_verified_at' => now()]);
+        $session = ['partner_auth_version' => $partner->auth_version];
+
+        $this->withSession($session)->actingAs($partner, 'partner')
+            ->put(route('partner.profile.two-factor.update'), [
+                'enabled' => 1,
+                'current_password' => 'Password!123456',
+            ])->assertSessionHas('two_factor_setup_pending');
+
+        $this->assertFalse($partner->fresh()->two_factor_login_enabled);
+        $this->assertDatabaseHas('partner_two_factor_challenges', [
+            'partner_id' => $partner->id,
+            'purpose' => 'settings_2fa',
+        ]);
+        Notification::assertSentTo($partner, PartnerTwoFactorSetupNotification::class);
+
+        $notification = null;
+        Notification::assertSentTo($partner, function (PartnerTwoFactorSetupNotification $sent) use (&$notification) {
+            $notification = $sent;
+            return true;
+        });
+        $reflection = new \ReflectionClass($notification);
+        $property = $reflection->getProperty('code');
+        $property->setAccessible(true);
+        $code = $property->getValue($notification);
+        $renderedMail = $notification->toMail($partner)->render();
+        $this->assertStringContainsString('Sécurité du compte partenaire', $renderedMail);
+        $this->assertStringContainsString('Votre code d’activation', $renderedMail);
+        $this->assertStringContainsString('Copyright', $renderedMail);
+        $this->assertStringContainsString($code, $renderedMail);
+
+        $this->actingAs($partner->fresh(), 'partner')
+            ->withSession([
+                'partner_auth_version' => $partner->fresh()->auth_version,
+                'partner_2fa_setup_partner_id' => $partner->id,
+            ])
+            ->put(route('partner.profile.two-factor.update'), [
+                'enabled' => 1,
+                'current_password' => 'Password!123456',
+                'code' => $code,
+            ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('partners', ['id' => $partner->id, 'two_factor_login_enabled' => 1]);
+        $this->assertDatabaseHas('partner_audit_logs', ['partner_id' => $partner->id, 'action' => 'partner.two_factor_enabled']);
+        $this->withSession(['partner_auth_version' => $partner->fresh()->auth_version])
+            ->actingAs($partner->fresh(), 'partner')
+            ->get(route('partner.profile'))->assertOk();
+
+        $this->actingAs($partner->fresh(), 'partner')
+            ->withSession(['partner_auth_version' => $partner->fresh()->auth_version])
+            ->put(route('partner.profile.two-factor.update'), [
+                'enabled' => 0,
+                'current_password' => 'Password!123456',
+            ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('partners', ['id' => $partner->id, 'two_factor_login_enabled' => 0]);
     }
 
     private function enablePartners(): void

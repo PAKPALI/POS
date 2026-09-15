@@ -1,6 +1,6 @@
 # État documentaire avant production
 
-Dernière mise à jour : 14 septembre 2026
+Dernière mise à jour : 15 septembre 2026
 
 ## Décision de lecture
 
@@ -36,7 +36,7 @@ Chaque sujet possède un seul document maître éditable. Les fichiers HTML/Mark
 En cas de divergence, lire dans cet ordre :
 
 1. le présent fichier, pour savoir quel document fait foi ;
-2. `FREEBUFF_HANDOFF.md`, section « Clôture locale — 14 septembre 2026 » ;
+2. `FREEBUFF_HANDOFF.md`, section « Clôture locale — 15 septembre 2026 » ;
 3. `RAPPORT_GLOBAL_SAAS.md` et `RAPPORT_ADMINISTRATION_SAAS.md` ;
 4. `DEPLOIEMENT_O2SWITCH.md` pour les opérations de production ;
 5. les cahiers normatifs pour vérifier une règle métier ou visuelle.

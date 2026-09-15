@@ -6,6 +6,7 @@
     <nav class="platform-settings-nav" aria-label="Paramètres plateforme">
         <a class="platform-settings-tab active" href="{{ route('platform.settings.general') }}" aria-current="page"><i class="bi bi-sliders2" aria-hidden="true"></i> Général</a>
         <a class="platform-settings-tab" href="{{ route('platform.settings.edit') }}"><i class="bi bi-tags" aria-hidden="true"></i> Tarifs et coûts</a>
+        <a class="platform-settings-tab" href="{{ route('platform.settings.social-networks.edit') }}"><i class="bi bi-share" aria-hidden="true"></i> Réseaux sociaux</a>
         @if(auth('platform')->user()->hasPlatformPermission('platform.partners.manage'))<a class="platform-settings-tab" href="{{ route('platform.settings.partners.edit') }}"><i class="bi bi-people" aria-hidden="true"></i> Partenaires</a>@endif
         <a class="platform-settings-tab" href="{{ route('platform.subscriptions.preflight') }}"><i class="bi bi-check2-circle" aria-hidden="true"></i> Pré-contrôle abonnements</a>
     </nav>

@@ -1,6 +1,6 @@
 # Rapport permanent — Administration SaaS
 
-Dernière mise à jour : 14 septembre 2026 — pilotage partenaires, graphiques, alertes e-mail et clôture staging
+Dernière mise à jour : 15 septembre 2026 — pilotage partenaires, graphiques, alertes e-mail et clôture staging
 
 ## Mise à jour du 14 septembre 2026 — pilotage partenaires et alertes
 
@@ -36,7 +36,7 @@ Ce fichier est l’unique rapport d’avancement de la partie administrative Saa
 
 La console d’administration centrale est opérationnelle et séparée des comptes `owner` et `admin` propres aux entreprises. Elle est accessible par `/admin-saas` ou `/platform/login`.
 
-Dernière non-régression complète documentée : **356 tests, 2 034 assertions, 0 échec**. Des suites ciblées supplémentaires ont ensuite couvert le catalogue, le pré-contrôle, les abonnements, l’expiration, les notifications et le pilotage partenaires.
+Dernière non-régression complète documentée : **375 tests, 2 144 assertions, 0 échec**. Des suites ciblées supplémentaires couvrent le catalogue, le pré-contrôle, les abonnements, l’expiration, les notifications, le pilotage partenaires et la sécurité d’authentification.
 
 ## Accès et sécurité plateforme
 

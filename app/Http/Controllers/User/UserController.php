@@ -9,7 +9,6 @@ use App\Models\Client;
 use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\Sale;
-use App\Models\SaleDetail;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\CompanyUser;
@@ -60,14 +59,6 @@ class UserController extends Controller
         $sale_total_discount = (float) $salesSummary->total_discount;
         $sale_total_profit = $canViewFinancials ? (float) $salesSummary->total_profit : 0;
 
-        $mostSoldProducts = SaleDetail::query()
-            ->select('product_id')
-            ->selectRaw('SUM(quantity) as total_quantity')
-            ->with('product:id,name,image,price')
-            ->groupBy('product_id')
-            ->orderByDesc('total_quantity')
-            ->paginate(4);
-
         return view('dashboard', compact(
             'Action',
             'categoryCount',
@@ -78,7 +69,6 @@ class UserController extends Controller
             'sale_total_profit',
             'sale_total_revenue',
             'sale_total_discount',
-            'mostSoldProducts',
             'company',
             'canViewFinancials'
         ));

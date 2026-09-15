@@ -111,6 +111,15 @@ Ne pas utiliser `chmod -R 777`. Vérifier ensuite que PHP peut écrire dans `sto
 
 Avant toute migration sur une base existante, créer une sauvegarde depuis cPanel/phpMyAdmin.
 
+`migrate --force` ne supprime pas les données par lui-même : il exécute uniquement les migrations encore absentes et désactive la confirmation interactive en production. Une migration peut toutefois modifier ou supprimer des données si elle a été écrite ainsi ; contrôler son contenu et son plan avant de l'exécuter.
+
+Sur une base existante, contrôler d'abord l'état et le SQL prévu :
+
+```bash
+php artisan migrate:status
+php artisan migrate --pretend
+```
+
 Pour une première installation vide :
 
 ```bash
@@ -125,10 +134,30 @@ Ne jamais exécuter `migrate:fresh`, `db:wipe` ou une commande de suppression su
 rm -f public/hot
 php artisan optimize:clear
 php artisan config:cache
+php artisan event:cache
+php artisan view:cache
 php artisan queue:restart
 ```
 
-La mise en cache globale des vues et routes n'est pas imposée dans ce premier déploiement. Elle sera activée seulement après validation de toutes les anciennes vues et routes du projet.
+Le cache des routes est volontairement exclu pour le moment : le projet contient encore un nom de route dupliqué (`codePromo.pdf`), ce qui fait échouer `php artisan route:cache`. Ne pas remplacer cette procédure par `php artisan optimize` tant que ce doublon n'est pas corrigé et validé. Le cache des événements, des vues et de la configuration peut être activé avec la procédure ci-dessus.
+
+### Script de déploiement fourni
+
+Le script `scripts/00-laravel-deploy.sh` automatise l'installation Composer, la compilation Vite, le contrôle UI, les migrations, les caches compatibles et les vérifications finales. Il s'arrête dès qu'une commande échoue et n'active ni le mode maintenance ni `route:cache`.
+
+Depuis la racine du projet, après avoir adapté le chemin :
+
+```bash
+APP_DIR=/home/UTILISATEUR_CPANEL/proseller bash scripts/00-laravel-deploy.sh
+```
+
+Si Node.js/npm n'est pas disponible sur O2switch, compiler `public/build` sur une machine disposant de Node.js puis transférer ce dossier, et lancer le script avec :
+
+```bash
+APP_DIR=/home/UTILISATEUR_CPANEL/proseller RUN_FRONTEND_BUILD=false bash scripts/00-laravel-deploy.sh
+```
+
+Dans ce cas, vérifier impérativement que `public/build/manifest.json` existe avant l'ouverture du site.
 
 ## 9. Configurer les tâches cron
 
@@ -245,16 +274,34 @@ php artisan config:cache
 8. Désactiver le mode maintenance et effectuer les tests rapides.
 
 ```bash
+set -Eeuo pipefail
 cd /home/UTILISATEUR_CPANEL/proseller
-php artisan down
+
+php artisan down --retry=60
+git pull --ff-only origin master
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
-php artisan migrate --force
+
+# À exécuter si Node.js/npm est disponible sur le serveur.
+npm ci --no-audit --no-fund
+npm run build
+
 rm -f public/hot
+php artisan ui:lint
+php artisan migrate --force
 php artisan optimize:clear
 php artisan config:cache
+php artisan event:cache
+php artisan view:cache
 php artisan queue:restart
+
+php artisan about
+php artisan migrate:status
+php artisan schedule:list
+php artisan queue:failed
 php artisan up
 ```
+
+Si npm n'est pas disponible, ne pas supprimer le dossier `public/build` déjà préparé : compiler les assets en amont et transférer `public/build` avant de lancer la procédure avec `RUN_FRONTEND_BUILD=false`.
 
 Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode maintenance, lire le message et restaurer la sauvegarde si nécessaire.
 

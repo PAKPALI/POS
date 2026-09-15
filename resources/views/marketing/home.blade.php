@@ -12,9 +12,12 @@
             <p class="marketing-login-note">Déjà client ? <a href="{{ route('marketing.login') }}">Se connecter</a></p>
             <div class="marketing-proof-row"><span>@include('marketing.components.icon', ['name' => 'check']) PWA mobile</span><span>@include('marketing.components.icon', ['name' => 'layers']) Plusieurs entreprises</span><span>@include('marketing.components.icon', ['name' => 'shield']) Données séparées</span><span>@include('marketing.components.icon', ['name' => 'file']) Exports</span></div>
         </div>
+        <div class="marketing-hero-product-visual">
         <div class="product-window product-window-hero" aria-label="Aperçu fictif du point de vente">
             <div class="product-window-bar"><span class="window-dots"><i></i><i></i><i></i></span><span>Vente rapide</span><span class="product-live"><i></i> Connecté</span></div>
             <div class="product-window-body"><div class="product-sidebar-mini"><b>M</b><span></span><span></span><span></span><span></span></div><div class="product-catalog"><div class="product-window-heading"><div><small>Compagnie active</small><strong>Boutique Démo</strong></div><span class="product-date">Aujourd’hui</span></div><div class="product-search">Rechercher un produit <span>⌕</span></div><div class="product-cards"><div class="product-card"><span class="product-thumb product-thumb-orange">CA</span><strong>Café arabica</strong><small>2 500 FCFA</small></div><div class="product-card"><span class="product-thumb product-thumb-green">MI</span><strong>Miel local</strong><small>4 000 FCFA</small></div><div class="product-card"><span class="product-thumb product-thumb-blue">SA</span><strong>Sac en toile</strong><small>8 500 FCFA</small></div><div class="product-card"><span class="product-thumb product-thumb-pink">BO</span><strong>Bol tressé</strong><small>6 000 FCFA</small></div></div></div><div class="product-cart"><div class="cart-heading"><strong>Panier actuel</strong><span>2 articles</span></div><div class="cart-line"><span>Café arabica × 2</span><b>5 000</b></div><div class="cart-line"><span>Miel local × 1</span><b>4 000</b></div><div class="cart-total"><span>Total</span><strong>9 000 FCFA</strong></div><div class="cart-receipt"><i>@include('marketing.components.icon', ['name' => 'message'])</i><span>Reçu prêt à envoyer<br><small>SMS · WhatsApp selon configuration</small></span></div><button type="button" class="product-pay-button">Encaisser @include('marketing.components.icon', ['name' => 'arrow'])</button></div></div>
+        </div>
+            <div class="marketing-hero-illustration">@include('marketing.components.illustration', ['name' => 'dashboard'])</div>
         </div>
     </div>
 </section>
@@ -34,7 +37,6 @@
             <article class="marketing-public-stat is-blue"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'check'])</span><div><strong>{{ number_format($publicStats['active_subscriptions'], 0, ',', ' ') }}</strong><span>Abonnements actifs</span><small>{{ number_format($publicStats['active_paid_subscriptions'], 0, ',', ' ') }} payant(s) · {{ number_format($publicStats['active_trial_subscriptions'], 0, ',', ' ') }} essai(s)</small></div></article>
             <article class="marketing-public-stat is-purple"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'wallet'])</span><div><strong>{{ number_format($publicStats['active_partners'], 0, ',', ' ') }}</strong><span>Partenaires actifs</span><small>Un programme suivi et encadré</small></div></article>
         </div>
-        <p class="marketing-public-stats-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Statistiques agrégées et anonymisées : aucun nom, contact ou montant individuel n’est publié.</p>
     </div>
 </section>
 

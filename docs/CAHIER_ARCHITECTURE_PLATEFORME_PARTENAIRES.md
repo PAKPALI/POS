@@ -5,7 +5,7 @@
 **Périmètre :** acquisition par code partenaire, réduction du premier abonnement, commissions récurrentes, portefeuille et retraits Mobile Money  
 **Application hôte :** POS SaaS Maxanou — Laravel, MySQL, Blade, KPrimePay
 
-> **État au 14 septembre 2026 :** ce cahier reste la référence normative des règles partenaires et financières. L’implémentation fonctionnelle est livrée et validée en staging ; les passages formulés comme « cible », « futur » ou « avant codage » décrivent la conception ou l’état historique de rédaction. L’état d’avancement et les seules actions restantes de production sont suivis dans `docs/ETAT_DOCUMENTAIRE_PRODUCTION.md` et `docs/FREEBUFF_HANDOFF.md`.
+> **État au 15 septembre 2026 :** ce cahier reste la référence normative des règles partenaires et financières. L’implémentation fonctionnelle est livrée et validée en staging ; les passages formulés comme « cible », « futur » ou « avant codage » décrivent la conception ou l’état historique de rédaction. L’état d’avancement et les seules actions restantes de production sont suivis dans `docs/ETAT_DOCUMENTAIRE_PRODUCTION.md` et `docs/FREEBUFF_HANDOFF.md`.
 
 ---
 
@@ -716,7 +716,7 @@ Une phase UI n’est pas terminée si elle fonctionne techniquement mais ne resp
 4. Clients : liste paginée et filtrée, attribution, plan/statut, dernière activité, commissions cumulées ; données personnelles masquées.
 5. Commissions : grand livre paginé, filtres, détail du calcul, export CSV asynchrone.
 6. Retraits : éligibilité, compte Mobile Money, OTP, historique et statuts.
-7. Paramètres : 2FA connexion, préférences e-mail, langue/fuseau, confidentialité.
+7. Paramètres : activation/désactivation autonome et facultative de la 2FA de connexion (mot de passe actuel puis code e-mail), préférences e-mail, langue/fuseau, confidentialité.
 8. Profil : pseudonyme, nom, téléphone, e-mail avec mot de passe + vérification, mot de passe.
 
 ### Console plateforme

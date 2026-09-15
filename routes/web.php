@@ -38,6 +38,7 @@ use App\Http\Controllers\Platform\AlertController as PlatformAlertController;
 use App\Http\Controllers\Platform\CommunicationController as PlatformCommunicationController;
 use App\Http\Controllers\Platform\GeneralSettingController as PlatformGeneralSettingController;
 use App\Http\Controllers\Platform\PartnerSettingController as PlatformPartnerSettingController;
+use App\Http\Controllers\Platform\SocialNetworkSettingController as PlatformSocialNetworkSettingController;
 use App\Http\Controllers\Platform\PartnerController as PlatformPartnerController;
 use App\Http\Controllers\Platform\SubscriptionPreflightController as PlatformSubscriptionPreflightController;
 use App\Http\Controllers\Platform\SubscriptionPlanCatalogController as PlatformSubscriptionPlanCatalogController;
@@ -92,6 +93,8 @@ $partnerRoutes = function (): void {
             ->middleware('throttle:5,1')->name('profile.email.update');
         Route::put('profile/password', [PartnerPortalController::class, 'updatePassword'])
             ->middleware('throttle:5,1')->name('profile.password.update');
+        Route::put('profile/two-factor', [PartnerPortalController::class, 'updateTwoFactor'])
+            ->middleware('throttle:5,1')->name('profile.two-factor.update');
         Route::put('profile/appearance', [PartnerPortalController::class, 'updateAppearance'])
             ->middleware('throttle:10,1')->name('profile.appearance.update');
     });
@@ -144,6 +147,8 @@ Route::prefix('platform')->name('platform.')->group(function () {
             Route::get('settings/general', [PlatformGeneralSettingController::class, 'edit'])->middleware('platform.permission:platform.admins.manage')->name('settings.general');
             Route::put('settings/general', [PlatformGeneralSettingController::class, 'update'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.update');
             Route::put('settings/general/companies/{company}/subscription-enforcement', [PlatformGeneralSettingController::class, 'updateCompanyEnforcement'])->middleware(['platform.permission:platform.admins.manage','throttle:10,1'])->name('settings.general.companies.subscription-enforcement');
+            Route::get('settings/social-networks', [PlatformSocialNetworkSettingController::class, 'edit'])->middleware('platform.permission:platform.admins.manage')->name('settings.social-networks.edit');
+            Route::put('settings/social-networks', [PlatformSocialNetworkSettingController::class, 'update'])->middleware(['platform.permission:platform.admins.manage', 'throttle:10,1'])->name('settings.social-networks.update');
             Route::get('settings/partners', [PlatformPartnerSettingController::class, 'edit'])->middleware('platform.permission:platform.partners.manage')->name('settings.partners.edit');
             Route::put('settings/partners', [PlatformPartnerSettingController::class, 'update'])->middleware(['platform.permission:platform.partners.manage', 'throttle:10,1'])->name('settings.partners.update');
             Route::get('subscriptions/preflight', [PlatformSubscriptionPreflightController::class, 'index'])->middleware('platform.permission:platform.admins.manage')->name('subscriptions.preflight');

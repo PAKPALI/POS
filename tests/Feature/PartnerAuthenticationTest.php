@@ -89,6 +89,11 @@ class PartnerAuthenticationTest extends TestCase
         $reflection = new \ReflectionClass($notification);
         $property = $reflection->getProperty('code'); $property->setAccessible(true);
         $code = $property->getValue($notification);
+        $renderedMail = $notification->toMail($partner)->render();
+        $this->assertStringContainsString('Sécurité du compte partenaire', $renderedMail);
+        $this->assertStringContainsString('Votre code de connexion', $renderedMail);
+        $this->assertStringContainsString('Copyright', $renderedMail);
+        $this->assertStringContainsString($code, $renderedMail);
         $this->post(route('partner.two-factor.verify'), ['code' => $code])->assertRedirect(route('partner.dashboard'));
         $this->assertAuthenticatedAs($partner, 'partner');
         $this->post(route('partner.two-factor.verify'), ['code' => $code])->assertSessionHasErrors('code');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Services\PartnerCodeService;
+use App\Services\PartnerAuthenticationService;
 use App\Services\PlatformConfigurationService;
 use App\Models\Partner;
 use App\Models\PartnerAuditLog;
@@ -90,6 +91,60 @@ class PortalController extends Controller
         $this->audit($partner, 'partner.profile_password_updated', $request);
         $request->session()->put('partner_auth_version', $partner->auth_version);
         return back()->with('success', 'Votre mot de passe a été mis à jour.');
+    }
+
+    public function updateTwoFactor(Request $request, PartnerAuthenticationService $authentication)
+    {
+        $partner = Auth::guard('partner')->user();
+        $enabled = $request->boolean('enabled');
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password:partner'],
+            'code' => ['nullable', 'digits:6'],
+        ], [
+            'current_password.required' => 'Saisissez votre mot de passe actuel.',
+            'current_password.current_password' => 'Votre mot de passe actuel est incorrect.',
+            'code.digits' => 'Le code de sécurité doit comporter 6 chiffres.',
+        ]);
+
+        if (!$enabled) {
+            $partner->forceFill([
+                'two_factor_login_enabled' => false,
+                'auth_version' => $partner->auth_version + 1,
+            ])->save();
+            $request->session()->put('partner_auth_version', $partner->auth_version);
+            $request->session()->forget('partner_2fa_setup_partner_id');
+            $this->audit($partner, 'partner.two_factor_disabled', $request);
+
+            return back()->with('success', 'La double authentification est désactivée pour votre compte.');
+        }
+
+        if ($partner->two_factor_login_enabled) {
+            return back()->with('success', 'La double authentification est déjà activée.');
+        }
+
+        if (!$request->filled('code')) {
+            $authentication->issueTwoFactorSetup($partner, $request);
+
+            return back()
+                ->with('two_factor_setup_pending', true)
+                ->with('status', 'Un code de confirmation vient d’être envoyé à votre adresse e-mail.');
+        }
+
+        if ((int) $request->session()->get('partner_2fa_setup_partner_id') !== (int) $partner->id
+            || !$authentication->verifyTwoFactorSetup($partner, (string) $validated['code'])) {
+            return back()->withErrors(['code' => 'Le code est incorrect, expiré ou déjà utilisé.']);
+        }
+
+        $partner->forceFill([
+            'two_factor_login_enabled' => true,
+            'auth_version' => $partner->auth_version + 1,
+        ])->save();
+        $request->session()->put('partner_auth_version', $partner->auth_version);
+        $request->session()->forget('partner_2fa_setup_partner_id');
+        $this->audit($partner, 'partner.two_factor_enabled', $request);
+
+        return back()->with('success', 'La double authentification est maintenant activée.');
     }
 
     private function audit(Partner $partner, string $action, Request $request): void

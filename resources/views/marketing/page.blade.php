@@ -33,6 +33,31 @@
 
 <section class="marketing-section marketing-page-content"><div class="marketing-container"><div class="marketing-detail-grid">@foreach($content['sections'] as $item)<article class="marketing-detail-card"><span class="feature-card-icon">@include('marketing.components.icon', ['name' => $item['icon']])</span><h2>{{ $item['title'] }}</h2><p>{{ $item['text'] }}</p></article>@endforeach</div></div></section>
 
+@if($page === 'aide' && !empty($socialNetworks))
+<section class="marketing-section marketing-community-section" aria-labelledby="community-title">
+    <div class="marketing-container marketing-community-shell">
+        <div class="marketing-community-copy">
+            <div class="marketing-community-illustration">@include('marketing.components.illustration', ['name' => 'community'])</div>
+            <span class="marketing-eyebrow">La communauté Maxanou</span>
+            <h2 id="community-title">Une question ? Échangez avec les personnes qui utilisent Maxanou.</h2>
+            <p>Retrouvez des utilisateurs, partenaires et administrateurs pour mieux comprendre l’application, partager les bonnes pratiques et suivre les actualités.</p>
+            @if(isset($socialNetworks['whatsapp']))
+                <button type="button" class="marketing-button marketing-button-primary marketing-whatsapp-glow" data-whatsapp-community-trigger>@include('marketing.components.social-icon', ['name' => 'whatsapp']) Rejoindre la communauté</button>
+            @endif
+        </div>
+        <div class="marketing-community-networks" aria-label="Réseaux officiels Maxanou">
+            @foreach($socialNetworks as $key => $network)
+                @if($key === 'whatsapp')
+                    <button type="button" class="marketing-community-network is-whatsapp" data-whatsapp-community-trigger>@include('marketing.components.social-icon', ['name' => $key])<span><strong>{{ $network['label'] }}</strong><small>Questions et entraide autour de Maxanou</small></span>@include('marketing.components.icon', ['name' => 'arrow'])</button>
+                @else
+                    <a class="marketing-community-network" href="{{ $network['url'] }}" target="_blank" rel="noopener noreferrer">@include('marketing.components.social-icon', ['name' => $key])<span><strong>{{ $network['label'] }}</strong><small>Suivre les actualités de Maxanou</small></span>@include('marketing.components.icon', ['name' => 'arrow'])</a>
+                @endif
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
 @if($page === 'partenaires')
 <section class="marketing-section marketing-public-stats-section partner-public-stats-section" id="partenaire-chiffres" aria-labelledby="partner-stats-title">
     <div class="marketing-container">
@@ -47,14 +72,13 @@
             <article class="marketing-public-stat is-blue"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'share'])</span><div><strong>{{ number_format($publicStats['partner_clients'], 0, ',', ' ') }}</strong><span>Clients attribués</span><small>Attributions actives</small></div></article>
             <article class="marketing-public-stat is-purple"><span class="marketing-public-stat-icon">@include('marketing.components.icon', ['name' => 'wallet'])</span><div><strong>{{ number_format($publicStats['completed_withdrawals'], 0, ',', ' ') }}</strong><span>Retraits effectués</span><small>Règlements confirmés</small></div></article>
         </div>
-        <p class="marketing-public-stats-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Les chiffres sont agrégés et anonymisés : aucun nom, contact ou montant individuel n’est publié.</p>
     </div>
 </section>
 
 <section class="marketing-section partner-example-section" id="partenaire-exemple">
     <div class="marketing-container marketing-ecommerce-panel">
-        <div><span class="marketing-eyebrow">Exemple concret · simulation</span><h2>Une recommandation utile crée de la valeur des deux côtés.</h2><p>Un commerçant choisit le plan Basic à 2 500 XOF avec votre code. Avec une remise de {{ $partnerProgram['discount_percent'] }} %, il économise {{ number_format(2500 * $partnerProgram['discount_percent'] / 100, 0, ',', ' ') }} XOF sur son premier abonnement éligible. Votre taux personnel est confirmé dans votre espace et devient définitif lors de l’attribution du client.</p><a class="marketing-button marketing-button-secondary" href="#partenaire-comment-ca-marche">Voir le parcours @include('marketing.components.icon', ['name' => 'arrow'])</a></div>
-        <div class="partner-value-flow"><div><span>01</span><strong>Vous partagez</strong><small>Votre code unique</small></div><i class="bi bi-arrow-right"></i><div><span>02</span><strong>Le client économise</strong><small>Sur son premier paiement</small></div><i class="bi bi-arrow-right"></i><div><span>03</span><strong>Vous gagnez</strong><small>Selon votre taux acquis</small></div></div>
+        <div><div class="partner-illustration-frame">@include('marketing.components.illustration', ['name' => 'partner'])</div><span class="marketing-eyebrow">Exemple concret · simulation</span><h2>Une recommandation utile crée de la valeur des deux côtés.</h2><p>Un commerçant choisit le plan Basic à 2 500 XOF avec votre code. Avec une remise de {{ $partnerProgram['discount_percent'] }} %, il économise {{ number_format(2500 * $partnerProgram['discount_percent'] / 100, 0, ',', ' ') }} XOF sur son premier abonnement éligible. Votre taux personnel est confirmé dans votre espace et devient définitif lors de l’attribution du client.</p><a class="marketing-button marketing-button-secondary" href="#partenaire-comment-ca-marche">Voir le parcours @include('marketing.components.icon', ['name' => 'arrow'])</a></div>
+        <div class="partner-value-flow"><div><span>01</span><strong>Vous partagez</strong><small>Votre code unique</small></div><i>@include('marketing.components.icon', ['name' => 'arrow'])</i><div><span>02</span><strong>Le client économise</strong><small>Sur son premier paiement</small></div><i>@include('marketing.components.icon', ['name' => 'arrow'])</i><div><span>03</span><strong>Vous gagnez</strong><small>Selon votre taux acquis</small></div></div>
     </div>
 </section>
 

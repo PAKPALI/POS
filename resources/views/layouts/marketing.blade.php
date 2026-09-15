@@ -18,7 +18,7 @@
     <title>@yield('title', 'Maxanou — POS de vente et gestion')</title>
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/marketing.css') }}?v=20260902-6" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260911-5" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260915-2" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="marketing-body">
@@ -28,7 +28,8 @@
         @yield('content')
     </main>
     @include('marketing.components.footer')
-    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260911-4" defer></script>
+    @include('marketing.components.social-modals')
+    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260915-1" defer></script>
     <script src="{{ asset('pwa-register.js') }}" defer></script>
     @stack('scripts')
     @yield('structured-data')

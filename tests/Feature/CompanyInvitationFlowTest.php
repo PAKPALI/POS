@@ -72,6 +72,24 @@ class CompanyInvitationFlowTest extends TestCase
         $this->assertNotNull($invitation->fresh()->accepted_at);
     }
 
+    public function test_anonymous_existing_user_invitation_cannot_open_the_invited_session(): void
+    {
+        $owner = User::factory()->create(['user_type' => 2, 'status' => 1]);
+        $company = $this->activateCompanyFor($owner, 'invite-anonymous');
+        $role = $this->role($company);
+        $invitedUser = User::factory()->create(['user_type' => 3, 'status' => 1, 'email' => 'anonymous-existing@test.local']);
+        $token = 'anonymous-existing-token';
+        $invitation = $this->invitation($company, $role, $owner, $invitedUser->email, $token);
+
+        $this->post(route('invitations.accept', $token))
+            ->assertRedirect(route('invitations.show', $token))
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('company_user', ['company_id' => $company->id, 'user_id' => $invitedUser->id]);
+        $this->assertNull($invitation->fresh()->accepted_at);
+    }
+
     public function test_new_user_creates_account_only_when_accepting(): void
     {
         $owner = User::factory()->create(['user_type' => 2, 'status' => 1]);

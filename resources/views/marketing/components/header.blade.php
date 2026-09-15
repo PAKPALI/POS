@@ -36,6 +36,7 @@
         </button>
         @php
             $marketingNavigation = [
+                ['label' => 'Accueil', 'route' => 'marketing.home', 'active' => request()->routeIs('marketing.home')],
                 ['label' => 'Fonctionnalités', 'route' => 'marketing.features', 'active' => request()->routeIs('marketing.features', 'marketing.invoices')],
                 ['label' => 'Solutions', 'route' => 'marketing.sectors', 'active' => request()->routeIs('marketing.sectors')],
                 ['label' => 'Partenaires', 'route' => 'marketing.partners', 'active' => request()->routeIs('marketing.partners')],

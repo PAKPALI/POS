@@ -8,10 +8,7 @@
 </head>
 <body>
 <div class="container">
-    <div class="header">
-        <h2 style="margin-bottom:8px;">{{ config('app.name') }}</h2>
-        <p style="margin:0;color:#ff9f43;">Sécurité du compte partenaire</p>
-    </div>
+    @include('emails.design.emailHeader', ['subtitle' => 'Sécurité du compte partenaire'])
 
     <div class="content text-center" style="padding:24px 12px;">
         <h2>Bonjour {{ $name }},</h2>
