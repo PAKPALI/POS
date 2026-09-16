@@ -42,11 +42,13 @@ class SubscriptionPlanCatalogService
                 'version' => $nextVersion,
             ]);
 
-            foreach (['suppliers', 'ecommerce'] as $feature) {
+            foreach (['suppliers', 'ecommerce', 'promo_codes'] as $feature) {
                 PlanFeature::create([
                     'subscription_plan_id' => $plan->id,
                     'feature_key' => $feature,
-                    'enabled' => (bool) ($values['features'][$feature] ?? false),
+                    'enabled' => $feature === 'promo_codes'
+                        ? $lockedSource->rank >= 3
+                        : (bool) ($values['features'][$feature] ?? false),
                 ]);
             }
 

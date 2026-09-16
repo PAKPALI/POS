@@ -2234,3 +2234,18 @@ Le processus PHP qui sert `127.0.0.1:1111` est détenu par une autre session Win
 - Le modèle `Company` garantit désormais à la création les invariants de tenant (`active`, `TG`, `FCFA`, `Africa/Douala`, `fr`) même si une installation historique conserve des colonnes nullable ; cela évite qu’un job de notification ou de réconciliation ignore silencieusement une entreprise.
 - `git diff --check`, `php artisan view:cache` et `php artisan ui:lint --changed` sont verts après cette validation. Le contrôle de planification confirme les réconciliations partenaire et plateforme chaque minute.
 - Cette validation est strictement locale : `POS` et staging n’ont pas été touchés, aucun transfert KPrimePay réel n’a été lancé et aucune donnée de production n’a été modifiée.
+## Mise à jour du 16 septembre 2026 — codes promo clients par entreprise
+
+- Le module `Codes promo` est réactivé dans l’interface entreprise et reste distinct des codes du programme Partenaires utilisés pour les abonnements Maxanou.
+- L’accès est inclus à partir du plan Argent (10 000 XOF/mois) et dans les plans supérieurs. La fonctionnalité `promo_codes` est publiée dans le catalogue, affichée sur les écrans Abonnement, Tarifs et administration des plans, puis contrôlée côté serveur par `plan.feature:promo_codes`.
+- Chaque code est normalisé et unique dans son entreprise. Les recherches, détails, modifications, PDF et validations POS restent isolés par le contexte d’entreprise actif.
+- Une date d’expiration est obligatoire pour les nouvelles campagnes. La validité est contrôlée à chaque utilisation, indépendamment du cron, et `promo-codes:expire` désactive les codes échus toutes les cinq minutes.
+- Lors d’une vente, le serveur recharge les prix des produits, vérifie le code dans l’entreprise active et recalcule lui-même la remise ainsi que le total. Les montants de remise ou de total transmis par le navigateur ne font plus autorité.
+- Recette automatisée : `SalesFlowTest`, `PlatformSubscriptionCatalogTest` et `SubscriptionFoundationTest` couvrent notamment l’isolation inter-entreprises, l’expiration, le recalcul serveur et l’attribution de la fonctionnalité aux plans.
+## Mise à jour du 16 septembre 2026 — invitation sociale dans l’application
+
+- Les liens sociaux administrés depuis `Console plateforme > Réseaux sociaux` sont maintenant proposés aux utilisateurs connectés dans le shell SaaS, 15 secondes après l’ouverture d’une page.
+- WhatsApp reprend les mêmes règles que le site : les conditions de la communauté sont affichées et l’utilisateur doit les accepter avant l’ouverture du lien. TikTok, Facebook et Instagram ne sont présentés que lorsqu’un lien HTTPS existe.
+- « Ignorer pendant 7 jours » persiste un rappel différé ; « Ne plus voir » désactive définitivement la proposition pour le compte. Après cette désactivation, une notification indique que les liens restent disponibles sur le site, dans la page Aide.
+- La migration `2026_09_16_150000_add_social_network_prompt_preferences_to_users_table.php` ajoute les préférences par utilisateur. La route `profile.social-network-prompt.preference` est protégée par authentification et limitation de débit.
+- Le composant respecte le design system SaaS, les loaders d’action serveur et l’affichage mobile empilé.

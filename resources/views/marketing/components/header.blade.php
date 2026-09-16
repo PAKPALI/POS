@@ -1,7 +1,7 @@
 <header class="marketing-header" data-marketing-header>
     <div class="marketing-container marketing-header-inner">
         <a class="marketing-brand" href="{{ route('marketing.home') }}" aria-label="Maxanou, accueil">
-            <span class="marketing-brand-mark">M</span>
+            <span class="marketing-brand-mark"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="36" height="36"></span>
             <span><strong>Maxanou</strong><small>Je vais vendre</small></span>
         </a>
         <div class="marketing-appearance" data-marketing-appearance @auth data-save-url="{{ route('profile.appearance.update') }}" @endauth>

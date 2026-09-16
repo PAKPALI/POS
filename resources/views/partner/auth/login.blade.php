@@ -9,5 +9,11 @@
 <x-ui.password id="password" name="password" label="Mot de passe" required autocomplete="current-password" :error="$errors->first('password')" />
 <x-ui.form-actions class="auth-form-actions"><x-ui.button type="submit" class="w-100 auth-submit" loading-text="Connexion en cours…">Se connecter <i class="bi bi-arrow-right" aria-hidden="true"></i></x-ui.button></x-ui.form-actions>
 <p class="auth-flow-link"><a href="{{ route('partner.password.request') }}">Mot de passe oublié ?</a></p><p class="auth-flow-link">Vous débutez ? <a href="{{ route('partner.register') }}">Créer un compte partenaire</a></p>
-</form></div>
+</form>
+<a class="auth-cross-cta auth-client-cta" href="{{ route('user_login') }}">
+    <span class="auth-cross-cta-icon" aria-hidden="true"><i class="bi bi-shop"></i></span>
+    <span><strong>Accéder à l’espace client</strong><small>Gérez vos ventes et votre stock</small></span>
+    <i class="bi bi-arrow-up-right auth-cross-cta-arrow" aria-hidden="true"></i>
+</a>
+</div>
 @endsection

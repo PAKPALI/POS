@@ -1,0 +1,16 @@
+.saas-brand-mark img,
+.platform-brand-mark img,
+.public-auth-brand img,
+.platform-auth-brand img,
+.marketing-brand-mark img,
+.pos-saas-body .pos-menu .logo-img img {
+    display: block;
+    object-fit: contain;
+}
+
+.saas-brand-mark img { width: 32px; height: 32px; }
+.public-auth-brand img,
+.platform-auth-brand img { width: 30px; height: 30px; }
+.marketing-brand-mark { color: var(--ds-accent); background: var(--ds-accent-soft); border: 1px solid rgba(var(--ds-accent-rgb), .25); }
+.marketing-brand-mark img { width: 34px; height: 34px; }
+.pos-saas-body .pos-menu .logo-img img { width: 40px; height: 40px; }

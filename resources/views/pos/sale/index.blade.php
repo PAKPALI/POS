@@ -41,7 +41,7 @@
                 <!-- logo -->
                 <div class="logo">
                     <a href="{{ route('dashboard') }}">
-                        <div class="logo-img"><i class="bi bi-x-diamond" style="font-size: 2.1rem;"></i></div>
+                        <div class="logo-img"><img src="{{ asset('brand/maxanou-symbol-light.svg') }}" alt="" width="42" height="42"></div>
                         <div class="logo-text">{{config('app.name')}}</div>
                     </a>
                 </div>
@@ -357,10 +357,15 @@
                         
                         <!-- <form action=""> -->
                             
-                            {{--<div class="d-flex gap-1 mb-2">
-                                <input type="text" id="promoCodeInput" class="form-control" placeholder="Scannez le code promo" autofocus>
-                                <button class="btn btn-danger btn-sm" id="deletpromoinput" type=""><i class="bi bi-trash"></i></button>
-                            </div>--}}
+                            @if($canUsePromoCodes)
+                                <div class="pos-discount-field mb-2">
+                                    <label for="promoCodeInput">Code promo client</label>
+                                    <div class="d-flex gap-1">
+                                        <input type="text" id="promoCodeInput" class="form-control" placeholder="Saisissez ou scannez le code" maxlength="64" autocomplete="off">
+                                        <button class="btn btn-danger btn-sm" id="deletpromoinput" type="button" aria-label="Retirer le code promo"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="pos-discount-field mb-2">
                                 <label for="remiseInput">Remise sur la commande</label>
                                 <div class="d-flex gap-1">
@@ -1274,7 +1279,7 @@
                                                 products: products,
                                                 received_amount: received_amount,
                                                 total_amount: finalAmount,
-                                                discount: discount + remiseMontant, // Ajout de la réduction (promo + remise)
+                                                manual_discount: remiseMontant,
                                                 code_promo: codePromo,
                                                 client_id: clientSelect.val()
                                             },
@@ -1367,7 +1372,7 @@
                                         products: products,
                                         received_amount: received_amount,
                                         total_amount: finalAmount,
-                                        discount: remiseMontant, // Remise manuelle
+                                        manual_discount: remiseMontant,
                                         code_promo: codePromo,
                                         client_id: clientSelect.val()
                                     },

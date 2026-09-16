@@ -3,8 +3,7 @@
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}"><meta name="theme-color" content="#070B14">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+    @include('partials.brand-head')
     <title>@yield('title', 'Espace partenaire') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
@@ -18,7 +17,7 @@
 <div class="saas-shell" id="saasShell">
     <aside class="saas-sidebar" id="saasSidebar" aria-label="Navigation partenaire">
         <div class="saas-sidebar-head">
-            <a class="saas-brand" href="{{ route('partner.dashboard') }}"><span class="saas-brand-mark">MX</span><span class="saas-brand-copy"><strong>{{ config('app.name') }}</strong><small>Partenaires</small></span></a>
+            <a class="saas-brand" href="{{ route('partner.dashboard') }}"><span class="saas-brand-mark"><img src="{{ asset('brand/maxanou-symbol-light.svg') }}" alt="" width="32" height="32"></span><span class="saas-brand-copy"><strong>{{ config('app.name') }}</strong><small>Partenaires</small></span></a>
             <button type="button" class="saas-icon-button saas-collapse-button" data-saas-sidebar-collapse aria-label="Réduire le menu"><i class="bi bi-layout-sidebar-inset"></i></button>
         </div>
         <nav class="saas-nav">

@@ -636,6 +636,33 @@ class UserController extends Controller
         ]);
     }
 
+    public function updateSocialNetworkPromptPreference(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'string', 'in:snooze,hide'],
+        ]);
+
+        $user = $request->user();
+        if ($validated['action'] === 'hide') {
+            $user->forceFill([
+                'social_network_prompt_hidden' => true,
+                'social_network_prompt_snoozed_until' => null,
+            ])->save();
+        } else {
+            $user->forceFill([
+                'social_network_prompt_snoozed_until' => now()->addDays(7),
+            ])->save();
+        }
+
+        return response()->json([
+            'status' => true,
+            'title' => 'PRÉFÉRENCE ENREGISTRÉE',
+            'msg' => $validated['action'] === 'hide'
+                ? 'Cette proposition ne sera plus affichée. Les réseaux sociaux restent accessibles depuis la page Aide du site.'
+                : 'La proposition pourra réapparaître dans 7 jours.',
+        ]);
+    }
+
     public function topSellingProducts(Request $request)
     {
         try {

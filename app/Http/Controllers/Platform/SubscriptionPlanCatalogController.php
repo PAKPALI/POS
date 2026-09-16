@@ -58,6 +58,7 @@ class SubscriptionPlanCatalogController extends Controller
             'features' => ['nullable', 'array'],
             'features.suppliers' => ['nullable', 'boolean'],
             'features.ecommerce' => ['nullable', 'boolean'],
+            'features.promo_codes' => ['nullable', 'boolean'],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
             'current_password' => ['required', 'current_password:platform'],
         ], ['current_password.required' => 'Saisissez votre mot de passe plateforme pour confirmer cette création.', 'current_password.current_password' => 'Votre mot de passe plateforme est incorrect.']);

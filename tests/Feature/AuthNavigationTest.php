@@ -22,7 +22,16 @@ class AuthNavigationTest extends TestCase
             ->assertDontSeeText('Administration SaaS')
             ->assertDontSee('auth-platform-link', false)
             ->assertSee(asset('hub/assets/css/vendor.min.css'))
-            ->assertSee(asset('hub/assets/css/public-auth.css'));
+            ->assertSee(asset('hub/assets/css/public-auth.css'))
+            ->assertSee(route('partner.login'))
+            ->assertSee('auth-cross-cta', false)
+            ->assertSeeText('Devenir partenaire');
+
+        $this->get(route('partner.login'))
+            ->assertOk()
+            ->assertSee(route('user_login'))
+            ->assertSee('auth-client-cta', false)
+            ->assertSeeText('Accéder à l’espace client');
 
         $this->get(route('platform.entry'))
             ->assertRedirect('/platform/login');
@@ -79,7 +88,9 @@ class AuthNavigationTest extends TestCase
         $manifest = json_decode(file_get_contents(public_path('manifest.json')), true, flags: JSON_THROW_ON_ERROR);
 
         $this->assertSame('/user_login', $manifest['start_url']);
-        $this->assertStringContainsString('maxanou-pwa-v8', file_get_contents(public_path('sw.js')));
+        $this->assertSame('/icons/icon-maskable-512.png', collect($manifest['icons'])->firstWhere('purpose', 'maskable')['src']);
+        $this->assertStringContainsString('maxanou-pwa-v9', file_get_contents(public_path('sw.js')));
+        $this->assertStringContainsString('/brand/maxanou-symbol.svg', file_get_contents(public_path('sw.js')));
         $this->assertStringContainsString('beforeinstallprompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('android-pwa-install-prompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('mobile-pwa-install-fallback', file_get_contents(public_path('pwa-register.js')));

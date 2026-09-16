@@ -19,5 +19,10 @@
             @if (Route::has('password.request'))<p class="auth-flow-link"><a href="{{ route('password.request') }}">Mot de passe oublié ?</a></p>@endif
             @if (Route::has('register'))<p class="auth-flow-link">Vous n’avez pas encore de compte ? <a href="{{ route('register') }}">Créer un compte</a></p>@endif
         </form>
+        <a class="auth-cross-cta" href="{{ route('partner.login') }}">
+            <span class="auth-cross-cta-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+            <span><strong>Devenir partenaire</strong><small>Rejoignez le programme Maxanou</small></span>
+            <i class="bi bi-arrow-up-right auth-cross-cta-arrow" aria-hidden="true"></i>
+        </a>
     </div>
 @endsection

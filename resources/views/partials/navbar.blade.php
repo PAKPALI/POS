@@ -106,7 +106,7 @@
         <div class="menu-item dropdown dropdown-mobile-full">
             <a href="#" data-bs-toggle="dropdown" data-bs-display="static" class="menu-link">
                 <div class="menu-img online">
-                    <img src="{{asset('hub/assets/img/logo.png')}}" alt="Profile" height="60">
+                    <img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="Maxanou" height="60">
                 </div>
                 <div class="menu-text d-sm-block d-none w-170px">
                     <!-- <span class="__cf_email__"data-cfemail="32474157405c535f57725351515d475c461c515d5f">[email&#160;protected]</span> -->

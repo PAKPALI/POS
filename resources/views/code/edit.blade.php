@@ -1,41 +1,11 @@
 <form id="update_form">
     @csrf
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col-6">
-                <label for="exampleInputText0">Nom</label>
-                <input type="text" name="name" class="form-control" id="exampleInputText0"
-                    placeholder="Nom" value="{{$CodePromo->name}}">
-            </div>
-            <div class="form-group col-6">
-                <label for="exampleInputText0">Pourcentage</label>
-                <input type="number" name="percents" class="form-control" id="exampleInputText0"
-                    placeholder="Votre pourcentage" value="{{$CodePromo->percents}}">
-            </div>
-        </div>
-        <div class="row mt-3">
-            <div class="form-group col-11">
-                <label for="exampleInputText0">Code</label>
-                <input id="code" type="text" name="code" class="form-control" id="exampleInputText0"
-                    placeholder="Code" value="{{$CodePromo->code}}">
-            </div>
-            <div class="form-group col-1 text-end">
-                <label for="exampleInputText0"></label>
-                <div>
-                    <a id="generateCode" class="btn btn-secondary">
-                        <div id="">Générer</div>
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="row mt-3">
-            <div class="form-group col-12">
-                <label for="exampleInputText0">Description</label>
-                <textarea name="comments" class="form-control" placeholder="Votre description" id="exampleInputText">
-                    {{$CodePromo->comments}}
-                </textarea>
-            </div>
-        </div>
+    <div class="saas-form-grid">
+        <x-ui.input id="edit-code-name-{{ $CodePromo->id }}" name="name" label="Nom" :value="$CodePromo->name" required />
+        <x-ui.input id="edit-code-percent-{{ $CodePromo->id }}" name="percents" type="number" label="Pourcentage de remise" min="1" max="100" :value="$CodePromo->percents" required />
+        <div class="saas-form-group"><label for="edit-code-value-{{ $CodePromo->id }}">Code</label><div class="saas-inline-actions"><input id="edit-code-value-{{ $CodePromo->id }}" type="text" name="code" value="{{ $CodePromo->code }}" maxlength="64" required><button class="saas-btn saas-btn-secondary generate-edit-code" type="button">Générer</button></div></div>
+        <x-ui.input id="edit-code-expiry-{{ $CodePromo->id }}" name="expires_at" type="datetime-local" label="Expiration" :value="$CodePromo->expires_at?->format('Y-m-d\TH:i')" required />
+        <x-ui.textarea id="edit-code-comments-{{ $CodePromo->id }}" name="comments" label="Description" rows="4" class="saas-form-group-wide">{{ $CodePromo->comments }}</x-ui.textarea>
     </div>
     <div class="saas-modal-actions">
         <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
@@ -97,6 +67,9 @@
                         text: 'Une erreur est survenue, veuillez réessayer.',
                     });
                 });
+        });
+        $('.generate-edit-code').on('click', function() {
+            $('#edit-code-value-{{ $CodePromo->id }}').val(Array.from({length:7},()=> 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random()*36)]).join(''));
         });
     });
 </script>

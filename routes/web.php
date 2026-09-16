@@ -300,6 +300,8 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
     Route::put('profile/appearance', 'updateAppearance')->middleware('throttle:20,1')->name('profile.appearance.update');
     Route::patch('profile/product-registration-notice', 'dismissProductRegistrationNotice')
         ->middleware('throttle:10,1')->name('profile.product-registration-notice.dismiss');
+    Route::patch('profile/social-network-prompt', 'updateSocialNetworkPromptPreference')
+        ->middleware('throttle:10,1')->name('profile.social-network-prompt.preference');
 
     // chart
     Route::post('/statistics/top-products', [UserController::class, 'topSellingProducts'])
@@ -373,14 +375,15 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
         Route::get('sale/invoice/{id}/pdf', 'generatePDF')->name('codePromo.pdf');
         Route::post('sale/{sale}/send-invoice', 'sendInvoice')->middleware('throttle:10,1')->name('sale.send-invoice');
         Route::get('sale/{sale}/receipt', 'receipt')->name('sale.receipt');
+        Route::post('/verify-promo', [CodePromoController::class, 'verifyPromo'])
+            ->middleware(['plan.feature:promo_codes', 'throttle:60,1'])->name('verifyPromo');
     });
 });
 
-Route::prefix('code')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage', 'subscription.writable'])->group(function () {
+Route::prefix('code')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:catalog.manage', 'subscription.writable', 'plan.feature:promo_codes'])->group(function () {
     //sale
     Route::controller(CodePromoController::class)->group(function () {
         Route::resource('code', CodePromoController::class);
-        Route::post('/verify-promo', [CodePromoController::class, 'verifyPromo'])->name('verifyPromo');
         Route::get('/code-promo/{id}/pdf', [CodePromoController::class, 'generatePDF'])->name('codePromo.pdf');
     });
 });

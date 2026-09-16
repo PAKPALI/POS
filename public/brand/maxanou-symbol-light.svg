@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Symbole Maxanou</title>
+  <path d="M96 20A48 48 0 1 0 108 45" fill="none" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+  <path d="M35 83V51L62 75" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M62 75L99 35" fill="none" stroke="#3B8CFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

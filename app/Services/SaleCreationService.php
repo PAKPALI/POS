@@ -20,20 +20,54 @@ use RuntimeException;
 
 class SaleCreationService
 {
-    public function __construct(private CompanyContext $context) {}
+    public function __construct(private CompanyContext $context, private EntitlementService $entitlements) {}
 
     public function create(array $data, User $cashier): Sale
     {
         return DB::transaction(function () use ($data, $cashier) {
-            $percent = 0;
-            if (! empty($data['code_promo']) && strlen((string) $data['code_promo']) === 6) {
-                $percent = (float) (CodePromo::where('code', $data['code_promo'])
-                    ->where('status', 1)->value('percents') ?? 0);
+            $data['products'] = collect($data['products'])->map(function (array $item): array {
+                $product = Product::whereKey($item['product_id'])->lockForUpdate()->firstOrFail();
+                $quantity = (int) $item['quantity'];
+                $unitPrice = (float) ($product->price_ttc ?: $product->price);
+
+                return [
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'total_price' => round($unitPrice * $quantity, 2),
+                ];
+            })->all();
+
+            $grossAmount = round(collect($data['products'])->sum(fn (array $item) => (float) $item['total_price']), 2);
+            $manualDiscount = round((float) ($data['manual_discount'] ?? 0), 2);
+            if ($grossAmount <= 0 || $manualDiscount < 0 || $manualDiscount >= $grossAmount) {
+                throw new RuntimeException('Le montant de la vente ou de la remise est invalide.');
             }
 
-            $discount = (float) ($data['discount'] ?? 0);
-            $totalAmount = (float) $data['total_amount'];
+            $percent = 0.0;
+            $normalizedCode = CodePromo::normalizeCode($data['code_promo'] ?? null);
+            if ($normalizedCode !== '') {
+                if (! $this->entitlements->feature($this->context->getCompany(), 'promo_codes')) {
+                    throw new RuntimeException('Les codes promo clients ne sont pas inclus dans votre plan actif.');
+                }
+
+                $promo = CodePromo::usable()
+                    ->where('normalized_code', $normalizedCode)
+                    ->lockForUpdate()
+                    ->first();
+                if (! $promo) {
+                    throw new RuntimeException('Ce code promo est invalide, inactif ou expiré pour cette entreprise.');
+                }
+                $percent = (float) $promo->percents;
+            }
+
+            $promoDiscount = round($grossAmount * $percent / 100, 2);
+            $discount = min($grossAmount, $manualDiscount + $promoDiscount);
+            $totalAmount = max(0, round($grossAmount - $discount, 2));
             $receivedAmount = (float) ($data['received_amount'] ?? $totalAmount);
+            if ($receivedAmount < $totalAmount) {
+                throw new RuntimeException('Le montant reçu est inférieur au total recalculé par le serveur.');
+            }
             $sale = Sale::create([
                 'code' => $this->code(),
                 'received_amount' => $receivedAmount,
@@ -41,7 +75,7 @@ class SaleCreationService
                 'remaining_amount' => $receivedAmount - $totalAmount,
                 'code_promo' => $percent,
                 'discount' => $discount,
-                'amount_init' => $discount + $totalAmount,
+                'amount_init' => $grossAmount,
                 'client_id' => $data['client_id'] ?? null,
                 'cashier' => $cashier->name,
             ]);

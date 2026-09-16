@@ -7,9 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Point de vente — {{ config('app.name') }}">
     <meta name="author" content="{{ config('app.name') }}">
-    <link rel="manifest" href="/manifest.json">
+    @include('partials.brand-head')
     <meta name="theme-color" content="#111111">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
 
     {{-- Feuilles de style --}}
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">

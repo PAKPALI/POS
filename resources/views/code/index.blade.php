@@ -17,8 +17,9 @@
         @csrf
         <div class="saas-form-grid">
             <x-ui.input id="code-name" name="name" label="Nom" placeholder="Nom de la campagne" required />
-            <x-ui.input id="code-percent" name="percents" type="number" label="Pourcentage" placeholder="Ex. 10" min="0" max="100" required />
+            <x-ui.input id="code-percent" name="percents" type="number" label="Pourcentage de remise" placeholder="Ex. 10" min="1" max="100" required />
             <div class="saas-form-group"><label for="code">Code</label><div class="saas-inline-actions"><input id="code" type="text" name="code" placeholder="Générez ou saisissez un code" readonly required><button id="generateCode" class="saas-btn saas-btn-secondary" type="button">Générer</button></div></div>
+            <x-ui.input id="code-expires-at" name="expires_at" type="datetime-local" label="Expiration" required />
             <x-ui.textarea id="code-comments" name="comments" label="Description" placeholder="Conditions ou contexte de la remise" rows="4" class="saas-form-group-wide" />
         </div>
         <div class="saas-modal-actions"><button class="saas-btn saas-btn-ghost" type="button" data-bs-dismiss="modal">Annuler</button><x-ui.button type="submit" variant="primary" data-loading-text="Création…"><i class="bi bi-check-lg" aria-hidden="true"></i> Créer le code</x-ui.button></div>
@@ -29,7 +30,7 @@
 <x-ui.modal id="showModal" title="Détail du code promo" eyebrow="Catalogue" size="lg"><div id="show_response"><x-ui.skeleton :lines="3" /></div></x-ui.modal>
 
 <x-ui.card title="Liste des codes promotionnels" description="Utilisez la recherche, le tri et la pagination sans quitter cet écran.">
-    <x-ui.table-shell><x-slot:table id="datatable" class="w-100"><thead><tr><th>#</th><th>Nom</th><th>Code</th><th>Pourcentage</th><th>Description</th><th>Créé par</th><th>Créé le</th><th>Statut</th><th>Actions</th></tr></thead><tbody></tbody></x-slot:table></x-ui.table-shell>
+    <x-ui.table-shell><x-slot:table id="datatable" class="w-100"><thead><tr><th>#</th><th>Nom</th><th>Code</th><th>Pourcentage</th><th>Expiration</th><th>Description</th><th>Créé par</th><th>Créé le</th><th>Statut</th><th>Actions</th></tr></thead><tbody></tbody></x-slot:table></x-ui.table-shell>
 </x-ui.card>
 @endsection
 
@@ -42,7 +43,7 @@
 $(function () {
     const table = $('#datatable').DataTable({
         processing:true, serverSide:true, responsive:true, ajax:"{{ route('code.index') }}",
-        columns:[{data:'id',name:'id'},{data:'name',name:'name'},{data:'code',name:'code'},{data:'percents',name:'percents'},{data:'comments',name:'comments'},{data:'created_by',name:'created_by'},{data:'created_at',name:'created_at'},{data:'status',name:'status'},{data:'action',name:'action',orderable:false,searchable:false}],
+        columns:[{data:'id',name:'id'},{data:'name',name:'name'},{data:'code',name:'code'},{data:'percents',name:'percents'},{data:'expires_at',name:'expires_at'},{data:'comments',name:'comments'},{data:'created_by',name:'created_by'},{data:'created_at',name:'created_at'},{data:'status',name:'status'},{data:'action',name:'action',orderable:false,searchable:false}],
         language:{lengthMenu:'Afficher _MENU_ entrées',zeroRecords:'Aucune donnée disponible',info:'Affichage de _START_ à _END_ sur _TOTAL_ entrées',infoEmpty:'Affichage de 0 à 0 sur 0 entrées',infoFiltered:'(filtré à partir de _MAX_ entrées au total)',search:'Rechercher:',paginate:{first:'Premier',last:'Dernier',next:'Suivant',previous:'Précédent'}}
     });
     window.addEventListener('datatableUpdated', () => table.ajax.reload(null, false));

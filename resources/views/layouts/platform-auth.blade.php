@@ -6,8 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex,nofollow">
     <meta name="theme-color" content="#070B14">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+    @include('partials.brand-head')
     <title>@yield('title', 'Accès plateforme') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
@@ -16,7 +15,7 @@
 </head>
 <body class="platform-auth-body">
 <main class="platform-auth-shell">
-    <a class="platform-auth-brand" href="{{ route('user_login') }}"><i class="bi bi-boxes" aria-hidden="true"></i><span>{{ config('app.name') }}</span></a>
+    <a class="platform-auth-brand" href="{{ route('user_login') }}"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="30" height="30"><span>{{ config('app.name') }}</span></a>
     <section class="platform-auth-card">
         <div class="platform-auth-mark">@if(config('platform.identity.logo_url'))<img src="{{ config('platform.identity.logo_url') }}" alt="Logo de la plateforme" width="48" height="48">@else<i class="bi bi-shield-lock-fill" aria-hidden="true"></i>@endif</div>
         @yield('content')

@@ -7,8 +7,7 @@
     <meta name="theme-color" content="#070B14">
     <meta name="description" content="{{ config('app.name') }} — gestion commerciale">
     <title>@yield('title', 'Espace de travail') — {{ config('app.name') }}</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+    @include('partials.brand-head')
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260911-15" rel="stylesheet">
@@ -63,6 +62,8 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    @php($appSocialNetworks = app(\App\Services\PlatformConfigurationService::class)->socialNetworks())
+    @include('partials.social-network-invite', ['socialNetworks' => $appSocialNetworks])
     <script src="{{ asset('pwa-register.js') }}" defer></script>
     @stack('scripts')
 </body>

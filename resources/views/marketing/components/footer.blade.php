@@ -1,7 +1,7 @@
 <footer class="marketing-footer">
     <div class="marketing-container marketing-footer-grid">
         <div>
-            <a class="marketing-brand" href="{{ route('marketing.home') }}"><span class="marketing-brand-mark">M</span><span><strong>Maxanou</strong><small>Je vais vendre</small></span></a>
+            <a class="marketing-brand" href="{{ route('marketing.home') }}"><span class="marketing-brand-mark"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="36" height="36"></span><span><strong>Maxanou</strong><small>Je vais vendre</small></span></a>
             <p>Le POS simple pour vendre, suivre le stock et piloter votre commerce.</p>
         </div>
         <div><strong>Produit</strong><a href="{{ route('marketing.features') }}">Fonctionnalités</a><a href="{{ route('marketing.invoices') }}">Factures SMS & WhatsApp</a><a href="{{ route('marketing.pricing') }}">Tarifs</a><a href="{{ route('marketing.partners') }}">Devenir partenaire</a></div>

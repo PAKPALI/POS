@@ -4,6 +4,7 @@
         <div><dt>Nom</dt><dd>{{ $CodePromo->name }}</dd></div>
         <div><dt>Code</dt><dd><code>{{ $CodePromo->code }}</code></dd></div>
         <div><dt>Pourcentage</dt><dd>{{ $CodePromo->percents }} %</dd></div>
+        <div><dt>Expiration</dt><dd>{{ $CodePromo->expires_at?->format('d/m/Y à H:i') ?? 'Sans expiration' }}</dd></div>
         <div><dt>Description</dt><dd>{{ $CodePromo->comments ?: 'Aucune description' }}</dd></div>
         <div><dt>Créé par</dt><dd>{{ $CodePromo->user->name }}</dd></div>
     </dl>

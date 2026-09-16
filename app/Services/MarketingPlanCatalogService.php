@@ -50,6 +50,7 @@ class MarketingPlanCatalogService
                     'quota' => $this->quota((int) $plan->sms_quota, (int) $plan->whatsapp_quota),
                     'suppliers' => (bool) ($features->get('suppliers') ?? false),
                     'ecommerce' => (bool) ($features->get('ecommerce') ?? false),
+                    'promo_codes' => (bool) ($features->get('promo_codes') ?? ($plan->rank >= 3)),
                     'featured' => $key === 'bronze',
                 ];
             })->all();

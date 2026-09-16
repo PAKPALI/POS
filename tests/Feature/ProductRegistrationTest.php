@@ -134,6 +134,22 @@ class ProductRegistrationTest extends TestCase
             ->assertDontSee('Ne plus me montrer');
     }
 
+    public function test_social_network_prompt_preferences_support_a_seven_day_snooze_and_permanent_hide(): void
+    {
+        [$user] = $this->companyContext();
+
+        $this->patchJson(route('profile.social-network-prompt.preference'), ['action' => 'snooze'])
+            ->assertOk()->assertJson(['status' => true]);
+        $this->assertNotNull($user->fresh()->social_network_prompt_snoozed_until);
+        $this->assertTrue($user->fresh()->social_network_prompt_snoozed_until->between(now()->addDays(6), now()->addDays(8)));
+
+        $this->patchJson(route('profile.social-network-prompt.preference'), ['action' => 'hide'])
+            ->assertOk()->assertJson(['status' => true]);
+        $user->refresh();
+        $this->assertTrue((bool) $user->social_network_prompt_hidden);
+        $this->assertNull($user->social_network_prompt_snoozed_until);
+    }
+
     private function companyContext(): array
     {
         $user = User::create([

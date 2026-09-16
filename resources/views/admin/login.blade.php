@@ -10,6 +10,11 @@
             <div class="auth-field"><div class="auth-label-row"><label for="password">Mot de passe</label><a href="{{ route('password.request') }}">Mot de passe oublié ?</a></div><div class="auth-control"><i class="bi bi-lock" aria-hidden="true"></i><input id="password" type="password" name="password" placeholder="Votre mot de passe" autocomplete="current-password" required><button id="togglePassword" type="button" aria-label="Afficher le mot de passe"><i id="togglePasswordIcon" class="bi bi-eye" aria-hidden="true"></i></button></div></div>
             <button type="submit" class="saas-btn saas-btn-primary auth-submit" data-loading-text="Connexion…">Se connecter <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
         </form>
+        <a class="auth-cross-cta" href="{{ route('partner.login') }}">
+            <span class="auth-cross-cta-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+            <span><strong>Devenir partenaire</strong><small>Rejoignez le programme Maxanou</small></span>
+            <i class="bi bi-arrow-up-right auth-cross-cta-arrow" aria-hidden="true"></i>
+        </a>
         <p class="auth-flow-switch">Vous débutez ? <a href="{{ route('register') }}">Créer votre espace</a></p>
     </div>
 

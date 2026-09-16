@@ -5,21 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#070B14">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+    @include('partials.brand-head')
     <title>@yield('title', 'Accès sécurisé') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-18" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260908-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260916-1" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="saas-body public-auth-body">
 <div class="public-auth-orbs" aria-hidden="true"><span class="public-auth-orb public-auth-orb-a"></span><span class="public-auth-orb public-auth-orb-b"></span><span class="public-auth-orb public-auth-orb-c"></span></div>
 <main class="public-auth-shell">
     <header class="public-auth-header">
-        <a class="public-auth-brand" href="{{ url('/') }}"><i class="bi bi-boxes" aria-hidden="true"></i><span>{{ config('app.name') }}</span></a>
+        <a class="public-auth-brand" href="{{ url('/') }}"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="30" height="30"><span>{{ config('app.name') }}</span></a>
         <div class="public-appearance-controls">
             <div class="public-theme-picker" role="group" aria-label="Apparence">
                 <button type="button" data-public-theme="light" aria-label="Thème clair"><i class="bi bi-sun" aria-hidden="true"></i></button>

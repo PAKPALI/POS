@@ -118,14 +118,14 @@
 			@endif
 
 			<!-- PROMO CODE -->
-			@if($currentMembership?->hasPermission('catalog.manage'))
-				{{--<div class="menu-header">CODE PROMO</div>
+			@if($currentMembership?->hasPermission('catalog.manage') && app(\App\Services\EntitlementService::class)->feature(app(\App\Services\CompanyContext::class)->getCompany(), 'promo_codes'))
+				<div class="menu-header">FIDÉLISATION</div>
 				<div class="menu-item @if(Request::route()->getName() === 'code.index') active @endif">
 					<a href="{{ route('code.index') }}" class="menu-link">
 						<span class="menu-icon"><i class="fas fa-barcode"></i></span>
-						<span class="menu-text">Code promo</span>
+						<span class="menu-text">Codes promo</span>
 					</a>
-				</div>--}}
+				</div>
 			@endif
 
 			<!-- AMS -->

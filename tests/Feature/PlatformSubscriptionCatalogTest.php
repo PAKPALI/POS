@@ -19,7 +19,7 @@ class PlatformSubscriptionCatalogTest extends TestCase
 
     private function versionPayload(): array
     {
-        return ['name' => 'Bronze Plus', 'monthly_price' => 6000, 'annual_price' => 66000, 'company_limit' => 2, 'user_limit' => 4, 'product_limit' => 200, 'sms_quota' => 25, 'whatsapp_quota' => 25, 'features' => ['suppliers' => '1', 'ecommerce' => '1'], 'reason' => 'Nouvelle grille commerciale', 'current_password' => 'SecurePassword!123'];
+        return ['name' => 'Bronze Plus', 'monthly_price' => 6000, 'annual_price' => 66000, 'company_limit' => 2, 'user_limit' => 4, 'product_limit' => 200, 'sms_quota' => 25, 'whatsapp_quota' => 25, 'features' => ['suppliers' => '1', 'ecommerce' => '1', 'promo_codes' => '1'], 'reason' => 'Nouvelle grille commerciale', 'current_password' => 'SecurePassword!123'];
     }
 
     public function test_catalog_creates_a_draft_version_without_changing_the_published_plan(): void
@@ -35,6 +35,8 @@ class PlatformSubscriptionCatalogTest extends TestCase
         $this->assertSame(2, $draft->version);
         $this->assertFalse($draft->is_active);
         $this->assertSame(6000, (int) $draft->monthly_price);
+        $this->assertFalse((bool) $draft->features()->where('feature_key', 'promo_codes')->value('enabled'));
+        $this->assertTrue((bool) SubscriptionPlan::where('key', 'silver')->firstOrFail()->features()->where('feature_key', 'promo_codes')->value('enabled'));
         $this->assertSame($original, $bronze->fresh()->only(array_keys($original)));
         $this->assertDatabaseHas('platform_audit_logs', ['action' => 'subscription.plan_version.created', 'target_id' => (string) $draft->id]);
     }

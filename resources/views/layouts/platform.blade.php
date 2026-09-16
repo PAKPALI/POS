@@ -7,8 +7,7 @@
     <meta name="robots" content="noindex,nofollow">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#070B14">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+    @include('partials.brand-head')
     <title>@yield('title', 'Administration SaaS') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
@@ -28,7 +27,7 @@
                     @if(config('platform.identity.logo_url'))
                         <img src="{{ config('platform.identity.logo_url') }}" alt="Logo" width="38" height="38">
                     @else
-                        <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+                        <img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="38" height="38">
                     @endif
                 </span>
                 <span class="platform-brand-copy"><strong>{{ config('app.name') }}</strong><small>Console plateforme</small></span>

@@ -8,6 +8,7 @@ use App\Models\AMS\Setting;
 use App\Models\AMS\Transaction;
 use App\Models\Category;
 use App\Models\Client;
+use App\Models\CodePromo;
 use App\Models\CommunicationLog;
 use App\Models\Inventory;
 use App\Models\MenuProduct;
@@ -593,13 +594,65 @@ class SalesFlowTest extends TestCase
         $response = $this->makeSale([
             'total_amount' => 9000,
             'received_amount' => 9000,
-            'discount' => 1000,
+            'manual_discount' => 1000,
         ]);
 
         $response->assertJson(['status' => true]);
         $sale = Sale::latest()->first();
         $this->assertEquals(1000, $sale->discount);
         $this->assertEquals(9000, $sale->total_amount);
+    }
+
+    public function test_company_promo_is_verified_and_recalculated_by_the_server(): void
+    {
+        CodePromo::create([
+            'name' => 'Campagne locale', 'code' => 'LOCAL10', 'normalized_code' => 'LOCAL10',
+            'percents' => 10, 'status' => 1, 'expires_at' => now()->addDay(),
+            'comments' => 'Test', 'created_by' => $this->user->id,
+        ]);
+
+        $this->actingAs($this->user)->postJson(route('verifyPromo'), ['code' => ' local10 '])
+            ->assertOk()->assertJson(['valid' => true, 'percent' => 10]);
+
+        $this->makeSale([
+            'code_promo' => 'local10',
+            'total_amount' => 1,
+            'discount' => 9999,
+            'received_amount' => 10000,
+        ])->assertJson(['status' => true]);
+
+        $sale = Sale::latest()->firstOrFail();
+        $this->assertSame(1000.0, (float) $sale->discount);
+        $this->assertSame(9000.0, (float) $sale->total_amount);
+        $this->assertSame(10000.0, (float) $sale->amount_init);
+    }
+
+    public function test_expired_or_foreign_company_promo_is_rejected(): void
+    {
+        CodePromo::create([
+            'name' => 'Expiré', 'code' => 'OLD10', 'normalized_code' => 'OLD10',
+            'percents' => 10, 'status' => 1, 'expires_at' => now()->subMinute(),
+            'comments' => 'Test', 'created_by' => $this->user->id,
+        ]);
+        CodePromo::withoutCompanyScope()->create([
+            'company_id' => \App\Models\Company::create(['name' => 'Autre', 'email' => 'autre-promo@test.local', 'number1' => '200'])->id,
+            'name' => 'Étranger', 'code' => 'OTHER20', 'normalized_code' => 'OTHER20',
+            'percents' => 20, 'status' => 1, 'expires_at' => now()->addDay(),
+            'comments' => 'Test', 'created_by' => $this->user->id,
+        ]);
+
+        $this->actingAs($this->user)->postJson(route('verifyPromo'), ['code' => 'OLD10'])
+            ->assertOk()->assertJson(['valid' => false]);
+        $this->actingAs($this->user)->postJson(route('verifyPromo'), ['code' => 'OTHER20'])
+            ->assertOk()->assertJson(['valid' => false]);
+        $this->makeSale(['code_promo' => 'OTHER20'])->assertJson(['status' => false]);
+
+        $this->artisan('promo-codes:expire')->assertSuccessful();
+        $this->assertDatabaseHas('code_promos', [
+            'company_id' => $this->company->id,
+            'normalized_code' => 'OLD10',
+            'status' => 0,
+        ]);
     }
 
     /** Sale creates action log */

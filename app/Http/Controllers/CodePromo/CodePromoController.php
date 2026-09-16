@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class CodePromoController extends Controller
 {
@@ -40,7 +41,9 @@ class CodePromoController extends Controller
                     return $btn;
                 })
                 ->editColumn('status', function ($Object) {
-                    if($Object->status==1){
+                    if($Object->expires_at?->isPast()){
+                        $btn = '<span class="saas-status-badge is-inactive">Expiré</span>';
+                    }elseif($Object->status==1){
                         $btn = '<span class="saas-status-badge is-active">Actif</span>';
                     }else{
                         $btn = '<span class="saas-status-badge is-inactive">Inactif</span>';
@@ -52,6 +55,9 @@ class CodePromoController extends Controller
                 })
                 ->editColumn('created_at', function ($Object) {
                     return $Object->created_at->format('d-m-Y H:i:s');
+                })
+                ->editColumn('expires_at', function ($Object) {
+                    return $Object->expires_at?->format('d-m-Y H:i') ?? 'Sans expiration';
                 })
                 ->rawColumns(['action','status'])
                 ->make(true);
@@ -128,20 +134,17 @@ class CodePromoController extends Controller
     // composer require picqer/php-barcode-generator
     public function store(Request $request)
     {
-        $error_messages = [
-            "name.required" => "Remplir le champ Nom!",
-            "percents.required" => "Remplir le champ Pourcentage!",
-            "code.required" => "Générez le code!",
-            "code.unique" => "Le code généré de ce code promo existe déjà",
-            "comments.required" => "Remplir le champ Description!",
-        ];
-
+        $normalizedCode = CodePromo::normalizeCode($request->input('code'));
+        $request->merge(['normalized_code' => $normalizedCode, 'code' => $normalizedCode]);
+        $companyId = app(\App\Services\CompanyContext::class)->getCompanyId();
         $validator = Validator::make($request->all(), [
-            'name' => ['required'],
-            'percents' => ['required'],
-            'code' => 'required|unique:code_promos,code',
-            'comments' => ['required'],
-        ], $error_messages);
+            'name' => ['required', 'string', 'max:120'],
+            'percents' => ['required', 'integer', 'min:1', 'max:100'],
+            'code' => ['required', 'string', 'min:4', 'max:64', 'regex:/^[A-Z0-9_-]+$/'],
+            'normalized_code' => [Rule::unique('code_promos')->where(fn ($query) => $query->where('company_id', $companyId))],
+            'comments' => ['nullable', 'string', 'max:1000'],
+            'expires_at' => ['required', 'date', 'after:now'],
+        ], ['normalized_code.unique' => 'Ce code existe déjà dans votre entreprise.', 'expires_at.after' => "La date d’expiration doit être dans le futur."]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -157,7 +160,7 @@ class CodePromoController extends Controller
         $barcodeData = $generator->getBarcode($request->code, $generator::TYPE_CODE_128);
         
         // Définir le chemin de stockage
-        $barcodePath = 'barcodes/' . $request->code . '.png';
+        $barcodePath = 'barcodes/' . $companyId . '-' . $normalizedCode . '.png';
         Storage::disk('public')->put($barcodePath, $barcodeData);
 
         // Enregistrer en base de données
@@ -165,7 +168,9 @@ class CodePromoController extends Controller
             'name' => $request->name,
             'percents' => $request->percents,
             'code' => $request->code,
+            'normalized_code' => $normalizedCode,
             'comments' => $request->comments,
+            'expires_at' => $request->date('expires_at'),
             'created_by' => Auth::user()->id,
             'qr_code' => $barcodePath, // Sauvegarde du chemin du code-barres
         ];
@@ -197,11 +202,13 @@ class CodePromoController extends Controller
 
     public function verifyPromo(Request $request)
     {
-        $code = $request->input('code');
-        $promo = CodePromo::where('code', $code)->where('status', 1)->first();
+        $request->validate(['code' => ['required', 'string', 'max:64']]);
+        $promo = CodePromo::usable()
+            ->where('normalized_code', CodePromo::normalizeCode($request->input('code')))
+            ->first();
 
         if ($promo) {
-            return response()->json(['valid' => true, 'promo' => $promo, 'percent'=>$promo->percents]);
+            return response()->json(['valid' => true, 'percent' => (int) $promo->percents, 'expires_at' => $promo->expires_at?->toIso8601String()]);
         } else {
             return response()->json(['valid' => false]);
         }
@@ -221,20 +228,17 @@ class CodePromoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $error_messages = [
-            "name.required" => "Remplir le champ Nom!",
-            "percents.required" => "Remplir le champ Pourcentage!",
-            "code.required" => "Générez le code!",
-            "code.unique" => "Le code généré de ce code promo existe déjà",
-            "comments.required" => "Remplir le champ Description!",
-        ];
-
+        $Code = CodePromo::findOrFail($id);
+        $normalizedCode = CodePromo::normalizeCode($request->input('code'));
+        $request->merge(['normalized_code' => $normalizedCode, 'code' => $normalizedCode]);
         $validator = Validator::make($request->all(), [
-            'name' => ['required'],
-            'percents' => ['required'],
-            'code' => 'required|unique:code_promos,code,' . $id, // Ignorer la contrainte unique pour l'ID en cours
-            'comments' => ['required'],
-        ], $error_messages);
+            'name' => ['required', 'string', 'max:120'],
+            'percents' => ['required', 'integer', 'min:1', 'max:100'],
+            'code' => ['required', 'string', 'min:4', 'max:64', 'regex:/^[A-Z0-9_-]+$/'],
+            'normalized_code' => [Rule::unique('code_promos')->where(fn ($query) => $query->where('company_id', $Code->company_id))->ignore($Code->id)],
+            'comments' => ['nullable', 'string', 'max:1000'],
+            'expires_at' => ['required', 'date', 'after:now'],
+        ], ['normalized_code.unique' => 'Ce code existe déjà dans votre entreprise.', 'expires_at.after' => "La date d’expiration doit être dans le futur."]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -244,8 +248,6 @@ class CodePromoController extends Controller
                 "msg" => $validator->errors()->first(),
             ]);
         }
-
-        $Code = CodePromo::findOrFail($id);
 
         // Vérifier si le code a changé
         if ($Code->code !== $request->code) {
@@ -259,7 +261,7 @@ class CodePromoController extends Controller
             $barcodeData = $generator->getBarcode($request->code, $generator::TYPE_CODE_128);
 
             // Définir le chemin du nouveau code-barres
-            $barcodePath = 'barcodes/' . $request->code . '.png';
+            $barcodePath = 'barcodes/' . $Code->company_id . '-' . $normalizedCode . '.png';
             Storage::disk('public')->put($barcodePath, $barcodeData);
 
             // Mettre à jour le chemin dans l'objet
@@ -270,7 +272,9 @@ class CodePromoController extends Controller
             'name' => $request->name,
             'percents' => $request->percents,
             'code' => $request->code,
+            'normalized_code' => $normalizedCode,
             'comments' => $request->comments,
+            'expires_at' => $request->date('expires_at'),
             'created_by' => Auth::user()->id,
         ]);
 
@@ -329,6 +333,14 @@ class CodePromoController extends Controller
                 "msg" => "Le code promo ".$Object->name." a bien été désactivée"
             ]);
         }else{
+            if ($Object->expires_at?->isPast()) {
+                return response()->json([
+                    'status' => false,
+                    'reload' => false,
+                    'title' => 'CODE EXPIRÉ',
+                    'msg' => "Modifiez d’abord la date d’expiration avant de réactiver ce code.",
+                ]);
+            }
             // update code status
             $Object->update(['status' => 1,]);
             Action::create([

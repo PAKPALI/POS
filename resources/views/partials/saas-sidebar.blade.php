@@ -11,7 +11,7 @@
 <aside class="saas-sidebar" id="saasSidebar" aria-label="Navigation principale">
     <div class="saas-sidebar-head">
         <a class="saas-brand" href="{{ $allowed('dashboard.view') ? route('dashboard') : route('companies.select') }}">
-            <span class="saas-brand-mark">{{ strtoupper(substr(config('app.name', 'POS'), 0, 2)) }}</span>
+            <span class="saas-brand-mark"><img src="{{ asset('brand/maxanou-symbol-light.svg') }}" alt="" width="32" height="32"></span>
             <span class="saas-brand-copy"><strong>{{ config('app.name') }}</strong><small>Espace professionnel</small></span>
         </a>
         <button type="button" class="saas-icon-button saas-collapse-button" data-saas-sidebar-collapse aria-label="Réduire le menu"><i class="bi bi-layout-sidebar-inset"></i></button>

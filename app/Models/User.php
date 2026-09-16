@@ -32,6 +32,8 @@ class User extends Authenticatable
         'appearance_mode',
         'accent_color',
         'product_registration_notice_dismissed',
+        'social_network_prompt_hidden',
+        'social_network_prompt_snoozed_until',
     ];
 
     /**
@@ -53,6 +55,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'product_registration_notice_dismissed' => 'boolean',
+        'social_network_prompt_hidden' => 'boolean',
+        'social_network_prompt_snoozed_until' => 'datetime',
     ];
 
     // ─── Multi-Tenant Relations ──────────────────────────

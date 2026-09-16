@@ -8,10 +8,9 @@
 		<meta name="author" content>
 		<meta name="csrf-token" content="{{ csrf_token() }}" />
 
-		<link rel="manifest" href="/manifest.json">
+		@include('partials.brand-head')
 		<meta name="theme-color" content="#111111">
 
-		<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
 		<link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
@@ -111,7 +110,7 @@
 	<body>
 		@include('partials.navigation-loader')
 		<div id="page-preloader">
-			<img src="{{asset('hub/assets/img/logo.png')}}" alt="Chargement...">
+			<img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="Chargement de Maxanou">
 		</div>
 
 		<div id="app" class="app">

@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Services\SmsService;
 use App\Services\CompanyContext;
 use App\Services\SaleCreationService;
+use App\Services\EntitlementService;
 use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -90,6 +91,7 @@ class SaleController extends Controller
             ->get();
         $productCount = Product::where('status', 1)->where('qte', '>', 0)->count();
         $company = CompanySetting::first();
+        $canUsePromoCodes = app(EntitlementService::class)->feature(app(CompanyContext::class)->getCompany(), 'promo_codes');
 
         $mainCash = CashAccount::where('is_default', 1)->first();
         $taxCash = CashAccount::where('is_tax', 1)->first();
@@ -115,7 +117,7 @@ class SaleController extends Controller
             compact(
                 'Category','productCount','mostSoldProducts','saleCount','sale_total_profit',
                 'product_count','total_amount','company','mainCash','taxCash','setting',
-                'canViewFinancials','invoicePreference'
+                'canViewFinancials','invoicePreference','canUsePromoCodes'
             ));
     }
 
@@ -269,8 +271,12 @@ class SaleController extends Controller
         
         $validator = Validator::make($request->all(), [
             'products' => 'required|array',
+            'products.*.product_id' => ['required', 'integer'],
             'products.*.quantity' => 'required|integer|min:1',
             'total_amount' => 'required|numeric',
+            'received_amount' => ['required', 'numeric', 'min:0'],
+            'manual_discount' => ['nullable', 'numeric', 'min:0'],
+            'code_promo' => ['nullable', 'string', 'max:64'],
             'client_id' => [
                 'nullable',
                 'integer',
@@ -297,7 +303,7 @@ class SaleController extends Controller
                 'received_amount' => $request->received_amount,
                 'total_amount' => $request->total_amount,
                 'code_promo' => $request->code_promo,
-                'discount' => $request->discount,
+                'manual_discount' => $request->manual_discount,
                 'client_id' => $request->client_id ?: null,
             ], $request->user());
 

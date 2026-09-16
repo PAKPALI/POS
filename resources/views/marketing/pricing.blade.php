@@ -22,6 +22,7 @@
             <div class="pricing-detail-line">@include('marketing.components.icon', ['name' => 'message'])<span>{{ $plan['quota'] }}</span></div>
             <div class="pricing-detail-line pricing-feature-line {{ $plan['suppliers'] ? 'is-available' : 'is-unavailable' }}"><span class="pricing-feature-status" aria-hidden="true">{{ $plan['suppliers'] ? '✓' : '×' }}</span><span>Fournisseurs {{ $plan['suppliers'] ? 'inclus' : 'non inclus' }}</span></div>
             <div class="pricing-detail-line pricing-feature-line {{ $plan['ecommerce'] ? 'is-available' : 'is-unavailable' }}"><span class="pricing-feature-status" aria-hidden="true">{{ $plan['ecommerce'] ? '✓' : '×' }}</span><span>E-commerce {{ $plan['ecommerce'] ? 'inclus' : 'non inclus' }}</span></div>
+            <div class="pricing-detail-line pricing-feature-line {{ $plan['promo_codes'] ? 'is-available' : 'is-unavailable' }}"><span class="pricing-feature-status" aria-hidden="true">{{ $plan['promo_codes'] ? '✓' : '×' }}</span><span>Codes promo clients {{ $plan['promo_codes'] ? 'inclus' : 'non inclus' }}</span></div>
             <a class="marketing-button {{ $plan['featured'] ? 'marketing-button-primary' : 'marketing-button-secondary' }}" data-event="plan_select" href="{{ route('marketing.register') }}">{{ $plan['key'] === 'trial' ? 'Essayer 14 jours' : 'Choisir ce plan' }}</a>
         </article>
     @endforeach
@@ -32,7 +33,7 @@
         <div class="marketing-section-heading"><span class="marketing-eyebrow">Comparaison complète</span><h2>Voyez immédiatement ce qui change d’un plan à l’autre.</h2><p>Les coches et les croix reprennent les fonctions réellement publiées dans l’application.</p></div>
         <div class="pricing-comparison-shell" role="region" aria-label="Comparaison des plans" tabindex="0">
             <table class="pricing-comparison-table">
-                <thead><tr><th scope="col">Plan</th><th scope="col">Entreprises</th><th scope="col">Utilisateurs</th><th scope="col">Produits</th><th scope="col">SMS / mois</th><th scope="col">WhatsApp / mois</th><th scope="col">Fournisseurs</th><th scope="col">E-commerce</th></tr></thead>
+                <thead><tr><th scope="col">Plan</th><th scope="col">Entreprises</th><th scope="col">Utilisateurs</th><th scope="col">Produits</th><th scope="col">SMS / mois</th><th scope="col">WhatsApp / mois</th><th scope="col">Fournisseurs</th><th scope="col">E-commerce</th><th scope="col">Codes promo</th></tr></thead>
                 <tbody>
                     @foreach($pricing as $plan)
                         <tr class="{{ $plan['featured'] ? 'is-featured' : '' }}">
@@ -40,6 +41,7 @@
                             <td>{{ $plan['company_limit'] }}</td><td>{{ $plan['user_limit'] }}</td><td>{{ number_format($plan['product_limit'], 0, ',', ' ') }}</td><td>{{ number_format($plan['sms_quota'], 0, ',', ' ') }}</td><td>{{ number_format($plan['whatsapp_quota'], 0, ',', ' ') }}</td>
                             <td><span class="pricing-table-status {{ $plan['suppliers'] ? 'is-available' : 'is-unavailable' }}"><i class="bi {{ $plan['suppliers'] ? 'bi-check-lg' : 'bi-x-lg' }}" aria-hidden="true"></i><span class="visually-hidden">{{ $plan['suppliers'] ? 'Inclus' : 'Non inclus' }}</span></span></td>
                             <td><span class="pricing-table-status {{ $plan['ecommerce'] ? 'is-available' : 'is-unavailable' }}"><i class="bi {{ $plan['ecommerce'] ? 'bi-check-lg' : 'bi-x-lg' }}" aria-hidden="true"></i><span class="visually-hidden">{{ $plan['ecommerce'] ? 'Inclus' : 'Non inclus' }}</span></span></td>
+                            <td><span class="pricing-table-status {{ $plan['promo_codes'] ? 'is-available' : 'is-unavailable' }}"><i class="bi {{ $plan['promo_codes'] ? 'bi-check-lg' : 'bi-x-lg' }}" aria-hidden="true"></i><span class="visually-hidden">{{ $plan['promo_codes'] ? 'Inclus' : 'Non inclus' }}</span></span></td>
                         </tr>
                     @endforeach
                 </tbody>

@@ -27,6 +27,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\MaturePartnerCommissions::class,
         \App\Console\Commands\ReconcilePartnerPayouts::class,
         \App\Console\Commands\SeedPartnerWithdrawalPreview::class,
+        \App\Console\Commands\ExpirePromoCodes::class,
     ];
     protected function schedule(Schedule $schedule): void
     {
@@ -37,6 +38,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('platform:heartbeat')->everyMinute()->withoutOverlapping();
         $schedule->command('platform:check-alerts')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('subscriptions:expire')->dailyAt('00:05')->withoutOverlapping();
+        $schedule->command('promo-codes:expire')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('partners:mature-commissions --limit=200')->hourly()->withoutOverlapping();
         // Le scheduler ne contacte jamais KPrimePay : il ne fait que mettre les retraits
         // en attente dans la queue. Le worker `queue:work --queue=withdrawals` les traite.
