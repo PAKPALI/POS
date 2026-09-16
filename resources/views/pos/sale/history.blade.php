@@ -395,7 +395,9 @@ $(function() {
     var invoiceSmsAuthorized = {{ $company?->invoice_sms_enabled ? 'true' : 'false' }};
     var invoiceWhatsappDefault = {{ $invoiceWhatsappDefault ? 'true' : 'false' }};
     var invoiceSmsDefault = {{ $invoiceSmsDefault ? 'true' : 'false' }};
-    var invoicePreferenceUrl = @json(route('sale.invoice-preferences.toggle'));
+    // URL relative : le POS doit toujours appeler l'origine courante
+    // (staging ou production), jamais une APP_URL différente.
+    var invoicePreferenceUrl = @json(route('sale.invoice-preferences.toggle', [], false));
 
     function showInvoicePreferenceToast(icon, title, text) {
         var toast = document.createElement('div');
@@ -445,7 +447,10 @@ $(function() {
             showInvoicePreferenceToast('success', data.title || 'Préférence enregistrée', data.message || 'Choix mémorisé.');
         }).catch(function(error) {
             input.checked = previous;
-            showInvoicePreferenceToast('error', 'Enregistrement impossible', error.message || 'Impossible de communiquer avec le serveur.');
+            var message = error instanceof TypeError && /fetch/i.test(error.message || '')
+                ? 'Le serveur est momentanément inaccessible. Vérifiez la connexion puis réessayez.'
+                : (error.message || 'Impossible de communiquer avec le serveur.');
+            showInvoicePreferenceToast('error', 'Enregistrement impossible', message);
         }).finally(function() {
             input.disabled = false;
         });
@@ -502,7 +507,7 @@ $(function() {
                     return false;
                 }
                 try {
-                    var url = '{{ route("sale.send-invoice", ["sale" => "__SALE__"]) }}'.replace('__SALE__', saleId);
+            var url = '{{ route("sale.send-invoice", ["sale" => "__SALE__"], false) }}'.replace('__SALE__', saleId);
                     var response = await fetch(url, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},

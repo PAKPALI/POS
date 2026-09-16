@@ -540,7 +540,9 @@
 <script>
     $(function() {
         const posCurrency = @json(app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency']);
-        const invoicePreferenceUrl = @json(route('sale.invoice-preferences.toggle'));
+        // URL relative : le POS doit toujours appeler l'origine courante
+        // (staging ou production), jamais une APP_URL différente.
+        const invoicePreferenceUrl = @json(route('sale.invoice-preferences.toggle', [], false));
         let posModalReturnFocus = null;
 
         const showInvoicePreferenceToast = (icon, title, text) => Swal.fire({
@@ -579,7 +581,10 @@
                 showInvoicePreferenceToast('success', data.title || 'Préférence enregistrée', data.message || 'Choix mémorisé.');
             } catch (error) {
                 input.checked = previous;
-                showInvoicePreferenceToast('error', 'Enregistrement impossible', error.message || 'Impossible de communiquer avec le serveur.');
+                const message = error instanceof TypeError && /fetch/i.test(error.message || '')
+                    ? 'Le serveur est momentanément inaccessible. Vérifiez la connexion puis réessayez.'
+                    : (error.message || 'Impossible de communiquer avec le serveur.');
+                showInvoicePreferenceToast('error', 'Enregistrement impossible', message);
             } finally {
                 input.disabled = false;
             }
@@ -1416,7 +1421,7 @@
                 Swal.fire({icon: 'warning', title: 'Informations incomplètes', text: 'Saisissez un numéro et choisissez au moins un canal.'});
                 return;
             }
-            const url = '{{ route('sale.send-invoice', ['sale' => '__SALE__']) }}'.replace('__SALE__', currentReceiptSaleId);
+            const url = '{{ route('sale.send-invoice', ['sale' => '__SALE__'], false) }}'.replace('__SALE__', currentReceiptSaleId);
             const request = fetch(url, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},

@@ -23,6 +23,10 @@
         .product-registration-notice-dismiss { white-space: nowrap; }
         .product-registration-notice-dismiss .bi { font-size: .95rem; }
         .product-registration-notice-dismiss.is-checked .bi::before { content: "\f26a"; }
+        .product-form-grid > .saas-form-group { min-width: 0; }
+        @media (min-width: 992px) {
+            .saas-body .modal .product-form-grid .col-lg-4 { grid-column: span 4; width: auto; }
+        }
         .product-registration-submit { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 22px; padding-top: 2px; }
         @media (max-width: 767.98px) {
             .product-registration-notice { flex-direction: column; }
@@ -57,8 +61,8 @@
                     <form id="add">
                         @csrf
                         <input type="hidden" name="type" value="1">
-                        <div class="row">
-                            <div class="col-md-6 saas-form-group">
+                        <div class="row product-form-grid">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label>Catégorie</label>
                                 <select class="form-select select2-category" name="category" required>
                                     <option value="">Sélectionnez une catégorie</option>
@@ -67,7 +71,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label>Fournisseur</label>
                                 <select class="form-select" name="supplier_id">
                                     <option value="">Aucun fournisseur</option>
@@ -76,39 +80,39 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label>Nom</label>
                                 <input type="text" name="name" placeholder="Nom du produit" required>
                             </div>
-                            <div class="col-md-12 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label for="product_margin">Marge de sécurité <small>(facultative)</small></label>
                                 <input id="product_margin" type="number" name="margin" min="0" step="1" placeholder="Ex. 5">
                                 <small>Elle doit rester strictement inférieure au stock disponible.</small>
                             </div>
-                            <div class="col-md-4 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label for="product_initial_quantity">Quantité disponible</label>
                                 <input id="product_initial_quantity" type="number" name="qte" min="0" step="1" value="0" placeholder="0">
                                 <small>Stock initial facultatif ; les entrées suivantes se font dans Inventaire.</small>
                             </div>
-                            <div class="col-md-4 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label for="product_price">Prix de vente</label>
                                 <input id="product_price" type="number" name="price" class="price" min="0" step="0.01" placeholder="0" required>
                             </div>
-                            <div class="col-md-4 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label for="product_purchase_price">Prix d'achat <small>(facultatif)</small></label>
                                 <input id="product_purchase_price" type="number" name="purchase_price" class="purchase_price" min="0" step="0.01" placeholder="Non renseigné">
                                 <small>Sans ce prix, le bénéfice normal ne sera pas calculé.</small>
                             </div>
-                            <div class="col-md-4 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label for="product_profit">Bénéfice estimé</label>
                                 <input id="product_profit" type="number" name="profit" class="profit" readonly placeholder="0">
                                 <small>Sans prix d'achat, le prix de vente est affiché à titre indicatif.</small>
                             </div>
-                            <div class="col-md-4 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label>Prix TTC</label>
                                 <input type="number" class="price_ttc" readonly>
                             </div>
-                            <div class="col-md-8 saas-form-group">
+                            <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label>Image</label>
                                 <input type="file" name="image" class="form-control">
                             </div>
