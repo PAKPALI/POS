@@ -5,7 +5,14 @@
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
-        .product-registration-notice { align-items: flex-start; gap: 14px; margin: 18px 0 0; padding: 16px 18px; }
+        .product-registration-details { margin: 18px 0 0; overflow: hidden; border: 1px solid rgba(220, 53, 69, .28); border-radius: 12px; background: rgba(220, 53, 69, .06); }
+        .product-registration-details > summary { display: flex; align-items: center; gap: 10px; padding: 14px 16px; color: var(--ds-text-primary); cursor: pointer; list-style: none; font-size: .88rem; font-weight: 700; }
+        .product-registration-details > summary::-webkit-details-marker { display: none; }
+        .product-registration-details > summary::after { content: "\f282"; margin-left: auto; color: var(--ds-text-secondary); font-family: bootstrap-icons; font-size: .95rem; transition: transform .2s ease; }
+        .product-registration-details[open] > summary { border-bottom: 1px solid rgba(220, 53, 69, .18); }
+        .product-registration-details[open] > summary::after { transform: rotate(180deg); }
+        .product-registration-details > summary:focus-visible { outline: 2px solid var(--ds-primary); outline-offset: -2px; }
+        .product-registration-notice { align-items: flex-start; gap: 14px; margin: 0; padding: 16px 18px; border: 0; border-radius: 0; background: transparent; }
         .product-registration-notice > .product-registration-notice-icon { flex: 0 0 auto; margin-top: 2px; font-size: 1.25rem; }
         .product-registration-notice-copy { min-width: 0; flex: 1 1 auto; }
         .product-registration-notice-copy > strong { display: block; margin-bottom: 5px; color: currentColor; font-size: .88rem; }
@@ -15,11 +22,14 @@
         .product-registration-notice-actions { display: flex; flex: 0 0 auto; align-items: center; margin-left: auto; }
         .product-registration-notice-dismiss { white-space: nowrap; }
         .product-registration-notice-dismiss .bi { font-size: .95rem; }
-        .product-registration-notice-dismiss.is-checked .bi::before { content: "\\f26a"; }
+        .product-registration-notice-dismiss.is-checked .bi::before { content: "\f26a"; }
+        .product-registration-submit { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 22px; padding-top: 2px; }
         @media (max-width: 767.98px) {
             .product-registration-notice { flex-direction: column; }
             .product-registration-notice-actions { width: 100%; margin-left: 0; }
             .product-registration-notice-dismiss { width: 100%; justify-content: center; }
+            .product-registration-submit { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--ds-border-soft); }
+            .product-registration-submit .saas-btn { width: 100%; justify-content: center; }
         }
     </style>
 @endpush
@@ -104,25 +114,30 @@
                             </div>
                         </div>
                         @if (!auth()->user()->product_registration_notice_dismissed)
-                            <div id="productRegistrationNotice" class="saas-alert saas-alert-danger product-registration-notice" role="alert">
-                                <i class="bi bi-exclamation-octagon-fill product-registration-notice-icon" aria-hidden="true"></i>
-                                <div class="product-registration-notice-copy">
-                                    <strong>Informations importantes pour le suivi du produit</strong>
-                                    <p>Ces deux informations restent facultatives, mais elles déterminent la qualité de vos alertes et de vos statistiques.</p>
-                                    <ul>
-                                        <li><strong>Sans marge de sécurité :</strong> vous ne serez pas alerté lorsque le stock du produit sera presque épuisé.</li>
-                                        <li><strong>Sans prix d'achat :</strong> le bénéfice normal ne pourra pas être calculé et les statistiques financières seront incomplètes.</li>
-                                    </ul>
+                            <details id="productRegistrationNotice" class="product-registration-details">
+                                <summary id="productRegistrationNoticeSummary">
+                                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                                    <span>Informations importantes pour le suivi du produit</span>
+                                </summary>
+                                <div class="saas-alert saas-alert-danger product-registration-notice" role="region" aria-labelledby="productRegistrationNoticeSummary">
+                                    <i class="bi bi-exclamation-octagon-fill product-registration-notice-icon" aria-hidden="true"></i>
+                                    <div class="product-registration-notice-copy">
+                                        <p>Ces deux informations restent facultatives, mais elles déterminent la qualité de vos alertes et de vos statistiques.</p>
+                                        <ul>
+                                            <li><strong>Sans marge de sécurité :</strong> vous ne serez pas alerté lorsque le stock du produit sera presque épuisé.</li>
+                                            <li><strong>Sans prix d'achat :</strong> le bénéfice normal ne pourra pas être calculé et les statistiques financières seront incomplètes.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="product-registration-notice-actions">
+                                        <button type="button" id="dismissProductRegistrationNotice" class="saas-btn saas-btn-ghost product-registration-notice-dismiss" data-loading-text="Enregistrement…">
+                                            <i class="bi bi-square" aria-hidden="true"></i>
+                                            <span>Ne plus me montrer</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="product-registration-notice-actions">
-                                    <button type="button" id="dismissProductRegistrationNotice" class="saas-btn saas-btn-ghost product-registration-notice-dismiss" data-loading-text="Enregistrement…">
-                                        <i class="bi bi-square" aria-hidden="true"></i>
-                                        <span>Ne plus me montrer</span>
-                                    </button>
-                                </div>
-                            </div>
+                            </details>
                         @endif
-                        <div class="d-flex justify-content-end mt-3">
+                        <div class="product-registration-submit">
                             <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Création…">
                                 <span>Créer le produit</span>
                             </button>
@@ -496,6 +511,14 @@
 
             $('.price, .purchase_price').on('input', updateProductPricing);
             updateProductPricing();
+
+            const addProductModal = document.getElementById('addModal');
+            if (addProductModal) {
+                addProductModal.addEventListener('show.bs.modal', function() {
+                    const productNotice = this.querySelector('#productRegistrationNotice');
+                    if (productNotice) productNotice.removeAttribute('open');
+                });
+            }
 
             const productNotice = document.getElementById('productRegistrationNotice');
             const dismissProductNoticeButton = document.getElementById('dismissProductRegistrationNotice');
