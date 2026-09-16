@@ -31,7 +31,7 @@
     @method('PUT')
 
     <section class="saas-card">
-        <div class="saas-card-head"><div><h2>Notifications internes</h2><p class="saas-card-description">Le canal global et la préférence du destinataire doivent être activés.</p></div></div>
+        <div class="saas-card-head"><div><h2>Notifications globales internes</h2><p class="saas-card-description">Le canal global et la préférence du destinataire doivent être activés.</p></div></div>
         <div class="communication-settings-grid">
             @foreach(['sale' => 'Ventes', 'inventory' => 'Inventaire'] as $category => $label)
             <div>

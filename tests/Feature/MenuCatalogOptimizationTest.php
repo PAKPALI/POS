@@ -70,6 +70,42 @@ class MenuCatalogOptimizationTest extends TestCase
         ]);
     }
 
+    public function test_pack_creation_persists_composition_pricing_and_initial_inventory(): void
+    {
+        $owner = User::factory()->create(['status' => 1]);
+        $company = $this->activateCompanyFor($owner);
+        $category = Category::create(['company_id' => $company->id, 'name' => 'Packs', 'status' => 1, 'created_by' => $owner->id]);
+        $component = $this->createProduct($company->id, $category->id, $owner->id, 'Composant');
+
+        $this->actingAs($owner)->postJson(route('menu.store'), [
+            'type' => 2, 'category' => $category->id, 'name' => 'Pack famille', 'qte' => 4,
+            'price' => 1500, 'purchase_price' => 900, 'margin' => 1,
+            'products' => [['product_id' => $component->id, 'quantity' => 3]],
+        ])->assertOk()->assertJson(['status' => true]);
+
+        $pack = Product::where('name', 'Pack famille')->firstOrFail();
+        $this->assertSame(2, (int) $pack->type);
+        $this->assertSame(600, (int) $pack->profit);
+        $this->assertDatabaseHas('menu_products', ['menu_id' => $pack->id, 'product_id' => $component->id, 'quantity' => 3]);
+        $this->assertDatabaseHas('inventories', ['product_id' => $pack->id, 'type' => 1, 'qte_before' => 0, 'qte_added' => 4, 'qte_after' => 4]);
+    }
+
+    public function test_pack_component_quantity_cannot_exceed_current_product_stock(): void
+    {
+        $owner = User::factory()->create(['status' => 1]);
+        $company = $this->activateCompanyFor($owner);
+        $category = Category::create(['company_id' => $company->id, 'name' => 'Packs', 'status' => 1, 'created_by' => $owner->id]);
+        $component = $this->createProduct($company->id, $category->id, $owner->id, 'Stock limité');
+        $component->update(['qte' => 3]);
+
+        $this->actingAs($owner)->postJson(route('menu.store'), [
+            'type' => 2, 'category' => $category->id, 'name' => 'Pack trop grand', 'qte' => 1,
+            'price' => 1500, 'products' => [['product_id' => $component->id, 'quantity' => 4]],
+        ])->assertOk()->assertJson(['status' => false])->assertJsonPath('msg', 'La quantité du produit sélectionné ne peut pas dépasser son stock actuel (3).');
+
+        $this->assertDatabaseMissing('products', ['company_id' => $company->id, 'name' => 'Pack trop grand', 'type' => 2]);
+    }
+
     private function createProduct(int $companyId, int $categoryId, int $userId, string $name, bool $withoutScopes = false): Product
     {
         $query = $withoutScopes ? Product::withoutGlobalScopes() : new Product();

@@ -23,7 +23,7 @@
         .product-registration-notice-dismiss { white-space: nowrap; }
         .product-registration-notice-dismiss .bi { font-size: .95rem; }
         .product-registration-notice-dismiss.is-checked .bi::before { content: "\f26a"; }
-        .product-form-grid > .saas-form-group { min-width: 0; gap: 6px; }
+        .product-form-grid > .saas-form-group { min-width: 0; gap: 6px; align-self: start; }
         @media (min-width: 992px) {
             .saas-body .modal .product-form-grid .col-lg-4 { grid-column: span 4; width: auto; }
         }

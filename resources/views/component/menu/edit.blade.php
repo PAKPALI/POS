@@ -9,7 +9,7 @@
         <div class="row">
             <input type="hidden" name="type" value="2" class="form-control" id="exampleInputText0" placeholder="0">
             <div class="form-group col-12 mb-3 text-center bg-light">
-                <label for="exampleInputText0"><h5 class="text-dark">informations menu</h5></label>
+                <label for="exampleInputText0"><h5 class="text-dark">Informations du pack</h5></label>
             </div>
             <div class="form-group col-6 mb-3">
                 <label for="exampleInputText0">Catégorie</label>
@@ -68,13 +68,13 @@
                         <div class="form-group col-5 mb-2 mt-2">
                             <label for="exampleInputText0">Produits </label>
                             <select class="form-select mb-3 product-select2" name="products[]">
-                                <option value="{{ $mp->product_id }}" selected>{{ $mp->product?->name }}</option>
+                                <option value="{{ $mp->product_id }}" data-qte="{{ $mp->product?->qte ?? 0 }}" selected>{{ $mp->product?->name }} ({{ $mp->product?->qte ?? 0 }})</option>
                             </select>
                         </div>
 
                         <div class="form-group col-6 mb-2 mt-2">
                             <label for="exampleInputText0">Quantité</label>
-                            <input type="number" name="quantities[]" value="{{$mp->quantity}}" class="form-control product-quantity2" placeholder="0">
+                            <input type="number" name="quantities[]" value="{{$mp->quantity}}" min="1" step="1" class="form-control product-quantity2" placeholder="0">
                         </div>
 
                         <div class="form-group col-1 mb-2 mt-2 d-flex align-items-center">
@@ -101,7 +101,7 @@
         <div class="form-group col-5 mb-2">
             <label for="exampleInputText0">Produits</label>
             <select class="form-select mb-3 product-select2" name="products[]">
-                <option value="">selectionnez un produit</option>
+                <option value="">Sélectionnez un produit</option>
             </select>
         </div>
 
@@ -143,10 +143,18 @@
                     processResults: data => data,
                     cache: true
                 }
+            }).on('select2:select', function (event) {
+                const stock = Number(event.params.data.qte || 0);
+                const row = $(this).closest('.product-field2');
+                row.find('.product-quantity2').attr('max', stock).data('max-stock', stock);
             });
         }
 
-        $('.product-select2').each(function () { initMenuProductSelectEdit(this); });
+        $('.product-select2').each(function () {
+            initMenuProductSelectEdit(this);
+            const stock = Number($(this).find('option:selected').data('qte'));
+            if (Number.isFinite(stock)) $(this).closest('.product-field2').find('.product-quantity2').attr('max', stock).data('max-stock', stock);
+        });
 
         $('.add-product-field2').on('click', function () {
             let template = $('#product-field-template2').html(); // get template model
@@ -169,6 +177,7 @@
             $('.product-field2').each(function () {
                 let productSelect = $(this).find('.product-select2').val();
                 let productQuantity = $(this).find('.product-quantity2').val();
+                const maxStock = Number($(this).find('.product-quantity2').data('max-stock'));
 
                 // if (!productSelect && !productQuantity) {
                 //     return true; // Ignore les champs vides
@@ -202,6 +211,12 @@
                         timerProgressBar: true,
                         text: "Veuillez saisir une quantité valide !",
                     });
+                    isValid = false;
+                    return false;
+                }
+
+                if (Number.isFinite(maxStock) && maxStock >= 0 && Number(productQuantity) > maxStock) {
+                    Swal.fire({ toast: true, position: 'top', icon: 'error', title: 'Stock insuffisant', showConfirmButton: false, timer: 3500, timerProgressBar: true, text: 'La quantité saisie ne peut pas dépasser le stock actuel (' + maxStock + ').' });
                     isValid = false;
                     return false;
                 }

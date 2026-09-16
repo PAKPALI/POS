@@ -421,9 +421,24 @@ $(function() {
         }, icon === 'error' ? 3000 : 2200);
     }
 
+    function showInvoicePreferenceBlockedAlert(channel) {
+        return Swal.fire({
+            icon: 'warning',
+            title: channel === 'whatsapp' ? 'WhatsApp désactivé' : 'SMS désactivé',
+            text: 'Cette fonctionnalité a été désactivée dans Communications > SMS & WhatsApp > Configuration. Activez-la avant de la sélectionner ici.',
+            confirmButtonText: 'Compris',
+        });
+    }
+
     function persistInvoicePreference(input) {
         var previous = input.dataset.persistedChecked === '1';
         var enabled = input.checked;
+
+        if (enabled && input.dataset.invoicePreferenceAuthorized !== '1') {
+            input.checked = previous;
+            return showInvoicePreferenceBlockedAlert(input.dataset.invoicePreferenceChannel);
+        }
+
         input.disabled = true;
         return fetch(invoicePreferenceUrl, {
             // POST évite les blocages PATCH de certains WAF/serveurs mutualisés.
@@ -473,12 +488,12 @@ $(function() {
                 '<div class="swal-delivery-field"><label for="deliveryCountry">Pays du numéro</label><select id="deliveryCountry" class="swal-delivery-select">' + countryOptionsHtml + '</select></div>' +
                 '<div class="swal-delivery-field"><span class="swal-delivery-field-label">Canal d’envoi</span><small class="text-muted">Votre dernière sélection est mémorisée pour les prochains envois.</small><div class="swal-channels-row">' +
                 '<label class="swal-switch-label">' +
-                    '<input type="checkbox" id="deliveryWhatsapp" class="saas-switch-input" role="switch" data-invoice-preference-channel="whatsapp" ' + (invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 && invoiceWhatsappDefault ? 'checked' : '') + (invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 ? '' : ' disabled') + '>' +
+                    '<input type="checkbox" id="deliveryWhatsapp" class="saas-switch-input" role="switch" data-invoice-preference-channel="whatsapp" data-invoice-preference-authorized="' + (invoiceWhatsappAuthorized ? '1' : '0') + '" ' + (invoiceWhatsappAuthorized && invoiceWhatsappQuota > 0 && invoiceWhatsappDefault ? 'checked' : '') + (invoiceWhatsappAuthorized && invoiceWhatsappQuota < 1 ? ' disabled' : '') + '>' +
                     '<span class="saas-switch-control"></span>' +
                     '<span class="swal-switch-text"><i class="bi bi-whatsapp"></i> WhatsApp <small>(' + invoiceWhatsappQuota + ')</small></span>' +
                 '</label>' +
                 '<label class="swal-switch-label">' +
-                    '<input type="checkbox" id="deliverySms" class="saas-switch-input" role="switch" data-invoice-preference-channel="sms" ' + (invoiceSmsAuthorized && invoiceSmsQuota > 0 && invoiceSmsDefault ? 'checked' : '') + (invoiceSmsAuthorized && invoiceSmsQuota > 0 ? '' : ' disabled') + '>' +
+                    '<input type="checkbox" id="deliverySms" class="saas-switch-input" role="switch" data-invoice-preference-channel="sms" data-invoice-preference-authorized="' + (invoiceSmsAuthorized ? '1' : '0') + '" ' + (invoiceSmsAuthorized && invoiceSmsQuota > 0 && invoiceSmsDefault ? 'checked' : '') + (invoiceSmsAuthorized && invoiceSmsQuota < 1 ? ' disabled' : '') + '>' +
                 '<span class="saas-switch-control"></span>' +
                 '<span class="swal-switch-text"><i class="bi bi-chat-text"></i> SMS <small>(' + invoiceSmsQuota + ')</small></span>' +
                 '</label>' +

@@ -323,7 +323,7 @@ class SaleController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 "status" => false,
-                "msg" => "Erreur survenue lors de la vente liée au produit ou au menu. " . $th->getMessage(),
+                "msg" => "Erreur survenue lors de la vente liée au produit ou au pack. " . $th->getMessage(),
             ]);
         }
     }

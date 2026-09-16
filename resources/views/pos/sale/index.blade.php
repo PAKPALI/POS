@@ -457,8 +457,8 @@
                                 </div>
                             </div>
                             <div class="pos-invoice-channels">
-                                <label class="saas-switch-line" for="invoiceWhatsapp"><span><strong>WhatsApp</strong><small><span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" data-invoice-preference-channel="whatsapp" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 && $invoiceWhatsappDefault ? 'checked' : '' }} {{ !$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
-                                <label class="saas-switch-line" for="invoiceSms"><span><strong>SMS</strong><small><span id="invoiceSmsQuota">{{ $company->sms_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" data-invoice-preference-channel="sms" id="invoiceSms" {{ $company->invoice_sms_enabled && $company->sms_count > 0 && $invoiceSmsDefault ? 'checked' : '' }} {{ !$company->invoice_sms_enabled || $company->sms_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
+                                <label class="saas-switch-line" for="invoiceWhatsapp"><span><strong>WhatsApp</strong><small><span id="invoiceWhatsappQuota">{{ $company->whatsapp_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" data-invoice-preference-channel="whatsapp" data-invoice-preference-authorized="{{ $company->invoice_whatsapp_enabled ? '1' : '0' }}" id="invoiceWhatsapp" {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count > 0 && $invoiceWhatsappDefault ? 'checked' : '' }} {{ $company->invoice_whatsapp_enabled && $company->whatsapp_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
+                                <label class="saas-switch-line" for="invoiceSms"><span><strong>SMS</strong><small><span id="invoiceSmsQuota">{{ $company->sms_count }}</span> disponible(s)</small></span><input class="saas-switch-input" type="checkbox" role="switch" data-invoice-preference-channel="sms" data-invoice-preference-authorized="{{ $company->invoice_sms_enabled ? '1' : '0' }}" id="invoiceSms" {{ $company->invoice_sms_enabled && $company->sms_count > 0 && $invoiceSmsDefault ? 'checked' : '' }} {{ $company->invoice_sms_enabled && $company->sms_count < 1 ? 'disabled' : '' }}><span class="saas-switch-control" aria-hidden="true"></span></label>
                             </div>
                             <button type="button" id="sendInvoice" class="btn btn-success" data-loading-text="Envoi en cours…" {{ (!$company->invoice_whatsapp_enabled || $company->whatsapp_count < 1) && (!$company->invoice_sms_enabled || $company->sms_count < 1) ? 'disabled' : '' }}>
                                 <i class="bi bi-whatsapp me-1"></i> Envoyer la facture
@@ -556,9 +556,23 @@
             timerProgressBar: true,
         });
 
+        const showInvoicePreferenceBlockedAlert = (channel) => Swal.fire({
+            icon: 'warning',
+            title: `${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'} désactivé`,
+            text: 'Cette fonctionnalité a été désactivée dans Communications > SMS & WhatsApp > Configuration. Activez-la avant de la sélectionner ici.',
+            confirmButtonText: 'Compris',
+        });
+
         async function persistInvoicePreference(input) {
             const previous = input.dataset.persistedChecked === '1';
             const enabled = input.checked;
+
+            if (enabled && input.dataset.invoicePreferenceAuthorized !== '1') {
+                input.checked = previous;
+                await showInvoicePreferenceBlockedAlert(input.dataset.invoicePreferenceChannel);
+                return;
+            }
+
             input.disabled = true;
             try {
                 const response = await fetch(invoicePreferenceUrl, {

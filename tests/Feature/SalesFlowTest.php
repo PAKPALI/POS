@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Client;
 use App\Models\CommunicationLog;
 use App\Models\Inventory;
+use App\Models\MenuProduct;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleInvoicePreference;
@@ -556,6 +557,34 @@ class SalesFlowTest extends TestCase
         $this->assertEquals(2, $this->product->qte);
         $this->assertDatabaseCount('sales', 0);
         $this->assertDatabaseCount('inventories', 0);
+    }
+
+    public function test_selling_a_pack_decrements_pack_and_component_stocks_and_traces_each_inventory(): void
+    {
+        $secondProduct = Product::create([
+            'category_id' => $this->category->id, 'name' => 'Second Product', 'qte' => 50,
+            'price' => 2000, 'purchase_price' => 1000, 'profit' => 1000, 'margin' => 5,
+            'type' => 1, 'status' => 1, 'created_by' => $this->user->id,
+        ]);
+        $pack = Product::create([
+            'category_id' => $this->category->id, 'name' => 'Pack Test', 'qte' => 10,
+            'price' => 12000, 'purchase_price' => 7000, 'profit' => 5000, 'margin' => 2,
+            'type' => 2, 'status' => 1, 'created_by' => $this->user->id,
+        ]);
+        MenuProduct::create(['menu_id' => $pack->id, 'product_id' => $this->product->id, 'quantity' => 2]);
+        MenuProduct::create(['menu_id' => $pack->id, 'product_id' => $secondProduct->id, 'quantity' => 3]);
+
+        $this->makeSale([
+            'products' => [['product_id' => $pack->id, 'quantity' => 2, 'unit_price' => 12000, 'total_price' => 24000]],
+            'total_amount' => 24000, 'received_amount' => 24000,
+        ])->assertJson(['status' => true]);
+
+        $this->assertSame(8, (int) $pack->fresh()->qte);
+        $this->assertSame(96, (int) $this->product->fresh()->qte);
+        $this->assertSame(44, (int) $secondProduct->fresh()->qte);
+        $this->assertDatabaseHas('inventories', ['product_id' => $pack->id, 'qte_before' => 10, 'qte_added' => 2, 'qte_after' => 8, 'type' => 2]);
+        $this->assertDatabaseHas('inventories', ['product_id' => $this->product->id, 'qte_before' => 100, 'qte_added' => 4, 'qte_after' => 96, 'type' => 2]);
+        $this->assertDatabaseHas('inventories', ['product_id' => $secondProduct->id, 'qte_before' => 50, 'qte_added' => 6, 'qte_after' => 44, 'type' => 2]);
     }
 
     /** Sale with discount applies correctly */

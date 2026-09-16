@@ -7,7 +7,7 @@
         @endif
     </div>
     <div class="saas-detail-summary">
-        <span class="saas-modal-eyebrow">Menu composé</span>
+        <span class="saas-modal-eyebrow">Pack composé</span>
         <h3>{{ $MenuProduct->name }}</h3>
         <p>{{ $MenuProduct->category->name }} · {{ $MenuProduct->MenuProducts->count() }} composant{{ $MenuProduct->MenuProducts->count() > 1 ? 's' : '' }}</p>
         <span class="saas-status-badge {{ $MenuProduct->status ? 'is-active' : 'is-inactive' }}">{{ $MenuProduct->status ? 'Actif' : 'Archivé' }}</span>
@@ -26,7 +26,7 @@
 
 <section class="saas-detail-section" aria-labelledby="menu-products-title">
     <div class="saas-detail-section-head">
-        <div><span class="saas-modal-eyebrow">Composition</span><h4 id="menu-products-title">Produits du menu</h4></div>
+        <div><span class="saas-modal-eyebrow">Composition</span><h4 id="menu-products-title">Produits du pack</h4></div>
         <span class="saas-count-badge">{{ $MenuProduct->MenuProducts->count() }}</span>
     </div>
     <div class="saas-composition-list">

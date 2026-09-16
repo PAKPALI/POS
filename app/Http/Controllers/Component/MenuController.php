@@ -6,6 +6,8 @@ use App\Models\Action;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\MenuProduct;
+use App\Models\Inventory;
+use App\Models\AMS\Setting;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\CompanyContext;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class MenuController extends Controller
@@ -91,6 +94,7 @@ class MenuController extends Controller
         return response()->json([
             'results' => $products->getCollection()->map(fn (Product $product) => [
                 'id' => $product->id,
+                'qte' => (int) $product->qte,
                 'text' => $product->name.' ('.$product->qte.')',
             ])->values(),
             'pagination' => ['more' => $products->hasMorePages()],
@@ -112,11 +116,11 @@ class MenuController extends Controller
     {
         $error_messages = [
             "type.required" => "Sélectionnez un type!",
-            "type.numeric" => "Sélectionnez un type qui doit être un nombre!",
+            "type.in" => "Le type de pack est invalide!",
             "category.required" => "Sélectionnez une Catégorie!",
             "name.required" => "Remplir le champ Nom!",
-            "qte.required" => "Remplir le champ Quantité!",
-            "qte.numeric" => "Le champ Quantité doit être un nombre!",
+            "qte.required" => "Remplir le champ Quantité disponible!",
+            "qte.integer" => "La quantité disponible doit être un nombre entier!",
             "price.required" => "Remplir le champ Prix unitaire!",
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
             // "margin.required" => "Remplir le champ Marge de sécurité!",
@@ -134,22 +138,32 @@ class MenuController extends Controller
         ];
         
         $validator = Validator::make($request->all(), [
-            'type' => ['required', 'numeric'],
+            'type' => ['required', Rule::in([2, '2'])],
             'category' => ['required', Rule::exists('categories', 'id')->where(
                 fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)
             )],
-            'name' => ['required'],
-            'qte' => ['required', 'numeric'],
-            'price' => ['required', 'numeric'],
-            'margin' => ['numeric'],
+            'name' => ['required', 'string', 'max:255'],
+            'qte' => ['required', 'integer', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'margin' => ['nullable', 'integer', 'min:0', 'lt:qte'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
 
-            'products' => ['required'], // Valider que c'est un tableau
-            'products.*.product_id' => ['required', Rule::exists('products', 'id')->where(
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.product_id' => ['required', 'distinct', Rule::exists('products', 'id')->where(
                 fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)->where('type', 1)
             )],
-            'products.*.quantity' => ['required', 'numeric', 'min:1'], // Vérifie la quantité
+            'products.*.quantity' => ['required', 'integer', 'min:1'],
         ], $error_messages);
+
+        $validator->after(function ($validator) use ($request): void {
+            foreach ((array) $request->input('products', []) as $index => $component) {
+                $stock = Product::whereKey($component['product_id'] ?? null)->where('type', 1)->value('qte');
+                if ($stock !== null && (int) ($component['quantity'] ?? 0) > (int) $stock) {
+                    $validator->errors()->add("products.{$index}.quantity", "La quantité du produit sélectionné ne peut pas dépasser son stock actuel ({$stock}).");
+                }
+            }
+        });
         
         if($validator->fails())
             return response()->json([
@@ -159,15 +173,18 @@ class MenuController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
+            $purchasePrice = $request->filled('purchase_price') ? (float) $request->purchase_price : null;
+            $tax = (float) (Setting::first()?->default_tax ?? 0);
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
                 'price' => $request-> price,
-                'purchase_price' => $request-> purchase_price,
-                'type' => $request-> type,
-                'margin' => $request-> margin,
-                'profit' => $request-> profit,
+                'price_ttc' => (float) $request->price * (1 + $tax / 100),
+                'purchase_price' => $purchasePrice,
+                'type' => 2,
+                'margin' => $request->filled('margin') ? (int) $request->margin : null,
+                'profit' => $purchasePrice === null ? null : (float) $request->price - $purchasePrice,
                 'created_by' => Auth::user()->id,
             ];
 
@@ -179,31 +196,36 @@ class MenuController extends Controller
                 $data['image'] = $imageName;
             }
 
-            $Menu = Product::create($data);
-
-            if ($request->has('products')) {
-                $products = $request->products;
-                foreach ($products as $product) {
+            DB::transaction(function () use ($data, $request) {
+                $pack = Product::create($data);
+                foreach ($request->products as $product) {
                     MenuProduct::create([
-                        'menu_id' => $Menu->id,
+                        'menu_id' => $pack->id,
                         'product_id' => $product['product_id'],
                         'quantity' => $product['quantity']
                     ]);
                 }
+                if ((int) $pack->qte > 0) {
+                    Inventory::create([
+                        'type' => 1, 'product_id' => $pack->id, 'qte_before' => 0,
+                        'qte_added' => $pack->qte, 'qte_after' => $pack->qte,
+                        'note' => 'Stock initial à la création du pack', 'created_by' => auth()->id(),
+                    ]);
+                }
                 Action::create([
                     'user_id' => auth()->user()->id,
-                    'function' => 'AJOUT MENU',
-                    'text' => auth()->user()->name." a créer un nouveau menu '".$request->name."'",
+                    'function' => 'AJOUT PACK',
+                    'text' => auth()->user()->name." a créé le pack '".$request->name."'",
                 ]);
-    
+            });
+
                 return response()->json([
                     "status" => true,
                     "reload" => true,
                     // "redirect_to" => route('user'),
                     "title" => "AJOUT REUSSI",
-                    "msg" => "Le menu au nom de ".$request-> name." a bien été ajouté"
+                    "msg" => "Le pack ".$request->name." a bien été ajouté"
                 ]);
-            }
     }
 
     /**
@@ -211,7 +233,7 @@ class MenuController extends Controller
      */
     public function show(string $id)
     {
-        $MenuProduct = Product::findOrFail($id);
+        $MenuProduct = Product::where('type', 2)->findOrFail($id);
         return view('component.menu.show', compact('MenuProduct'));
     }
 
@@ -220,8 +242,8 @@ class MenuController extends Controller
      */
     public function edit(string $id)
     {
-        $Product = Product::findOrFail($id);
-        $MenuProduct = $Product->MenuProducts()->with('product:id,name')->get();
+        $Product = Product::where('type', 2)->findOrFail($id);
+        $MenuProduct = $Product->MenuProducts()->with('product:id,name,qte')->get();
         $Category = Category::where('status','1')->orderBy('name')->get(['id', 'name']);
         return view('component.menu.edit', compact('Product','Category','MenuProduct'));
     }
@@ -255,22 +277,32 @@ class MenuController extends Controller
         ];
         
         $validator = Validator::make($request->all(), [
-            'type' => ['required', 'numeric'],
+            'type' => ['required', Rule::in([2, '2'])],
             'category' => ['required', Rule::exists('categories', 'id')->where(
                 fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)
             )],
-            'name' => ['required'],
-            'qte' => ['required', 'numeric'],
-            'price' => ['required', 'numeric'],
-            'margin' => ['numeric'],
+            'name' => ['required', 'string', 'max:255'],
+            'qte' => ['required', 'integer', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
+            'margin' => ['nullable', 'integer', 'min:0', 'lt:qte'],
             'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
 
-            'products' => ['required'], // Valider que c'est un tableau
-            'products.*.product_id' => ['required', Rule::exists('products', 'id')->where(
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.product_id' => ['required', 'distinct', Rule::exists('products', 'id')->where(
                 fn ($query) => $query->where('company_id', app(CompanyContext::class)->getCompanyId())->where('status', 1)->where('type', 1)
             )],
-            'products.*.quantity' => ['required', 'numeric', 'min:1'], // Vérifie la quantité
+            'products.*.quantity' => ['required', 'integer', 'min:1'],
         ], $error_messages);
+
+        $validator->after(function ($validator) use ($request): void {
+            foreach ((array) $request->input('products', []) as $index => $component) {
+                $stock = Product::whereKey($component['product_id'] ?? null)->where('type', 1)->value('qte');
+                if ($stock !== null && (int) ($component['quantity'] ?? 0) > (int) $stock) {
+                    $validator->errors()->add("products.{$index}.quantity", "La quantité du produit sélectionné ne peut pas dépasser son stock actuel ({$stock}).");
+                }
+            }
+        });
         
         if($validator->fails())
             return response()->json([
@@ -280,15 +312,18 @@ class MenuController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            $MenuProduct = Product::findOrFail($id);
+            $MenuProduct = Product::where('type', 2)->findOrFail($id);
+            $purchasePrice = $request->filled('purchase_price') ? (float) $request->purchase_price : null;
+            $tax = (float) (Setting::first()?->default_tax ?? 0);
             $data = [
                 'category_id' => $request-> category,
                 'name' => $request-> name,
                 'qte' => $request-> qte,
                 'price' => $request-> price,
-                'purchase_price' => $request-> purchase_price,
-                'margin' => $request-> margin,
-                'profit' => $request-> profit,
+                'price_ttc' => (float) $request->price * (1 + $tax / 100),
+                'purchase_price' => $purchasePrice,
+                'margin' => $request->filled('margin') ? (int) $request->margin : null,
+                'profit' => $purchasePrice === null ? null : (float) $request->price - $purchasePrice,
                 'created_by' => Auth::user()->id,
             ];
 
@@ -307,15 +342,22 @@ class MenuController extends Controller
                 $data['image'] = $imageName;
             }
             
-            $MenuProduct->update($data);
-
-            foreach ($MenuProduct->MenuProducts as $mp) {
-                $mp->delete($data);
-            }
-
-            if ($request->has('products')) {
-                $products = $request->products;
-                foreach ($products as $product) {
+            DB::transaction(function () use ($MenuProduct, $data, $request) {
+                $previousQuantity = (int) $MenuProduct->qte;
+                $MenuProduct->update($data);
+                if ($previousQuantity !== (int) $MenuProduct->qte) {
+                    Inventory::create([
+                        'type' => $MenuProduct->qte > $previousQuantity ? 1 : 2,
+                        'product_id' => $MenuProduct->id,
+                        'qte_before' => $previousQuantity,
+                        'qte_added' => abs((int) $MenuProduct->qte - $previousQuantity),
+                        'qte_after' => $MenuProduct->qte,
+                        'note' => 'Ajustement du stock du pack',
+                        'created_by' => auth()->id(),
+                    ]);
+                }
+                $MenuProduct->MenuProducts()->delete();
+                foreach ($request->products as $product) {
                     MenuProduct::create([
                         'menu_id' => $MenuProduct->id,
                         'product_id' => $product['product_id'],
@@ -325,17 +367,18 @@ class MenuController extends Controller
                 Action::create([
                     'user_id' => auth()->user()->id,
                     'function' => 'MISE A JOUR DU MENU',
-                    'text' => auth()->user()->name." a mis a jour le menu '".$MenuProduct->name."'",
+                    'text' => auth()->user()->name." a mis à jour le pack '".$MenuProduct->name."'",
                 ]);
     
+            });
+
                 return response()->json([
                     "status" => true,
                     "reload" => true,
                     // "redirect_to" => route('user'),
                     "title" => "MISE A JOUR REUSSIE",
-                    "msg" => "Le menu au nom de ".$MenuProduct->name." a bien été mis a jour"
+                    "msg" => "Le pack ".$MenuProduct->name." a bien été mis à jour"
                 ]);
-            }
     }
 
     /**
@@ -343,7 +386,7 @@ class MenuController extends Controller
      */
     public function destroy(string $id)
     {
-        $Object = Product::findOrFail($id);
+        $Object = Product::where('type', 2)->findOrFail($id);
         if($Object->status ==1){
             $Object->update([
                 'status' => 0,
@@ -358,7 +401,7 @@ class MenuController extends Controller
                 "reload" => true,
                 // "redirect_to" => route('user'),
                 "title" => "ARCHIVAGE REUSSIE",
-                "msg" => "Le menu ".$Object->name." a bien été désactivé"
+                "msg" => "Le pack ".$Object->name." a bien été désactivé"
             ]);
         }else{
             $Object->update([
@@ -367,14 +410,14 @@ class MenuController extends Controller
             Action::create([
                 'user_id' => auth()->user()->id,
                 'function' => 'RESTAURER UN MENU',
-                'text' => auth()->user()->name." a restaurer le menu : ".$Object->name,
+                'text' => auth()->user()->name." a restauré le pack : ".$Object->name,
             ]); 
             return response()->json([
                 "status" => true,
                 "reload" => true,
                 // "redirect_to" => route('user'),
                 "title" => "RESTAURATION REUSSIE",
-                "msg" => "Le menu ".$Object->name." a bien été restauré"
+                "msg" => "Le pack ".$Object->name." a bien été restauré"
             ]);
         }
     }

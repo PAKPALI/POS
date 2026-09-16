@@ -29,7 +29,7 @@
         @if($allowed('catalog.manage'))
             <details class="saas-nav-group {{ $catalogActive ? 'is-active' : '' }}" @if($catalogActive) open @endif>
                 <summary class="{{ $catalogActive ? 'is-active' : '' }}"><span><i class="bi bi-box-seam"></i><span>Catalogue</span></span><i class="bi bi-chevron-down saas-nav-chevron"></i></summary>
-                <div><a class="{{ request()->routeIs('category.*') ? 'is-active' : '' }}" href="{{ route('category.index') }}">Catégories</a><a class="{{ request()->routeIs('product.*') ? 'is-active' : '' }}" href="{{ route('product.index') }}">Produits</a><a class="{{ request()->routeIs('menu.*') ? 'is-active' : '' }}" href="{{ route('menu.index') }}">Menus</a><a class="{{ request()->routeIs('supplier.*') ? 'is-active' : '' }}" href="{{ route('supplier.index') }}">Fournisseurs</a></div>
+                <div><a class="{{ request()->routeIs('category.*') ? 'is-active' : '' }}" href="{{ route('category.index') }}">Catégories</a><a class="{{ request()->routeIs('product.*') ? 'is-active' : '' }}" href="{{ route('product.index') }}">Produits</a><a class="{{ request()->routeIs('menu.*') ? 'is-active' : '' }}" href="{{ route('menu.index') }}">Packs</a><a class="{{ request()->routeIs('supplier.*') ? 'is-active' : '' }}" href="{{ route('supplier.index') }}">Fournisseurs</a></div>
             </details>
         @endif
         @if($allowed('sales.manage'))

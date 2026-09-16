@@ -1,9 +1,28 @@
 @extends('layouts.saas')
-@section('title', 'Menus')
+@section('title', 'Packs')
 
 @push('styles')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <style>
+        .pack-form-grid > .saas-form-group { min-width: 0; gap: 6px; align-self: start; }
+        @media (min-width: 992px) { .saas-body .modal .pack-form-grid .col-lg-4 { grid-column: span 4; width: auto; } }
+        .pack-composition { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--ds-border); }
+        .pack-section-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+        .pack-section-head h4 { margin: 0 0 3px; font-size: 1rem; }
+        .pack-section-head p { margin: 0; color: var(--ds-text-secondary); font-size: .78rem; }
+        .product-field { display: grid !important; grid-template-columns: minmax(0, 1fr) 140px 42px !important; gap: 12px; align-items: end; margin-bottom: 12px; padding: 14px; border: 1px solid var(--ds-border); border-radius: 12px; background: var(--ds-surface-muted); }
+        .product-field .saas-form-group { grid-column: auto !important; width: auto !important; margin: 0; min-width: 0; gap: 6px; }
+        .product-field .select2-container { max-width: 100%; }
+        .product-field input { display: block; width: 100%; }
+        .pack-empty-state { padding: 22px; border: 1px dashed var(--ds-border); border-radius: 12px; color: var(--ds-text-secondary); text-align: center; }
+        .pack-modal-submit { display: flex; justify-content: flex-end; }
+        @media (max-width: 767.98px) {
+            .pack-section-head { align-items: stretch; flex-direction: column; }
+            .pack-section-head .saas-btn, .pack-modal-submit .saas-btn { width: 100%; justify-content: center; }
+            .product-field { grid-template-columns: minmax(0, 1fr) 86px 42px !important; gap: 8px; padding: 12px; }
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -14,93 +33,84 @@
                     <div class="col-12">
                         <div class="saas-page-heading">
                             <div>
-                                <h1>Menus</h1>
-                                <p>Composez des offres à partir des produits du catalogue.</p>
+                                <h1>Packs</h1>
+                                <p>Regroupez plusieurs produits existants dans une seule offre vendable.</p>
                             </div>
                             <button type="button" class="saas-btn saas-btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
-                                <i class="bi bi-plus-lg"></i> Ajouter un menu
+                                <i class="bi bi-plus-lg"></i> Ajouter un pack
                             </button>
                         </div>
                         <!-- add modal -->
                         <div class="modal modal fade" id="addModal">
-                            <div class="modal-dialog modal-xl">
+                            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                                 <div class="modal-content">
                                     <div class="modal-header modal-header-accent">
-                                        <h3 class="modal-title">Ajouter un menu</h3>
+                                        <h3 class="modal-title">Ajouter un pack</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
                                     <form id="add">
                                         @csrf
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <input type="hidden" name="type" value="2" class="form-control" id="exampleInputText0" placeholder="0">
-                                                <div class="form-group col-12 mb-3 text-center bg-light">
-                                                    <label for="exampleInputText0"><h5 class="text-dark">informations menu</h5></label>
-                                                </div>
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Catégorie</label>
-                                                    
-                                                    <select class="form-select mb-3" name="category">
-                                                        <option value="">selectionnez une catégorie</option>
+                                        <input type="hidden" name="type" value="2">
+                                        <div class="row pack-form-grid">
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_category">Catégorie</label>
+                                                    <select id="pack_category" class="form-select select2-category" name="category" required>
+                                                        <option value="">Sélectionnez une catégorie</option>
                                                         @foreach ($Category as $cat)
                                                             <option value="{{$cat->id}}">{{$cat->name}}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Nom</label>
-                                                    <input type="text" name="name" class="form-control" id="exampleInputText0" placeholder="Nom">
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_name">Nom</label>
+                                                    <input id="pack_name" type="text" name="name" placeholder="Nom du pack" required>
                                                 </div>
 
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Quantité</label>
-                                                    <input type="number" name="qte" class="form-control" id="exampleInputText0" placeholder="0">
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_qte">Quantité disponible</label>
+                                                    <input id="pack_qte" type="number" name="qte" min="0" step="1" value="0" required>
+                                                    <small>Nombre de packs pouvant être vendus.</small>
                                                 </div>
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Marge de sécurité</label>
-                                                    <input type="number" name="margin" value="0" class="form-control" id="exampleInputText0" placeholder="0">
-                                                </div>
-
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Prix unitaire</label>
-                                                    <input type="number" name="price" class="form-control price" id="exampleInputText0" placeholder="0">
-                                                </div>
-                                                <div class="form-group col-6 mb-3">
-                                                    <label for="exampleInputText0">Prix d'achat</label>
-                                                    <input type="number" name="purchase_price" class="form-control purchase_price" id="exampleInputText0" placeholder="0">
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_margin">Marge de sécurité <small>(facultative)</small></label>
+                                                    <input id="pack_margin" type="number" name="margin" min="0" step="1" placeholder="Ex. 2">
                                                 </div>
 
-                                                <div class="form-group col-12 mb-3">
-                                                    <label for="exampleInputText0">Bénefice</label>
-                                                    <input type="number" name="profit" class="form-control profit" id="exampleInputText0" readonly placeholder="0">
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_price">Prix de vente</label>
+                                                    <input id="pack_price" type="number" name="price" class="price" min="0" step="0.01" placeholder="0" required>
+                                                </div>
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_purchase_price">Prix d'achat <small>(facultatif)</small></label>
+                                                    <input id="pack_purchase_price" type="number" name="purchase_price" class="purchase_price" min="0" step="0.01" placeholder="Non renseigné">
+                                                </div>
+
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_profit">Bénéfice estimé</label>
+                                                    <input id="pack_profit" type="number" class="profit" readonly placeholder="0">
                                                 </div>
                                                 
-                                                <div class="form-group col-12">
-                                                    <label class="form-label" for="smFile">Choisir une image</label>
-                                                    <input type="file" class="form-control form-control-sm" name="image" id="smFile">
+                                                <div class="col-md-6 col-lg-4 saas-form-group">
+                                                    <label for="pack_image">Image</label>
+                                                    <input type="file" class="form-control" name="image" id="pack_image" accept="image/jpeg,image/png,image/gif,image/webp">
                                                 </div>
                                             </div>
 
-                                            <div class="row mt-3">
-                                                <div class="form-group col-12 mb-3 text-center bg-light">
-                                                    <label for="exampleInputText0"><h5 class="text-dark">informations produits</h5></label>
-                                                </div>
-                                                <button type="button" class="saas-btn saas-btn-outline add-product-field mb-2">
+                                            <section class="pack-composition" aria-labelledby="pack-products-title">
+                                                <div class="pack-section-head">
+                                                    <div><h4 id="pack-products-title">Produits inclus dans le pack</h4><p>Indiquez la quantité de chaque produit consommée par un pack vendu.</p></div>
+                                                <button type="button" class="saas-btn saas-btn-outline add-product-field">
                                                     <i class="bi bi-plus-lg"></i> Ajouter un produit
                                                 </button>
-                                                <div id="product-fields-container">
-                                                    <!-- Dynamic field will be here -->
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer mt-4">
-                                            <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Création…">
-                                                <span>Créer le menu</span>
-                                            </button> 
-                                        </div>
+                                                <div id="product-fields-container">
+                                                    <div class="pack-empty-state"><i class="bi bi-box-seam"></i><br>Ajoutez au moins un produit pour composer ce pack.</div>
+                                                </div>
+                                            </section>
                                     </form>
                                     </div>
+                                    <div class="modal-footer pack-modal-submit"><button type="submit" form="add" class="saas-btn saas-btn-primary" data-loading-text="Création…"><span>Créer le pack</span></button></div>
                                 </div>
                             </div>
                         </div>
@@ -110,7 +120,7 @@
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content saas-modal-content saas-modal-warning">
                                     <div class="modal-header modal-header-accent modal-header-warning">
-                                        <h3 class="modal-title">Modifier le menu</h3>
+                                        <h3 class="modal-title">Modifier le pack</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -125,7 +135,7 @@
                             <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
                                     <div class="modal-header modal-header-accent">
-                                        <h3 class="modal-title">Détail du menu</h3>
+                                        <h3 class="modal-title">Détail du pack</h3>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
@@ -137,21 +147,22 @@
 
                         <!-- template for dynamic field -->
                         <template id="product-field-template">
-                            <div class="row product-field">
-                                <div class="form-group col-5 mb-2">
-                                    <label for="exampleInputText0">Produits</label>
-                                    <select class="form-select mb-3 product-select" name="products[]">
-                                        <option value="">selectionnez un produit</option>
+                            <div class="product-field">
+                                <div class="saas-form-group">
+                                    <label>Produit</label>
+                                    <select class="form-select product-select">
+                                        <option value="">Sélectionnez un produit</option>
                                     </select>
                                 </div>
 
-                                <div class="form-group col-6 mb-2">
-                                    <label for="exampleInputText0">Quantité</label>
-                                    <input type="number" name="quantities[]" class="form-control product-quantity" placeholder="0">
+                                <div class="saas-form-group">
+                                    <label>Qté / pack</label>
+                                    <input type="number" class="product-quantity" min="1" step="1" value="1">
+                                    <small class="product-stock-hint">Stock actuel : sélectionnez un produit.</small>
                                 </div>
 
-                                <div class="form-group col-1 mb-2 d-flex align-items-center">
-                                    <button type="button" class="btn btn-danger remove-product-field">
+                                <div>
+                                    <button type="button" class="saas-icon-button remove-product-field" aria-label="Retirer ce produit">
                                         <i class="fa fa-trash"></i>
                                     </button>
                                 </div>
@@ -162,8 +173,8 @@
                             <div class="saas-card">
                                 <div class="saas-card-head">
                                     <div>
-                                        <h2>Liste des menus</h2>
-                                        <p class="saas-card-description">Consultez, modifiez ou archivez les compositions proposées à la vente.</p>
+                                        <h2>Liste des packs</h2>
+                                        <p class="saas-card-description">Consultez, modifiez ou archivez les packs proposés à la vente.</p>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -235,8 +246,8 @@
                 language: {
                     "lengthMenu": "Afficher _MENU_ entrées",
                     "zeroRecords": "Aucun résultat correspondant",
-                    "emptyTable": "Aucun menu composé pour le moment",
-                    "processing": "Chargement des menus…",
+                    "emptyTable": "Aucun pack composé pour le moment",
+                    "processing": "Chargement des packs…",
                     "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
                     "infoEmpty": "Affichage de 0 à 0 sur 0 entrées",
                     "infoFiltered": "(filtré à partir de _MAX_ entrées au total)",
@@ -257,6 +268,7 @@
 
             // Add product field
             const menuProductSearchUrl = @json(route('menu.products.search'));
+            $('.select2-category').select2({ dropdownParent: $('#addModal'), width: '100%', placeholder: 'Sélectionnez une catégorie', allowClear: true });
 
             function initMenuProductSelect(element, dropdownParent) {
                 $(element).select2({
@@ -273,9 +285,18 @@
                         cache: true
                     }
                 });
+                $(element).on('select2:select', function (event) {
+                    const stock = Number(event.params.data.qte || 0);
+                    const row = $(this).closest('.product-field');
+                    const quantity = row.find('.product-quantity');
+                    quantity.attr('max', stock).data('max-stock', stock);
+                    row.find('.product-stock-hint').text('Stock actuel : ' + stock + ' unité' + (stock > 1 ? 's' : '') + '.');
+                    if (Number(quantity.val()) > stock) quantity.val(stock || 1);
+                });
             }
 
             $('.add-product-field').on('click', function () {
+                $('#product-fields-container .pack-empty-state').remove();
                 let template = $('#product-field-template').html(); // get template model
                 $('#product-fields-container').append(template);   // Add template in container
                 initMenuProductSelect($('#product-fields-container .product-select').last(), '#addModal');
@@ -284,9 +305,12 @@
             // Delete product field
             $('#product-fields-container').on('click', '.remove-product-field', function () {
                 $(this).closest('.product-field').remove(); // Delete parent bloc
+                if (!$('#product-fields-container .product-field').length) {
+                    $('#product-fields-container').html('<div class="pack-empty-state"><i class="bi bi-box-seam"></i><br>Ajoutez au moins un produit pour composer ce pack.</div>');
+                }
             });
 
-            //Add menu
+            // Ajouter un pack
             $('#add').submit(function (event) {
                 event.preventDefault();
                 let isValid = true; 
@@ -296,6 +320,7 @@
                 $('.product-field').each(function () {
                     let productSelect = $(this).find('.product-select').val();
                     let productQuantity = $(this).find('.product-quantity').val();
+                    const maxStock = Number($(this).find('.product-quantity').data('max-stock'));
 
                     // if (!productSelect && !productQuantity) {
                     //     return true; // Ignore les champs vides
@@ -327,6 +352,12 @@
                             timerProgressBar: true,
                             text: "Veuillez saisir une quantité valide !",
                         });
+                        isValid = false;
+                        return false;
+                    }
+
+                    if (Number.isFinite(maxStock) && maxStock >= 0 && Number(productQuantity) > maxStock) {
+                        Swal.fire({ toast: true, position: 'top', icon: 'error', title: 'Stock insuffisant', showConfirmButton: false, timer: 3500, timerProgressBar: true, text: 'La quantité saisie ne peut pas dépasser le stock actuel (' + maxStock + ').' });
                         isValid = false;
                         return false;
                     }
@@ -382,6 +413,8 @@
                                 timerProgressBar: true,
                                 text: data.msg,
                             });
+                            $('#add')[0].reset();
+                            $('#product-fields-container').html('<div class="pack-empty-state"><i class="bi bi-box-seam"></i><br>Ajoutez au moins un produit pour composer ce pack.</div>');
                             $('#addModal').modal('hide');
                             Datatable.draw();
                         } else {
@@ -424,7 +457,7 @@
                     {
                         $('#edit_response').html(result);
                     },
-                    error: function() { $('#editModal').modal('hide'); Swal.fire({icon: 'error', title: 'Chargement impossible', text: 'Impossible de charger ce menu.'}); },
+                    error: function() { $('#editModal').modal('hide'); Swal.fire({icon: 'error', title: 'Chargement impossible', text: 'Impossible de charger ce pack.'}); },
                     complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }
                 });
             });
@@ -442,7 +475,7 @@
                     {
                         $('#show_response').html(result);
                     },
-                    error: function() { $('#showModal').modal('hide'); Swal.fire({icon: 'error', title: 'Chargement impossible', text: 'Impossible de charger ce menu.'}); },
+                    error: function() { $('#showModal').modal('hide'); Swal.fire({icon: 'error', title: 'Chargement impossible', text: 'Impossible de charger ce pack.'}); },
                     complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }
                 });
             });
@@ -514,7 +547,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir archiver ce menu?",
+                    title: "Êtes-vous sûr de vouloir archiver ce pack ?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     buttonsStyling: false,
@@ -566,7 +599,7 @@
                 
                 Swal.fire({
                     icon: "question",
-                    title: "Etes vous sur de vouloir restaurer ce menu?",
+                    title: "Êtes-vous sûr de vouloir restaurer ce pack ?",
                     // text: " Les éléments liés a la ville seront supprimés ; la confirmation est irréversible",
                     confirmButtonText: "Oui",
                     buttonsStyling: false,

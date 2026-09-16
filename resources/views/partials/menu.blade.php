@@ -49,7 +49,7 @@
 						</div>
 						<div class="menu-item @if(Request::route()->getName() === 'menu.index') active @endif">
 							<a href="{{ route('menu.index') }}" class="menu-link">
-								<div class="menu-text">Liste menu</div>
+								<div class="menu-text">Liste des packs</div>
 							</a>
 						</div>
 					</div>
