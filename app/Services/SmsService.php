@@ -85,6 +85,10 @@ class SmsService
         $payload = $response->json();
         $accepted = $response->successful() && $this->providerAccepted($payload);
         if ($accepted) {
+            // Certains comptes KPrimeSMS renvoient 1 ou "1" au lieu du booléen true.
+            // Normaliser la réponse évite que le service appelant considère un SMS
+            // accepté comme un échec après que le quota a déjà été consommé.
+            $payload['status'] = true;
             $this->consumeAndRecord($company, 'sms', $function, $phoneNumber, $countryCode ?: $company->country_code ?: 'TG', $payload, $saleId);
         } else {
             Log::warning('Erreur SMS API', [

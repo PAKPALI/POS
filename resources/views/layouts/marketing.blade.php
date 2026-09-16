@@ -30,7 +30,25 @@
     <meta name="twitter:title" content="@yield('title', 'Maxanou — POS de vente et gestion')">
     <meta name="twitter:description" content="@yield('meta-description', 'Maxanou accompagne les commerces pour vendre, suivre le stock et piloter leur activité.')">
     <meta name="twitter:image" content="{{ asset('icons/maxanou-social.png') }}">
+    <meta name="twitter:image:alt" content="Logo Maxanou — vente, stock et gestion">
     <title>@yield('title', 'Maxanou — POS de vente et gestion')</title>
+    @if($marketingIndexable)
+        @php($publicSocialUrls = collect($socialNetworks ?? [])->pluck('url')->filter()->values()->all())
+        <script type="application/ld+json">{!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => 'Maxanou',
+            'url' => url('/'),
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => asset('icons/icon-512.png'),
+                'width' => 512,
+                'height' => 512,
+            ],
+            'image' => asset('icons/maxanou-social.png'),
+            'sameAs' => $publicSocialUrls,
+        ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) !!}</script>
+    @endif
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/marketing.css') }}?v=20260902-6" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260916-1" rel="stylesheet">

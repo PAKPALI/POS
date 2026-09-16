@@ -278,6 +278,46 @@ class SalesFlowTest extends TestCase
         ]);
     }
 
+    public function test_invoice_sms_normalizes_numeric_provider_success_status(): void
+    {
+        Queue::fake();
+        Http::fake(fn () => Http::response(['status' => '1', 'message' => 'MESSAGE_SENT_SUCCESSFULLY'], 200));
+        $this->company->update(['invoice_sms_enabled' => true, 'sms_count' => 1]);
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+
+        (new SendCustomerInvoiceJob($sale->id, $this->company->id, 'sms', '90000000', 'BJ'))
+            ->handle(app(SaleInvoiceDeliveryService::class));
+
+        $this->assertSame(0, (int) $this->company->fresh()->sms_count);
+        $this->assertDatabaseHas('communication_logs', [
+            'company_id' => $this->company->id, 'sale_id' => $sale->id,
+            'channel' => 'sms', 'function' => 'invoice', 'recipient' => '90000000',
+        ]);
+    }
+
+    public function test_invoice_sms_keeps_provider_validation_details_in_failure(): void
+    {
+        Queue::fake();
+        Http::fake(fn () => Http::response([
+            'status' => false,
+            'message' => 'VALIDATION_ERROR',
+            'errors' => ['response_url' => ['The response URL is invalid.']],
+        ], 422));
+        $this->company->update(['invoice_sms_enabled' => true, 'sms_count' => 1]);
+        $this->makeSale()->assertJson(['status' => true]);
+        $sale = Sale::latest()->firstOrFail();
+
+        try {
+            (new SendCustomerInvoiceJob($sale->id, $this->company->id, 'sms', '90000000', 'BJ'))
+                ->handle(app(SaleInvoiceDeliveryService::class));
+            $this->fail('Le fournisseur devait refuser le payload.');
+        } catch (\RuntimeException $exception) {
+            $this->assertStringContainsString('VALIDATION_ERROR', $exception->getMessage());
+            $this->assertStringContainsString('response_url', $exception->getMessage());
+        }
+    }
+
     public function test_whatsapp_invoice_uses_documented_endpoints_and_country_payload(): void
     {
         Queue::fake();
