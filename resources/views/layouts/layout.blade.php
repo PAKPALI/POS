@@ -109,8 +109,14 @@
 
 	<body>
 		@include('partials.navigation-loader')
+		@php
+			$pagePreloaderCompany = $activeCompany ?? null;
+			$pagePreloaderLogo = $pagePreloaderCompany?->logo
+				? asset($pagePreloaderCompany->logo)
+				: asset('brand/maxanou-symbol.svg');
+		@endphp
 		<div id="page-preloader">
-			<img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="Chargement de Maxanou">
+			<img src="{{ $pagePreloaderLogo }}" alt="Chargement de {{ $pagePreloaderCompany?->name ?? config('app.name', 'Maxanou') }}" onerror="this.onerror=null;this.src='{{ asset('brand/maxanou-symbol.svg') }}';">
 		</div>
 
 		<div id="app" class="app">

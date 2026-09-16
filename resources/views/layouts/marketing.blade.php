@@ -33,7 +33,7 @@
     <title>@yield('title', 'Maxanou — POS de vente et gestion')</title>
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/marketing.css') }}?v=20260902-6" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260915-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260916-1" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="marketing-body">
