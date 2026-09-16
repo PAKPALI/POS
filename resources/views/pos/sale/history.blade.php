@@ -426,7 +426,8 @@ $(function() {
         var enabled = input.checked;
         input.disabled = true;
         return fetch(invoicePreferenceUrl, {
-            method: 'PATCH',
+            // POST évite les blocages PATCH de certains WAF/serveurs mutualisés.
+            method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',

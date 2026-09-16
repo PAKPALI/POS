@@ -238,6 +238,25 @@ class SalesFlowTest extends TestCase
         ]);
     }
 
+    public function test_pos_invoice_channel_preference_accepts_post_for_shared_host_compatibility(): void
+    {
+        $this->company->update(['invoice_sms_enabled' => true, 'sms_count' => 1]);
+
+        $this->actingAs($this->user)->withSession(['active_company_id' => $this->company->id])
+            ->postJson(route('sale.invoice-preferences.toggle'), [
+                'channel' => 'sms',
+                'enabled' => true,
+            ])
+            ->assertOk()
+            ->assertJson(['status' => true, 'enabled' => true]);
+
+        $this->assertDatabaseHas('sale_invoice_preferences', [
+            'company_id' => $this->company->id,
+            'user_id' => $this->user->id,
+            'sms_enabled' => 1,
+        ]);
+    }
+
     public function test_queued_manual_sms_invoice_is_delivered_by_the_worker(): void
     {
         Queue::fake();

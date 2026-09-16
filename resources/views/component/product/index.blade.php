@@ -23,16 +23,15 @@
         .product-registration-notice-dismiss { white-space: nowrap; }
         .product-registration-notice-dismiss .bi { font-size: .95rem; }
         .product-registration-notice-dismiss.is-checked .bi::before { content: "\f26a"; }
-        .product-form-grid > .saas-form-group { min-width: 0; }
+        .product-form-grid > .saas-form-group { min-width: 0; gap: 6px; }
         @media (min-width: 992px) {
             .saas-body .modal .product-form-grid .col-lg-4 { grid-column: span 4; width: auto; }
         }
-        .product-registration-submit { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 22px; padding-top: 2px; }
+        .product-registration-submit { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
         @media (max-width: 767.98px) {
             .product-registration-notice { flex-direction: column; }
             .product-registration-notice-actions { width: 100%; margin-left: 0; }
             .product-registration-notice-dismiss { width: 100%; justify-content: center; }
-            .product-registration-submit { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--ds-border-soft); }
             .product-registration-submit .saas-btn { width: 100%; justify-content: center; }
         }
     </style>
@@ -141,12 +140,12 @@
                                 </div>
                             </details>
                         @endif
-                        <div class="product-registration-submit">
-                            <button type="submit" class="saas-btn saas-btn-primary" data-loading-text="Création…">
-                                <span>Créer le produit</span>
-                            </button>
-                        </div>
                     </form>
+                </div>
+                <div class="modal-footer product-registration-submit">
+                    <button type="submit" form="add" class="saas-btn saas-btn-primary" data-loading-text="Création…">
+                        <span>Créer le produit</span>
+                    </button>
                 </div>
             </div>
         </div>

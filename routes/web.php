@@ -359,7 +359,9 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
     //sale
     Route::controller(SaleController::class)->group(function () {
         Route::resource('sale', SaleController::class);
-        Route::patch('sale/invoice-preferences/toggle', 'toggleInvoicePreference')
+        // Certains hébergements mutualisés filtrent les requêtes PATCH avant Laravel.
+        // POST reste accepté pour le POS, tout en conservant PATCH pour les clients existants.
+        Route::match(['post', 'patch'], 'sale/invoice-preferences/toggle', 'toggleInvoicePreference')
             ->middleware('throttle:60,1')->name('sale.invoice-preferences.toggle');
         //history
         Route::get('history', 'history')->name('history');
