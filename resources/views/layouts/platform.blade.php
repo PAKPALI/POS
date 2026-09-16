@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#070B14">
+    <meta name="theme-color" content="#F3F6FA">
     @include('partials.brand-head')
     <title>@yield('title', 'Administration SaaS') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
@@ -97,7 +97,7 @@
 <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
-<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
+<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260916-1"></script>
 <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>
 <script src="{{ asset('pwa-register.js') }}" defer></script>
 <script>

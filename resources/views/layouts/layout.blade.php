@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 	<head>
 		<meta charset="utf-8">
 		<title>POS</title>
@@ -9,7 +9,7 @@
 		<meta name="csrf-token" content="{{ csrf_token() }}" />
 
 		@include('partials.brand-head')
-		<meta name="theme-color" content="#111111">
+		<meta name="theme-color" content="#F3F6FA">
 
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
@@ -142,7 +142,7 @@
 								<div class="row gx-2">
 									<div class="col-6">
 										<a href="javascript:;" data-toggle="theme-mode-selector" data-theme-mode="dark"
-											class="app-theme-mode-link active">
+										class="app-theme-mode-link">
 											<div class="img"><img src="hub/assets/img/mode/dark.jpg" class="object-fit-cover"
 													height="76" width="76" alt="Dark Mode"></div>
 											<div class="text">Dark</div>
@@ -150,7 +150,7 @@
 									</div>
 									<div class="col-6">
 										<a href="javascript:;" data-toggle="theme-mode-selector" data-theme-mode="light"
-											class="app-theme-mode-link">
+										class="app-theme-mode-link active">
 											<div class="img"><img src="hub/assets/img/mode/light.jpg" class="object-fit-cover"
 													height="76" width="76" alt="Light Mode"></div>
 											<div class="text">Light</div>
@@ -336,7 +336,7 @@
 		<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"8a3d40de7d4c8877","version":"2024.6.1","r":1,"serverTiming":{"name":{"cfL4":true}},"token":"4db8c6ef997743fda032d4f73cfeff63","b":1}' crossorigin="anonymous"></script>
 		<script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 		<script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
-		<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
+		<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260916-1"></script>
 		<script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>
 		<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 		<!-- DataTables JS -->

@@ -11,7 +11,7 @@
 @section('content')
 @php
     $user = auth()->user();
-    $mode = in_array($user->appearance_mode, ['system', 'dark', 'light'], true) ? $user->appearance_mode : 'dark';
+    $mode = in_array($user->appearance_mode, ['system', 'dark', 'light'], true) ? $user->appearance_mode : 'light';
     $accent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $user->accent_color) ? strtoupper($user->accent_color) : '#3B82F6';
     $phoneCountry = $user->country_code ?? 'TG';
     $phoneRule = config('african_phone_rules.'.$phoneCountry, []);
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const appearanceForm = document.getElementById('profileAppearanceForm');
     const accentText = document.getElementById('profileAccentText');
     const accentPicker = document.getElementById('profileAccentPicker');
-    const currentMode = () => appearanceForm.querySelector('input[name="appearance_mode"]:checked')?.value || 'dark';
+    const currentMode = () => appearanceForm.querySelector('input[name="appearance_mode"]:checked')?.value || 'light';
     const appearanceCollapses = [...appearanceForm.querySelectorAll('.profile-appearance-collapse')];
     appearanceCollapses.forEach((collapse) => collapse.addEventListener('toggle', () => {
         if (collapse.open) appearanceCollapses.filter((item) => item !== collapse).forEach((item) => { item.open = false; });

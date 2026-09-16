@@ -60,12 +60,12 @@
         const accentPicker = document.getElementById('navbarAccentPicker');
         const accentValue = document.getElementById('navbarAccentValue');
         const feedback = document.getElementById('navbarAppearanceFeedback');
-        let savedMode = root.dataset.dsThemePreference || 'system';
+        let savedMode = root.dataset.dsThemePreference || 'light';
         let savedAccent = window.DesignSystem.normaliseHex(getComputedStyle(root).getPropertyValue('--ds-accent'));
         let committed = false;
 
         function selectedMode() {
-            return appearanceForm.querySelector('input[name="appearance_mode"]:checked')?.value || 'system';
+            return appearanceForm.querySelector('input[name="appearance_mode"]:checked')?.value || 'light';
         }
 
         function updateControls(mode, accent) {
@@ -90,7 +90,7 @@
         }
 
         appearanceModal.addEventListener('show.bs.modal', () => {
-            savedMode = root.dataset.dsThemePreference || 'system';
+            savedMode = root.dataset.dsThemePreference || 'light';
             savedAccent = window.DesignSystem.normaliseHex(getComputedStyle(root).getPropertyValue('--ds-accent'));
             committed = false;
             feedback.textContent = '';

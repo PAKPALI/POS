@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#070B14">
+    <meta name="theme-color" content="#F3F6FA">
     <meta name="description" content="{{ config('app.name') }} — gestion commerciale">
     <title>@yield('title', 'Espace de travail') — {{ config('app.name') }}</title>
     @include('partials.brand-head')
@@ -41,7 +41,7 @@
 
     <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
     <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
-    <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
+    <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260916-1"></script>
     <script src="{{ asset('hub/assets/js/saas-shell.js') }}?v=20260901-3"></script>
     <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>
     <script>

@@ -2,7 +2,11 @@
     $membership = $currentMembership ?? null;
     $allowed = fn (string $permission) => $membership?->hasPermission($permission) ?? false;
     $salesActive = request()->routeIs('sale.*') || request()->routeIs('history');
-    $catalogActive = request()->routeIs('product.*') || request()->routeIs('category.*') || request()->routeIs('menu.*') || request()->routeIs('supplier.*');
+    $company = app(\App\Services\CompanyContext::class)->getCompanyOrNull();
+    $promoCodesAvailable = $company
+        && $allowed('catalog.manage')
+        && app(\App\Services\EntitlementService::class)->feature($company, 'promo_codes');
+    $catalogActive = request()->routeIs('product.*') || request()->routeIs('category.*') || request()->routeIs('menu.*') || request()->routeIs('supplier.*') || request()->routeIs('code.*');
     $accountingActive = request()->routeIs('ams.*') || request()->routeIs('cash-account.*') || request()->routeIs('transaction.*');
     $ecommerceActive = request()->routeIs('ecommerce.*');
     $teamActive = request()->routeIs('user.*') || request()->routeIs('roles.*');
@@ -29,7 +33,7 @@
         @if($allowed('catalog.manage'))
             <details class="saas-nav-group {{ $catalogActive ? 'is-active' : '' }}" @if($catalogActive) open @endif>
                 <summary class="{{ $catalogActive ? 'is-active' : '' }}"><span><i class="bi bi-box-seam"></i><span>Catalogue</span></span><i class="bi bi-chevron-down saas-nav-chevron"></i></summary>
-                <div><a class="{{ request()->routeIs('category.*') ? 'is-active' : '' }}" href="{{ route('category.index') }}">Catégories</a><a class="{{ request()->routeIs('product.*') ? 'is-active' : '' }}" href="{{ route('product.index') }}">Produits</a><a class="{{ request()->routeIs('menu.*') ? 'is-active' : '' }}" href="{{ route('menu.index') }}">Packs</a><a class="{{ request()->routeIs('supplier.*') ? 'is-active' : '' }}" href="{{ route('supplier.index') }}">Fournisseurs</a></div>
+                <div><a class="{{ request()->routeIs('category.*') ? 'is-active' : '' }}" href="{{ route('category.index') }}">Catégories</a><a class="{{ request()->routeIs('product.*') ? 'is-active' : '' }}" href="{{ route('product.index') }}">Produits</a><a class="{{ request()->routeIs('menu.*') ? 'is-active' : '' }}" href="{{ route('menu.index') }}">Packs</a><a class="{{ request()->routeIs('supplier.*') ? 'is-active' : '' }}" href="{{ route('supplier.index') }}">Fournisseurs</a>@if($promoCodesAvailable)<a class="{{ request()->routeIs('code.*') ? 'is-active' : '' }}" href="{{ route('code.index') }}">Codes promo</a>@endif</div>
             </details>
         @endif
         @if($allowed('sales.manage'))

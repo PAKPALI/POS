@@ -88,8 +88,10 @@ class AuthNavigationTest extends TestCase
         $manifest = json_decode(file_get_contents(public_path('manifest.json')), true, flags: JSON_THROW_ON_ERROR);
 
         $this->assertSame('/user_login', $manifest['start_url']);
+        $this->assertSame('#F3F6FA', $manifest['background_color']);
+        $this->assertSame('#3B82F6', $manifest['theme_color']);
         $this->assertSame('/icons/icon-maskable-512.png', collect($manifest['icons'])->firstWhere('purpose', 'maskable')['src']);
-        $this->assertStringContainsString('maxanou-pwa-v9', file_get_contents(public_path('sw.js')));
+        $this->assertStringContainsString('maxanou-pwa-v10', file_get_contents(public_path('sw.js')));
         $this->assertStringContainsString('/brand/maxanou-symbol.svg', file_get_contents(public_path('sw.js')));
         $this->assertStringContainsString('beforeinstallprompt', file_get_contents(public_path('pwa-register.js')));
         $this->assertStringContainsString('android-pwa-install-prompt', file_get_contents(public_path('pwa-register.js')));

@@ -31,7 +31,7 @@
 @php
     $navbarAppearanceMode = in_array(auth()->user()->appearance_mode, ['system', 'dark', 'light'], true)
         ? auth()->user()->appearance_mode
-        : 'dark';
+        : 'light';
     $navbarAccent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) auth()->user()->accent_color)
         ? strtoupper(auth()->user()->accent_color)
         : '#3B82F6';

@@ -6,5 +6,5 @@
 <link rel="manifest" href="{{ asset('manifest.json') }}">
 <meta name="application-name" content="Maxanou">
 <meta name="apple-mobile-web-app-title" content="Maxanou">
-<meta name="msapplication-TileColor" content="#082B59">
-<link rel="stylesheet" href="{{ asset('hub/assets/css/maxanou-brand.css') }}?v=20260916-1">
+<meta name="msapplication-TileColor" content="#3B82F6">
+<link rel="stylesheet" href="{{ asset('hub/assets/css/maxanou-brand.css') }}?v=20260916-2">

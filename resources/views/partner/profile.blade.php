@@ -2,7 +2,7 @@
 @section('title', 'Mon profil partenaire')
 @section('page-title', 'Mon profil')
 @section('content')
-@php($mode = in_array($partner->appearance_mode, ['system', 'dark', 'light'], true) ? $partner->appearance_mode : 'dark')
+@php($mode = in_array($partner->appearance_mode, ['system', 'dark', 'light'], true) ? $partner->appearance_mode : 'light')
 @php($accent = preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $partner->accent_color) ? strtoupper($partner->accent_color) : '#3B82F6')
 <section class="saas-page-heading profile-page-heading"><div><span class="saas-eyebrow"><i class="bi bi-person-circle" aria-hidden="true"></i> Compte partenaire</span><h1>Mon profil partenaire</h1><p>Gérez vos informations, la sécurité et vos préférences personnelles.</p></div></section>
 <div class="profile-layout"><aside class="profile-summary saas-panel"><div class="profile-avatar-large">{{ strtoupper(substr(trim($partner->name), 0, 1)) }}</div><h2>{{ $partner->name }}</h2><p>{{ $partner->email }}</p><div class="profile-company"><span><i class="bi bi-at"></i>Pseudonyme</span><strong>{{ $partner->username }}</strong></div><div class="profile-company"><span><i class="bi bi-shield-check"></i>Statut</span><strong>Compte actif</strong></div></aside><section class="profile-settings saas-panel">

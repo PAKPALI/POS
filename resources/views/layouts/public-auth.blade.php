@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#070B14">
+    <meta name="theme-color" content="#F3F6FA">
     @include('partials.brand-head')
     <title>@yield('title', 'Accès sécurisé') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-18" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260916-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260916-2" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="saas-body public-auth-body">
@@ -43,16 +43,16 @@
 </main>
 <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
 <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
-<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260902-6"></script>
+<script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260916-1"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script src="{{ asset('pwa-register.js') }}" defer></script>
 <script>
 (() => {
-    const modeKey = 'public_auth_appearance';
-    const accentKey = 'public_auth_accent';
+    const modeKey = 'maxanou_public_auth_appearance_v2';
+    const accentKey = 'maxanou_public_auth_accent_v2';
     const allowedAccent = /^#[0-9A-Fa-f]{6}$/;
-    let mode = localStorage.getItem(modeKey) || 'dark';
+    let mode = localStorage.getItem(modeKey) || 'light';
     let accent = (localStorage.getItem(accentKey) || '#3B82F6').toUpperCase();
     if (!allowedAccent.test(accent)) accent = '#3B82F6';
     const themeButtons = document.querySelectorAll('[data-public-theme]');

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 	<head>
 		<meta charset="utf-8">
 		<title>POS</title>
@@ -7,7 +7,7 @@
 		<meta name="description" content>
 		<meta name="author" content>
 		@include('partials.brand-head')
-		<meta name="theme-color" content="#111111">
+		<meta name="theme-color" content="#F3F6FA">
 
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
@@ -45,7 +45,7 @@
 								<div class="row gx-2">
 									<div class="col-6">
 										<a href="javascript:;" data-toggle="theme-mode-selector" data-theme-mode="dark"
-											class="app-theme-mode-link active">
+										class="app-theme-mode-link">
 											<div class="img"><img src="hub/assets/img/mode/dark.jpg" class="object-fit-cover"
 													height="76" width="76" alt="Dark Mode"></div>
 											<div class="text">Dark</div>
@@ -53,7 +53,7 @@
 									</div>
 									<div class="col-6">
 										<a href="javascript:;" data-toggle="theme-mode-selector" data-theme-mode="light"
-											class="app-theme-mode-link">
+										class="app-theme-mode-link active">
 											<div class="img"><img src="hub/assets/img/mode/light.jpg" class="object-fit-cover"
 													height="76" width="76" alt="Light Mode"></div>
 											<div class="text">Light</div>

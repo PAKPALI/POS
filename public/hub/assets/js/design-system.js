@@ -39,7 +39,7 @@
     }
 
     function apply({ mode, accent }) {
-        const preference = ['light', 'dark', 'system'].includes(mode) ? mode : 'system';
+        const preference = ['light', 'dark', 'system'].includes(mode) ? mode : 'light';
         const color = normaliseHex(accent);
         const rgb = hexToRgb(color);
         const resolved = resolveMode(preference);
@@ -68,7 +68,7 @@
 
     window.DesignSystem = { apply, normaliseHex, contrastText, hexToRgb };
     apply({
-        mode: root.dataset.dsThemePreference || 'system',
+        mode: root.dataset.dsThemePreference || 'light',
         accent: getComputedStyle(root).getPropertyValue('--ds-accent'),
     });
 

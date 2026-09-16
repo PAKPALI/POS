@@ -31,7 +31,6 @@
             const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
             let preferenceSaved = false;
             let promptWasShown = false;
-            let replacingWithWhatsAppRules = false;
 
             const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[character]));
             const networkCards = networks.map(network => {
@@ -79,7 +78,6 @@
 
             const openWhatsAppRules = () => {
                 if (!whatsapp) return;
-                replacingWithWhatsAppRules = true;
                 Swal.fire({
                     customClass: { popup: 'social-invite-swal' },
                     title: 'Rejoindre la communauté WhatsApp',
@@ -108,13 +106,6 @@
                         popup.querySelector('[data-social-whatsapp]')?.addEventListener('click', openWhatsAppRules);
                         popup.querySelector('[data-social-snooze]')?.addEventListener('click', event => requestPreference('snooze', event.currentTarget));
                         popup.querySelector('[data-social-hide]')?.addEventListener('click', event => requestPreference('hide', event.currentTarget));
-                    },
-                    didClose: () => {
-                        if (replacingWithWhatsAppRules) {
-                            replacingWithWhatsAppRules = false;
-                            return;
-                        }
-                        if (!preferenceSaved) requestPreference('snooze');
                     }
                 });
             };

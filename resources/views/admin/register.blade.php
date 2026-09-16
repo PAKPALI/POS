@@ -7,7 +7,7 @@
         <div class="register-content">
             <form  id="form">
                 @csrf
-                <input type="hidden" name="appearance_mode" data-appearance-mode value="dark">
+                <input type="hidden" name="appearance_mode" data-appearance-mode value="light">
                 <input type="hidden" name="accent_color" data-accent-color value="#3B82F6">
                 <div class="auth-flow-heading"><span class="auth-flow-kicker"><i class="bi bi-stars" aria-hidden="true"></i> Démarrage rapide</span><h1>Créez votre espace.</h1><p>Les réglages plus avancés resteront accessibles après l’inscription.</p></div>
                 <div class="saas-form-group">

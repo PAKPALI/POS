@@ -8,8 +8,7 @@
         window.storeCurrency = @json(app(\App\Services\AfricanMarketProfile::class)->forCompany($company)['currency']);
         (function () {
             var savedTheme = localStorage.getItem('ecommerce_theme');
-            var preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme || preferredTheme);
+            document.documentElement.setAttribute('data-theme', savedTheme || 'light');
         })();
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,8 +16,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --acc: #2563eb;
-            --acc-h: #1d4ed8;
+            --acc: #3b82f6;
+            --acc-h: #2563eb;
             --dark: #0f172a;
             --darker: #020617;
             --text: #1e293b;

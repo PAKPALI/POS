@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#070B14">
+    <meta name="theme-color" content="#F3F6FA">
     @include('partials.brand-head')
     <meta name="description" content="@yield('meta-description', 'Maxanou : le POS simple pour vendre, suivre votre stock, piloter votre caisse et envoyer vos reçus par SMS ou WhatsApp.')">
     @if($marketingIndexable)
@@ -44,7 +44,7 @@
     </main>
     @include('marketing.components.footer')
     @include('marketing.components.social-modals')
-    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260915-1" defer></script>
+    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260916-1" defer></script>
     <script src="{{ asset('pwa-register.js') }}" defer></script>
     @stack('scripts')
     @if($marketingIndexable)

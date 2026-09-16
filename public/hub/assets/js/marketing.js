@@ -66,8 +66,8 @@
     const appearance = document.querySelector('[data-marketing-appearance]');
     if (appearance) {
         const root = document.documentElement;
-        const modeKey = 'marketing_appearance_mode';
-        const accentKey = 'marketing_appearance_accent';
+        const modeKey = 'maxanou_marketing_appearance_mode_v2';
+        const accentKey = 'maxanou_marketing_appearance_accent_v2';
         const readPreference = key => { try { return window.localStorage.getItem(key); } catch { return null; } };
         const validMode = value => ['dark', 'light'].includes(value) ? value : null;
         const validAccent = value => /^#[0-9A-Fa-f]{6}$/.test(value || '') ? value.toUpperCase() : null;
@@ -80,7 +80,7 @@
             '#84B547': { hover: '#A3D064', active: '#6C9636' },
             '#FF9F43': { hover: '#FFB15F', active: '#ED8730' }
         };
-        let mode = validMode(readPreference(modeKey)) || validMode(root.dataset.dsThemePreference) || (root.dataset.dsTheme === 'light' ? 'light' : 'dark');
+        let mode = validMode(readPreference(modeKey)) || validMode(root.dataset.dsThemePreference) || 'light';
         let accent = validAccent(readPreference(accentKey)) || validAccent(getComputedStyle(root).getPropertyValue('--ds-accent')) || '#3B82F6';
         const trigger = appearance.querySelector('.marketing-appearance-trigger');
         const panel = appearance.querySelector('.marketing-appearance-panel');
