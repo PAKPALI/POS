@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\Exceptions\KprimePayPayoutException;
+use App\Jobs\ExecutePlatformWithdrawal;
+use App\Models\PlatformAdmin;
 use App\Models\PlatformAuditLog;
 use App\Models\PlatformWithdrawal;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
@@ -40,7 +43,23 @@ class PlatformTreasuryPayoutService
     /** Confirmation toujours authentifiée via credit-status, webhook ou scheduler. */
     public function reconcile(PlatformWithdrawal $withdrawal): string
     {
-        $verified = $this->kprimePay->transferStatus($withdrawal->transaction_id);
+        try {
+            $verified = $this->kprimePay->transferStatus($withdrawal->transaction_id);
+        } catch (KprimePayPayoutException $exception) {
+            if (!$this->isTransactionNotFound($exception)) {
+                throw $exception;
+            }
+
+            $this->unknown(
+                $withdrawal,
+                'KPrimePay ne connaît pas ce retrait. Une réautorisation contrôlée est requise.',
+                $exception->payload,
+                'transaction_not_found',
+            );
+
+            return 'transaction_not_found';
+        }
+
         $status = $this->providerStatus($verified);
         if ($status === 'success') return $this->settle($withdrawal, $verified);
         if (in_array($status, ['failed', 'failure', 'error', 'cancelled', 'canceled', 'rejected'], true)) {
@@ -49,6 +68,83 @@ class PlatformTreasuryPayoutService
             $withdrawal->update(['provider_status' => $status ?: $withdrawal->provider_status]);
         }
         return $status ?: 'pending';
+    }
+
+    /**
+     * Réautorise un envoi uniquement après une confirmation authentifiée que
+     * KPrimePay ne possède aucune transaction pour l'identifiant interne.
+     * La même idempotency key est conservée afin de ne jamais créer un second
+     * retrait pour une même demande locale.
+     */
+    public function retryUnknown(PlatformWithdrawal $withdrawal, PlatformAdmin $actor, Request $request, string $reason): string
+    {
+        if ($withdrawal->status !== 'unknown' || $withdrawal->kpp_reference) {
+            throw new \RuntimeException('PAYOUT_RETRY_NOT_ALLOWED');
+        }
+
+        try {
+            $verified = $this->kprimePay->transferStatus($withdrawal->transaction_id);
+            $status = $this->providerStatus($verified);
+            if ($status === 'success') {
+                $result = $this->settle($withdrawal, $verified);
+                $this->auditRetry($withdrawal, $actor, $request, $reason, $result);
+                return $result === 'success' ? 'succeeded' : 'unknown';
+            }
+            if (in_array($status, ['failed', 'failure', 'error', 'cancelled', 'canceled', 'rejected'], true)) {
+                $this->fail($withdrawal, (string) ($verified['failure_reason'] ?? $verified['message'] ?? 'Retrait refusé par le prestataire.'));
+                $this->auditRetry($withdrawal, $actor, $request, $reason, 'failed');
+                return 'failed';
+            }
+
+            throw new \RuntimeException('PAYOUT_RETRY_PROVIDER_PENDING');
+        } catch (KprimePayPayoutException $exception) {
+            if (!$this->isTransactionNotFound($exception)) {
+                throw new \RuntimeException('PAYOUT_RETRY_PROVIDER_UNAVAILABLE', 0, $exception);
+            }
+        }
+
+        return DB::transaction(function () use ($withdrawal, $actor, $request, $reason): string {
+            $locked = PlatformWithdrawal::query()->whereKey($withdrawal->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== 'unknown' || $locked->kpp_reference) {
+                throw new \RuntimeException('PAYOUT_RETRY_NOT_ALLOWED');
+            }
+
+            $old = [
+                'status' => $locked->status,
+                'provider_status' => $locked->provider_status,
+                'failure_reason' => $locked->failure_reason,
+                'unknown_at' => $locked->unknown_at?->toIso8601String(),
+            ];
+            $locked->update([
+                'status' => 'otp_verified',
+                'provider_status' => 'retry_authorized',
+                'failure_reason' => null,
+                'processing_at' => null,
+                'unknown_at' => null,
+            ]);
+
+            PlatformAuditLog::create([
+                'platform_admin_id' => $actor->id,
+                'action' => 'platform.treasury.withdrawal.retry_authorized',
+                'target_type' => PlatformWithdrawal::class,
+                'target_id' => (string) $locked->id,
+                'old_values' => $old,
+                'new_values' => [
+                    'status' => $locked->status,
+                    'provider_status' => $locked->provider_status,
+                    'idempotency_key_reused' => true,
+                    'provider_confirmation' => 'TRANSACTION_NOT_FOUND',
+                ],
+                'reason' => $reason,
+                'ip_address' => $request->ip(),
+                'user_agent' => Str::limit((string) $request->userAgent(), 1000, ''),
+                'result' => 'success',
+            ]);
+
+            ExecutePlatformWithdrawal::dispatch($locked->id)->onQueue('withdrawals')->afterCommit();
+
+            return 'queued';
+        }, 3);
     }
 
     public function handleWebhook(PlatformWithdrawal $withdrawal, array $webhook): string
@@ -104,14 +200,29 @@ class PlatformTreasuryPayoutService
         }, 3);
     }
 
-    private function unknown(PlatformWithdrawal $withdrawal, string $reason, ?array $data): void
+    private function unknown(PlatformWithdrawal $withdrawal, string $reason, ?array $data, ?string $providerStatus = null): void
     {
-        DB::transaction(function () use ($withdrawal, $reason, $data): void {
+        DB::transaction(function () use ($withdrawal, $reason, $data, $providerStatus): void {
             $locked = PlatformWithdrawal::query()->whereKey($withdrawal->id)->lockForUpdate()->firstOrFail();
             if (in_array($locked->status, ['succeeded', 'failed'], true)) return;
-            $locked->update(['status' => 'unknown', 'provider_status' => $this->providerStatus($data ?? []) ?: 'unknown', 'failure_reason' => $reason, 'unknown_at' => now()]);
+            $locked->update(['status' => 'unknown', 'provider_status' => $providerStatus ?: $this->providerStatus($data ?? []) ?: 'unknown', 'failure_reason' => $reason, 'unknown_at' => now()]);
             $this->audit($locked, 'platform.treasury.withdrawal.unknown', ['reason' => $reason]);
         }, 3);
+    }
+
+    private function auditRetry(PlatformWithdrawal $withdrawal, PlatformAdmin $actor, Request $request, string $reason, string $result): void
+    {
+        PlatformAuditLog::create([
+            'platform_admin_id' => $actor->id,
+            'action' => 'platform.treasury.withdrawal.retry_checked',
+            'target_type' => PlatformWithdrawal::class,
+            'target_id' => (string) $withdrawal->id,
+            'new_values' => ['provider_status' => $withdrawal->fresh()->provider_status, 'result' => $result],
+            'reason' => $reason,
+            'ip_address' => $request->ip(),
+            'user_agent' => Str::limit((string) $request->userAgent(), 1000, ''),
+            'result' => $result === 'failed' ? 'failed' : 'success',
+        ]);
     }
 
     private function totalDebited(PlatformWithdrawal $withdrawal, array $data): ?int
@@ -125,6 +236,11 @@ class PlatformTreasuryPayoutService
     }
 
     private function providerStatus(array $data): string { return strtolower((string) ($data['status'] ?? $data['transfer_status'] ?? $data['transaction_status'] ?? '')); }
+    private function isTransactionNotFound(KprimePayPayoutException $exception): bool
+    {
+        return str_contains(strtoupper($exception->providerCode.' '.$exception->getMessage()), 'TRANSACTION_NOT_FOUND');
+    }
+
     private function audit(PlatformWithdrawal $withdrawal, string $action, array $values): void
     {
         PlatformAuditLog::create(['platform_admin_id' => $withdrawal->platform_admin_id, 'action' => $action, 'target_type' => PlatformWithdrawal::class, 'target_id' => (string) $withdrawal->id, 'new_values' => $values, 'result' => str_ends_with($action, '.failed') ? 'failed' : 'success']);

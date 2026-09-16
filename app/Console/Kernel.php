@@ -66,6 +66,12 @@ class Kernel extends ConsoleKernel
             PlatformWithdrawal::query()
                 ->whereIn('status', ['processing', 'unknown'])
                 ->where(function ($query): void {
+                    // Un retrait explicitement absent chez KPrimePay attend une
+                    // réautorisation opérateur ; il ne doit pas recréer un job
+                    // de réconciliation à chaque minute.
+                    $query->whereNull('provider_status')->orWhere('provider_status', '<>', 'transaction_not_found');
+                })
+                ->where(function ($query): void {
                     $query->where(function ($processing): void {
                         $processing->where('status', 'processing')->whereNotNull('processing_at')->where('processing_at', '<=', now()->subMinute());
                     })->orWhere(function ($unknown): void {

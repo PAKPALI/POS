@@ -141,6 +141,8 @@ Route::prefix('platform')->name('platform.')->group(function () {
             Route::post('treasury/accounts/verify', [PlatformTreasuryController::class, 'verifyAccount'])->middleware(['platform.permission:platform.treasury.manage', 'throttle:10,1'])->name('treasury.accounts.verify');
             Route::post('treasury/withdrawals/start', [PlatformTreasuryController::class, 'startWithdrawal'])->middleware(['platform.permission:platform.treasury.manage', 'throttle:5,1'])->name('treasury.withdrawals.start');
             Route::post('treasury/withdrawals/confirm', [PlatformTreasuryController::class, 'confirmWithdrawal'])->middleware(['platform.permission:platform.treasury.manage', 'throttle:10,1'])->name('treasury.withdrawals.confirm');
+            Route::post('treasury/withdrawals/{withdrawal}/retry', [PlatformTreasuryController::class, 'retryWithdrawal'])
+                ->whereNumber('withdrawal')->middleware(['platform.permission:platform.treasury.manage', 'throttle:3,1'])->name('treasury.withdrawals.retry');
             Route::get('settings', [PlatformSettingController::class, 'edit'])->middleware('platform.permission:platform.pricing.manage')->name('settings.edit');
             Route::put('settings/pricing', [PlatformSettingController::class, 'update'])
                 ->middleware(['platform.permission:platform.pricing.manage', 'throttle:10,1'])->name('settings.pricing.update');

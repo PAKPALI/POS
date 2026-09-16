@@ -8,6 +8,7 @@ use App\Models\PlatformWithdrawalAccount;
 use App\Services\PartnerCountryService;
 use App\Services\PartnerWithdrawalService;
 use App\Services\PlatformTreasuryService;
+use App\Services\PlatformTreasuryPayoutService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
@@ -97,6 +98,37 @@ class TreasuryController extends Controller
         }
     }
 
+    public function retryWithdrawal(Request $request, PlatformWithdrawal $withdrawal, PlatformTreasuryPayoutService $payouts)
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:10', 'max:500'],
+        ], [
+            'reason.required' => 'Expliquez pourquoi l’envoi peut être réautorisé.',
+            'reason.min' => 'Le motif doit contenir au moins 10 caractères.',
+            'reason.max' => 'Le motif ne peut pas dépasser 500 caractères.',
+        ]);
+
+        try {
+            $result = $payouts->retryUnknown(
+                $withdrawal,
+                Auth::guard('platform')->user(),
+                $request,
+                $validated['reason'],
+            );
+
+            return back()->with('success', match ($result) {
+                'queued' => 'KPrimePay ne connaît toujours pas ce retrait. L’envoi initial a été réautorisé avec la même clé d’idempotence et placé dans la file sécurisée.',
+                'succeeded' => 'KPrimePay a confirmé le versement de ce retrait.',
+                'failed' => 'KPrimePay a confirmé le refus du retrait. La réserve a été libérée.',
+                'unknown' => 'KPrimePay a répondu, mais le montant réellement débité reste invérifiable. La réserve est conservée.',
+                default => 'Le retrait a été vérifié.',
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+            return back()->withErrors(['withdrawal_retry' => $this->message($exception)]);
+        }
+    }
+
     private function messages(): array
     {
         return ['country_code.required' => 'Sélectionnez le pays du compte.', 'country_code.size' => 'Le pays sélectionné est invalide.', 'gateway.required' => 'Sélectionnez un opérateur.', 'phone_number.required' => 'Saisissez le numéro Mobile Money.', 'phone_number.max' => 'Le numéro est trop long.', 'beneficiary_name.required' => 'Saisissez le prénom et le nom du bénéficiaire.'];
@@ -118,6 +150,9 @@ class TreasuryController extends Controller
             'PAYOUT_CHALLENGE_INVALID' => 'La demande de retrait est invalide. Recommencez la confirmation.',
             'PLATFORM_PAYOUT_ALREADY_OPEN' => 'Un retrait de trésorerie est déjà en cours de traitement ou de vérification.',
             'PLATFORM_PAYOUT_AMOUNT_OUT_OF_RANGE' => 'Le montant dépasse la capacité de trésorerie disponible.',
+            'PAYOUT_RETRY_NOT_ALLOWED' => 'Ce retrait ne peut pas être réautorisé depuis cet état.',
+            'PAYOUT_RETRY_PROVIDER_PENDING' => 'KPrimePay connaît ce retrait mais ne fournit pas encore de résultat final. Aucun nouvel envoi n’a été lancé.',
+            'PAYOUT_RETRY_PROVIDER_UNAVAILABLE' => 'La vérification KPrimePay est indisponible. Aucun nouvel envoi n’a été lancé.',
             default => 'Cette opération n’a pas pu être finalisée. Aucun retrait n’a été envoyé.',
         };
     }
