@@ -14,7 +14,7 @@
 
         <!-- Styles -->
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-        <link rel="stylesheet" href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1">
+        <link rel="stylesheet" href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2">
         @include('partials.design-system-head')
 
         <!-- Scripts -->

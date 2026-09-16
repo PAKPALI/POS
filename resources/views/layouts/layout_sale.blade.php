@@ -15,7 +15,7 @@
     <link href="{{ asset('hub/assets/css/app.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260831-3" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 
     {{-- jQuery DOIT être dans le <head> pour être dispo avant les scripts inline du contenu --}}

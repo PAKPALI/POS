@@ -25,10 +25,10 @@ class PartnerEmailVerificationNotification extends Notification
 
         return (new MailMessage)
             ->subject(config('app.name').' — confirmez votre adresse partenaire')
-            ->greeting('Bonjour '.$this->partner->name.',')
-            ->line('Confirmez votre adresse e-mail pour activer votre espace Partenaires Maxanou.')
-            ->action('Confirmer mon adresse', $url)
-            ->line('Ce lien expire dans 60 minutes.')
-            ->salutation('L’équipe '.config('app.name'));
+            ->view('emails.partner.emailVerification', [
+                'partner' => $this->partner,
+                'verificationUrl' => $url,
+                'expiresInMinutes' => 60,
+            ]);
     }
 }

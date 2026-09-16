@@ -9,7 +9,7 @@
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260903-12" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260915-1" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="saas-body partner-body @yield('body-class')">

@@ -13,7 +13,7 @@
 
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
-		<link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
+		<link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2" rel="stylesheet">
 		@include('partials.design-system-head')
 		<!-- <link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet"> -->
 		<!-- DataTables CSS -->
@@ -50,6 +50,9 @@
 			#page-preloader img {
 				width: 150px; /* Ajustez la taille */
 				height: auto;
+				padding: 10px;
+				background: #fff;
+				border-radius: 22px;
 				animation: zoom 0.8s infinite ease-in-out, vibrate 0.5s infinite linear;
 			}
 

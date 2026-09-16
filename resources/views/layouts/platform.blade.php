@@ -13,7 +13,7 @@
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/platform.css') }}?v=20260914-7" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/platform-components.css') }}?v=20260907-11" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260902-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="saas-body platform-body">
