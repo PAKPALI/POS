@@ -87,7 +87,7 @@ class PlatformCompanyUserManagementTest extends TestCase
         $company = $this->company('Entreprise sensible', 'sensitive@example.test');
 
         $this->actingAs($admin, 'platform')
-            ->patch(route('platform.companies.status', $company), [
+            ->post(route('platform.companies.status', $company), [
                 'status' => 'suspended',
                 'reason' => 'Contrôle administratif en cours',
             ])->assertRedirect();
@@ -101,7 +101,7 @@ class PlatformCompanyUserManagementTest extends TestCase
         ]);
 
         $this->actingAs($admin, 'platform')
-            ->patch(route('platform.companies.status', $company), [
+            ->post(route('platform.companies.status', $company), [
                 'status' => 'active',
                 'reason' => 'Contrôle terminé avec succès',
             ])->assertRedirect();
@@ -119,7 +119,7 @@ class PlatformCompanyUserManagementTest extends TestCase
         $company = $this->company('Entreprise', 'company@example.test');
 
         $this->actingAs($admin, 'platform')
-            ->patch(route('platform.companies.status', $company), [
+            ->post(route('platform.companies.status', $company), [
                 'status' => 'suspended',
                 'reason' => 'non',
             ])->assertSessionHasErrors('reason');

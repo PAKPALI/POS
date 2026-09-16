@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
         input.disabled = true;
         try {
             const response = await fetch(toggleUrl, {
-                method: 'PATCH',
+                method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',

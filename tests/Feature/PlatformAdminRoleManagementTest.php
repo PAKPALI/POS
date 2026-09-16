@@ -62,13 +62,13 @@ class PlatformAdminRoleManagementTest extends TestCase
     {
         $super = $this->admin('super_admin', 'super@example.test');
 
-        $this->actingAs($super, 'platform')->patch(route('platform.admins.status', $super), [
+        $this->actingAs($super, 'platform')->post(route('platform.admins.status', $super), [
             'is_active' => false, 'reason' => 'Tentative de désactivation', 'current_password' => 'SecurePassword!123',
         ])->assertStatus(422);
         $this->assertTrue($super->fresh()->is_active);
 
         $second = $this->admin('super_admin', 'second@example.test');
-        $this->actingAs($super, 'platform')->patch(route('platform.admins.status', $second), [
+        $this->actingAs($super, 'platform')->post(route('platform.admins.status', $second), [
             'is_active' => false, 'reason' => 'Compte temporairement suspendu', 'current_password' => 'SecurePassword!123',
         ])->assertRedirect();
         $this->assertFalse($second->fresh()->is_active);

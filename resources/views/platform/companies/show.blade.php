@@ -125,7 +125,7 @@ document.querySelectorAll('.company-status-action').forEach(function (button) {
             allowEscapeKey: () => !Swal.isLoading(),
             preConfirm: async (reason) => {
                 if (!reason || reason.trim().length < 5) return Swal.showValidationMessage('Indiquez un motif d\'au moins 5 caractères.');
-                const response = await fetch(button.dataset.url, {method: 'POST', headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content}, body: JSON.stringify({_method:'PATCH',status:button.dataset.status,reason:reason.trim()})});
+                const response = await fetch(button.dataset.url, {method: 'POST', headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content}, body: JSON.stringify({status:button.dataset.status,reason:reason.trim()})});
                 if (!response.ok) { const data = await response.json().catch(() => ({})); return Swal.showValidationMessage(data.message || 'L\'opération n\'a pas pu être effectuée.'); }
                 return true;
             }

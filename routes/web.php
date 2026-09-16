@@ -126,7 +126,7 @@ Route::prefix('platform')->name('platform.')->group(function () {
             Route::get('', [PlatformDashboardController::class, 'index'])->middleware('platform.permission:platform.dashboard.view')->name('dashboard');
             Route::get('companies', [PlatformCompanyController::class, 'index'])->middleware('platform.permission:platform.companies.view')->name('companies.index');
             Route::get('companies/{company}', [PlatformCompanyController::class, 'show'])->middleware('platform.permission:platform.companies.view')->name('companies.show');
-            Route::patch('companies/{company}/status', [PlatformCompanyController::class, 'updateStatus'])
+            Route::post('companies/{company}/status', [PlatformCompanyController::class, 'updateStatus'])
                 ->middleware(['platform.permission:platform.companies.manage', 'throttle:20,1'])->name('companies.status');
             Route::get('users', [PlatformUserController::class, 'index'])->middleware('platform.permission:platform.users.view')->name('users.index');
             Route::get('users/{user}', [PlatformUserController::class, 'show'])->middleware('platform.permission:platform.users.view')->name('users.show');
@@ -172,11 +172,11 @@ Route::prefix('platform')->name('platform.')->group(function () {
             Route::post('communications/{delivery}/retry', [PlatformCommunicationController::class, 'retry'])->middleware(['platform.permission:platform.communications.retry', 'throttle:10,1'])->name('communications.retry');
             Route::resource('admins', PlatformAdminController::class)->only(['index', 'store', 'edit', 'update'])
                 ->middleware('platform.permission:platform.admins.manage');
-            Route::patch('admins/{admin}/status', [PlatformAdminController::class, 'updateStatus'])
+            Route::post('admins/{admin}/status', [PlatformAdminController::class, 'updateStatus'])
                 ->middleware(['platform.permission:platform.admins.manage', 'throttle:10,1'])->name('admins.status');
             Route::post('admins/{admin}/two-factor/reset', [PlatformAdminController::class, 'resetTwoFactor'])
                 ->middleware(['platform.permission:platform.admins.manage', 'throttle:10,1'])->name('admins.two-factor.reset');
-            Route::patch('admins/{admin}/two-factor', [PlatformAdminController::class, 'updateTwoFactor'])
+            Route::post('admins/{admin}/two-factor', [PlatformAdminController::class, 'updateTwoFactor'])
                 ->middleware(['platform.permission:platform.admins.manage', 'throttle:10,1'])->name('admins.two-factor.update');
         });
         Route::post('logout', [PlatformAuthController::class, 'logout'])->name('logout');
@@ -298,9 +298,9 @@ Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->
     // update password
     Route::post('updatePassword', 'updatePassword')->middleware('throttle:10,1')->name('profile.password.update');
     Route::put('profile/appearance', 'updateAppearance')->middleware('throttle:20,1')->name('profile.appearance.update');
-    Route::patch('profile/product-registration-notice', 'dismissProductRegistrationNotice')
+    Route::post('profile/product-registration-notice', 'dismissProductRegistrationNotice')
         ->middleware('throttle:10,1')->name('profile.product-registration-notice.dismiss');
-    Route::patch('profile/social-network-prompt', 'updateSocialNetworkPromptPreference')
+    Route::post('profile/social-network-prompt', 'updateSocialNetworkPromptPreference')
         ->middleware('throttle:10,1')->name('profile.social-network-prompt.preference');
 
     // chart
@@ -361,9 +361,7 @@ Route::prefix('pos')->middleware(['auth', 'company.resolve', 'company.selected',
     //sale
     Route::controller(SaleController::class)->group(function () {
         Route::resource('sale', SaleController::class);
-        // Certains hébergements mutualisés filtrent les requêtes PATCH avant Laravel.
-        // POST reste accepté pour le POS, tout en conservant PATCH pour les clients existants.
-        Route::match(['post', 'patch'], 'sale/invoice-preferences/toggle', 'toggleInvoicePreference')
+        Route::post('sale/invoice-preferences/toggle', 'toggleInvoicePreference')
             ->middleware('throttle:60,1')->name('sale.invoice-preferences.toggle');
         //history
         Route::get('history', 'history')->name('history');
@@ -462,7 +460,7 @@ Route::prefix('subscription')->middleware(['auth','company.resolve','company.sel
 
 Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.selected', 'permission:notifications.manage', 'subscription.writable'])->group(function () {
     Route::get('notifications', [NotificationSettingController::class, 'index'])->name('notifications.index');
-    Route::patch('notifications/toggle', [NotificationSettingController::class, 'toggle'])
+    Route::post('notifications/toggle', [NotificationSettingController::class, 'toggle'])
         ->middleware('throttle:60,1')->name('notifications.toggle');
     Route::put('notifications', [NotificationSettingController::class, 'update'])->name('notifications.update');
 });

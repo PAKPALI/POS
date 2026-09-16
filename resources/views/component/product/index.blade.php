@@ -529,7 +529,7 @@
                 dismissProductNoticeButton.addEventListener('click', function() {
                     const button = this;
                     const savePreference = () => fetch(@json(route('profile.product-registration-notice.dismiss')), {
-                        method: 'PATCH',
+                        method: 'POST',
                         credentials: 'same-origin',
                         headers: {
                             'Accept': 'application/json',

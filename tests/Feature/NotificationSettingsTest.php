@@ -23,7 +23,7 @@ class NotificationSettingsTest extends TestCase
         $company = $this->activateCompanyFor($owner, 'notification-toggle-global');
 
         $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
-            ->patchJson(route('notifications.toggle'), [
+            ->postJson(route('notifications.toggle'), [
                 'scope' => 'global',
                 'setting' => 'sale_sms_enabled',
                 'enabled' => true,
@@ -43,7 +43,7 @@ class NotificationSettingsTest extends TestCase
         $company = $this->activateCompanyFor($owner, 'notification-toggle-recipient');
 
         $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
-            ->patchJson(route('notifications.toggle'), [
+            ->postJson(route('notifications.toggle'), [
                 'scope' => 'recipient',
                 'category' => 'sale',
                 'user_id' => $owner->id,
@@ -67,7 +67,7 @@ class NotificationSettingsTest extends TestCase
         $company = $this->activateCompanyFor($owner, 'notification-toggle-phone-required');
 
         $this->actingAs($owner)->withSession(['active_company_id' => $company->id])
-            ->patchJson(route('notifications.toggle'), [
+            ->postJson(route('notifications.toggle'), [
                 'scope' => 'recipient',
                 'category' => 'sale',
                 'user_id' => $owner->id,

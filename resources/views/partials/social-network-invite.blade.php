@@ -46,7 +46,7 @@
             const requestPreference = (action, button = null) => {
                 if (preferenceSaved) return Promise.resolve();
                 const request = () => fetch(preferenceUrl, {
-                    method: 'PATCH', credentials: 'same-origin',
+                    method: 'POST', credentials: 'same-origin',
                     headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ action })
                 }).then(async response => {

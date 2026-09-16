@@ -209,7 +209,7 @@ class SalesFlowTest extends TestCase
         $this->company->update(['invoice_sms_enabled' => true, 'sms_count' => 1]);
 
         $this->actingAs($this->user)->withSession(['active_company_id' => $this->company->id])
-            ->patchJson(route('sale.invoice-preferences.toggle'), [
+            ->postJson(route('sale.invoice-preferences.toggle'), [
                 'channel' => 'sms',
                 'enabled' => true,
             ])
@@ -226,7 +226,7 @@ class SalesFlowTest extends TestCase
     public function test_pos_invoice_channel_preference_cannot_enable_unauthorized_channel(): void
     {
         $this->actingAs($this->user)->withSession(['active_company_id' => $this->company->id])
-            ->patchJson(route('sale.invoice-preferences.toggle'), [
+            ->postJson(route('sale.invoice-preferences.toggle'), [
                 'channel' => 'whatsapp',
                 'enabled' => true,
             ])

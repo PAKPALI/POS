@@ -89,7 +89,7 @@ class PlatformAdminSecurityTest extends TestCase
         $actor = $this->admin(['email' => 'toggle-actor@example.test']);
         $target = $this->admin(['email' => 'toggle-target@example.test']);
 
-        $this->actingAs($actor, 'platform')->patch(route('platform.admins.two-factor.update', $target), [
+        $this->actingAs($actor, 'platform')->post(route('platform.admins.two-factor.update', $target), [
             'enabled' => false,
             'reason' => 'Désactivation demandée par le responsable',
             'current_password' => 'SecurePassword!123',

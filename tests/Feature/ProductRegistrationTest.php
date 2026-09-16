@@ -123,7 +123,7 @@ class ProductRegistrationTest extends TestCase
             ->assertSee('productRegistrationNotice', false)
             ->assertSee('Ne plus me montrer');
 
-        $this->patchJson(route('profile.product-registration-notice.dismiss'))
+        $this->postJson(route('profile.product-registration-notice.dismiss'))
             ->assertOk()
             ->assertJson(['status' => true]);
 
@@ -138,12 +138,12 @@ class ProductRegistrationTest extends TestCase
     {
         [$user] = $this->companyContext();
 
-        $this->patchJson(route('profile.social-network-prompt.preference'), ['action' => 'snooze'])
+        $this->postJson(route('profile.social-network-prompt.preference'), ['action' => 'snooze'])
             ->assertOk()->assertJson(['status' => true]);
         $this->assertNotNull($user->fresh()->social_network_prompt_snoozed_until);
         $this->assertTrue($user->fresh()->social_network_prompt_snoozed_until->between(now()->addDays(6), now()->addDays(8)));
 
-        $this->patchJson(route('profile.social-network-prompt.preference'), ['action' => 'hide'])
+        $this->postJson(route('profile.social-network-prompt.preference'), ['action' => 'hide'])
             ->assertOk()->assertJson(['status' => true]);
         $user->refresh();
         $this->assertTrue((bool) $user->social_network_prompt_hidden);
