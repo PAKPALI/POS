@@ -7,9 +7,9 @@
     <title>@yield('title', 'Espace partenaire') — {{ config('app.name') }}</title>
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
-    <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260903-12" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260916-1" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260915-1" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-3" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="saas-body partner-body @yield('body-class')">
@@ -17,7 +17,7 @@
 <div class="saas-shell" id="saasShell">
     <aside class="saas-sidebar" id="saasSidebar" aria-label="Navigation partenaire">
         <div class="saas-sidebar-head">
-            <a class="saas-brand" href="{{ route('partner.dashboard') }}"><span class="saas-brand-mark"><img src="{{ asset('brand/maxanou-symbol-light.svg') }}" alt="" width="32" height="32"></span><span class="saas-brand-copy"><strong>{{ config('app.name') }}</strong><small>Partenaires</small></span></a>
+            <a class="saas-brand" href="{{ route('partner.dashboard') }}"><span class="saas-brand-mark"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="32" height="32"></span><span class="saas-brand-copy"><strong>{{ config('app.name') }}</strong><small>Partenaires</small></span></a>
             <button type="button" class="saas-icon-button saas-collapse-button" data-saas-sidebar-collapse aria-label="Réduire le menu"><i class="bi bi-layout-sidebar-inset"></i></button>
         </div>
         <nav class="saas-nav">

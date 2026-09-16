@@ -11,11 +11,11 @@
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-18" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/platform-auth.css') }}?v=20260908-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/platform-auth.css') }}?v=20260916-1" rel="stylesheet">
 </head>
 <body class="platform-auth-body">
 <main class="platform-auth-shell">
-    <a class="platform-auth-brand" href="{{ route('user_login') }}"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="30" height="30"><span>{{ config('app.name') }}</span></a>
+    <a class="platform-auth-brand" href="{{ route('user_login') }}"><span class="platform-auth-brand-mark"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="30" height="30"></span><span>{{ config('app.name') }}</span></a>
     <section class="platform-auth-card">
         <div class="platform-auth-mark">@if(config('platform.identity.logo_url'))<img src="{{ config('platform.identity.logo_url') }}" alt="Logo de la plateforme" width="48" height="48">@else<i class="bi bi-shield-lock-fill" aria-hidden="true"></i>@endif</div>
         @yield('content')

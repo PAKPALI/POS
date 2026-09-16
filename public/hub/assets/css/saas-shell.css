@@ -20,6 +20,7 @@ html { min-width: 320px; }
 .saas-brand:hover { color: var(--ds-text-primary); }
 .saas-brand-mark, .saas-avatar { display: grid; place-items: center; flex: 0 0 auto; background: var(--ds-accent-soft); color: var(--ds-accent); border: 1px solid rgba(var(--ds-accent-rgb), .3); }
 .saas-brand-mark { width: 40px; height: 40px; border-radius: 12px; font-size: .82rem; font-weight: 800; letter-spacing: .04em; }
+.saas-brand-mark { color: #082b59; background: #fff !important; border-color: rgba(8, 43, 89, .14); box-shadow: 0 6px 18px rgba(8, 43, 89, .12); }
 .saas-brand-copy, .saas-user-compact > span:last-child { min-width: 0; display: grid; }
 .saas-brand-copy strong { font-size: .96rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .saas-brand-copy small, .saas-user-compact small { color: var(--ds-text-muted); font-size: .7rem; }

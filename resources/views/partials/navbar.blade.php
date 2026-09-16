@@ -22,7 +22,7 @@
     <div class="brand">
         <a href="index.html" class="brand-logo">
             <span class="brand-img">
-                <span class="brand-img-text text-theme">PS</span>
+                <img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="30" height="30">
             </span>
             <span class="brand-text">{{ config('app.name') }}</span>
         </a>

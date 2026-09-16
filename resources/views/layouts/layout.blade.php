@@ -13,7 +13,7 @@
 
 		<link href="{{asset('hub/assets/css/vendor.min.css')}}" rel="stylesheet">
 		<link href="{{asset('hub/assets/css/app.min.css')}}" rel="stylesheet">
-		<link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2" rel="stylesheet">
+		<link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-3" rel="stylesheet">
 		@include('partials.design-system-head')
 		<!-- <link href="{{asset('hub/assets/plugins/jvectormap-next/jquery-jvectormap.css')}}" rel="stylesheet"> -->
 		<!-- DataTables CSS -->

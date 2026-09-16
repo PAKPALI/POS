@@ -10,9 +10,9 @@
     @include('partials.brand-head')
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
-    <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260911-15" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260916-1" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260909-24" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-3" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     @stack('styles')
 </head>

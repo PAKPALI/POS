@@ -11,14 +11,14 @@
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-18" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260916-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/public-auth.css') }}?v=20260916-3" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="saas-body public-auth-body">
 <div class="public-auth-orbs" aria-hidden="true"><span class="public-auth-orb public-auth-orb-a"></span><span class="public-auth-orb public-auth-orb-b"></span><span class="public-auth-orb public-auth-orb-c"></span></div>
 <main class="public-auth-shell">
     <header class="public-auth-header">
-        <a class="public-auth-brand" href="{{ url('/') }}"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="30" height="30"><span>{{ config('app.name') }}</span></a>
+        <a class="public-auth-brand" href="{{ url('/') }}"><span class="public-auth-brand-mark"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="30" height="30"></span><span>{{ config('app.name') }}</span></a>
         <div class="public-appearance-controls">
             <div class="public-theme-picker" role="group" aria-label="Apparence">
                 <button type="button" data-public-theme="light" aria-label="Thème clair"><i class="bi bi-sun" aria-hidden="true"></i></button>

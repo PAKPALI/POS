@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260911-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260916-1" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -41,7 +41,7 @@
                 <!-- logo -->
                 <div class="logo">
                     <a href="{{ route('dashboard') }}">
-                        <div class="logo-img"><img src="{{ asset('brand/maxanou-symbol-light.svg') }}" alt="" width="42" height="42"></div>
+                        <div class="logo-img"><img src="{{ asset('brand/maxanou-symbol.svg') }}" alt="" width="42" height="42"></div>
                         <div class="logo-text">{{config('app.name')}}</div>
                     </a>
                 </div>

@@ -16,6 +16,7 @@
 .pos-saas-body .pos-menu .logo { min-height: 104px; display: grid; place-items: center; padding: 18px 10px; border-bottom: 1px solid var(--ds-border-soft); }
 .pos-saas-body .pos-menu .logo a { display: grid; place-items: center; gap: 8px; color: var(--ds-text-primary); text-decoration: none; }
 .pos-saas-body .pos-menu .logo-img { display: grid; place-items: center; width: 48px; height: 48px; color: var(--ds-accent); background: var(--ds-accent-soft); border: 1px solid rgba(var(--ds-accent-rgb), .27); border-radius: 15px; box-shadow: 0 0 22px rgba(var(--ds-accent-rgb), .12); }
+.pos-saas-body .pos-menu .logo-img { color: #082b59; background: #fff !important; border-color: rgba(8, 43, 89, .14); box-shadow: 0 6px 18px rgba(8, 43, 89, .12); }
 .pos-saas-body .pos-menu .logo-text { max-width: 112px; overflow: hidden; color: var(--ds-text-primary); font-size: .72rem; font-weight: 800; letter-spacing: .02em; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 .pos-saas-body .pos-menu .nav.nav-tabs { gap: 6px; padding: 12px 10px; border: 0; }
 .pos-saas-body .pos-menu .nav.nav-tabs .nav-link { padding: 0; border: 0; border-radius: 12px; }
