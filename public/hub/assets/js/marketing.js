@@ -159,6 +159,26 @@
         if (reduced) { showStep(0); sync(); }
     }
 
+    const launchVideo = document.querySelector('[data-launch-video]');
+    if (launchVideo) {
+        if (reducedMotion) {
+            launchVideo.removeAttribute('autoplay');
+            launchVideo.pause();
+        } else {
+            const playLaunchVideo = () => launchVideo.play().catch(() => {});
+            if ('IntersectionObserver' in window) {
+                const launchObserver = new IntersectionObserver(entries => {
+                    if (!entries[0].isIntersecting) return;
+                    playLaunchVideo();
+                    launchObserver.disconnect();
+                }, { threshold: .2 });
+                launchObserver.observe(launchVideo);
+            } else {
+                playLaunchVideo();
+            }
+        }
+    }
+
     document.querySelectorAll('[data-pricing-period]').forEach(button => button.addEventListener('click', () => {
         const period = button.dataset.pricingPeriod;
         document.querySelectorAll('[data-pricing-period]').forEach(item => item.classList.toggle('is-active', item === button));

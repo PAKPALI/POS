@@ -51,7 +51,7 @@
     @endif
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/marketing.css') }}?v=20260902-6" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260916-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/marketing-enhancements.css') }}?v=20260917-3" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="marketing-body">
@@ -62,7 +62,7 @@
     </main>
     @include('marketing.components.footer')
     @include('marketing.components.social-modals')
-    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260916-1" defer></script>
+    <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260917-2" defer></script>
     <script src="{{ asset('pwa-register.js') }}" defer></script>
     @stack('scripts')
     @if($marketingIndexable)

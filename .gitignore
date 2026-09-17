@@ -18,5 +18,7 @@ yarn-error.log
 /.idea
 /.vscode
 /public/images
+# Vidéo publicitaire lourde conservée localement, mais exclue des commits Git.
+/public/media/maxanou-story.mp4
 /storage
 /storage/logs/*.log

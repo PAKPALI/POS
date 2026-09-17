@@ -22,6 +22,26 @@
     </div>
 </section>
 
+<section class="marketing-launch-section" aria-labelledby="launch-video-title">
+    <div class="marketing-container marketing-launch-card">
+        <div class="marketing-launch-copy">
+            <span class="marketing-eyebrow">En quelques secondes</span>
+            <h2 id="launch-video-title">Maxanou met votre activité en mouvement.</h2>
+            <p>Une courte présentation pour découvrir l’essentiel : vendre, suivre le stock, piloter la caisse et envoyer des factures mobiles depuis un seul espace.</p>
+            <div class="marketing-launch-points" aria-label="Fonctionnalités présentées">
+                <span>Vendre</span><span>Stock</span><span>Caisse</span><span>Factures mobiles</span>
+            </div>
+        </div>
+        <figure class="marketing-launch-media">
+            <video class="marketing-launch-video" data-launch-video autoplay muted loop playsinline controls preload="metadata" poster="{{ asset('media/maxanou-launch.svg') }}" width="1080" height="1080" aria-label="Vidéo de lancement de Massanou : vente, stock, caisse et factures par WhatsApp ou SMS.">
+                <source src="{{ asset('media/maxanou-launch.mp4') }}" type="video/mp4">
+                Votre navigateur ne lit pas la vidéo. <a href="{{ asset('media/maxanou-launch.mp4') }}">Télécharger la vidéo MP4</a>.
+            </video>
+            <figcaption><a class="marketing-launch-download" href="{{ asset('media/maxanou-launch.mp4') }}" download>Télécharger la vidéo pour les réseaux sociaux @include('marketing.components.icon', ['name' => 'arrow'])</a></figcaption>
+        </figure>
+    </div>
+</section>
+
 <section class="marketing-trust-strip"><div class="marketing-container"><span class="marketing-trust-label">Pensé pour les équipes qui veulent</span><span>vendre plus vite</span><span>réduire les erreurs</span><span>servir mieux</span><span>voir juste</span></div></section>
 
 <section class="marketing-section marketing-public-stats-section" aria-labelledby="public-stats-title">

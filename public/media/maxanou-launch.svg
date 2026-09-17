@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Maxanou — vidéo de lancement</title>
+  <desc id="desc">Une animation de présentation de Maxanou, pour vendre, suivre le stock, piloter la caisse et envoyer les factures.</desc>
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8FBFF"/>
+      <stop offset="1" stop-color="#EAF2FF"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1677FF"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".98"/>
+      <stop offset="1" stop-color="#F6F9FF" stop-opacity=".94"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#082B59" flood-opacity=".14"/>
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <style>
+      .motion { transform-box: fill-box; transform-origin: center; }
+      .ambient { animation: drift 8s ease-in-out infinite alternate; }
+      .ambient-two { animation: drift-two 9s ease-in-out 500ms infinite alternate; }
+      .brand { animation: brand-in 900ms cubic-bezier(.2,.8,.2,1) both; }
+      .tagline { animation: rise 700ms 420ms cubic-bezier(.2,.8,.2,1) both; }
+      .panel { animation: rise 800ms 720ms cubic-bezier(.2,.8,.2,1) both; }
+      .chip-a { animation: rise 600ms 980ms cubic-bezier(.2,.8,.2,1) both; }
+      .chip-b { animation: rise 600ms 1120ms cubic-bezier(.2,.8,.2,1) both; }
+      .chip-c { animation: rise 600ms 1260ms cubic-bezier(.2,.8,.2,1) both; }
+      .chip-d { animation: rise 600ms 1400ms cubic-bezier(.2,.8,.2,1) both; }
+      .pulse { animation: pulse 2.4s 1.3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+      .progress { animation: progress 3.2s 1.4s cubic-bezier(.2,.8,.2,1) both; transform-origin: left center; }
+      @keyframes brand-in { from { opacity: 0; transform: translateY(30px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(22px,-16px) scale(1.08); } }
+      @keyframes drift-two { from { transform: translate(0,0) scale(1); } to { transform: translate(-18px,14px) scale(1.1); } }
+      @keyframes pulse { 0%,100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.18); } }
+      @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      @media (prefers-reduced-motion: reduce) {
+        .ambient, .ambient-two, .brand, .tagline, .panel, .chip-a, .chip-b, .chip-c, .chip-d, .pulse, .progress { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <rect width="1080" height="1080" rx="48" fill="url(#canvas)"/>
+  <circle class="ambient motion" cx="112" cy="178" r="170" fill="#3B82F6" opacity=".08" filter="url(#soft)"/>
+  <circle class="ambient-two motion" cx="956" cy="888" r="205" fill="#35C98B" opacity=".09" filter="url(#soft)"/>
+  <path d="M58 824C194 736 292 774 386 854s216 126 352 42 205-52 284 11" fill="none" stroke="#3B82F6" stroke-width="2" stroke-dasharray="8 16" opacity=".16"/>
+
+  <g class="brand motion">
+    <rect x="346" y="126" width="388" height="388" rx="92" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect x="370" y="150" width="340" height="340" rx="74" fill="#F3F6FA" stroke="#DCE8FB" stroke-width="2"/>
+    <!-- Symbole intégré pour que le fichier reste autonome lors d’un partage ou d’un téléchargement. -->
+    <g transform="translate(426 206) scale(1.78125)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M96 20A48 48 0 1 0 108 45" stroke="#082B59" stroke-width="11"/>
+      <path d="M35 83V51L62 75" stroke="#082B59" stroke-width="12"/>
+      <path d="M62 75L99 35" stroke="#1677FF" stroke-width="13"/>
+    </g>
+  </g>
+
+  <g class="tagline motion" text-anchor="middle" fill="#082B59">
+    <text x="540" y="606" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="800" letter-spacing="-.8">MAXANOU</text>
+    <text x="540" y="654" fill="#4D6684" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600">Je vais vendre.</text>
+  </g>
+
+  <g class="panel motion">
+    <rect x="150" y="706" width="780" height="206" rx="34" fill="url(#panel)" stroke="#D5E3F7" stroke-width="2" filter="url(#shadow)"/>
+    <circle class="pulse" cx="214" cy="772" r="16" fill="#3B82F6"/>
+    <text x="252" y="782" fill="#082B59" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="800">Votre activité, en un seul endroit</text>
+    <text x="214" y="838" fill="#5E7693" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="600">Vente · Stock · Caisse · Factures mobiles</text>
+    <rect x="214" y="866" width="652" height="8" rx="4" fill="#E3ECFA"/>
+    <rect class="progress" x="214" y="866" width="652" height="8" rx="4" fill="url(#accent)"/>
+  </g>
+
+  <g class="chip-a motion">
+    <rect x="146" y="956" width="170" height="54" rx="27" fill="#FFFFFF" stroke="#D5E3F7"/>
+    <circle cx="176" cy="983" r="9" fill="#3B82F6"/>
+    <text x="198" y="990" fill="#244363" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800">Vendre</text>
+  </g>
+  <g class="chip-b motion">
+    <rect x="332" y="956" width="170" height="54" rx="27" fill="#FFFFFF" stroke="#D5E3F7"/>
+    <circle cx="362" cy="983" r="9" fill="#35C98B"/>
+    <text x="384" y="990" fill="#244363" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800">Stock</text>
+  </g>
+  <g class="chip-c motion">
+    <rect x="518" y="956" width="170" height="54" rx="27" fill="#FFFFFF" stroke="#D5E3F7"/>
+    <circle cx="548" cy="983" r="9" fill="#F5B942"/>
+    <text x="570" y="990" fill="#244363" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800">Caisse</text>
+  </g>
+  <g class="chip-d motion">
+    <rect x="704" y="956" width="230" height="54" rx="27" fill="#FFFFFF" stroke="#D5E3F7"/>
+    <circle cx="734" cy="983" r="9" fill="#8B7CFF"/>
+    <text x="756" y="990" fill="#244363" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800">Factures mobiles</text>
+  </g>
+  <text x="540" y="1054" text-anchor="middle" fill="#4D6684" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Tapez « Maxanou » sur Google pour y accéder</text>
+</svg>

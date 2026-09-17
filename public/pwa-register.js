@@ -93,7 +93,7 @@
         prompt.setAttribute('aria-label', 'Installer MAXANOU');
         prompt.innerHTML = `
             <div class="android-pwa-content">
-                <img class="android-pwa-icon" src="/icons/icon-192.png" alt="">
+                <img class="android-pwa-icon" src="/icons/icon-192.png?v=20260917-1" alt="">
                 <div class="android-pwa-copy">
                     <strong>Installer MAXANOU</strong>
                     <span>Accédez plus rapidement à votre espace depuis l’écran d’accueil.</span>
@@ -160,7 +160,7 @@
         guide.setAttribute('aria-label', 'Installer MAXANOU');
         guide.innerHTML = `
             <div class="mobile-pwa-fallback-head">
-                <img class="mobile-pwa-fallback-icon" src="/icons/icon-192.png" alt="">
+                <img class="mobile-pwa-fallback-icon" src="/icons/icon-192.png?v=20260917-1" alt="">
                 <div class="mobile-pwa-fallback-copy">
                     <strong>Installer MAXANOU</strong>
                     <span>Votre navigateur permet l’installation depuis son menu.</span>
@@ -235,7 +235,7 @@
 
         guide.innerHTML = `
             <div class="ios-pwa-head">
-                <img class="ios-pwa-icon" src="/icons/apple-touch-icon-180.png" alt="">
+                <img class="ios-pwa-icon" src="/icons/apple-touch-icon-180.png?v=20260917-1" alt="">
                 <div class="ios-pwa-copy">
                     <strong>Installer MAXANOU</strong>
                     <span>${browserNotice}</span>

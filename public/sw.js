@@ -1,10 +1,10 @@
-const CACHE_VERSION = 'maxanou-pwa-v10';
+const CACHE_VERSION = 'maxanou-pwa-v19';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const STATIC_ASSETS = [
     '/offline.html', '/manifest.json', '/favicon.ico',
-    '/brand/maxanou-symbol.svg', '/brand/maxanou-logo.svg',
+    '/brand/maxanou-symbol.svg', '/brand/maxanou-logo.svg', '/media/maxanou-launch.svg', '/media/maxanou-launch.mp4',
     '/icons/favicon-16.png', '/icons/favicon-32.png',
-    '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/icons/apple-touch-icon-180.png',
+    '/icons/icon-192.png?v=20260917-1', '/icons/icon-512.png?v=20260917-1', '/icons/icon-maskable-512.png?v=20260917-1', '/icons/apple-touch-icon-180.png?v=20260917-1',
 ];
 
 self.addEventListener('install', (event) => {
@@ -36,6 +36,7 @@ self.addEventListener('fetch', (event) => {
     const isPublicStaticAsset = url.pathname.startsWith('/hub/assets/') ||
         url.pathname.startsWith('/brand/') ||
         url.pathname.startsWith('/icons/') ||
+        url.pathname.startsWith('/media/') ||
         ['/manifest.json', '/favicon.ico', '/offline.html'].includes(url.pathname);
     if (!isPublicStaticAsset) return;
 
