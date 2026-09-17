@@ -21,7 +21,14 @@ return [
             'key' => 'bronze', 'name' => 'Bronze', 'price' => 5000, 'annual' => 55000,
             'period' => 'mois', 'description' => 'Le bon équilibre pour une boutique structurée.',
             'currency' => 'XOF', 'company_limit' => 1, 'user_limit' => 3, 'product_limit' => 150, 'sms_quota' => 20, 'whatsapp_quota' => 20,
-            'limits' => '1 entreprise · 3 utilisateurs · 150 produits', 'quota' => '20 SMS · 20 WhatsApp / mois', 'suppliers' => true, 'ecommerce' => true, 'promo_codes' => false,
+            'limits' => '1 entreprise · 3 utilisateurs · 150 produits', 'quota' => '20 SMS · 20 WhatsApp / mois', 'suppliers' => true, 'ecommerce' => false, 'promo_codes' => false,
+            'featured' => false,
+        ],
+        [
+            'key' => 'bronze-pro', 'name' => 'Bronze Pro', 'price' => 7500, 'annual' => 82500,
+            'period' => 'mois', 'description' => 'Pour développer votre boutique avec vos fournisseurs, votre site et vos campagnes clients.',
+            'currency' => 'XOF', 'company_limit' => 1, 'user_limit' => 4, 'product_limit' => 250, 'sms_quota' => 30, 'whatsapp_quota' => 30,
+            'limits' => '1 entreprise · 4 utilisateurs · 250 produits', 'quota' => '30 SMS · 30 WhatsApp / mois', 'suppliers' => true, 'ecommerce' => true, 'promo_codes' => true,
             'featured' => true,
         ],
         [

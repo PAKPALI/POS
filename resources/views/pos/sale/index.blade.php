@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260916-1" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260917-2" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -349,31 +349,49 @@
                         </div> -->
                         <hr>
                         <div class="pos-total-summary d-flex align-items-center mb-2">
-                            <div><span>Total à encaisser</span><small>Remise déjà déduite</small></div>
+                            <div><span>Total à encaisser</span></div>
                             <div class="flex-1 text-end h4 mb-0 total-amount">0 {{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }}</div>
                         </div>
                         <!-- <div class="bg-light"> -->
                         <!-- <img src="http://127.0.0.1:1111/storage/barcodes/75FKZVT.png" alt="Code Barre"></div> -->
                         
-                        <!-- <form action=""> -->
-                            
-                            @if($canUsePromoCodes)
-                                <div class="pos-discount-field mb-2">
-                                    <label for="promoCodeInput">Code promo client</label>
-                                    <div class="d-flex gap-1">
-                                        <input type="text" id="promoCodeInput" class="form-control" placeholder="Saisissez ou scannez le code" maxlength="64" autocomplete="off">
-                                        <button class="btn btn-danger btn-sm" id="deletpromoinput" type="button" aria-label="Retirer le code promo"><i class="bi bi-trash"></i></button>
+                        <details class="saas-accordion pos-discount-accordion">
+                            <summary>
+                                <span class="pos-discount-accordion-title">
+                                    <span class="pos-discount-accordion-icon"><i class="bi bi-tags" aria-hidden="true"></i></span>
+                                    <span>
+                                        <strong>Remise et code promo</strong>
+                                        <small>Une réduction facultative sur la commande</small>
+                                    </span>
+                                </span>
+                                <span class="pos-discount-accordion-actions">
+                                    <span class="pos-discount-accordion-badge">Facultatif</span>
+                                    <i class="bi bi-chevron-down pos-discount-accordion-chevron" aria-hidden="true"></i>
+                                </span>
+                            </summary>
+                            <div class="saas-accordion-body">
+                                <div class="pos-discount-field">
+                                    <label for="remiseInput"><i class="bi bi-cash-coin" aria-hidden="true"></i> Remise sur la commande</label>
+                                    <div class="pos-discount-input-group">
+                                        <span class="pos-discount-input-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+                                        <input type="number" id="remiseInput" class="form-control" placeholder="Montant ({{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }})" min="0">
+                                        <button class="pos-discount-clear" id="deletremiseinput" type="button" aria-label="Retirer la remise" title="Retirer la remise"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
                                     </div>
+                                    <small class="pos-discount-help">Saisissez le montant à déduire du total de cette vente.</small>
                                 </div>
-                            @endif
-                            <div class="pos-discount-field mb-2">
-                                <label for="remiseInput">Remise sur la commande</label>
-                                <div class="d-flex gap-1">
-                                    <input type="number" id="remiseInput" class="form-control" placeholder="Montant ({{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }})" min="0">
-                                    <button class="btn btn-danger btn-sm" id="deletremiseinput" type="button" aria-label="Retirer la remise"><i class="bi bi-trash"></i></button>
-                                </div>
+                                @if($canUsePromoCodes)
+                                    <div class="pos-discount-divider" aria-hidden="true"></div>
+                                    <div class="pos-discount-field">
+                                        <label for="promoCodeInput"><i class="bi bi-ticket-perforated" aria-hidden="true"></i> Code promo client</label>
+                                        <div class="pos-discount-input-group">
+                                            <span class="pos-discount-input-icon"><i class="bi bi-ticket-perforated" aria-hidden="true"></i></span>
+                                            <input type="text" id="promoCodeInput" class="form-control" placeholder="Code promo ou scan" maxlength="64" autocomplete="off">
+                                            <button class="pos-discount-clear" id="deletpromoinput" type="button" aria-label="Retirer le code promo" title="Retirer le code promo"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
-                        <!-- </form> -->
+                        </details>
                         <div class="mt-3 pos-order-actions">
                             <span class="pos-order-actions-label">Actions de la commande</span>
                             <div class="btn-group d-flex flex-wrap gap-1">

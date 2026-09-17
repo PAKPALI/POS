@@ -40,7 +40,7 @@ class SubscriptionAccessTest extends TestCase
     {
         [$owner] = $this->ownerWithCompany();
 
-        $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk()->assertSee('Choisir la durée')->assertSee('Durée souhaitée')->assertSee('Expiration estimée')->assertSee('Réduction annuelle appliquée (1 mois offert)')->assertSee('partner-promo-input')->assertSee('Code promotionnel partenaire')->assertSee('Continuer vers le paiement')->assertSee('Termes et conditions de paiement')->assertSee('redirigé vers la page de paiement KPrimePay')->assertSee('terms_accepted', false)->assertDontSee('Continuer vers KPrimePay');
+        $this->actingAs($owner)->get(route('subscriptions.index'))->assertOk()->assertSee('Bronze Pro')->assertSee('7 500')->assertSee('Fournisseurs inclus')->assertSee('E-commerce inclus')->assertSee('Codes promo clients inclus')->assertSee('Choisir la durée')->assertSee('Durée souhaitée')->assertSee('Expiration estimée')->assertSee('Réduction annuelle appliquée (1 mois offert)')->assertSee('partner-promo-input')->assertSee('Code promotionnel partenaire')->assertSee('Continuer vers le paiement')->assertSee('Termes et conditions de paiement')->assertSee('redirigé vers la page de paiement KPrimePay')->assertSee('terms_accepted', false)->assertDontSee('Continuer vers KPrimePay');
     }
 
     public function test_subscription_checkout_requires_payment_terms_on_the_server(): void

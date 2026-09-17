@@ -21,6 +21,9 @@ class MarketingSiteTest extends TestCase
         $response = $this->get('/tarifs')->assertOk();
         $response->assertSee('Les offres affichées reprennent les plans actuellement publiés.', false)
             ->assertSee('Choisir ce plan', false)
+            ->assertSee('Bronze Pro', false)
+            ->assertSee('7 500', false)
+            ->assertSee('site e-commerce dédié', false)
             ->assertSee('data-price-annual="55000"', false)
             ->assertDontSee('Souscrire', false);
     }

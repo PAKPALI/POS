@@ -8,6 +8,14 @@
     .pricing-feature-line.is-available .pricing-feature-status { color: var(--ds-success, #35c98b); background: rgba(53, 201, 139, .12); }
     .pricing-feature-line.is-unavailable .pricing-feature-status { color: var(--ds-danger, #ff626e); background: rgba(255, 98, 110, .12); }
     .pricing-feature-line.is-unavailable { color: var(--ds-text-muted); }
+    .pricing-feature-accordions { display: grid; gap: 8px; margin-top: 4px; }
+    .pricing-feature-accordion { border: 1px solid rgba(53, 201, 139, .24); border-radius: 10px; background: rgba(53, 201, 139, .07); }
+    .pricing-feature-accordion summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 36px; padding: 8px 10px; color: var(--ds-success, #35c98b); cursor: pointer; font-size: .78rem; font-weight: 800; list-style: none; }
+    .pricing-feature-accordion summary::-webkit-details-marker { display: none; }
+    .pricing-feature-accordion summary span { display: flex; align-items: center; gap: 7px; }
+    .pricing-feature-accordion summary > i { transition: transform .18s ease; }
+    .pricing-feature-accordion[open] summary > i { transform: rotate(180deg); }
+    .pricing-feature-accordion p { margin: 0; padding: 0 10px 10px; color: var(--ds-text-secondary); font-size: .75rem; font-weight: 600; line-height: 1.5; }
 </style>
 @endpush
 @section('content')
@@ -20,9 +28,25 @@
             <p>{{ $plan['description'] }}</p>
             <div class="pricing-detail-line">@include('marketing.components.icon', ['name' => 'layers'])<span>{{ $plan['limits'] }}</span></div>
             <div class="pricing-detail-line">@include('marketing.components.icon', ['name' => 'message'])<span>{{ $plan['quota'] }}</span></div>
-            <div class="pricing-detail-line pricing-feature-line {{ $plan['suppliers'] ? 'is-available' : 'is-unavailable' }}"><span class="pricing-feature-status" aria-hidden="true">{{ $plan['suppliers'] ? '✓' : '×' }}</span><span>Fournisseurs {{ $plan['suppliers'] ? 'inclus' : 'non inclus' }}</span></div>
-            <div class="pricing-detail-line pricing-feature-line {{ $plan['ecommerce'] ? 'is-available' : 'is-unavailable' }}"><span class="pricing-feature-status" aria-hidden="true">{{ $plan['ecommerce'] ? '✓' : '×' }}</span><span>E-commerce {{ $plan['ecommerce'] ? 'inclus' : 'non inclus' }}</span></div>
-            <div class="pricing-detail-line pricing-feature-line {{ $plan['promo_codes'] ? 'is-available' : 'is-unavailable' }}"><span class="pricing-feature-status" aria-hidden="true">{{ $plan['promo_codes'] ? '✓' : '×' }}</span><span>Codes promo clients {{ $plan['promo_codes'] ? 'inclus' : 'non inclus' }}</span></div>
+            @php
+                $featureDetails = [
+                    ['key' => 'suppliers', 'label' => 'Fournisseurs', 'icon' => 'truck', 'description' => 'Enregistrez vos fournisseurs, conservez leurs coordonnées et utilisez-les lors des inventaires pour suivre l’origine de vos produits.'],
+                    ['key' => 'ecommerce', 'label' => 'E-commerce', 'icon' => 'store', 'description' => 'Disposez d’un site e-commerce dédié à votre entreprise : vos produits y sont présentés et vos clients peuvent commander en ligne.'],
+                    ['key' => 'promo_codes', 'label' => 'Codes promo clients', 'icon' => 'tag', 'description' => 'Choisissez un pourcentage et une date d’expiration. Chaque client fidèle ou nouveau client qui utilise le code lors d’un achat dans votre entreprise bénéficie de la même réduction. Le code peut être partagé pour faire connaître votre entreprise et développer votre clientèle.'],
+                ];
+            @endphp
+            <div class="pricing-feature-accordions">
+                @foreach($featureDetails as $feature)
+                    @if($plan[$feature['key']])
+                        <details class="pricing-feature-accordion">
+                            <summary><span>@include('marketing.components.icon', ['name' => $feature['icon']]) {{ $feature['label'] }} inclus</span><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
+                            <p>{{ $feature['description'] }}</p>
+                        </details>
+                    @else
+                        <div class="pricing-detail-line pricing-feature-line is-unavailable"><span class="pricing-feature-status" aria-hidden="true">×</span><span>{{ $feature['label'] }} non inclus</span></div>
+                    @endif
+                @endforeach
+            </div>
             <a class="marketing-button {{ $plan['featured'] ? 'marketing-button-primary' : 'marketing-button-secondary' }}" data-event="plan_select" href="{{ route('marketing.register') }}">{{ $plan['key'] === 'trial' ? 'Essayer 14 jours' : 'Choisir ce plan' }}</a>
         </article>
     @endforeach

@@ -51,7 +51,7 @@ class MarketingPlanCatalogService
                     'suppliers' => (bool) ($features->get('suppliers') ?? false),
                     'ecommerce' => (bool) ($features->get('ecommerce') ?? false),
                     'promo_codes' => (bool) ($features->get('promo_codes') ?? ($plan->rank >= 3)),
-                    'featured' => $key === 'bronze',
+                    'featured' => $key === 'bronze-pro',
                 ];
             })->all();
         } catch (Throwable) {

@@ -12,6 +12,8 @@
     <x-ui.button variant="primary" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg" aria-hidden="true"></i> Ajouter un code</x-ui.button>
 </div>
 
+<div class="saas-alert saas-alert-info mb-4" role="note"><i class="bi bi-info-circle" aria-hidden="true"></i><div><strong>Une remise pour chaque utilisation valide</strong><p class="mb-0">Le gestionnaire choisit le pourcentage de réduction et la date d’expiration. Chaque client fidèle ou nouveau client qui utilise ce code lors d’un achat dans cette entreprise bénéficie du même pourcentage, jusqu’à l’expiration ou la désactivation du code.</p></div></div>
+
 <x-ui.modal id="addModal" title="Ajouter un code promotionnel" eyebrow="Catalogue" size="lg">
     <form id="add">
         @csrf
@@ -20,7 +22,7 @@
             <x-ui.input id="code-percent" name="percents" type="number" label="Pourcentage de remise" placeholder="Ex. 10" min="1" max="100" required />
             <div class="saas-form-group"><label for="code">Code</label><div class="saas-inline-actions"><input id="code" type="text" name="code" placeholder="Générez ou saisissez un code" readonly required><button id="generateCode" class="saas-btn saas-btn-secondary" type="button">Générer</button></div></div>
             <x-ui.input id="code-expires-at" name="expires_at" type="datetime-local" label="Expiration" required />
-            <x-ui.textarea id="code-comments" name="comments" label="Description" placeholder="Conditions ou contexte de la remise" rows="4" class="saas-form-group-wide" />
+            <x-ui.textarea id="code-comments" name="comments" label="Description" placeholder="Ex. Remise de 10 % pour chaque client utilisant ce code avant la date d’expiration" rows="4" class="saas-form-group-wide" />
         </div>
         <div class="saas-modal-actions"><button class="saas-btn saas-btn-ghost" type="button" data-bs-dismiss="modal">Annuler</button><x-ui.button type="submit" variant="primary" data-loading-text="Création…"><i class="bi bi-check-lg" aria-hidden="true"></i> Créer le code</x-ui.button></div>
     </form>

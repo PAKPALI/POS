@@ -106,12 +106,12 @@ return new class extends Migration {
 
         $plans = [
             ['trial','Essai',0,0,0,1,1,10,3,3,14], ['basic','Basic',1,2500,27500,1,2,50,10,10,0],
-            ['bronze','Bronze',2,5000,55000,1,3,150,20,20,0], ['silver','Argent',3,10000,110000,2,5,500,50,50,0],
-            ['gold','Gold',4,20000,220000,5,15,1000,100,100,0],
+            ['bronze','Bronze',2,5000,55000,1,3,150,20,20,0], ['bronze-pro','Bronze Pro',3,7500,82500,1,4,250,30,30,0],
+            ['silver','Argent',4,10000,110000,2,5,500,50,50,0], ['gold','Gold',5,20000,220000,5,15,1000,100,100,0],
         ];
         foreach ($plans as [$key,$name,$rank,$monthly,$annual,$companies,$users,$products,$sms,$whatsapp,$trial]) {
             $id = DB::table('subscription_plans')->insertGetId(['key'=>$key,'name'=>$name,'rank'=>$rank,'monthly_price'=>$monthly,'annual_price'=>$annual,'company_limit'=>$companies,'user_limit'=>$users,'product_limit'=>$products,'sms_quota'=>$sms,'whatsapp_quota'=>$whatsapp,'trial_days'=>$trial,'created_at'=>now(),'updated_at'=>now()]);
-            foreach (['suppliers'=> $key !== 'basic', 'ecommerce'=> $key !== 'basic'] as $feature=>$enabled) DB::table('plan_features')->insert(['subscription_plan_id'=>$id,'feature_key'=>$feature,'enabled'=>$enabled,'created_at'=>now(),'updated_at'=>now()]);
+            foreach (['suppliers'=> $key !== 'basic', 'ecommerce'=> ! in_array($key, ['basic', 'bronze'], true)] as $feature=>$enabled) DB::table('plan_features')->insert(['subscription_plan_id'=>$id,'feature_key'=>$feature,'enabled'=>$enabled,'created_at'=>now(),'updated_at'=>now()]);
         }
         $permissionId = DB::table('permissions')->where('key', 'subscription.manage')->value('id') ?: DB::table('permissions')->insertGetId(['key'=>'subscription.manage','module'=>'subscription','description'=>'Gérer l’abonnement de la compagnie','created_at'=>now(),'updated_at'=>now()]);
         foreach (DB::table('roles')->whereIn('key', ['owner','admin'])->pluck('id') as $roleId) DB::table('permission_role')->insertOrIgnore(['permission_id'=>$permissionId,'role_id'=>$roleId]);

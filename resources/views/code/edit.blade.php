@@ -5,7 +5,7 @@
         <x-ui.input id="edit-code-percent-{{ $CodePromo->id }}" name="percents" type="number" label="Pourcentage de remise" min="1" max="100" :value="$CodePromo->percents" required />
         <div class="saas-form-group"><label for="edit-code-value-{{ $CodePromo->id }}">Code</label><div class="saas-inline-actions"><input id="edit-code-value-{{ $CodePromo->id }}" type="text" name="code" value="{{ $CodePromo->code }}" maxlength="64" required><button class="saas-btn saas-btn-secondary generate-edit-code" type="button">Générer</button></div></div>
         <x-ui.input id="edit-code-expiry-{{ $CodePromo->id }}" name="expires_at" type="datetime-local" label="Expiration" :value="$CodePromo->expires_at?->format('Y-m-d\TH:i')" required />
-        <x-ui.textarea id="edit-code-comments-{{ $CodePromo->id }}" name="comments" label="Description" rows="4" class="saas-form-group-wide">{{ $CodePromo->comments }}</x-ui.textarea>
+        <x-ui.textarea id="edit-code-comments-{{ $CodePromo->id }}" name="comments" label="Description" placeholder="Ex. Remise de 10 % pour chaque client utilisant ce code avant la date d’expiration" rows="4" class="saas-form-group-wide">{{ $CodePromo->comments }}</x-ui.textarea>
     </div>
     <div class="saas-modal-actions">
         <button type="button" class="saas-btn saas-btn-ghost" data-bs-dismiss="modal">Annuler</button>
