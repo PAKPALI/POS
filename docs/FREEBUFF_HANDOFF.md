@@ -1,10 +1,18 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 15 septembre 2026 — clôture locale du module Partenaires et non-régressions SaaS validées.
+Dernière mise à jour : 18 septembre 2026 — validation production du cœur de monétisation ajoutée à la clôture locale.
 
 ## Règle de lecture documentaire
 
-La section **Clôture locale — 15 septembre 2026** et les mises à jour qui la précèdent constituent l’état courant du développement. Les entrées datées plus anciennes sont conservées comme journal de décisions et de preuves ; leurs mentions « à faire », « reste à valider » ou « prochaine étape » décrivent l’état du projet à leur date et ne constituent plus des tâches ouvertes. Pour la production, seules les étapes de déploiement, de configuration des secrets/URLs et d’activation progressive indiquées dans la clôture restent applicables.
+La section **État production — 18 septembre 2026** constitue l’état courant de la recette de production. La section **Clôture locale — 15 septembre 2026** et les mises à jour qui la précèdent constituent l’état courant du développement et du staging. Les entrées datées plus anciennes sont conservées comme journal de décisions et de preuves ; leurs mentions « à faire », « reste à valider » ou « prochaine étape » décrivent l’état du projet à leur date et ne constituent plus des tâches ouvertes.
+
+## État production — 18 septembre 2026
+
+Le propriétaire confirme que les paiements passent en production et que les abonnements fonctionnent. Le parcours principal de monétisation est donc considéré comme validé pour une ouverture contrôlée.
+
+Cette confirmation ne remplace pas les preuves d’exploitation suivantes : paiements abandonnés ou refusés, webhooks rejoués, réconciliation, SMTP, workers, cron, sauvegardes restaurables, supervision, sécurité HTTP et procédure de reprise. Ces éléments restent des contrôles séparés avant de déclarer l’environnement entièrement validé.
+
+Les références internes et KPrimePay des transactions de recette doivent être conservées dans le journal de mise en production, sans secret ni donnée sensible.
 
 ## Clôture locale — 15 septembre 2026
 

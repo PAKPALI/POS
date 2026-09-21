@@ -58,7 +58,7 @@ class SendInventoryEmailJob implements ShouldQueue
                     function () use ($user, $inventory, $company): void {
                         Mail::send('emails.inventory.notification', ['inventory' => $inventory, 'company' => $company], function ($message) use ($user, $inventory, $company): void {
                             $type = $inventory->type === 1 ? 'Entrée' : 'Sortie';
-                            $message->from(config('mail.from.address'), $company->name)->to($user->email)->subject($company->name.' — '.$type.' d’inventaire');
+                            $message->from(config('mail.from.address'), $company->name)->to($user->email)->subject(config('mail.brand_name').' — '.$company->name.' — '.$type.' d’inventaire');
                         });
                     });
                 if ($sent) Log::info('Inventory email sent successfully', ['company_id' => $company->id, 'inventory_id' => $inventory->id, 'user_id' => $user->id]);

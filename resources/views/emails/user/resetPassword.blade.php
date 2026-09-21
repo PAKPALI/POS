@@ -9,7 +9,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h2 style="margin-bottom:8px;">{{ config('app.name') }}</h2>
+        <h2 style="margin-bottom:8px;">{{ config('mail.brand_name') }}</h2>
         <h1>Mot de passe oublié</h1>
     </div>
     <div class="content text-center" style="padding:24px 12px;">

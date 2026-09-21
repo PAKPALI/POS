@@ -77,7 +77,10 @@
             </details>
         @endif
         @if($allowed('company.manage'))<a class="saas-nav-link {{ request()->routeIs('company.*') ? 'is-active' : '' }}" href="{{ route('company.index') }}"><i class="bi bi-gear"></i><span>Paramètres</span></a>@endif
-        @if(in_array($membership?->role?->key, ['owner', 'admin'], true) && $allowed('subscription.manage'))<a class="saas-nav-link {{ request()->routeIs('subscriptions.*') ? 'is-active' : '' }}" href="{{ route('subscriptions.index') }}"><i class="bi bi-credit-card"></i><span>Abonnement</span></a>@endif
+        @if(in_array($membership?->role?->key, ['owner', 'admin'], true) && $allowed('subscription.manage'))
+            <a class="saas-nav-link {{ request()->routeIs('subscriptions.index') ? 'is-active' : '' }}" href="{{ route('subscriptions.index') }}"><i class="bi bi-credit-card"></i><span>Abonnement</span></a>
+            <a class="saas-nav-link {{ request()->routeIs('subscriptions.guide') ? 'is-active' : '' }}" href="{{ route('subscriptions.guide') }}"><i class="bi bi-journal-richtext"></i><span>Guide d’utilisation</span></a>
+        @endif
     </nav>
 
     <div class="saas-sidebar-foot">

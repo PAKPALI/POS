@@ -17,6 +17,15 @@ class NotificationSettingsTest extends TestCase
 {
     use InteractsWithCompanies, RefreshDatabase;
 
+    public function test_notification_toggle_is_post_only_for_production_compatibility(): void
+    {
+        $route = app('router')->getRoutes()->getByName('notifications.toggle');
+
+        $this->assertNotNull($route);
+        $this->assertSame(['POST'], $route->methods());
+        $this->assertNotContains('PATCH', $route->methods());
+    }
+
     public function test_global_switch_can_be_toggled_immediately(): void
     {
         $owner = User::factory()->create(['status' => 1, 'user_type' => 2, 'phone' => '90000000']);

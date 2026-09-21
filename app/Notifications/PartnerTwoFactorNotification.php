@@ -17,7 +17,7 @@ class PartnerTwoFactorNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').' — code de connexion partenaire')
+            ->subject(config('mail.brand_name').' — code de connexion partenaire')
             ->view('emails.partner.twoFactorLogin', [
                 'name' => $notifiable->name,
                 'code' => $this->code,

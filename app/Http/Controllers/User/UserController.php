@@ -339,7 +339,7 @@ class UserController extends Controller
         Mail::send('emails.user.connectPass', ['text' => $text,'name' => $name, 'company' => $company], function($message) use ($email, $company){
             $message->from(config('mail.from.address'), $company?->name ?? config('app.name'));
             $message->to($email);
-            $message->subject(($company?->name ?? config('app.name')).' — Accès utilisateur');
+            $message->subject(config('mail.brand_name').' — '.($company?->name ?? config('mail.brand_name')).' — Accès utilisateur');
         });
     }
 

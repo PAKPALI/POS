@@ -1,6 +1,13 @@
 # Rapport permanent — Administration SaaS
 
-Dernière mise à jour : 15 septembre 2026 — pilotage partenaires, graphiques, alertes e-mail et clôture staging
+Dernière mise à jour : 18 septembre 2026 — pilotage partenaires, graphiques, alertes e-mail et validation production du cœur de monétisation
+
+## État production — 18 septembre 2026
+
+- Le propriétaire confirme que les paiements passent en production et que les abonnements sont opérationnels.
+- Le parcours principal de monétisation est donc validé pour une ouverture contrôlée.
+- Cette confirmation ne couvre pas automatiquement les paiements abandonnés ou refusés, les rejoués de webhook, la réconciliation, les e-mails, les workers, le cron, les sauvegardes, la supervision ni les droits d’administration : ces points restent à prouver dans la checklist de déploiement.
+- Les anciennes sections datées qui mentionnent encore la validation staging restent un historique ; le présent addendum est l’état courant.
 
 ## Mise à jour du 14 septembre 2026 — pilotage partenaires et alertes
 

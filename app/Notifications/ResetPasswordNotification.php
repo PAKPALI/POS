@@ -15,7 +15,7 @@ class ResetPasswordNotification extends BaseResetPassword
         ], false));
 
         return (new MailMessage)
-            ->subject(config('app.name').' — Réinitialisation du mot de passe')
+            ->subject(config('mail.brand_name').' — Réinitialisation du mot de passe')
             ->view('emails.user.resetPassword', [
                 'user' => $notifiable,
                 'resetUrl' => $url,

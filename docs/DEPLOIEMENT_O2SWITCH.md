@@ -1,8 +1,14 @@
-# Déploiement de PRO-SELLER sur O2switch
+# Déploiement de MAXANOU — POS SaaS sur O2switch
 
 Ce guide prépare un premier déploiement SaaS avec **Laravel 12**, **PHP 8.2 minimum**, **MySQL**, une queue en base de données et sans Redis.
 
-> **Statut au 3 septembre 2026 : staging O2switch validé pour le périmètre testé.** Le checkout KPrimePay de test, les webhooks, le SMTP réel et la recette visuelle mobile/desktop des abonnements et quotas ont été validés. La production commerciale reste distincte : secrets, URL webhook HTTPS, cron, supervision et activation progressive de l’enforcement doivent encore être configurés et approuvés.
+> **Statut au 18 septembre 2026 : staging validé et cœur de monétisation production confirmé.** Le propriétaire confirme que les paiements passent en production et que les abonnements fonctionnent. Cette validation ne clôt pas les contrôles d’exploitation périphériques : secrets/URLs, SMTP, URL webhook, cron, workers, sauvegardes, supervision, sécurité et activation progressive de l’enforcement doivent rester vérifiés et archivés.
+
+## État de recette production
+
+Le parcours principal de paiement et d’abonnement est classé **validé pour ouverture contrôlée** sur la base de la confirmation du propriétaire du 18 septembre 2026. Ajouter au journal de mise en production la date, l’entreprise de test, la référence interne et la référence KPrimePay de chaque transaction de recette, sans jamais publier de secret.
+
+Ne pas déduire de cette réussite que les scénarios d’échec, de réconciliation, de webhook rejoué, de queue ou de reprise après incident sont validés : ils doivent rester couverts par les contrôles ci-dessous.
 
 > Ne jamais envoyer le fichier `.env` réel sur Git et ne jamais copier les mots de passe dans une documentation. Remplacer tous les exemples avant le déploiement.
 

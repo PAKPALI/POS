@@ -17,7 +17,7 @@ class PartnerWithdrawalConfirmationNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').' — confirmation de retrait')
+            ->subject(config('mail.brand_name').' — confirmation de retrait')
             ->view('emails.partner.withdrawalConfirmation', [
                 'name' => $notifiable->name,
                 'code' => $this->code,

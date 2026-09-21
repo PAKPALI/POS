@@ -2,7 +2,7 @@
 <html lang="fr">
 <head><meta charset="UTF-8"><title>{{ $title }}</title>@include('emails.design.emailStyle')</head>
 <body><div class="container">
-    <div class="header"><h2>{{ config('app.name') }}</h2><p style="color:#ff9f43">Programme partenaires</p></div>
+    <div class="header"><h2>{{ config('mail.brand_name') }}</h2><p style="color:#ff9f43">Programme partenaires</p></div>
     <div class="info">
         <h3>{{ $title }}</h3>
         <p>{{ $intro }}</p>

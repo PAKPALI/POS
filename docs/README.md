@@ -5,7 +5,7 @@ Cette arborescence distingue les références actives, les procédures d’explo
 ## Références à consulter selon le besoin
 
 - `FREEBUFF_HANDOFF.md` : état de reprise, décisions récentes, risques et contrôles avant modification.
-- `ETAT_DOCUMENTAIRE_PRODUCTION.md` : matrice de statut et ordre de lecture avant la migration production.
+- `ETAT_DOCUMENTAIRE_PRODUCTION.md` : matrice de statut, niveau de préparation et ordre de lecture pendant la clôture de production.
 - `RAPPORT_GLOBAL_SAAS.md` : état fonctionnel et opérationnel consolidé du SaaS.
 - `RAPPORT_ADMINISTRATION_SAAS.md` : console plateforme, sécurité et suivi de l’administration centrale.
 - `GUIDE_KPRIMEPAY.md` : intégration, rapprochement et exploitation des paiements.
@@ -32,4 +32,4 @@ Un seul document éditable fait foi par sujet. Les PDF conservés sont des expor
 
 ## Source de vérité pour l’état courant
 
-Pour connaître l’avancement réel, consulter d’abord `ETAT_DOCUMENTAIRE_PRODUCTION.md`, puis la section « Clôture locale — 15 septembre 2026 » de `FREEBUFF_HANDOFF.md`, `RAPPORT_GLOBAL_SAAS.md`, `RAPPORT_ADMINISTRATION_SAAS.md` et `DEPLOIEMENT_O2SWITCH.md`. Les entrées datées et les fixtures locales du handoff sont historiques ou mutables, sauf indication contraire.
+Pour connaître l’avancement réel, consulter d’abord `ETAT_DOCUMENTAIRE_PRODUCTION.md`, puis la section « État production — 18 septembre 2026 » de `FREEBUFF_HANDOFF.md`, `RAPPORT_GLOBAL_SAAS.md`, `RAPPORT_ADMINISTRATION_SAAS.md` et `DEPLOIEMENT_O2SWITCH.md`. La section « Clôture locale — 15 septembre 2026 » reste la référence pour le développement et le staging. Les entrées datées et les fixtures locales du handoff sont historiques ou mutables, sauf indication contraire.

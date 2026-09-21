@@ -17,11 +17,11 @@ class PartnerResetPasswordNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').' — réinitialisation partenaire')
+            ->subject(config('mail.brand_name').' — réinitialisation partenaire')
             ->greeting('Bonjour '.$notifiable->name.',')
             ->line('Une demande de réinitialisation a été faite pour votre espace partenaire.')
             ->action('Choisir un nouveau mot de passe', route('partner.password.reset', ['token' => $this->token, 'email' => $notifiable->getEmailForPasswordReset()]))
             ->line('Ce lien expire dans 60 minutes.')
-            ->salutation('L’équipe '.config('app.name'));
+            ->salutation('L’équipe '.config('mail.brand_name'));
     }
 }

@@ -29,6 +29,8 @@
             <a class="saas-nav-link {{ request()->routeIs('partner.clients') ? 'is-active' : '' }}" href="{{ route('partner.clients') }}"><i class="bi bi-people"></i><span>Mes clients</span></a>
             <a class="saas-nav-link {{ request()->routeIs('partner.commissions*') ? 'is-active' : '' }}" href="{{ route('partner.commissions') }}"><i class="bi bi-wallet2"></i><span>Mes commissions</span></a>
             <a class="saas-nav-link {{ request()->routeIs('partner.withdrawals*') ? 'is-active' : '' }}" href="{{ route('partner.withdrawals') }}"><i class="bi bi-send-check"></i><span>Mes retraits</span></a>
+            <div class="saas-nav-section"><span>Aide</span></div>
+            <a class="saas-nav-link {{ request()->routeIs('partner.guide') ? 'is-active' : '' }}" href="{{ route('partner.guide') }}"><i class="bi bi-journal-richtext"></i><span>Guide partenaire</span></a>
         </nav>
         <div class="saas-sidebar-foot"><div class="saas-user-compact"><span class="saas-avatar">{{ strtoupper(substr($partner?->name ?? 'P', 0, 1)) }}</span><span><strong>{{ $partner?->name }}</strong><small>Compte partenaire</small></span></div></div>
     </aside>

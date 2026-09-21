@@ -599,7 +599,7 @@
             input.disabled = true;
             try {
                 const response = await fetch(invoicePreferenceUrl, {
-                    // POST évite les blocages PATCH de certains WAF/serveurs mutualisés.
+                    // POST évite les blocages de verbes HTTP de certains WAF/serveurs mutualisés.
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',

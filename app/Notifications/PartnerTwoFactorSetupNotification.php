@@ -20,7 +20,7 @@ class PartnerTwoFactorSetupNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').' — activation de la double authentification')
+            ->subject(config('mail.brand_name').' — activation de la double authentification')
             ->view('emails.partner.twoFactorSetup', [
                 'name' => $notifiable->name,
                 'code' => $this->code,

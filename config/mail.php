@@ -4,6 +4,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Environment mail title
+    |--------------------------------------------------------------------------
+    |
+    | Keep the title visible in e-mail subjects independent from the editable
+    | platform identity. This prevents staging/local messages from being
+    | confused with production messages.
+    |
+    */
+
+    'brand_name' => match (strtolower(trim((string) env('APP_ENV', 'local')))) {
+        'production' => 'maxanou',
+        'staging' => 'maxanou-staging',
+        default => 'maxanou-local',
+    },
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Mailer
     |--------------------------------------------------------------------------
     |

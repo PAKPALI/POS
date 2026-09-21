@@ -17,19 +17,19 @@ class SubscriptionExpiryNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $company = $this->subscription->subscriptionAccount?->billingCompany?->name ?? config('app.name');
+        $company = $this->subscription->subscriptionAccount?->billingCompany?->name ?? config('mail.brand_name');
         $plan = $this->subscription->plan?->name ?? ($this->subscription->snapshot['name'] ?? 'votre abonnement');
         if ($this->daysRemaining > 0) {
-            return (new MailMessage)->subject(config('app.name').' — votre abonnement expire dans '.$this->daysRemaining.' jour(s)')
+            return (new MailMessage)->subject(config('mail.brand_name').' — votre abonnement expire dans '.$this->daysRemaining.' jour(s)')
                 ->greeting('Bonjour '.$notifiable->name.',')
                 ->line('L’abonnement '.$plan.' de '.$company.' arrive à échéance dans '.$this->daysRemaining.' jour(s).')
                 ->line('Renouvelez-le depuis le menu Abonnement pour conserver vos fonctionnalités et vos quotas.')
-                ->action('Gérer mon abonnement', route('subscriptions.index'))->salutation('L’équipe '.config('app.name'));
+                ->action('Gérer mon abonnement', route('subscriptions.index'))->salutation('L’équipe '.config('mail.brand_name'));
         }
-        return (new MailMessage)->subject(config('app.name').' — abonnement arrivé à échéance')
+        return (new MailMessage)->subject(config('mail.brand_name').' — abonnement arrivé à échéance')
             ->greeting('Bonjour '.$notifiable->name.',')
             ->line('L’abonnement '.$plan.' de '.$company.' est arrivé à échéance.')
             ->line('Les données restent conservées. Renouvelez votre abonnement depuis le menu Abonnement pour rétablir les écritures protégées.')
-            ->action('Renouveler mon abonnement', route('subscriptions.index'))->salutation('L’équipe '.config('app.name'));
+            ->action('Renouveler mon abonnement', route('subscriptions.index'))->salutation('L’équipe '.config('mail.brand_name'));
     }
 }

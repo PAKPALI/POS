@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ $company->name ?? config('app.name') }}</h1>
+            <h1>{{ $company->name ?? config('mail.brand_name') }}</h1>
             <h4 style="color:red;">(Alerte de stock)</h4>
         </div>
         <div class="content text-center">

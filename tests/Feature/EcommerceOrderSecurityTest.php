@@ -173,7 +173,7 @@ class EcommerceOrderSecurityTest extends TestCase
         $this->assertStringContainsString('CMD-MAIL-001', $html);
         $this->assertStringContainsString('Produit e-mail', $html);
         $this->assertStringContainsString('Cet e-mail vous est envoyé par', $html);
-        $this->assertStringContainsString(config('app.name'), $html);
+        $this->assertStringContainsString(config('mail.brand_name'), $html);
         $this->assertStringContainsString((string) now()->year, $html);
         $this->assertStringContainsString('Consulter la commande', $html);
         $this->assertStringContainsString('Ouvrir dans Google Maps', $html);

@@ -24,7 +24,7 @@ class PartnerEmailVerificationNotification extends Notification
         ]);
 
         return (new MailMessage)
-            ->subject(config('app.name').' — confirmez votre adresse partenaire')
+            ->subject(config('mail.brand_name').' — confirmez votre adresse partenaire')
             ->view('emails.partner.emailVerification', [
                 'partner' => $this->partner,
                 'verificationUrl' => $url,

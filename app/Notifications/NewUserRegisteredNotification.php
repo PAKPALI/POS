@@ -26,7 +26,7 @@ class NewUserRegisteredNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').' — nouveau compte utilisateur')
+            ->subject(config('mail.brand_name').' — nouveau compte utilisateur')
             ->view('emails.platform.userRegistered', [
                 'user' => $this->user,
                 'company' => $this->company,

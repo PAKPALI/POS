@@ -21,8 +21,8 @@ class PartnerPlatformAlertMail extends Mailable
 
     public function build(): self
     {
-        return $this->from(config('mail.from.address'), config('app.name'))
-            ->subject(config('app.name').' — '.$this->title)
+        return $this->from(config('mail.from.address'), config('mail.brand_name'))
+            ->subject(config('mail.brand_name').' — '.$this->title)
             ->view('emails.platform.partnerAlert');
     }
 }

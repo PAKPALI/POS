@@ -1,6 +1,6 @@
 # Rapport global permanent — SaaS POS
 
-Dernière mise à jour : 15 septembre 2026 — clôture du développement fonctionnel et validation staging confirmée.
+Dernière mise à jour : 18 septembre 2026 — monétisation production confirmée, exploitation globale en clôture.
 
 ## Rôle du document
 
@@ -12,12 +12,13 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 - fonctionnement réel avec plusieurs entreprises et changement de contexte ;
 - PWA mobile opérationnelle et identité harmonisée sous **MAXANOU** (manifeste, écran hors connexion et messages d’installation) ;
 - paiements KPrimePay réels, webhooks idempotents et absence de double crédit confirmée ;
+- paiements et abonnements confirmés fonctionnels en production par le propriétaire le 18 septembre 2026 ;
 - sauvegarde et restauration testées ;
 - queues et tâches cron surveillées ;
 - SPF, DKIM et DMARC validés ;
 - dernière suite complète documentée : **375 tests, 2 144 assertions, 0 échec** ;
 - développement fonctionnel et validation staging : **terminés** ;
-- reste uniquement le déploiement production, la configuration des secrets/URLs et l’activation progressive des contrôles.
+- la recette du cœur de monétisation production est franchie ; les contrôles d’exploitation périphériques restent à attester séparément.
 
 ## Fonctions SaaS consolidées
 
@@ -36,14 +37,16 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 - réglage d’enforcement désactivé par défaut pour le développement local et activable progressivement en production ;
 - exceptions d’enforcement par entreprise, avec héritage du réglage global, activation/désactivation ciblée et audit plateforme ;
 - PWA Android/iOS, panier persistant et interfaces mobiles ;
+- guides d’utilisation intégrés pour les entreprises (depuis Abonnement) et les partenaires (depuis Aide), couvrant les parcours, permissions, commissions, retraits et bonnes pratiques de sécurité ;
+- guide PDF professionnel téléchargeable depuis les deux interfaces, avec une présentation investisseurs, un chapitre entreprise et un chapitre partenaire ;
 - console centrale SaaS documentée séparément dans `RAPPORT_ADMINISTRATION_SAAS.md`.
 
 ## Mise à jour du 11 septembre 2026 — retraits et cohérence PWA
 
 - Le programme partenaires inclut le retrait sécurisé vers Mobile Money : compte vérifié par code e-mail, protections contre les renvois abusifs, états de demande et contrôles d’éligibilité côté serveur. Les détails d’exploitation et de paiement sont maintenus dans `GUIDE_KPRIMEPAY.md`.
 - La console plateforme propose le suivi des encaissements confirmés, des engagements partenaires et des sorties administrateur. Les numéros Mobile Money administrateur sont chiffrés, masqués et uniques par administrateur ; le rôle Finance est en lecture seule. Le suivi détaillé figure dans `RAPPORT_ADMINISTRATION_SAAS.md`.
-- La PWA est cohérente avec la marque MAXANOU sur les shells publics, partenaire et plateforme. Le cache courant est `maxanou-pwa-v8` et purge les caches historiques ; les pages authentifiées et leurs données restent exclues du cache applicatif.
-- La validation d’installation réelle demeure une étape de recette HTTPS sur le domaine de déploiement, avec désinstallation/réinstallation d’un ancien raccourci lorsque le manifeste est mis à jour.
+- La PWA est cohérente avec la marque MAXANOU sur les shells publics, partenaire et plateforme. Le cache courant est `maxanou-pwa-v14` et purge les caches historiques ; les pages authentifiées et leurs données restent exclues du cache applicatif.
+- Les icônes PWA sont versionnées dans le manifeste et le service worker vérifie sa mise à jour à chaque ouverture. Android/Chrome peut rafraîchir l’icône sans réinstallation ; iOS peut conserver temporairement son cache système.
 
 ## Validation SQL à gros volume
 
@@ -136,11 +139,15 @@ Ils sont configurables avec `PDF_PRODUCTS_MAX_ROWS`, `PDF_INVENTORIES_MAX_ROWS` 
 - une surveillance externe reste nécessaire pour détecter l’arrêt total du cron ;
 - les agrégations du tableau de bord et de l’historique doivent rester surveillées avec la croissance réelle ;
 - le lancement recommandé reste progressif avec quelques entreprises pilotes ;
-- la validation staging des abonnements, webhooks, SMTP, workers, cron, sauvegardes, logs, alertes et recette visuelle est acquise ; la production nécessite encore les secrets/URLs propres à l’environnement, la migration, la supervision et une activation progressive de l’enforcement.
+- les abonnements et paiements de production sont confirmés fonctionnels ; restent à conserver les preuves de transaction et à attester séparément SMTP, workers, cron, sauvegardes, logs, alertes, supervision, callbacks et activation progressive de l’enforcement.
 
-## Statut de bascule production — 15 septembre 2026
+## État production — 18 septembre 2026
 
-Le périmètre de développement est clôturé. La mise en production ne doit pas ouvrir un nouveau chantier fonctionnel : elle consiste à sauvegarder la base, déployer la version validée, injecter les secrets et URLs de production, exécuter les migrations et caches, démarrer les workers, configurer le cron, effectuer les smoke tests puis activer progressivement les réglages sensibles.
+Le propriétaire confirme que les paiements passent en production et que les abonnements fonctionnent. Le parcours principal de monétisation est donc considéré comme validé pour une ouverture contrôlée.
+
+Cette validation ne constitue pas à elle seule une preuve de bon fonctionnement de tous les scénarios : paiement abandonné/refusé, rejeu de webhook, réconciliation, e-mails, jobs en attente, cron, sauvegarde-restauration, supervision, sécurité HTTP et reprise après incident doivent conserver leurs propres preuves.
+
+La suite consiste à archiver les références de transactions de recette, vérifier les journaux et clôturer les cases restantes de `DEPLOIEMENT_O2SWITCH.md`.
 
 ## Documents complémentaires conservés
 

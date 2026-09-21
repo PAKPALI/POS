@@ -28,7 +28,7 @@ class QuotaPaymentConfirmedNotification extends Notification
         $buyer = $payment->user?->name ?? $payment->user?->email ?? 'Utilisateur non renseigné';
         $amount = number_format((float) $payment->amount, 0, ',', ' ').' '.($payment->currency ?: 'XOF');
         $mail = (new MailMessage)
-            ->subject(config('app.name').' — paiement de quotas confirmé')
+            ->subject(config('mail.brand_name').' — paiement de quotas confirmé')
             ->greeting('Bonjour '.$notifiable->name.',')
             ->line('Un paiement de quotas vient d’être confirmé pour l’entreprise '.$company.'.')
             ->line('Acheteur : '.$buyer)
@@ -37,7 +37,7 @@ class QuotaPaymentConfirmedNotification extends Notification
             ->line('Transaction : '.$payment->transaction_id)
             ->line('Référence de paiement : '.($payment->kpp_reference ?: '—'))
             ->line('Date de confirmation : '.($payment->paid_at?->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i')))
-            ->salutation('L’équipe '.config('app.name'));
+            ->salutation('L’équipe '.config('mail.brand_name'));
 
         if ($notifiable instanceof PlatformAdmin && $notifiable->hasPlatformPermission('platform.payments.view')) {
             $mail->action('Voir les paiements', route('platform.payments.index'));

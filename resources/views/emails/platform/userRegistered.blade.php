@@ -9,7 +9,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h2 style="margin-bottom:8px;">{{ config('app.name') }}</h2>
+        <h2 style="margin-bottom:8px;">{{ config('mail.brand_name') }}</h2>
         <p style="margin:0;color:#ff9f43;">Administration SaaS</p>
     </div>
 

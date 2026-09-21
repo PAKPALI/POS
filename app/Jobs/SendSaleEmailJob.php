@@ -63,7 +63,7 @@ class SendSaleEmailJob implements ShouldQueue
                         ], function ($message) use ($user, $sale, $company) {
                             $message->from(config('mail.from.address'), $company->name);
                             $message->to($user->email);
-                            $message->subject($company->name.' — Nouvelle vente #'.$sale->code);
+                            $message->subject(config('mail.brand_name').' — '.$company->name.' — Nouvelle vente #'.$sale->code);
                         });
                     }
                 );

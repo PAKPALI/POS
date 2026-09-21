@@ -1,5 +1,9 @@
 # Guide permanent — KPrimePay, quotas et incidents
 
+Dernière mise à jour : 18 septembre 2026 — paiements et abonnements production confirmés fonctionnels par le propriétaire.
+
+La confirmation concerne le parcours principal de monétisation. Les scénarios d’échec, de webhook rejoué, de paiement tardif, de réconciliation, de queue et de reprise restent à contrôler avec les preuves indiquées dans ce guide.
+
 ## Fonctionnement
 
 Une entreprise achète des quotas SMS et WhatsApp depuis le checkout KPrimePay. Le navigateur ne crédite jamais les quotas : seul un webhook vérifié ou la réconciliation serveur peut confirmer le paiement.

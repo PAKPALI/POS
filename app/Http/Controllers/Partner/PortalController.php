@@ -32,6 +32,11 @@ class PortalController extends Controller
         return view('partner.profile', ['partner' => Auth::guard('partner')->user()]);
     }
 
+    public function guide()
+    {
+        return view('partner.guide', ['partner' => Auth::guard('partner')->user()]);
+    }
+
     public function updateAppearance(Request $request)
     {
         $validated = $request->validate([

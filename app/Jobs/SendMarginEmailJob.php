@@ -77,7 +77,7 @@ class SendMarginEmailJob implements ShouldQueue
                                 function ($message) use ($user, $company) {
                                     $message->from(config('mail.from.address'), $company->name);
                                     $message->to($user->email);
-                                    $message->subject($company->name.' — Alerte de stock');
+                                    $message->subject(config('mail.brand_name').' — '.$company->name.' — Alerte de stock');
                                 }
                             );
                         }

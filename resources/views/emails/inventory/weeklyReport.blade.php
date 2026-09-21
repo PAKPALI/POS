@@ -11,7 +11,7 @@
     <div class="container">
 
         <div class="header">
-            <h2>{{ $company->name ?? config('app.name') }}</h2>
+            <h2>{{ $company->name ?? config('mail.brand_name') }}</h2>
             <p style="color:#ffff;">- Rapport hebdomadaire des inventaires -</p>
         </div>
 

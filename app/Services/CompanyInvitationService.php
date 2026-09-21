@@ -109,7 +109,7 @@ class CompanyInvitationService
             ], function ($message) use ($invitation) {
                 $message->from(config('mail.from.address'), $invitation->company->name);
                 $message->to($invitation->email);
-                $message->subject($invitation->company->name.' — Invitation à rejoindre l’entreprise');
+                $message->subject(config('mail.brand_name').' — '.$invitation->company->name.' — Invitation à rejoindre l’entreprise');
             });
             $invitation->update(['last_sent_at' => now()]);
             Log::info('Invitation email accepted by SMTP', [

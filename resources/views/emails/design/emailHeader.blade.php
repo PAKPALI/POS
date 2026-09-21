@@ -1,5 +1,5 @@
 @php
-    $emailHeaderTitle = $title ?? config('app.name');
+    $emailHeaderTitle = $title ?? config('mail.brand_name');
     $emailHeaderSubtitle = $subtitle ?? null;
 @endphp
 <div class="header">

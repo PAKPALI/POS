@@ -48,6 +48,7 @@ use App\Http\Controllers\Partner\CodeController as PartnerCodeController;
 use App\Http\Controllers\Partner\PortalController as PartnerPortalController;
 use App\Http\Controllers\Partner\InsightsController as PartnerInsightsController;
 use App\Http\Controllers\Partner\WithdrawalController as PartnerWithdrawalController;
+use App\Http\Controllers\UserGuidePdfController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -83,6 +84,8 @@ $partnerRoutes = function (): void {
         Route::post('withdrawals/confirm', [PartnerWithdrawalController::class, 'confirmWithdrawal'])->middleware('throttle:10,1')->name('withdrawals.confirm.submit');
         Route::post('commissions/export', [PartnerInsightsController::class, 'requestCommissionExport'])->middleware('throttle:5,1')->name('commissions.export');
         Route::get('exports/{export}/download', [PartnerInsightsController::class, 'downloadExport'])->name('exports.download');
+        Route::get('guide', [PartnerPortalController::class, 'guide'])->name('guide');
+        Route::get('guide/pdf', [UserGuidePdfController::class, 'partner'])->name('guide.pdf');
         Route::get('code', [PartnerCodeController::class, 'show'])->name('code');
         Route::get('code/availability', [PartnerCodeController::class, 'availability'])->middleware('throttle:30,1')->name('code.availability');
         Route::put('code', [PartnerCodeController::class, 'update'])->middleware('throttle:10,1')->name('code.update');
@@ -453,6 +456,8 @@ Route::prefix('setting')->middleware(['auth', 'company.resolve', 'company.select
     Route::get('sms-quota/return', [SmsQuotaController::class, 'returned'])->name('sms-quota.return');
 });
 Route::prefix('subscription')->middleware(['auth','company.resolve','company.selected','subscription.manage'])->group(function () {
+    Route::get('guide', [\App\Http\Controllers\SubscriptionGuideController::class, 'index'])->name('subscriptions.guide');
+    Route::get('guide/pdf', [UserGuidePdfController::class, 'company'])->name('subscriptions.guide.pdf');
     Route::get('', [\App\Http\Controllers\SubscriptionController::class,'index'])->name('subscriptions.index');
     Route::post('preview', [\App\Http\Controllers\SubscriptionController::class,'preview'])->middleware('throttle:30,1')->name('subscriptions.preview');
     Route::post('checkout', [\App\Http\Controllers\SubscriptionController::class,'checkout'])->middleware('throttle:10,1')->name('subscriptions.checkout');

@@ -15,7 +15,7 @@ class PartnerWithdrawalAccountConfirmationNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').' — confirmation du compte Mobile Money')
+            ->subject(config('mail.brand_name').' — confirmation du compte Mobile Money')
             ->view('emails.partner.withdrawalAccountConfirmation', [
                 'name' => $notifiable->name,
                 'code' => $this->code,

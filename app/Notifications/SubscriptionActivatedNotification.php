@@ -55,7 +55,7 @@ class SubscriptionActivatedNotification extends Notification
         }
 
         $mail = (new MailMessage)
-            ->subject(config('app.name').' — nouvel abonnement confirmé')
+            ->subject(config('mail.brand_name').' — nouvel abonnement confirmé')
             ->view('emails.platform.subscriptionActivated', [
                 'payment' => $payment,
                 'company' => $company,

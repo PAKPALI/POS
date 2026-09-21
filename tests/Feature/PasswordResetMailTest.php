@@ -27,7 +27,7 @@ class PasswordResetMailTest extends TestCase
         Notification::assertSentTo($user, ResetPasswordNotification::class, function ($notification) use ($user) {
             $mail = $notification->toMail($user);
             return $mail->view === 'emails.user.resetPassword'
-                && str_contains($mail->subject, config('app.name'));
+                && str_contains($mail->subject, config('mail.brand_name'));
         });
 
         $html = view('emails.user.resetPassword', [
@@ -35,7 +35,7 @@ class PasswordResetMailTest extends TestCase
             'expiresInMinutes' => 60, 'company' => null,
         ])->render();
         $this->assertStringContainsString('Copyright', $html);
-        $this->assertStringContainsString(config('app.name'), $html);
+        $this->assertStringContainsString(config('mail.brand_name'), $html);
     }
 
     public function test_forgot_password_does_not_reveal_whether_an_account_exists(): void
