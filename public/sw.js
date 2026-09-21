@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'maxanou-pwa-v19';
+const CACHE_VERSION = 'maxanou-pwa-v20';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const STATIC_ASSETS = [
     '/offline.html', '/manifest.json', '/favicon.ico',
