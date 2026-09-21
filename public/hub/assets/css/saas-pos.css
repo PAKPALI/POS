@@ -499,7 +499,7 @@
 }
 
 @media (max-height: 720px) {
-    .pos-saas-body .pos-discount-accordion .saas-accordion-body { max-height: 180px; }
+    .pos-saas-body .pos-discount-accordion .saas-accordion-body { max-height: 180px; overflow-y: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
