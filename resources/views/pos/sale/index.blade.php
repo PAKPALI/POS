@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260921-2" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260921-4" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -370,23 +370,39 @@
                                 </span>
                             </summary>
                             <div class="saas-accordion-body">
-                                <div class="pos-discount-field">
-                                    <label for="remiseInput"><i class="bi bi-cash-coin" aria-hidden="true"></i> Remise sur la commande</label>
-                                    <div class="pos-discount-input-group">
-                                        <span class="pos-discount-input-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
-                                        <input type="number" id="remiseInput" class="form-control" placeholder="Montant ({{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }})" min="0">
-                                        <button class="pos-discount-clear" id="deletremiseinput" type="button" aria-label="Retirer la remise" title="Retirer la remise"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                                @if($canUsePromoCodes)
+                                    <div class="pos-discount-switch" role="tablist" aria-label="Choisir une réduction">
+                                        <button type="button" class="pos-discount-switch-button is-active" id="discountTabRemise" role="tab" aria-selected="true" aria-controls="discountPanelRemise" data-discount-tab="remise">
+                                            <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                                            <span>Remise</span>
+                                        </button>
+                                        <button type="button" class="pos-discount-switch-button" id="discountTabPromo" role="tab" aria-selected="false" aria-controls="discountPanelPromo" data-discount-tab="promo">
+                                            <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+                                            <span>Code promo</span>
+                                        </button>
                                     </div>
-                                    <small class="pos-discount-help">Saisissez le montant à déduire du total de cette vente.</small>
+                                @endif
+                                <div id="discountPanelRemise" class="pos-discount-panel" role="tabpanel" aria-labelledby="discountTabRemise" data-discount-panel="remise">
+                                    <div class="pos-discount-field">
+                                        <label for="remiseInput"><i class="bi bi-cash-coin" aria-hidden="true"></i> Remise sur la commande</label>
+                                        <div class="pos-discount-input-group">
+                                            <span class="pos-discount-input-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+                                            <input type="number" id="remiseInput" class="form-control" placeholder="Montant ({{ app(\App\Services\AfricanMarketProfile::class)->forCompany()['currency'] }})" min="0">
+                                            <button class="pos-discount-clear" id="deletremiseinput" type="button" aria-label="Retirer la remise" title="Retirer la remise"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                                        </div>
+                                        <small class="pos-discount-help">Saisissez le montant à déduire du total de cette vente.</small>
+                                    </div>
                                 </div>
                                 @if($canUsePromoCodes)
-                                    <div class="pos-discount-divider" aria-hidden="true"></div>
-                                    <div class="pos-discount-field">
-                                        <label for="promoCodeInput"><i class="bi bi-ticket-perforated" aria-hidden="true"></i> Code promo client</label>
-                                        <div class="pos-discount-input-group">
-                                            <span class="pos-discount-input-icon"><i class="bi bi-ticket-perforated" aria-hidden="true"></i></span>
-                                            <input type="text" id="promoCodeInput" class="form-control" placeholder="Code promo ou scan" maxlength="64" autocomplete="off">
-                                            <button class="pos-discount-clear" id="deletpromoinput" type="button" aria-label="Retirer le code promo" title="Retirer le code promo"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                                    <div id="discountPanelPromo" class="pos-discount-panel" role="tabpanel" aria-labelledby="discountTabPromo" data-discount-panel="promo" hidden>
+                                        <div class="pos-discount-field">
+                                            <label for="promoCodeInput"><i class="bi bi-ticket-perforated" aria-hidden="true"></i> Code promo client</label>
+                                            <div class="pos-discount-input-group">
+                                                <span class="pos-discount-input-icon"><i class="bi bi-ticket-perforated" aria-hidden="true"></i></span>
+                                                <input type="text" id="promoCodeInput" class="form-control" placeholder="Code promo ou scan" maxlength="64" autocomplete="off">
+                                                <button class="pos-discount-clear" id="deletpromoinput" type="button" aria-label="Retirer le code promo" title="Retirer le code promo"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                                            </div>
+                                            <small class="pos-discount-help">Saisissez le code du client pour appliquer sa réduction.</small>
                                         </div>
                                     </div>
                                 @endif
@@ -1716,6 +1732,22 @@
         $("#deletremiseinput").on("click", function () {
             $("#remiseInput").val("").focus(); // Effacer et remettre le focus
             updateTotal();
+        });
+
+        $(document).on('click', '[data-discount-tab]', function() {
+            const button = this;
+            const target = button.dataset.discountTab;
+            const accordion = button.closest('.pos-discount-accordion');
+            if (!accordion || !target) return;
+
+            accordion.querySelectorAll('[data-discount-tab]').forEach((tab) => {
+                const isActive = tab === button;
+                tab.classList.toggle('is-active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            accordion.querySelectorAll('[data-discount-panel]').forEach((panel) => {
+                panel.hidden = panel.dataset.discountPanel !== target;
+            });
         });
 
         $('#remiseInput').on('input', function() {
