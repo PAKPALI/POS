@@ -34,6 +34,12 @@ return [
         'whatsapp_unit_price' => (int) env('KPRIMEPAY_WHATSAPP_UNIT_PRICE', 30),
         'sms_unit_cost' => (int) env('KPRIMEPAY_SMS_UNIT_COST', 15),
         'whatsapp_unit_cost' => (int) env('KPRIMEPAY_WHATSAPP_UNIT_COST', 15),
+        'webhook_bridge' => [
+            'enabled' => (bool) env('KPRIMEPAY_WEBHOOK_BRIDGE_ENABLED', false),
+            'url' => env('KPRIMEPAY_WEBHOOK_BRIDGE_URL'),
+            'secret' => env('KPRIMEPAY_WEBHOOK_BRIDGE_SECRET'),
+            'max_age_seconds' => (int) env('KPRIMEPAY_WEBHOOK_BRIDGE_MAX_AGE', 300),
+        ],
     ],
 
     // Les retraits utilisent volontairement une clé distincte des encaissements.

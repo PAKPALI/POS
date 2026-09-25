@@ -8,6 +8,7 @@ use App\Models\SubscriptionPayment;
 use App\Models\PartnerWithdrawal;
 use App\Models\PlatformWithdrawal;
 use App\Services\KprimePayService;
+use App\Services\KprimePayWebhookRelayService;
 use App\Services\PartnerPayoutService;
 use App\Services\PlatformTreasuryPayoutService;
 use App\Services\QuotaPaymentSettlementService;
@@ -18,9 +19,44 @@ use Throwable;
 
 class KprimePayWebhookController extends Controller
 {
-    public function __invoke(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement, SubscriptionSettlementService $subscriptionSettlement, PartnerPayoutService $payouts, PlatformTreasuryPayoutService $treasuryPayouts)
+    public function __invoke(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement, SubscriptionSettlementService $subscriptionSettlement, PartnerPayoutService $payouts, PlatformTreasuryPayoutService $treasuryPayouts, KprimePayWebhookRelayService $relay)
     {
-        $webhook = $this->normalizeWebhook($request, $request->all());
+        return $this->processWebhook(
+            $request->all(),
+            $this->providerHeaders($request),
+            $kprimePay,
+            $settlement,
+            $subscriptionSettlement,
+            $payouts,
+            $treasuryPayouts,
+            app()->environment('production') && $relay->enabled(),
+            $relay,
+        );
+    }
+
+    public function relay(Request $request, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement, SubscriptionSettlementService $subscriptionSettlement, PartnerPayoutService $payouts, PlatformTreasuryPayoutService $treasuryPayouts, KprimePayWebhookRelayService $relay)
+    {
+        $envelope = $relay->decodeRelayRequest($request);
+        if ($envelope === null) {
+            return response()->json(['status' => false, 'message' => 'INVALID_RELAY'], 401);
+        }
+
+        return $this->processWebhook(
+            $envelope['payload'],
+            $envelope['provider_headers'],
+            $kprimePay,
+            $settlement,
+            $subscriptionSettlement,
+            $payouts,
+            $treasuryPayouts,
+            false,
+            $relay,
+        );
+    }
+
+    private function processWebhook(array $payload, array $providerHeaders, KprimePayService $kprimePay, QuotaPaymentSettlementService $settlement, SubscriptionSettlementService $subscriptionSettlement, PartnerPayoutService $payouts, PlatformTreasuryPayoutService $treasuryPayouts, bool $allowRelay, KprimePayWebhookRelayService $relay)
+    {
+        $webhook = $this->normalizeWebhook($payload, $providerHeaders);
         if ($webhook === null) {
             return response()->json(['status' => false, 'message' => 'INVALID_WEBHOOK'], 400);
         }
@@ -30,7 +66,7 @@ class KprimePayWebhookController extends Controller
             if (!str_starts_with($webhook['event'], 'transfer.')) {
                 return response()->json(['status' => true, 'message' => 'IGNORED']);
             }
-            $result = $payouts->handleWebhook($withdrawal, $webhook, $request->all());
+            $result = $payouts->handleWebhook($withdrawal, $webhook, $payload);
             return response()->json(['status' => $result !== 'VERIFICATION_UNAVAILABLE', 'message' => $result], $result === 'VERIFICATION_UNAVAILABLE' ? 503 : 200);
         }
 
@@ -62,6 +98,14 @@ class KprimePayWebhookController extends Controller
         }
         $payment = QuotaPayment::withoutCompanyScope()->where('transaction_id', $webhook['transaction_id'])->first();
         if (!$payment) {
+            if ($allowRelay && str_starts_with($webhook['event'], 'collection.') && $relay->forward($payload, $providerHeaders)) {
+                return response()->json(['status' => true, 'message' => 'RELAYED']);
+            }
+
+            if ($allowRelay && str_starts_with($webhook['event'], 'collection.') && $relay->enabled()) {
+                return response()->json(['status' => false, 'message' => 'STAGING_RELAY_UNAVAILABLE'], 503);
+            }
+
             return response()->json(['status' => true, 'message' => 'IGNORED']);
         }
         if (QuotaPayment::withoutCompanyScope()->where('event_id', $webhook['event_id'])->where('id', '!=', $payment->id)->exists()) {
@@ -102,7 +146,7 @@ class KprimePayWebhookController extends Controller
     }
 
     /** Normalise les callbacks KPrimePay V1 et V2 vers un format interne unique. */
-    private function normalizeWebhook(Request $request, array $payload): ?array
+    private function normalizeWebhook(array $payload, array $providerHeaders): ?array
     {
         $transactionId = (string) data_get($payload, 'data.transaction_id', '');
         if ($transactionId === '') {
@@ -112,9 +156,9 @@ class KprimePayWebhookController extends Controller
         if (($payload['api_version'] ?? null) === '2.0') {
             $event = (string) ($payload['event'] ?? '');
             $eventId = (string) ($payload['event_id'] ?? '');
-            if ($request->header('X-API-BY') !== 'KPRIMESOFT'
-                || $request->header('X-KPP-EVENT') !== $event
-                || $request->header('X-KPP-EVENT-ID') !== $eventId
+            if (($providerHeaders['X-API-BY'] ?? null) !== 'KPRIMESOFT'
+                || ($providerHeaders['X-KPP-EVENT'] ?? null) !== $event
+                || ($providerHeaders['X-KPP-EVENT-ID'] ?? null) !== $eventId
                 || $eventId === '') {
                 return null;
             }
@@ -156,6 +200,15 @@ class KprimePayWebhookController extends Controller
             'currency' => (string) data_get($payload, 'data.transaction_currency', ''),
             'kpp_reference' => (string) data_get($payload, 'data.kpp_tx_reference', ''),
             'failure_reason' => (string) data_get($payload, 'data.failure_reason', 'Paiement échoué'),
+        ];
+    }
+
+    private function providerHeaders(Request $request): array
+    {
+        return [
+            'X-API-BY' => (string) $request->header('X-API-BY', ''),
+            'X-KPP-EVENT' => (string) $request->header('X-KPP-EVENT', ''),
+            'X-KPP-EVENT-ID' => (string) $request->header('X-KPP-EVENT-ID', ''),
         ];
     }
 }

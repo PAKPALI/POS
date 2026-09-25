@@ -26,7 +26,8 @@ class InAppGuideTest extends TestCase
             ->assertOk()
             ->assertSee('Bien utiliser')
             ->assertSee('Point de vente')
-            ->assertSee('l’application reste consultable');
+            ->assertSee('l’application reste consultable')
+            ->assertSee('mailto:contact@maxanou.com', false);
     }
 
     public function test_subscription_guide_pdf_downloads_for_the_company_manager(): void
@@ -58,7 +59,8 @@ class InAppGuideTest extends TestCase
             ->assertOk()
             ->assertSee('Guide partenaire')
             ->assertSee('Mon code partenaire')
-            ->assertSee('Commissions');
+            ->assertSee('Commissions')
+            ->assertSee('mailto:contact@maxanou.com', false);
     }
 
     public function test_partner_guide_pdf_downloads_for_an_active_partner(): void

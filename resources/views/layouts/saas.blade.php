@@ -64,7 +64,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     @php($appSocialNetworks = app(\App\Services\PlatformConfigurationService::class)->socialNetworks())
     @include('partials.social-network-invite', ['socialNetworks' => $appSocialNetworks])
-    <script src="{{ asset('pwa-register.js') }}" defer></script>
+    <script src="{{ asset('pwa-register.js') }}?v=20260921-1" defer></script>
     @stack('scripts')
 </body>
 </html>

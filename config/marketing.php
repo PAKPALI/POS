@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'contact_email' => env('MARKETING_CONTACT_EMAIL', 'contact@maxanou.com'),
     'pricing_note' => 'Les offres affichées reprennent les plans actuellement publiés. La disponibilité du paiement dépend du pays et des services activés.',
     'plans' => [
         [

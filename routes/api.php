@@ -25,3 +25,6 @@ Route::post('/sms/callback', [SmsController::class, 'handleCallback'])
 
 Route::post('/kprimepay/webhook', KprimePayWebhookController::class)
     ->middleware('throttle:120,1');
+
+Route::post('/kprimepay/webhook/relay', [KprimePayWebhookController::class, 'relay'])
+    ->middleware('throttle:120,1');

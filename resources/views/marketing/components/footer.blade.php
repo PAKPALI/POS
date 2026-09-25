@@ -5,7 +5,7 @@
             <p>Le POS simple pour vendre, suivre le stock et piloter votre commerce.</p>
         </div>
         <div><strong>Produit</strong><a href="{{ route('marketing.features') }}">Fonctionnalités</a><a href="{{ route('marketing.invoices') }}">Factures SMS & WhatsApp</a><a href="{{ route('marketing.pricing') }}">Tarifs</a><a href="{{ route('marketing.partners') }}">Devenir partenaire</a></div>
-        <div><strong>Confiance</strong><a href="{{ route('marketing.security') }}">Sécurité</a><a href="{{ route('marketing.help') }}">Aide</a><a href="{{ route('marketing.legal') }}">Mentions légales</a></div>
+        <div><strong>Confiance</strong><a href="{{ route('marketing.security') }}">Sécurité</a><a href="{{ route('marketing.help') }}">Aide</a><a href="{{ route('marketing.legal') }}">Mentions légales</a><a href="mailto:{{ config('marketing.contact_email') }}">Nous contacter</a></div>
         <div><strong>Accès</strong><a href="{{ route('marketing.login') }}">Se connecter</a><a href="{{ route('marketing.register') }}">Créer un espace</a><span class="marketing-footer-note">Français · autres langues à venir</span></div>
     </div>
     <div class="marketing-container marketing-footer-bottom"><span>© {{ date('Y') }} Maxanou</span><span>Les offres affichées reprennent les plans actuellement publiés.</span></div>

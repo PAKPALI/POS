@@ -206,7 +206,7 @@
                 <article class="saas-guide-callout-card">
                     <i class="bi bi-headset" aria-hidden="true"></i>
                     <h3>Besoin d’aide ?</h3>
-                    <p>Utilisez les canaux officiels indiqués dans l’application pour signaler une anomalie sur un code, une entreprise ou un retrait.</p>
+                    <p>Utilisez les canaux officiels indiqués dans l’application pour signaler une anomalie sur un code, une entreprise ou un retrait. Vous pouvez aussi écrire à <a href="mailto:{{ config('marketing.contact_email') }}">{{ config('marketing.contact_email') }}</a>.</p>
                 </article>
             </div>
         </section>

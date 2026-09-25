@@ -266,6 +266,12 @@
         window.setTimeout(showMobileFallbackGuide, 4000);
 
         if (!('serviceWorker' in navigator)) return;
+        let reloadedAfterPwaUpdate = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (reloadedAfterPwaUpdate) return;
+            reloadedAfterPwaUpdate = true;
+            window.location.reload();
+        });
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
             .then(function (registration) {
                 registration.update().catch(function () {});

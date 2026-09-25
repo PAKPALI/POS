@@ -58,6 +58,21 @@
 </section>
 @endif
 
+@if($page === 'aide')
+<section class="marketing-section marketing-page-band" aria-labelledby="marketing-contact-title">
+    <div class="marketing-container marketing-page-band-inner">
+        <div>
+            <span class="marketing-eyebrow">Besoin d’aide ?</span>
+            <h2 id="marketing-contact-title">Notre équipe reste disponible.</h2>
+            <p>Pour une question sur Maxanou, une demande d’accompagnement ou un renseignement commercial, écrivez-nous directement.</p>
+        </div>
+        <a class="marketing-button marketing-button-secondary" href="mailto:{{ config('marketing.contact_email') }}">
+            <i class="bi bi-envelope" aria-hidden="true"></i>{{ config('marketing.contact_email') }}
+        </a>
+    </div>
+</section>
+@endif
+
 @if($page === 'partenaires')
 <section class="marketing-section marketing-public-stats-section partner-public-stats-section" id="partenaire-chiffres" aria-labelledby="partner-stats-title">
     <div class="marketing-container">

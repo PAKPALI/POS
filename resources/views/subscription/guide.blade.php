@@ -136,7 +136,7 @@
             <article class="saas-guide-callout"><i class="bi bi-key" aria-hidden="true"></i><div><strong>Protégez votre compte</strong><span>Utilisez un mot de passe unique et robuste. Déconnectez-vous des appareils partagés.</span></div></article>
             <article class="saas-guide-callout"><i class="bi bi-person-check" aria-hidden="true"></i><div><strong>Respectez les rôles</strong><span>Chaque personne doit posséder son propre accès : ne partagez pas un compte entre collaborateurs.</span></div></article>
         </div>
-        <div class="saas-guide-inline-links"><a href="{{ route('subscriptions.index') }}"><i class="bi bi-credit-card" aria-hidden="true"></i> Gérer mon abonnement</a><a href="{{ route('dashboard') }}"><i class="bi bi-grid-1x2" aria-hidden="true"></i> Retour au tableau de bord</a></div>
+        <div class="saas-guide-inline-links"><a href="{{ route('subscriptions.index') }}"><i class="bi bi-credit-card" aria-hidden="true"></i> Gérer mon abonnement</a><a href="{{ route('dashboard') }}"><i class="bi bi-grid-1x2" aria-hidden="true"></i> Retour au tableau de bord</a><a href="mailto:{{ config('marketing.contact_email') }}"><i class="bi bi-envelope" aria-hidden="true"></i> Contacter MAXANOU</a></div>
     </section>
 </div>
 @endsection

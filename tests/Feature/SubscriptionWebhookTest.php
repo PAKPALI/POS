@@ -185,4 +185,84 @@ class SubscriptionWebhookTest extends TestCase
         $this->assertSame('expired', $expired->fresh()->status);
         $this->assertSame(23, (int) $company->fresh()->sms_count);
     }
+
+    public function test_unknown_collection_is_relayed_to_staging_only_from_production(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+        config([
+            'services.kprimepay.webhook_bridge.enabled' => true,
+            'services.kprimepay.webhook_bridge.url' => 'https://pos.lacasaweb.com/api/kprimepay/webhook/relay',
+            'services.kprimepay.webhook_bridge.secret' => 'bridge-test-secret',
+        ]);
+        Http::fake([
+            'https://pos.lacasaweb.com/api/kprimepay/webhook/relay' => Http::response(['status' => true, 'message' => 'SETTLED']),
+        ]);
+
+        $payload = [
+            'api_version' => '2.0',
+            'event' => 'collection.succeeded',
+            'event_id' => 'evt-staging-only-1',
+            'data' => [
+                'transaction_id' => 'STAGING-ONLY-PAYMENT',
+                'kpp_reference' => 'KPP-STAGING-ONLY',
+                'transaction_details' => ['currency' => 'XOF', 'amount' => 7500],
+            ],
+        ];
+
+        $this->withHeaders($this->v2Headers('collection.succeeded', 'evt-staging-only-1'))
+            ->postJson('/api/kprimepay/webhook', $payload)
+            ->assertOk()
+            ->assertJson(['message' => 'RELAYED']);
+
+        Http::assertSent(function (Request $request) use ($payload): bool {
+            return $request->url() === 'https://pos.lacasaweb.com/api/kprimepay/webhook/relay'
+                && $request->hasHeader('X-Maxanou-Relay-Timestamp')
+                && $request->hasHeader('X-Maxanou-Relay-Signature')
+                && $request['payload'] === $payload
+                && $request['provider_headers']['X-KPP-EVENT-ID'] === 'evt-staging-only-1';
+        });
+    }
+
+    public function test_relay_rejects_invalid_signature(): void
+    {
+        config(['services.kprimepay.webhook_bridge.secret' => 'bridge-test-secret']);
+        $body = json_encode([
+            'payload' => ['api_version' => '2.0'],
+            'provider_headers' => [],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->call('POST', '/api/kprimepay/webhook/relay', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_MAXANOU_RELAY_TIMESTAMP' => (string) time(),
+            'HTTP_X_MAXANOU_RELAY_SIGNATURE' => 'sha256=invalid',
+        ], $body)->assertUnauthorized();
+    }
+
+    public function test_staging_does_not_relay_unknown_collection_back_to_another_environment(): void
+    {
+        $this->app->detectEnvironment(fn () => 'staging');
+        config([
+            'services.kprimepay.webhook_bridge.enabled' => true,
+            'services.kprimepay.webhook_bridge.url' => 'https://production.example/api/kprimepay/webhook/relay',
+            'services.kprimepay.webhook_bridge.secret' => 'bridge-test-secret',
+        ]);
+        Http::fake();
+
+        $payload = [
+            'api_version' => '2.0',
+            'event' => 'collection.succeeded',
+            'event_id' => 'evt-staging-no-loop',
+            'data' => [
+                'transaction_id' => 'UNKNOWN-STAGING-PAYMENT',
+                'transaction_details' => ['currency' => 'XOF', 'amount' => 7500],
+            ],
+        ];
+
+        $this->withHeaders($this->v2Headers('collection.succeeded', 'evt-staging-no-loop'))
+            ->postJson('/api/kprimepay/webhook', $payload)
+            ->assertOk()
+            ->assertJson(['message' => 'IGNORED']);
+
+        Http::assertNothingSent();
+    }
 }
