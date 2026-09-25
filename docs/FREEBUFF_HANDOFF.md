@@ -1,10 +1,18 @@
 # Reprise du chantier SaaS multi-entreprises
 
-Dernière mise à jour : 18 septembre 2026 — validation production du cœur de monétisation ajoutée à la clôture locale.
+Dernière mise à jour : 25 septembre 2026 — synchronisation KPrimePay API v2 ajoutée à la clôture locale.
 
 ## Règle de lecture documentaire
 
 La section **État production — 18 septembre 2026** constitue l’état courant de la recette de production. La section **Clôture locale — 15 septembre 2026** et les mises à jour qui la précèdent constituent l’état courant du développement et du staging. Les entrées datées plus anciennes sont conservées comme journal de décisions et de preuves ; leurs mentions « à faire », « reste à valider » ou « prochaine étape » décrivent l’état du projet à leur date et ne constituent plus des tâches ouvertes.
+
+## Mise à jour du 25 septembre 2026 — API KPrimePay v2
+
+- La dernière notification du fournisseur fixe l’arrêt définitif de l’API v1 au **30 septembre 2026**. Les nouveaux encaissements et transferts MAXANOU doivent utiliser les endpoints v2.
+- Le checkout v2 peut proposer `OTHER_REGION` lorsque KPrimePay détecte une région ou des opérateurs supplémentaires, préremplir un bloc facultatif `customer` et limiter les moyens affichés avec `payment_methods`.
+- Les codes de `payment_methods` doivent venir de `GET /v2/gateways`, champ `checkout_method`. Si le tableau n’est pas transmis, KPrimePay garde son affichage habituel ; aucune liste locale ne doit prétendre remplacer son catalogue.
+- Le client peut modifier les valeurs préremplies et les données finalement validées par KPrimePay restent la source de vérité du webhook.
+- Le flux MAXANOU actuel reste volontairement sur le checkout v2 minimal. Ces options sont documentées dans `GUIDE_KPRIMEPAY.md` pour une activation ultérieure distincte et testée ; la compatibilité de lecture v1 du webhook est historique et transitoire.
 
 ## État production — 18 septembre 2026
 

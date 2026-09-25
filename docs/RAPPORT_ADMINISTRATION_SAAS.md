@@ -1,6 +1,6 @@
 # Rapport permanent — Administration SaaS
 
-Dernière mise à jour : 18 septembre 2026 — pilotage partenaires, graphiques, alertes e-mail et validation production du cœur de monétisation
+Dernière mise à jour : 25 septembre 2026 — pilotage partenaires, graphiques, alertes e-mail et synchronisation KPrimePay API v2
 
 ## État production — 18 septembre 2026
 
@@ -8,6 +8,12 @@ Dernière mise à jour : 18 septembre 2026 — pilotage partenaires, graphiques,
 - Le parcours principal de monétisation est donc validé pour une ouverture contrôlée.
 - Cette confirmation ne couvre pas automatiquement les paiements abandonnés ou refusés, les rejoués de webhook, la réconciliation, les e-mails, les workers, le cron, les sauvegardes, la supervision ni les droits d’administration : ces points restent à prouver dans la checklist de déploiement.
 - Les anciennes sections datées qui mentionnent encore la validation staging restent un historique ; le présent addendum est l’état courant.
+
+## Mise à jour du 25 septembre 2026 — évolution KPrimePay v2
+
+- La date d’arrêt définitif de l’API v1 communiquée par KPrimePay est le **30 septembre 2026**. Les nouveaux checkouts et transferts doivent rester configurés sur les endpoints v2.
+- Les options de checkout v2 `OTHER_REGION`, `customer` et `payment_methods` sont facultatives. Leur description, leurs garde-fous et leur statut d’intégration sont centralisés dans `docs/GUIDE_KPRIMEPAY.md`.
+- Pour une liste de moyens de paiement, l’administration ne doit pas maintenir une liste technique indépendante : les codes sont découverts via `GET /v2/gateways` et le champ `checkout_method`. Aucun moyen non retourné par KPrimePay ne doit être proposé au client.
 
 ## Mise à jour du 14 septembre 2026 — pilotage partenaires et alertes
 

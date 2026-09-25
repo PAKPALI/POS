@@ -8,7 +8,7 @@ Cette arborescence distingue les références actives, les procédures d’explo
 - `ETAT_DOCUMENTAIRE_PRODUCTION.md` : matrice de statut, niveau de préparation et ordre de lecture pendant la clôture de production.
 - `RAPPORT_GLOBAL_SAAS.md` : état fonctionnel et opérationnel consolidé du SaaS.
 - `RAPPORT_ADMINISTRATION_SAAS.md` : console plateforme, sécurité et suivi de l’administration centrale.
-- `GUIDE_KPRIMEPAY.md` : intégration, rapprochement et exploitation des paiements.
+- `GUIDE_KPRIMEPAY.md` : intégration API v2, nouveautés du checkout, rapprochement et exploitation des paiements.
 - `CAHIER_ARCHITECTURE_PLATEFORME_PARTENAIRES.md` : référence normative de l’architecture, des règles financières, du schéma de données, des flux KPrimePay payout et de la sécurité partenaires ; l’implémentation fonctionnelle est livrée.
 - `DEPLOIEMENT_O2SWITCH.md` : déploiement et exploitation de production.
 - `CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` : document maître des règles UI/UX, de l’accessibilité et des attentes des actions serveur ; le PDF est un export de référence.

@@ -2,7 +2,7 @@
 
 Ce guide prépare un premier déploiement SaaS avec **Laravel 12**, **PHP 8.2 minimum**, **MySQL**, une queue en base de données et sans Redis.
 
-> **Statut au 18 septembre 2026 : staging validé et cœur de monétisation production confirmé.** Le propriétaire confirme que les paiements passent en production et que les abonnements fonctionnent. Cette validation ne clôt pas les contrôles d’exploitation périphériques : secrets/URLs, SMTP, URL webhook, cron, workers, sauvegardes, supervision, sécurité et activation progressive de l’enforcement doivent rester vérifiés et archivés.
+> **Statut au 25 septembre 2026 : staging validé et cœur de monétisation production confirmé.** Le propriétaire confirme que les paiements passent en production et que les abonnements fonctionnent. Cette validation ne clôt pas les contrôles d’exploitation périphériques : secrets/URLs, SMTP, URL webhook, cron, workers, sauvegardes, supervision, sécurité et activation progressive de l’enforcement doivent rester vérifiés et archivés.
 
 ## État de recette production
 
@@ -347,11 +347,15 @@ Pour produire les commandes finales prêtes à copier, relever uniquement : le n
 
 Avant d’activer l’achat de quotas, renseigner les variables `KPRIMEPAY_*` décrites dans `docs/GUIDE_KPRIMEPAY.md`. La clé doit avoir les scopes `payments:write` et `read`.
 
+L’intégration cible est l’API KPrimePay v2. Selon la dernière notification du fournisseur, l’API v1 sera arrêtée définitivement le **30 septembre 2026**. Vérifier avant ouverture que `KPRIMEPAY_BASE_URL` et `KPRIMEPAY_PAYOUT_BASE_URL` terminent bien par `/v2` et qu’aucun nouveau flux ne pointe vers une URL v1.
+
 Configurer dans KPrimePay l’URL de rappel HTTPS :
 
 ```text
 https://VOTRE-DOMAINE/api/kprimepay/webhook
 ```
+
+Les nouveautés v2 `OTHER_REGION`, `customer` et `payment_methods` sont facultatives. Elles sont documentées dans `docs/GUIDE_KPRIMEPAY.md` ; ne pas les ajouter dans le déploiement sans tester le checkout hébergé et le webhook correspondant. Pour une sélection de moyens de paiement, utiliser les codes renvoyés par `GET /v2/gateways` (`checkout_method`) au lieu d’une liste codée en dur.
 
 Tester d’abord avec `KPRIMEPAY_MODE=1`. Ne passer à `KPRIMEPAY_MODE=2` qu’après validation du checkout, du webhook, du montant et de l’idempotence. La clé communiquée pendant le développement doit être révoquée et remplacée avant ce test.
 # Console d’administration SaaS

@@ -527,12 +527,16 @@ L’abonnement ne doit pas être annulé si le traitement partenaire échoue pou
 
 ## 9. Intégration KPrimePay
 
+> **Synchronisation fournisseur — 25 septembre 2026.** KPrimePay confirme que l’API v1 sera arrêtée définitivement le **30 septembre 2026**. Les nouveaux encaissements et transferts de la plateforme utilisent l’API v2. La compatibilité v1 conservée dans le routeur webhook est uniquement historique et ne doit pas servir à créer de nouveaux appels.
+
 ### 9.1 Séparation des usages
 
-Conserver le service d’encaissement actuel pour :
+Conserver le service d’encaissement v2 actuel pour :
 
 - `/checkout` des abonnements et quotas ;
 - `/transactions/debit-status` pour confirmer l’argent reçu.
+
+Pour les checkouts, les extensions v2 suivantes sont facultatives : `OTHER_REGION` pour une région proposée par KPrimePay, `customer` pour préremplir les informations connues du client et `payment_methods` pour restreindre les moyens affichés. Les codes de `payment_methods` doivent être lus depuis `GET /v2/gateways`, champ `checkout_method`, et non codés en dur. Le client peut modifier le préremplissage ; les données finalement validées par KPrimePay restent la source du webhook.
 
 Créer `KprimePayPayoutService` séparé pour :
 
@@ -585,7 +589,7 @@ Une alternative `/api/kprimepay/payout-webhook` n’est acceptable que si KPrime
 - rapprochement quotidien du solde KPrimePay payout avec les retraits en cours ;
 - aucun retry aveugle avec une nouvelle transaction/idempotency key.
 
-KPrimePay documente en V2 les scopes distincts, l’IP autorisée, l’idempotence obligatoire, les transferts Mobile Money, les statuts crédit, les soldes et les événements webhook. Référence normative : <https://developers.kprimepay.com/index>.
+KPrimePay documente en V2 les scopes distincts, l’IP autorisée, l’idempotence obligatoire, les transferts Mobile Money, les statuts crédit, les soldes, les événements webhook, le catalogue `GET /v2/gateways` et les options du checkout. Référence normative : <https://developers.kprimepay.com/index?v=v2#checkout>.
 
 ## 10. Services, événements et jobs à créer
 

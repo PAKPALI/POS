@@ -1,6 +1,6 @@
 # État documentaire et préparation de production
 
-Dernière mise à jour : 18 septembre 2026
+Dernière mise à jour : 25 septembre 2026 — synchronisation KPrimePay API v2
 
 ## Décision de lecture
 
@@ -8,7 +8,9 @@ Le développement fonctionnel et la validation staging sont clôturés pour le p
 
 La phase restante est la consolidation opérationnelle de production : conserver les preuves de paiement, vérifier les services périphériques, finaliser les smoke tests et activer progressivement les réglages sensibles.
 
-## Niveau de préparation au 18 septembre 2026
+La dernière notification KPrimePay fixe l’arrêt définitif de l’API v1 au **30 septembre 2026**. Le projet doit donc conserver l’API v2 comme seule cible pour les nouveaux encaissements et transferts ; la compatibilité de lecture v1 du webhook est historique et transitoire.
+
+## Niveau de préparation au 25 septembre 2026
 
 | Périmètre | Niveau | État constaté |
 | --- | --- | --- |
@@ -23,9 +25,10 @@ La phase restante est la consolidation opérationnelle de production : conserver
 
 | Document | Rôle | Statut courant |
 | --- | --- | --- |
-| `FREEBUFF_HANDOFF.md` | Source de vérité de la reprise et des décisions récentes | Clôture fonctionnelle/staging et addendum production du 18 septembre |
-| `RAPPORT_GLOBAL_SAAS.md` | État global du SaaS, performance et exploitation | Mis à jour au 18 septembre ; monétisation production confirmée, exploitation globale à clôturer |
-| `RAPPORT_ADMINISTRATION_SAAS.md` | État de la console plateforme | Mis à jour au 18 septembre ; console validée et paiements/abonnements production confirmés |
+| `FREEBUFF_HANDOFF.md` | Source de vérité de la reprise et des décisions récentes | Clôture fonctionnelle/staging, état production du 18 septembre et addendum KPrimePay du 25 septembre |
+| `RAPPORT_GLOBAL_SAAS.md` | État global du SaaS, performance et exploitation | Mis à jour au 25 septembre ; monétisation production confirmée, exploitation globale à clôturer |
+| `RAPPORT_ADMINISTRATION_SAAS.md` | État de la console plateforme | Mis à jour au 25 septembre ; console validée et paiements/abonnements production confirmés |
+| `GUIDE_KPRIMEPAY.md` | Intégration API v2, nouveautés checkout, rapprochement et exploitation des paiements | Référence active ; synchronisée le 25 septembre avec la notification fournisseur |
 | `CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.md` | Règles normatives UI/UX et critères d’acceptation | Référence active ; migration et recette staging validées |
 | `CAHIER_DES_CHARGES_DESIGN_SYSTEM_UI_UX.pdf` | Export du cahier UI/UX | Référence de diffusion ; le Markdown est le document maître |
 | `CAHIER_ARCHITECTURE_PLATEFORME_PARTENAIRES.md` | Architecture, règles financières et sécurité partenaires | Référence normative ; implémentation fonctionnelle livrée |
@@ -47,7 +50,7 @@ Chaque sujet possède un seul document maître éditable. Les fichiers HTML/Mark
 En cas de divergence, lire dans cet ordre :
 
 1. le présent fichier, pour savoir quel document fait foi ;
-2. `FREEBUFF_HANDOFF.md`, section « État production — 18 septembre 2026 » puis « Clôture locale — 15 septembre 2026 » ;
+2. `FREEBUFF_HANDOFF.md`, son addendum KPrimePay du 25 septembre, puis « État production — 18 septembre 2026 » et « Clôture locale — 15 septembre 2026 » ;
 3. `RAPPORT_GLOBAL_SAAS.md` et `RAPPORT_ADMINISTRATION_SAAS.md` ;
 4. `DEPLOIEMENT_O2SWITCH.md` pour les opérations de production ;
 5. les cahiers normatifs pour vérifier une règle métier ou visuelle.

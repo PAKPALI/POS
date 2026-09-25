@@ -1,6 +1,6 @@
 # Guide permanent — KPrimePay, quotas et incidents
 
-Dernière mise à jour : 18 septembre 2026 — paiements et abonnements production confirmés fonctionnels par le propriétaire.
+Dernière mise à jour : 25 septembre 2026 — synchronisation avec les évolutions KPrimePay API v2 et l’échéance de fin de l’API v1.
 
 La confirmation concerne le parcours principal de monétisation. Les scénarios d’échec, de webhook rejoué, de paiement tardif, de réconciliation, de queue et de reprise restent à contrôler avec les preuves indiquées dans ce guide.
 
@@ -55,6 +55,52 @@ Webhook public :
 POST /api/kprimepay/webhook
 ```
 
+## Mise à jour fournisseur — API v2
+
+La dernière notification KPrimePay confirme que l’API v2 est la version de référence pour les nouveaux encaissements et transferts. L’API v1 sera arrêtée définitivement le **30 septembre 2026**. Après cette date, aucun nouvel appel v1 ne doit être utilisé pour les encaissements ou les transferts.
+
+Le projet utilise déjà `https://api.kprimepay.com/v2` pour les checkouts et les reversements. Le contrôleur de webhook conserve une normalisation de l’ancien format pour absorber les callbacks historiques pendant la transition, mais cela ne doit pas être interprété comme une autorisation de créer de nouveaux appels v1.
+
+La mise à jour KPrimePay n’impose pas de changement pour les appels actuels qui n’utilisent pas les options ci-dessous. Ces options sont disponibles lorsque le produit souhaite enrichir ou restreindre la page de paiement.
+
+### 1. Région et opérateurs supplémentaires
+
+KPrimePay peut afficher sur sa page hébergée l’option `OTHER_REGION` pour un client situé hors de la couverture directe. Le client est dirigé vers le parcours sécurisé KPrimePay puis revient sur l’URL de retour de MAXANOU. Cette option est pilotée par KPrimePay et ne doit pas être forcée si elle n’est pas retournée comme disponible.
+
+### 2. Préremplissage des informations client
+
+Lorsque MAXANOU connaît déjà le client et que ces données peuvent être transmises dans le cadre du parcours concerné, le checkout v2 accepte un bloc `customer` facultatif :
+
+```json
+{
+  "customer": {
+    "full_name": "Awa Kodjo",
+    "email": "awa.kodjo@example.com",
+    "phone_number": "90010203"
+  }
+}
+```
+
+Le client peut corriger les informations sur la page KPrimePay. Le webhook et la vérification serveur restent la source de vérité : il faut utiliser les informations réellement validées par le client, et non supposer que le préremplissage a été accepté sans modification.
+
+### 3. Choix des moyens de paiement
+
+Le checkout v2 accepte aussi `payment_methods` pour limiter les moyens affichés :
+
+```json
+{
+  "payment_methods": ["MIXX-YAS-TG", "CARD", "OTHER_REGION"]
+}
+```
+
+Les valeurs ne doivent pas être inventées ni figées dans l’interface. Elles doivent être découvertes avec `GET /v2/gateways`, dans le champ `checkout_method`, puis filtrées selon la politique commerciale et le pays du parcours. Si `payment_methods` n’est pas envoyé, KPrimePay continue de présenter les moyens disponibles comme aujourd’hui.
+
+Références fournisseur : [checkout API v2](https://developers.kprimepay.com/index?v=v2#checkout) et [catalogue dynamique des moyens de paiement](https://developers.kprimepay.com/index?v=v2#gateways).
+
+### Décision d’intégration MAXANOU
+
+Le flux actuel conserve le checkout v2 minimal et compatible : montant, devise, description, URL de retour et métadonnées internes. Le préremplissage `customer` et la restriction `payment_methods` restent des extensions optionnelles à activer dans un lot séparé, avec tests du payload, de l’affichage hébergé, du webhook et de la vérification du montant. Aucune liste d’opérateurs supplémentaire ne doit être ajoutée uniquement dans le front sans confirmation de `GET /v2/gateways`.
+
 ## Checkout et retour client
 
 - création d’une transaction interne unique ;
@@ -66,16 +112,16 @@ POST /api/kprimepay/webhook
 
 L’URL de retour n’est jamais une preuve de paiement.
 
-## Webhooks V1 et V2
+## Webhooks v2 et compatibilité historique v1
 
-Le contrôleur accepte le format V2 et le format V1 `payment.web.checkout`. Chaque événement est normalisé puis reconfirmé auprès de l’API KPrimePay. Le montant, la devise, le statut et la transaction interne doivent correspondre.
+Le contrôleur traite prioritairement les événements v2 et conserve une compatibilité de lecture avec le format v1 `payment.web.checkout` pour les callbacks historiques. Chaque événement est normalisé puis reconfirmé auprès de l’API KPrimePay. Le montant, la devise, le statut et la transaction interne doivent correspondre. Après le 30 septembre 2026, tout nouvel appel v1 doit être considéré comme non supporté et signalé comme incident d’intégration.
 
 Protections contre les doublons :
 
 - `transaction_id` unique ;
 - `idempotency_key` unique ;
 - `event_id` unique ;
-- empreinte SHA-256 stable générée lorsque la V1 ne fournit aucun `event_id` ;
+- empreinte SHA-256 stable conservée uniquement pour les callbacks historiques qui ne fournissent aucun `event_id` ;
 - transaction SQL et verrouillage avant crédit.
 
 ## Paiement abandonné

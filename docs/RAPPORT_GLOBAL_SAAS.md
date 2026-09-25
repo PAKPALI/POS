@@ -1,6 +1,6 @@
 # Rapport global permanent — SaaS POS
 
-Dernière mise à jour : 18 septembre 2026 — monétisation production confirmée, exploitation globale en clôture.
+Dernière mise à jour : 25 septembre 2026 — monétisation production confirmée, intégration KPrimePay v2 synchronisée, exploitation globale en clôture.
 
 ## Rôle du document
 
@@ -40,6 +40,15 @@ Ce document remplace les anciens rapports d’avancement datés et les rapports 
 - guides d’utilisation intégrés pour les entreprises (depuis Abonnement) et les partenaires (depuis Aide), couvrant les parcours, permissions, commissions, retraits et bonnes pratiques de sécurité ;
 - guide PDF professionnel téléchargeable depuis les deux interfaces, avec une présentation investisseurs, un chapitre entreprise et un chapitre partenaire ;
 - console centrale SaaS documentée séparément dans `RAPPORT_ADMINISTRATION_SAAS.md`.
+
+## Mise à jour du 25 septembre 2026 — KPrimePay API v2
+
+- La dernière notification fournisseur fixe l’arrêt définitif de l’API v1 au **30 septembre 2026**. Les nouveaux encaissements et transferts doivent utiliser l’API v2 ; la compatibilité de lecture v1 du webhook reste limitée aux callbacks historiques.
+- Le checkout v2 peut proposer `OTHER_REGION` lorsque KPrimePay détecte une région ou des opérateurs supplémentaires. L’option est pilotée par le fournisseur et ne doit pas être simulée dans l’interface MAXANOU.
+- Le checkout v2 accepte un bloc facultatif `customer` pour préremplir le nom, l’e-mail et le téléphone connus. Le client peut les modifier et les informations finalement validées par KPrimePay restent la référence du webhook.
+- Le checkout v2 accepte un tableau facultatif `payment_methods`. Les codes autorisés doivent provenir de `GET /v2/gateways`, champ `checkout_method`; en l’absence de ce tableau, KPrimePay conserve sa présentation habituelle.
+- Le flux actuel reste volontairement compatible avec le checkout v2 minimal. Ces options sont documentées pour une activation ultérieure, avec validation séparée du payload et du parcours hébergé.
+- Le détail contractuel et opérationnel est maintenu dans `GUIDE_KPRIMEPAY.md`.
 
 ## Mise à jour du 11 septembre 2026 — retraits et cohérence PWA
 
