@@ -24,7 +24,7 @@
 <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
 <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
 <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260916-1"></script>
-<script src="{{ asset('pwa-register.js') }}" defer></script>
+<script src="{{ asset('pwa-register.js') }}?v=20260928-1" defer></script>
 @stack('scripts')
 </body>
 </html>

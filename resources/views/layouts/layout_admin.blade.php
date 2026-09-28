@@ -250,6 +250,6 @@
 		</script>
 		<!-- DataTables JS -->
 		<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-		<script src="{{ asset('pwa-register.js') }}" defer></script>
+		<script src="{{ asset('pwa-register.js') }}?v=20260928-1" defer></script>
 	</body>
 </html>

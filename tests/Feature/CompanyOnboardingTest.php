@@ -20,8 +20,8 @@ class CompanyOnboardingTest extends TestCase
             'name' => 'Alice Martin',
             'company_name' => 'Boutique Alice',
             'email' => 'alice@example.test',
-            'password' => 'StrongPassword!123',
-            'password_confirmation' => 'StrongPassword!123',
+            'password' => 'Strong!1',
+            'password_confirmation' => 'Strong!1',
             'user_type' => 2,
         ]);
 

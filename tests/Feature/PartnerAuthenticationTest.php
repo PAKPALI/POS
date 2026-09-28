@@ -113,11 +113,11 @@ class PartnerAuthenticationTest extends TestCase
         $response = $this->from(route('partner.register'))->post(route('partner.register.submit'), [
             'name' => 'Partenaire Test', 'username' => 'partenaire-faible', 'email' => 'weak-password@example.test',
             'country_code' => 'TG', 'phone_number' => '90 00 00 01',
-            'password' => 'password', 'password_confirmation' => 'password', 'accepted_terms' => '1',
+            'password' => 'Abc!123', 'password_confirmation' => 'Abc!123', 'accepted_terms' => '1',
         ]);
 
         $response->assertRedirect(route('partner.register'));
-        $this->assertStringContainsString('Le mot de passe doit contenir au moins 12 caractères.', session('errors')->first('password'));
+        $this->assertStringContainsString('Le mot de passe doit contenir au moins 8 caractères.', session('errors')->first('password'));
     }
 
     public function test_partner_phone_validation_messages_are_in_french(): void

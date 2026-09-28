@@ -24,7 +24,7 @@
         root.style.setProperty('--ds-accent', accent);
     })();
 </script>
-<link href="{{ asset('hub/assets/css/design-system.css') }}?v=20260916-1" rel="stylesheet">
+<link href="{{ asset('hub/assets/css/design-system.css') }}?v=20260928-2" rel="stylesheet">
 <link href="{{ asset('hub/assets/css/saas-toolkit.css') }}?v=20260909-1" rel="stylesheet">
 <link href="{{ asset('hub/assets/css/password-toggle.css') }}?v=20260902-1" rel="stylesheet">
 <link href="{{ asset('hub/assets/css/datatable-loading.css') }}?v=20260901-2" rel="stylesheet">

@@ -1,10 +1,10 @@
-const CACHE_VERSION = 'maxanou-pwa-v22';
+const CACHE_VERSION = 'maxanou-pwa-v23';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const STATIC_ASSETS = [
     '/offline.html', '/manifest.json', '/favicon.ico',
     '/brand/maxanou-symbol.svg', '/brand/maxanou-logo.svg', '/media/maxanou-launch.svg', '/media/maxanou-launch.mp4',
     '/icons/favicon-16.png', '/icons/favicon-32.png',
-    '/icons/icon-192.png?v=20260917-1', '/icons/icon-512.png?v=20260917-1', '/icons/icon-maskable-512.png?v=20260917-1', '/icons/apple-touch-icon-180.png?v=20260917-1',
+    '/icons/icon-192.png?v=20260928-1', '/icons/icon-512.png?v=20260928-1', '/icons/icon-maskable-512.png?v=20260928-1', '/icons/apple-touch-icon-180.png?v=20260928-1',
 ];
 
 self.addEventListener('install', (event) => {

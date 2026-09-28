@@ -9,6 +9,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
+use App\Services\CompanyContext;
 
 class CategoryController extends Controller
 {
@@ -114,12 +117,21 @@ class CategoryController extends Controller
     {
         $this->authorize('create', Category::class);
 
+        $request->merge(['name' => trim((string) $request->input('name'))]);
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "name.unique" => "Cette catégorie existe déjà dans votre entreprise.",
         ];
 
         $validator = Validator::make($request->all(),[
-            'name' => ['required'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')->where(fn ($query) => $query->where('company_id', $companyId)),
+            ],
         ], $error_messages);
 
         if($validator->fails())
@@ -129,14 +141,23 @@ class CategoryController extends Controller
                 "title" => "AJOUT ECHOUE",
                 "msg" => $validator->errors()->first()
             ]);
+            try {
+                Category::create([
+                    'name' => $request->name,
+                    'created_by' => Auth::user()->id,
+                ]);
+            } catch (QueryException $exception) {
+                if (!$this->isDuplicateNameConstraint($exception)) {
+                    throw $exception;
+                }
+
+                return $this->duplicateNameResponse('AJOUT ECHOUE');
+            }
+
             Action::create([
                 'user_id' => auth()->user()->id,
                 'function' => 'AJOUT CATEGORIE',
                 'text' => auth()->user()->name." a créer une nouvelle catégorie '".$request->name."'",
-            ]);
-            Category::create([
-                'name' => $request-> name,
-                'created_by' => Auth::user()->id,
             ]);
 
             return response()->json([
@@ -178,12 +199,22 @@ class CategoryController extends Controller
         $Category = Category::findOrFail($id);
         $this->authorize('update', $Category);
 
+        $request->merge(['name' => trim((string) $request->input('name'))]);
+
         $error_messages = [
             "name.required" => "Remplir le champ Nom!",
+            "name.unique" => "Cette catégorie existe déjà dans votre entreprise.",
         ];
 
         $validator = Validator::make($request->all(),[
-            'name' => ['required'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')
+                    ->where(fn ($query) => $query->where('company_id', $Category->company_id))
+                    ->ignore($Category->id),
+            ],
         ], $error_messages);
 
         if($validator->fails())
@@ -194,9 +225,17 @@ class CategoryController extends Controller
                 "msg" => $validator->errors()->first()
             ]);
 
-            $Category->update([
-                'name' => $request->name,
-            ]);
+            try {
+                $Category->update([
+                    'name' => $request->name,
+                ]);
+            } catch (QueryException $exception) {
+                if (!$this->isDuplicateNameConstraint($exception)) {
+                    throw $exception;
+                }
+
+                return $this->duplicateNameResponse('MISE A JOUR ECHOUEE');
+            }
 
             return response()->json([
                 "status" => true,
@@ -286,6 +325,22 @@ class CategoryController extends Controller
             "reload" => true,
             "title" => "RESTAURATION REUSSIE",
             "msg" => "La catégorie ".$Object->name." a bien été restaurée"
+        ]);
+    }
+
+    private function isDuplicateNameConstraint(QueryException $exception): bool
+    {
+        return $exception->getCode() === '23000'
+            && str_contains($exception->getMessage(), 'categories_company_name_unique');
+    }
+
+    private function duplicateNameResponse(string $title)
+    {
+        return response()->json([
+            'status' => false,
+            'reload' => false,
+            'title' => $title,
+            'msg' => 'Cette catégorie existe déjà dans votre entreprise.',
         ]);
     }
 }

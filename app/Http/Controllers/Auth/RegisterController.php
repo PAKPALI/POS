@@ -65,7 +65,7 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'company_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'confirmed', PasswordRule::min(12)->mixedCase()->numbers()->symbols()],
+            'password' => ['required', 'string', 'confirmed', PasswordRule::min(8)->mixedCase()->numbers()->symbols()],
             'default_tax' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'country_code' => ['nullable', Rule::in(array_keys(config('african_countries', [])))],
         ]);

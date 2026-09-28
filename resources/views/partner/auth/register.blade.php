@@ -23,7 +23,7 @@
         @if($errors->has('phone_number'))<small id="phone_number-error" class="saas-field-error" role="alert">{{ $errors->first('phone_number') }}</small>@endif
     </div>
 </div>
-<x-ui.password id="password" name="password" label="Mot de passe" hint="12 caractères minimum, avec majuscule, minuscule, chiffre et symbole." required autocomplete="new-password" :error="$errors->first('password')" /><x-ui.password id="password_confirmation" name="password_confirmation" label="Confirmer le mot de passe" required autocomplete="new-password" />
+<x-ui.password id="password" name="password" label="Mot de passe" hint="8 caractères minimum, avec majuscule, minuscule, chiffre et symbole." minlength="8" required autocomplete="new-password" :error="$errors->first('password')" /><x-ui.password id="password_confirmation" name="password_confirmation" label="Confirmer le mot de passe" minlength="8" required autocomplete="new-password" />
 <label class="saas-check-control" for="accepted_terms"><input id="accepted_terms" name="accepted_terms" type="checkbox" value="1" @checked(old('accepted_terms')) required><span>J’accepte les conditions du programme partenaire.</span></label>
 <x-ui.form-actions class="auth-form-actions"><x-ui.button type="submit" class="w-100 auth-submit" loading-text="Création en cours…">Créer mon compte</x-ui.button></x-ui.form-actions>
 <p class="auth-flow-link"><a href="{{ route('partner.login') }}">Retour à la connexion</a></p></form></div>

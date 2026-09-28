@@ -465,6 +465,6 @@
 			// 	$(this).addClass('active');
 			// });
 		</script>
-		<script src="{{ asset('pwa-register.js') }}" defer></script>
+		<script src="{{ asset('pwa-register.js') }}?v=20260928-1" defer></script>
 	</body>
 </html>

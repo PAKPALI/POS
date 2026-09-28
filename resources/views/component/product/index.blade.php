@@ -562,7 +562,7 @@
                 Swal.fire({
                     icon: "warning",
                     title: "Confirmer l'opération",
-                    html: '<div class="saas-alert saas-alert-danger"><strong>ATTENTION</strong><br><br>Si ce produit n\'a jamais été utilisé dans une vente, il sera <strong>SUPPRIMÉ DÉFINITIVEMENT</strong>.<br><br>S\'il est déjà lié à une ou plusieurs ventes, il sera simplement <strong>ARCHIVÉ</strong>.</div>',
+                    html: '<div class="saas-confirm-panel"><p><strong>Produit jamais vendu</strong><br>Il sera supprimé définitivement.</p><p><strong>Produit déjà vendu</strong><br>Il sera archivé et pourra être restauré.</p></div>',
                     confirmButtonText: "Oui",
                     buttonsStyling: false,
                     customClass: { popup: 'saas-swal saas-swal-danger', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },

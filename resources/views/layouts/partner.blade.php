@@ -57,7 +57,7 @@
 <script src="{{ asset('hub/assets/js/saas-shell.js') }}?v=20260901-3"></script>
 <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="{{ asset('pwa-register.js') }}" defer></script>
+<script src="{{ asset('pwa-register.js') }}?v=20260928-1" defer></script>
 @stack('scripts')
 </body>
 </html>

@@ -63,7 +63,7 @@
     @include('marketing.components.footer')
     @include('marketing.components.social-modals')
     <script src="{{ asset('hub/assets/js/marketing.js') }}?v=20260917-2" defer></script>
-    <script src="{{ asset('pwa-register.js') }}" defer></script>
+    <script src="{{ asset('pwa-register.js') }}?v=20260928-1" defer></script>
     @stack('scripts')
     @if($marketingIndexable)
         @yield('structured-data')

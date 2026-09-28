@@ -84,7 +84,7 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:partners,normalized_email'],
             'country_code' => ['required', Rule::in($this->countries->activeCodes())],
             'phone_number' => ['required', 'string', 'max:24'],
-            'password' => ['required', 'confirmed', PasswordRule::min(12)->mixedCase()->numbers()->symbols()],
+            'password' => ['required', 'confirmed', PasswordRule::min(8)->mixedCase()->numbers()->symbols()],
             'accepted_terms' => ['accepted'],
         ], $this->registrationValidationMessages());
         try {
@@ -200,6 +200,7 @@ class AuthController extends Controller
     private function registrationValidationMessages(): array
     {
         return array_merge($this->passwordValidationMessages(), [
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'name.required' => 'Saisissez votre nom complet.',
             'name.string' => 'Le nom complet doit être une chaîne de caractères.',
             'name.max' => 'Le nom complet ne doit pas dépasser 120 caractères.',

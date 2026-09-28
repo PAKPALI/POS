@@ -312,7 +312,7 @@
                 Swal.fire({
                     icon: "warning",
                     title: "Confirmer l'opération",
-                    html: '<div class="saas-alert saas-alert-danger"><strong>ATTENTION</strong><br><br>Ce fournisseur sera <strong>ARCHIVÉ</strong>.</div>',
+                    html: '<div class="saas-confirm-panel"><p>Ce fournisseur sera <strong>archivé</strong> et ne sera plus proposé dans les opérations courantes.</p><p>Vous pourrez le restaurer ultérieurement.</p></div>',
                     confirmButtonText: "Oui",
                     buttonsStyling: false,
                     customClass: { popup: 'saas-swal saas-swal-danger', confirmButton: 'saas-btn saas-btn-danger', cancelButton: 'saas-btn saas-btn-ghost' },

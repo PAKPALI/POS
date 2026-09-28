@@ -40,18 +40,18 @@
                 <div class="saas-form-group">
                     <label class="form-label">Mot de passe</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password" name="password" placeholder="mot de passe" minlength="12" autocomplete="new-password" aria-describedby="registrationPasswordHelp" required>
+                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password" name="password" placeholder="mot de passe" minlength="8" autocomplete="new-password" aria-describedby="registrationPasswordHelp" required>
                         <span class="input-group-text" id="togglePassword" role="button" tabindex="0" aria-label="Afficher le mot de passe">
                             <i class="bi bi-eye" id="togglePasswordIcon"></i>
                         </span>
                     </div>
-                    <div id="registrationPasswordHelp" class="form-text text-inverse text-opacity-50">12 caractères minimum, avec majuscule, minuscule, chiffre et symbole.</div>
+                    <div id="registrationPasswordHelp" class="form-text text-inverse text-opacity-50">8 caractères minimum, avec majuscule, minuscule, chiffre et symbole.</div>
                 </div>
 
                 <div class="saas-form-group">
                     <label class="form-label">Confirmer le mot de passe</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="password_confirmation" placeholder="mot de passe" minlength="12" autocomplete="new-password" required>
+                        <input type="password" class="form-control form-control-lg bg-inverse bg-opacity-5" id="password2" name="password_confirmation" placeholder="mot de passe" minlength="8" autocomplete="new-password" required>
                         <span class="input-group-text" id="togglePassword2" role="button" tabindex="0" aria-label="Afficher le mot de passe">
                             <i class="bi bi-eye" id="togglePasswordIcon2"></i>
                         </span>
