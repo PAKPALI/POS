@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\MenuProduct;
+use App\Services\ProductImageService;
 use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,6 +12,17 @@ class Product extends Model
 {
     use BelongsToCompany, HasFactory;
     protected $fillable = ['company_id','category_id','supplier_id','name','created_by','qte','price','purchase_price','price_ttc','margin','profit','image','status','email','type'];
+    protected $appends = ['image_url', 'image_thumb_url'];
+
+    public function getImageUrlAttribute(): string
+    {
+        return app(ProductImageService::class)->url($this->image);
+    }
+
+    public function getImageThumbUrlAttribute(): string
+    {
+        return app(ProductImageService::class)->url($this->image, true);
+    }
 
     public function category()
     {

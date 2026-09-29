@@ -5,7 +5,7 @@
     
     <div class="card-body text-center">
         @if ($Product->image)
-            <img class="mb-5" src="{{ asset('images/' . $Product->image) }}" alt="Image du produit" style="width: 150px; height: auto;">
+            <img class="mb-5" src="{{ $Product->image_thumb_url }}" alt="Image du produit" style="width: 150px; height: auto;">
         @else
             Pas d'image
         @endif
@@ -63,7 +63,8 @@
             </div>
             <div class="form-group col-12">
                 <label class="form-label" for="smFile">Choisir une image</label>
-                <input type="file" class="form-control form-control-sm" name="image" id="smFile">
+                <input type="file" class="form-control form-control-sm" name="image" id="smFile" accept="image/jpeg,image/png,image/gif,image/webp">
+                <small class="text-muted">Jusqu’à 10 Mo. L’image est optimisée automatiquement.</small>
             </div>
         </div>
     </div>

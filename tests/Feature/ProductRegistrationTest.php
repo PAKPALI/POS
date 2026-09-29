@@ -10,6 +10,8 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\CompanyContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use App\Services\ProductImageService;
 use Tests\TestCase;
 
 class ProductRegistrationTest extends TestCase
@@ -112,6 +114,28 @@ class ProductRegistrationTest extends TestCase
         ])->assertOk()->assertJson(['status' => true]);
 
         $this->assertSame(500, (int) $product->fresh()->profit);
+    }
+
+    public function test_product_registration_accepts_a_ten_megabyte_image_and_generates_fast_variants(): void
+    {
+        [, , $category] = $this->companyContext();
+
+        $response = $this->postJson(route('product.store'), [
+            'type' => 1,
+            'category' => $category->id,
+            'name' => 'Produit avec image optimisée',
+            'qte' => 3,
+            'price' => 1200,
+            'image' => UploadedFile::fake()->image('catalogue.jpg', 2200, 1400)->size(10 * 1024),
+        ]);
+
+        $response->assertOk()->assertJson(['status' => true]);
+        $product = Product::where('name', 'Produit avec image optimisée')->firstOrFail();
+        $this->assertStringStartsWith('products/', (string) $product->image);
+        $this->assertFileExists(public_path('images/'.$product->image));
+        $this->assertFileExists(public_path('images/products/thumbs/'.pathinfo($product->image, PATHINFO_FILENAME).'.webp'));
+
+        app(ProductImageService::class)->delete($product->image);
     }
 
     public function test_product_registration_notice_preference_is_persisted_per_user(): void

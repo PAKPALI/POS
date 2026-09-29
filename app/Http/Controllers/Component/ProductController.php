@@ -11,16 +11,17 @@ use App\Models\Product;
 use App\Models\Supplier;
 use App\Services\CompanyContext;
 use App\Services\EntitlementService;
+use App\Services\ProductImageService;
 use App\Exceptions\SubscriptionLimitReached;
 use App\Services\StreamingTabularExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
@@ -28,6 +29,7 @@ class ProductController extends Controller
     public function __construct(
         private CompanyContext $companyContext,
         private EntitlementService $entitlements,
+        private ProductImageService $productImages,
     ) {}
 
     /**
@@ -214,8 +216,9 @@ class ProductController extends Controller
             "margin.min" => "La marge ne doit pas être négative!",
             "margin.lt" => "La marge de sécurité doit être strictement inférieure à la quantité disponible!",
             "image.image" => "Le fichier doit être une image!",
-            "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
-            "image.max" => "L'image ne doit pas dépasser 2 Mo!",
+            "image.mimes" => "Le fichier doit être de type : JPEG, PNG, GIF ou WebP.",
+            "image.max" => "L'image ne doit pas dépasser 10 Mo.",
+            "image.dimensions" => "L'image ne doit pas dépasser 6 000 × 6 000 pixels.",
         ];
         
         $validator = Validator::make($request->all(), [
@@ -227,7 +230,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'purchase_price' => ['nullable', 'numeric', 'min:0'],
             'margin' => ['nullable', 'numeric', 'min:0'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:10240', 'dimensions:max_width=6000,max_height=6000'],
         ], $error_messages);
 
         $validator->after(function (ValidatorContract $validator) use ($request): void {
@@ -271,11 +274,11 @@ class ProductController extends Controller
             ];
 
             if ($request->hasFile('image')) {
-                $image = $request->file('image');
-                $imageName = time().'.'.$image->getClientOriginalExtension();
-                $image->move(public_path('images'), $imageName);
-
-                $data['image'] = $imageName;
+                try {
+                    $data['image'] = $this->productImages->store($request->file('image'));
+                } catch (RuntimeException $exception) {
+                    return response()->json(['status' => false, 'reload' => false, 'title' => 'IMAGE NON ENREGISTRÉE', 'msg' => $exception->getMessage()], 422);
+                }
             }
 
             try {
@@ -366,8 +369,9 @@ class ProductController extends Controller
             "margin.min" => "La marge ne doit pas être négative!",
             "margin.lt" => "La marge de sécurité doit être strictement inférieure à la quantité disponible!",
             "image.image" => "Le fichier doit être une image!",
-            "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
-            "image.max" => "L'image ne doit pas dépasser 2 Mo!",
+            "image.mimes" => "Le fichier doit être de type : JPEG, PNG, GIF ou WebP.",
+            "image.max" => "L'image ne doit pas dépasser 10 Mo.",
+            "image.dimensions" => "L'image ne doit pas dépasser 6 000 × 6 000 pixels.",
         ];
         
         $validator = Validator::make($request->all(), [
@@ -377,7 +381,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'purchase_price' => ['nullable', 'numeric', 'min:0'],
             'margin' => ['nullable', 'numeric', 'min:0'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:10240', 'dimensions:max_width=6000,max_height=6000'],
         ], $error_messages);
 
         $validator->after(function (ValidatorContract $validator) use ($request, $Product): void {
@@ -418,18 +422,11 @@ class ProductController extends Controller
             ];
 
             if ($request->hasFile('image')) {
-                // delete image if exist
-                $oldImagePath = public_path('images/' . $Product->image);
-                if (File::exists($oldImagePath)) {
-                    File::delete($oldImagePath);
+                try {
+                    $data['image'] = $this->productImages->store($request->file('image'));
+                } catch (RuntimeException $exception) {
+                    return response()->json(['status' => false, 'reload' => false, 'title' => 'IMAGE NON ENREGISTRÉE', 'msg' => $exception->getMessage()], 422);
                 }
-
-                // save new image
-                $image = $request->file('image');
-                $imageName = time().'.'.$image->getClientOriginalExtension();
-                $image->move(public_path('images'), $imageName);
-
-                $data['image'] = $imageName;
             }
 
             // verify if new qte of product > product margin
@@ -437,7 +434,11 @@ class ProductController extends Controller
                 $data['email'] = 0;
             }
             
+            $oldImage = $Product->image;
             $Product->update($data);
+            if (array_key_exists('image', $data) && $oldImage !== $data['image'] && !Product::where('image', $oldImage)->exists()) {
+                $this->productImages->delete($oldImage);
+            }
 
             Action::create([
                 'user_id' => auth()->user()->id,
@@ -567,7 +568,11 @@ class ProductController extends Controller
 
                 $productName = $Object->name;
 
+                $image = $Object->image;
                 $Object->delete();
+                if (!Product::where('image', $image)->exists()) {
+                    $this->productImages->delete($image);
+                }
 
                 return response()->json([
                     "status" => true,

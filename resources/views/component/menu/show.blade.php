@@ -1,7 +1,7 @@
 <div class="saas-detail-hero">
     <div class="saas-detail-media">
         @if ($MenuProduct->image)
-            <img src="{{ asset('images/' . $MenuProduct->image) }}" alt="{{ $MenuProduct->name }}">
+            <img src="{{ $MenuProduct->image_url }}" alt="{{ $MenuProduct->name }}">
         @else
             <span class="saas-detail-placeholder"><i class="bi bi-grid" aria-hidden="true"></i></span>
         @endif
@@ -33,7 +33,7 @@
         @forelse ($MenuProduct->MenuProducts as $item)
             <article class="saas-composition-item">
                 <div class="saas-composition-image">
-                    @if ($item->product->image)<img src="{{ asset('images/' . $item->product->image) }}" alt="">@else<i class="bi bi-image" aria-hidden="true"></i>@endif
+                    @if ($item->product->image)<img src="{{ $item->product->image_thumb_url }}" alt="">@else<i class="bi bi-image" aria-hidden="true"></i>@endif
                 </div>
                 <div><strong>{{ $item->product->name }}</strong><span>Stock actuel : {{ $item->product->qte }}</span></div>
                 <span class="saas-composition-quantity">× {{ $item->quantity }}</span>

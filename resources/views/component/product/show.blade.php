@@ -1,7 +1,7 @@
 <div class="saas-detail-hero">
     <div class="saas-detail-media">
         @if ($Product->image)
-            <img src="{{ asset('images/' . $Product->image) }}" alt="{{ $Product->name }}">
+            <img src="{{ $Product->image_url }}" alt="{{ $Product->name }}">
         @else
             <span class="saas-detail-placeholder"><i class="bi bi-image" aria-hidden="true"></i></span>
         @endif

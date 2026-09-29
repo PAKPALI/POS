@@ -27,7 +27,7 @@ Dans **cPanel > Domaines**, faire pointer le domaine ou sous-domaine vers le dos
 
 ## 2. Préparer O2switch
 
-1. Dans cPanel, sélectionner PHP **8.2** pour le domaine et activer l'extension **ZIP**, requise par les exports Excel `.xlsx`.
+1. Dans cPanel, sélectionner PHP **8.2** pour le domaine et activer les extensions **ZIP** (exports Excel `.xlsx`) et **GD** avec support WebP (optimisation automatique des images produits).
 2. Créer une base MySQL, un utilisateur MySQL et lui attribuer tous les privilèges sur cette base.
 3. Activer le certificat SSL du domaine et vérifier que `https://votre-domaine.com` répond.
 4. Ouvrir le Terminal cPanel ou établir une connexion SSH.
@@ -40,6 +40,24 @@ which composer
 ```
 
 Conserver le chemin retourné par `which php` : il sera utilisé dans les tâches cron.
+
+### Images produits jusqu’à 10 Mo
+
+Dans **cPanel > MultiPHP INI Editor**, régler au minimum :
+
+```ini
+upload_max_filesize = 12M
+post_max_size = 14M
+memory_limit = 256M
+```
+
+Après le déploiement de la fonctionnalité, générer les variantes WebP des images historiques une seule fois :
+
+```bash
+php artisan products:optimize-images
+```
+
+Cette commande conserve les fichiers d’origine et ajoute une version optimisée ainsi qu’une miniature destinée au point de vente, aux listes et à l’e-commerce.
 
 ## 3. Transférer le projet
 

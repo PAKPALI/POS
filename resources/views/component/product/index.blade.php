@@ -112,8 +112,9 @@
                                 <input type="number" class="price_ttc" readonly>
                             </div>
                             <div class="col-md-6 col-lg-4 saas-form-group">
-                                <label>Image</label>
-                                <input type="file" name="image" class="form-control">
+                                <label>Image <small>(facultative)</small></label>
+                                <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
+                                <small>Jusqu’à 10 Mo. L’image est optimisée automatiquement pour des affichages rapides.</small>
                             </div>
                         </div>
                         @if (!auth()->user()->product_registration_notice_dismissed)

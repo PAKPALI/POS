@@ -28,6 +28,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\ReconcilePartnerPayouts::class,
         \App\Console\Commands\SeedPartnerWithdrawalPreview::class,
         \App\Console\Commands\ExpirePromoCodes::class,
+        \App\Console\Commands\OptimizeProductImages::class,
     ];
     protected function schedule(Schedule $schedule): void
     {

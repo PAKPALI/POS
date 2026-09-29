@@ -363,9 +363,7 @@ class FrontController extends Controller
                 'name' => $product->name,
                 'category' => $product->category?->name,
                 'price' => (float) ($product->price_ttc ?? $product->price),
-                'image' => ($product->image && $product->image !== 'null')
-                    ? asset('images/'.$product->image)
-                    : asset('icons/product-placeholder.svg'),
+                'image' => $product->image_thumb_url,
                 'url' => route('storefront.product', [$company, $product->id]),
             ]);
 

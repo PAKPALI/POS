@@ -11,15 +11,18 @@ use App\Models\AMS\Setting;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\CompanyContext;
+use App\Services\ProductImageService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 
 class MenuController extends Controller
 {
+    public function __construct(private ProductImageService $productImages) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -125,8 +128,9 @@ class MenuController extends Controller
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
             // "margin.required" => "Remplir le champ Marge de sécurité!",
             "image.image" => "Le fichier doit être une image!",
-            "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
-            "image.max" => "L'image ne doit pas dépasser 2 Mo!",
+            "image.mimes" => "Le fichier doit être de type : JPEG, PNG, GIF ou WebP.",
+            "image.max" => "L'image ne doit pas dépasser 10 Mo.",
+            "image.dimensions" => "L'image ne doit pas dépasser 6 000 × 6 000 pixels.",
 
             "products.required" => "Ajoutez au moins un produit!",
             "products.array" => "Les produits doivent être sous forme de tableau!",
@@ -147,7 +151,7 @@ class MenuController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'purchase_price' => ['nullable', 'numeric', 'min:0'],
             'margin' => ['nullable', 'integer', 'min:0', 'lt:qte'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:10240', 'dimensions:max_width=6000,max_height=6000'],
 
             'products' => ['required', 'array', 'min:1'],
             'products.*.product_id' => ['required', 'distinct', Rule::exists('products', 'id')->where(
@@ -189,11 +193,11 @@ class MenuController extends Controller
             ];
 
             if ($request->hasFile('image')) {
-                $image = $request->file('image');
-                $imageName = time().'.'.$image->getClientOriginalExtension();
-                $image->move(public_path('images'), $imageName);
-
-                $data['image'] = $imageName;
+                try {
+                    $data['image'] = $this->productImages->store($request->file('image'));
+                } catch (RuntimeException $exception) {
+                    return response()->json(['status' => false, 'reload' => false, 'title' => 'IMAGE NON ENREGISTRÉE', 'msg' => $exception->getMessage()], 422);
+                }
             }
 
             DB::transaction(function () use ($data, $request) {
@@ -264,8 +268,9 @@ class MenuController extends Controller
             "price.numeric" => "Le champ Prix unitaire doit être un nombre!",
             // "margin.required" => "Remplir le champ Marge de sécurité!",
             "image.image" => "Le fichier doit être une image!",
-            "image.mimes" => "Le fichier doit être de type: jpeg, png, jpg, gif, svg!",
-            "image.max" => "L'image ne doit pas dépasser 2 Mo!",
+            "image.mimes" => "Le fichier doit être de type : JPEG, PNG, GIF ou WebP.",
+            "image.max" => "L'image ne doit pas dépasser 10 Mo.",
+            "image.dimensions" => "L'image ne doit pas dépasser 6 000 × 6 000 pixels.",
 
             "products.required" => "Ajoutez au moins un produit!",
             "products.array" => "Les produits doivent être sous forme de tableau!",
@@ -286,7 +291,7 @@ class MenuController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'purchase_price' => ['nullable', 'numeric', 'min:0'],
             'margin' => ['nullable', 'integer', 'min:0', 'lt:qte'],
-            'image' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:10240', 'dimensions:max_width=6000,max_height=6000'],
 
             'products' => ['required', 'array', 'min:1'],
             'products.*.product_id' => ['required', 'distinct', Rule::exists('products', 'id')->where(
@@ -328,20 +333,14 @@ class MenuController extends Controller
             ];
 
             if ($request->hasFile('image')) {
-                // delete image if exist
-                $oldImagePath = public_path('images/' . $MenuProduct->image);
-                if (File::exists($oldImagePath)) {
-                    File::delete($oldImagePath);
+                try {
+                    $data['image'] = $this->productImages->store($request->file('image'));
+                } catch (RuntimeException $exception) {
+                    return response()->json(['status' => false, 'reload' => false, 'title' => 'IMAGE NON ENREGISTRÉE', 'msg' => $exception->getMessage()], 422);
                 }
-
-                // save new image
-                $image = $request->file('image');
-                $imageName = time().'.'.$image->getClientOriginalExtension();
-                $image->move(public_path('images'), $imageName);
-
-                $data['image'] = $imageName;
             }
             
+            $oldImage = $MenuProduct->image;
             DB::transaction(function () use ($MenuProduct, $data, $request) {
                 $previousQuantity = (int) $MenuProduct->qte;
                 $MenuProduct->update($data);
@@ -371,6 +370,9 @@ class MenuController extends Controller
                 ]);
     
             });
+            if (array_key_exists('image', $data) && $oldImage !== $data['image'] && !Product::where('image', $oldImage)->exists()) {
+                $this->productImages->delete($oldImage);
+            }
 
                 return response()->json([
                     "status" => true,

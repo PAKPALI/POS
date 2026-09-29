@@ -94,6 +94,7 @@
                                                 <div class="col-md-6 col-lg-4 saas-form-group">
                                                     <label for="pack_image">Image</label>
                                                     <input type="file" class="form-control" name="image" id="pack_image" accept="image/jpeg,image/png,image/gif,image/webp">
+                                                    <small>Jusqu’à 10 Mo. L’image est optimisée automatiquement.</small>
                                                 </div>
                                             </div>
 

@@ -21,10 +21,7 @@
                     @foreach ($mostSoldProducts as $productDetail)
                         @php
                             $product = $productDetail->product;
-                            $soldProductImage = $product && $product->image && $product->image !== 'null'
-                                && file_exists(public_path('images/'.$product->image))
-                                    ? asset('images/'.$product->image)
-                                    : asset('icons/product-placeholder.svg');
+                            $soldProductImage = $product?->image_thumb_url ?? asset('icons/product-placeholder.svg');
                         @endphp
                         <tr>
                             <td><span class="pos-top-sales-rank" aria-label="Position {{ $loop->iteration }}">{{ $loop->iteration }}</span></td>

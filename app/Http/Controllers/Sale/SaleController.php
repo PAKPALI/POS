@@ -223,13 +223,7 @@ class SaleController extends Controller
             ->paginate(24);
 
         $products->getCollection()->transform(function (Product $product) {
-            $hasImage = $product->image
-                && $product->image !== 'null'
-                && file_exists(public_path('images/'.$product->image));
-
-            $product->image_url = $hasImage
-                ? asset('images/'.$product->image)
-                : asset('icons/product-placeholder.svg');
+            $product->image_url = $product->image_thumb_url;
             $product->sale_price = $product->price_ttc ?: $product->price;
 
             return $product;
