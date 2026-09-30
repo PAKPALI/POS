@@ -49,9 +49,9 @@
                 <input type="number" name="profit" value="{{$Product->profit}}" class="form-control profit1" id="exampleInputText0" readonly placeholder="0">
             </div>
             <div class="form-group col-12">
-                <label class="form-label" for="smFile">Choisir une image</label>
-                <input type="file" class="form-control form-control-sm" name="image" id="smFile" accept="image/jpeg,image/png,image/gif,image/webp">
-                <small class="text-muted">Jusqu’à 10 Mo. L’image est optimisée automatiquement.</small>
+                <label class="form-label">Choisir une image</label>
+                <x-ui.image-upload id="pack_image_edit" label="Remplacer l’image du pack" />
+                <small class="text-muted">Jusqu’à 10 Mo. L’image actuelle reste inchangée si vous n’en sélectionnez pas une autre.</small>
             </div>
         </div>
 
@@ -255,7 +255,9 @@
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('_method', 'PUT');
 
+            const imageUpload = window.ProductImageUpload ? window.ProductImageUpload.forForm(document.getElementById('update_form')) : null;
             if (window.ServerButtonLoader) window.ServerButtonLoader.start($('#submit')[0], 'Enregistrement…');
+            if (imageUpload) imageUpload.start();
 
             $.ajax({
                 data: formData,
@@ -265,6 +267,13 @@
                 processData: false,
                 contentType: false,
                 dataType: 'json',
+                xhr: function() {
+                    const xhr = $.ajaxSettings.xhr();
+                    if (imageUpload && xhr.upload) xhr.upload.addEventListener('progress', function(event) {
+                        if (event.lengthComputable) imageUpload.setProgress(event.loaded, event.total);
+                    });
+                    return xhr;
+                },
                 success: function(data) {
                     if (window.ServerButtonLoader) window.ServerButtonLoader.stop($('#submit')[0]);
                     if (data.status) {
@@ -308,6 +317,10 @@
                         timerProgressBar: true,
                         text: 'Une erreur est survenue, veuillez réessayer.',
                     });
+                },
+                complete: function() {
+                    if (window.ServerButtonLoader) window.ServerButtonLoader.stop($('#submit')[0]);
+                    if (imageUpload) imageUpload.finish();
                 }
             });
         });

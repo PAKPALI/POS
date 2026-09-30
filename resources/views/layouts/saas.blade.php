@@ -11,7 +11,7 @@
     <link href="{{ asset('hub/assets/css/vendor.min.css') }}" rel="stylesheet">
     @include('partials.design-system-head')
     <link href="{{ asset('hub/assets/css/saas-shell.css') }}?v=20260916-1" rel="stylesheet">
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260909-24" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260929-1" rel="stylesheet">
     <link href="{{ asset('hub/assets/css/navigation-loader.css') }}?v=20260916-3" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     @stack('styles')
@@ -41,6 +41,7 @@
 
     <script src="{{ asset('hub/assets/js/vendor.min.js') }}"></script>
     <script src="{{ asset('hub/assets/js/server-button-loader.js') }}?v=20260826-2"></script>
+    <script src="{{ asset('hub/assets/js/product-image-upload.js') }}?v=20260929-1"></script>
     <script src="{{ asset('hub/assets/js/design-system.js') }}?v=20260916-1"></script>
     <script src="{{ asset('hub/assets/js/saas-shell.js') }}?v=20260901-3"></script>
     <script src="{{ asset('hub/assets/js/navigation-loader.js') }}?v=20260902-2"></script>

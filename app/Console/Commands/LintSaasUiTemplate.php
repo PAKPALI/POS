@@ -13,7 +13,7 @@ class LintSaasUiTemplate extends Command
 
     private const COMPONENTS = [
         'action-button', 'action-group', 'alert', 'badge', 'button', 'card', 'company-card', 'detail',
-        'details-list', 'empty-state', 'export-panel', 'filter-panel', 'form-actions', 'glass-panel', 'input',
+        'details-list', 'empty-state', 'export-panel', 'filter-panel', 'form-actions', 'glass-panel', 'image-upload', 'input',
         'modal', 'notice', 'page-header', 'password', 'permission-denied', 'progress', 'select', 'skeleton',
         'stat-card', 'status', 'switch', 'tab', 'table-shell', 'tabs', 'textarea',
     ];

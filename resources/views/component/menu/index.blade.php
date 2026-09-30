@@ -2,7 +2,7 @@
 @section('title', 'Packs')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260929-1" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         .pack-form-grid > .saas-form-group { min-width: 0; gap: 6px; align-self: start; }
@@ -93,8 +93,8 @@
                                                 
                                                 <div class="col-md-6 col-lg-4 saas-form-group">
                                                     <label for="pack_image">Image</label>
-                                                    <input type="file" class="form-control" name="image" id="pack_image" accept="image/jpeg,image/png,image/gif,image/webp">
-                                                    <small>Jusqu’à 10 Mo. L’image est optimisée automatiquement.</small>
+                                                    <x-ui.image-upload id="pack_image" label="Ajouter une image du pack" />
+                                                    <small>L’image est optimisée automatiquement.</small>
                                                 </div>
                                             </div>
 
@@ -386,12 +386,17 @@
 
                 // Préparer les données du formulaire
                 let formData = new FormData($('#add')[0]);
+                const submitButton = document.querySelector('[form="add"][type="submit"]');
+                const imageUpload = window.ProductImageUpload ? window.ProductImageUpload.forForm(this) : null;
 
                 // Ajouter les produits dans le FormData
                 products.forEach((product, index) => {
                     formData.append(`products[${index}][product_id]`, product.product_id);
                     formData.append(`products[${index}][quantity]`, product.quantity);
                 });
+
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(submitButton, 'Création…');
+                if (imageUpload) imageUpload.start();
 
                 // Envoi des données via AJAX
                 $.ajax({
@@ -402,6 +407,13 @@
                     processData: false,
                     contentType: false,
                     datatype: 'json',
+                    xhr: function() {
+                        const xhr = $.ajaxSettings.xhr();
+                        if (imageUpload && xhr.upload) xhr.upload.addEventListener('progress', function(event) {
+                            if (event.lengthComputable) imageUpload.setProgress(event.loaded, event.total);
+                        });
+                        return xhr;
+                    },
                     success: function (data) {
                         if (data.status) {
                             Swal.fire({
@@ -415,6 +427,7 @@
                                 text: data.msg,
                             });
                             $('#add')[0].reset();
+                            if (imageUpload) imageUpload.reset();
                             $('#product-fields-container').html('<div class="pack-empty-state"><i class="bi bi-box-seam"></i><br>Ajoutez au moins un produit pour composer ce pack.</div>');
                             $('#addModal').modal('hide');
                             Datatable.draw();
@@ -438,6 +451,10 @@
                             text: "Impossible de communiquer avec le serveur.",
                             timer: 3600,
                         });
+                    },
+                    complete: function () {
+                        if (window.ServerButtonLoader) window.ServerButtonLoader.stop(submitButton);
+                        if (imageUpload) imageUpload.finish();
                     }
                 });
 
@@ -457,6 +474,7 @@
                     success:function(result)
                     {
                         $('#edit_response').html(result);
+                        if (window.ProductImageUpload) window.ProductImageUpload.init(document.getElementById('edit_response'));
                     },
                     error: function() { $('#editModal').modal('hide'); Swal.fire({icon: 'error', title: 'Chargement impossible', text: 'Impossible de charger ce pack.'}); },
                     complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }

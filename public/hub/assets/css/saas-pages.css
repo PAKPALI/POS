@@ -1822,3 +1822,31 @@ table.dataTable tbody tr td.dataTables_empty { padding: 32px 14px; color: var(--
 .profile-security-status .platform-status-chip.is-warning { color: var(--ds-warning); border-color: rgba(245, 185, 66, .3); }
 .saas-secondary-action { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 10px 16px; color: var(--ds-text-secondary); background: var(--ds-bg-elevated); border: 1px solid var(--ds-border-strong); border-radius: 11px; font-weight: 700; }
 .saas-secondary-action:hover { color: var(--ds-text-primary); border-color: rgba(var(--ds-accent-rgb), .35); }
+
+/* Téléversement premium des images de produits et packs. */
+.saas-image-upload { min-width: 0; }
+.saas-image-upload-picker { position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 70px; padding: 11px 12px; color: var(--ds-text-secondary); background: linear-gradient(135deg, rgba(var(--ds-accent-rgb), .08), var(--ds-bg-elevated)); border: 1px dashed rgba(var(--ds-accent-rgb), .46); border-radius: 14px; cursor: pointer; transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+.saas-image-upload-picker:hover { border-color: var(--ds-accent); background: linear-gradient(135deg, rgba(var(--ds-accent-rgb), .14), var(--ds-bg-elevated)); box-shadow: 0 8px 20px rgba(var(--ds-accent-rgb), .12); transform: translateY(-1px); }
+.saas-image-upload-picker:focus-within { border-color: var(--ds-accent); outline: 0; box-shadow: 0 0 0 3px var(--ds-focus-ring); }
+.saas-image-upload-picker > i { display: grid; width: 38px; height: 38px; place-items: center; color: var(--ds-accent); background: rgba(var(--ds-accent-rgb), .13); border-radius: 11px; font-size: 1rem; }
+.saas-image-upload-copy { display: grid; min-width: 0; gap: 2px; }
+.saas-image-upload-copy strong { overflow: hidden; color: var(--ds-text-primary); font-size: .77rem; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.saas-image-upload-copy small { color: var(--ds-text-muted); font-size: .68rem; line-height: 1.35; }
+.saas-image-upload-picker > em { padding: 5px 8px; color: var(--ds-accent); background: rgba(var(--ds-accent-rgb), .12); border-radius: 8px; font-size: .64rem; font-style: normal; font-weight: 800; white-space: nowrap; }
+.saas-image-upload-preview { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-top: 9px; padding: 8px; background: var(--ds-bg-elevated); border: 1px solid var(--ds-border-soft); border-radius: 12px; }
+.saas-image-upload-preview[hidden], .saas-image-upload-progress[hidden] { display: none; }
+.saas-image-upload-thumb { width: 52px; height: 52px; overflow: hidden; background: var(--ds-bg-canvas); border-radius: 9px; }
+.saas-image-upload-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.saas-image-upload-file { display: grid; min-width: 0; gap: 2px; }
+.saas-image-upload-file strong { overflow: hidden; color: var(--ds-text-primary); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.saas-image-upload-file small { color: var(--ds-text-muted); font-size: .66rem; }
+.saas-image-upload-clear { display: inline-grid; width: 32px; height: 32px; place-items: center; padding: 0; color: var(--ds-text-muted); background: transparent; border: 1px solid var(--ds-border-soft); border-radius: 9px; }
+.saas-image-upload-clear:hover { color: var(--ds-danger); border-color: rgba(255, 98, 110, .45); background: rgba(255, 98, 110, .08); }
+.saas-image-upload-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 9px; margin-top: 8px; }
+.saas-image-upload-progress-track { height: 5px; overflow: hidden; background: var(--ds-border-soft); border-radius: 999px; }
+.saas-image-upload-progress-track > i { display: block; width: 0; height: 100%; background: linear-gradient(90deg, var(--ds-accent), var(--ds-success)); border-radius: inherit; transition: width 140ms linear; }
+.saas-image-upload-progress small { color: var(--ds-text-muted); font-size: .64rem; font-weight: 700; white-space: nowrap; }
+.saas-image-upload.has-error .saas-image-upload-picker { border-color: var(--ds-danger); background: rgba(255, 98, 110, .07); }
+.saas-image-upload.has-error::after { display: block; margin-top: 6px; color: var(--ds-danger); content: attr(data-upload-error); font-size: .68rem; font-weight: 700; }
+.saas-image-upload.is-uploading .saas-image-upload-picker, .saas-image-upload.is-uploading .saas-image-upload-clear { pointer-events: none; opacity: .66; }
+@media (max-width: 420px) { .saas-image-upload-picker { grid-template-columns: 36px minmax(0, 1fr); } .saas-image-upload-picker > em { display: none; } }

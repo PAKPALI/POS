@@ -2,7 +2,7 @@
 @section('title', 'Produits')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260902-17" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pages.css') }}?v=20260929-1" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         .product-registration-details { margin: 18px 0 0; overflow: hidden; border: 1px solid rgba(220, 53, 69, .28); border-radius: 12px; background: rgba(220, 53, 69, .06); }
@@ -113,8 +113,8 @@
                             </div>
                             <div class="col-md-6 col-lg-4 saas-form-group">
                                 <label>Image <small>(facultative)</small></label>
-                                <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
-                                <small>Jusqu’à 10 Mo. L’image est optimisée automatiquement pour des affichages rapides.</small>
+                                <x-ui.image-upload id="product_image" label="Ajouter une image produit" />
+                                <small>L’image est optimisée automatiquement pour des affichages rapides.</small>
                             </div>
                         </div>
                         @if (!auth()->user()->product_registration_notice_dismissed)
@@ -431,6 +431,10 @@
             $('#add').submit(function(event) {
                 event.preventDefault();
                 var formData = new FormData($('#add')[0]);
+                var submitButton = document.querySelector('[form="add"][type="submit"]');
+                var imageUpload = window.ProductImageUpload ? window.ProductImageUpload.forForm(this) : null;
+                if (window.ServerButtonLoader) window.ServerButtonLoader.start(submitButton, 'Création…');
+                if (imageUpload) imageUpload.start();
                 $.ajax({
                     type: 'POST',
                     url: "{{ route('product.store') }}",
@@ -439,10 +443,18 @@
                     processData: false,
                     contentType: false,
                     datatype: 'json',
+                    xhr: function() {
+                        var xhr = $.ajaxSettings.xhr();
+                        if (imageUpload && xhr.upload) xhr.upload.addEventListener('progress', function(event) {
+                            if (event.lengthComputable) imageUpload.setProgress(event.loaded, event.total);
+                        });
+                        return xhr;
+                    },
                     success: function(data) {
                         if (data.status) {
                             Swal.fire({ toast: true, position: 'top', icon: "success", title: data.title, showConfirmButton: false, timer: 3000, timerProgressBar: true, text: data.msg });
                             $('#add')[0].reset();
+                            if (imageUpload) imageUpload.reset();
                             Datatable.draw();
                         } else {
                             if (data.msg && data.msg.toLowerCase().includes('limite')) showPlanLimitAlert(data.msg);
@@ -453,6 +465,10 @@
                         var message = ajaxErrorMessage(xhr, "Impossible de communiquer avec le serveur.");
                         if (xhr.status === 422 && message.toLowerCase().includes('limite')) showPlanLimitAlert(message);
                         else Swal.fire({ icon: "error", title: "Erreur", text: message, timer: 3600 });
+                    },
+                    complete: function() {
+                        if (window.ServerButtonLoader) window.ServerButtonLoader.stop(submitButton);
+                        if (imageUpload) imageUpload.finish();
                     }
                 });
                 return false;
@@ -467,7 +483,7 @@
                 $.ajax({
                     url: '{{ url("component/product") }}/' + id + '/edit',
                     dataType: 'html',
-                    success: function(result) { $('#edit_response').html(result); },
+                    success: function(result) { $('#edit_response').html(result); if (window.ProductImageUpload) window.ProductImageUpload.init(document.getElementById('edit_response')); },
                     error: function(xhr) { $('#editModal').modal('hide'); Swal.fire({ icon: 'error', title: 'Chargement impossible', text: ajaxErrorMessage(xhr, 'Impossible de charger ce produit.') }); },
                     complete: function() { if (window.ServerButtonLoader) window.ServerButtonLoader.stop(trigger); }
                 });
