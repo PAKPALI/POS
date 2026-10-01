@@ -118,6 +118,21 @@
         </div>
     </section>
 
+    <details class="saas-guide-accordion">
+        <summary><span><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Repartir après des essais : réinitialisation de l’entreprise</span><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
+        <div class="saas-guide-accordion-body">
+            <p>Seul le propriétaire trouve le bouton rouge « Réinitialiser l’entreprise » dans son profil. Cette action concerne uniquement l’entreprise active : vérifiez son nom et exportez les informations à conserver avant de commencer.</p>
+            <ul class="saas-guide-list">
+                <li>Choisissez les rubriques à effacer. Seules celles contenant des données apparaissent. Chaque rubrique explique ses conséquences ; les données liées se cochent automatiquement.</li>
+                <li>Supprimer les ventes remet les statistiques correspondantes à zéro, mais ne restaure pas le stock. Réinitialiser les inventaires remet les quantités à zéro : saisissez ensuite le stock réel.</li>
+                <li>Acceptez les conditions, saisissez votre mot de passe, puis confirmez avec le code envoyé à votre adresse e-mail. Aucune suppression n’a lieu avant cette dernière confirmation ; un e-mail récapitulatif est envoyé après l’opération.</li>
+                <li>Votre compte propriétaire, votre abonnement, vos quotas restants et vos autres entreprises sont conservés. Retirer des membres ne supprime pas leurs comptes personnels. Les messages déjà reçus ne disparaissent pas et les quotas consommés ne sont pas remboursés.</li>
+                <li>Le journal des achats finalisés peut être retiré de votre affichage, mais les preuves de paiement restent conservées par MAXANOU. Les paiements en attente ne sont pas effacés.</li>
+            </ul>
+            <div class="saas-guide-tip"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>La suppression est définitive et ne peut pas être annulée depuis l’application. Demandez à votre équipe d’arrêter les opérations pendant la confirmation. Si les données changent entre-temps, recommencez la sélection.</span></div>
+        </div>
+    </details>
+
     <section class="saas-guide-section" id="abonnement" aria-labelledby="guide-subscription-title">
         <div class="saas-guide-section-heading"><i class="bi bi-credit-card" aria-hidden="true"></i><div><h2 id="guide-subscription-title">Abonnement et limites du plan</h2><p>Cette partie est accessible aux gestionnaires autorisés de la compagnie.</p></div></div>
         <details class="saas-guide-accordion" open>

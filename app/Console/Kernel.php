@@ -40,6 +40,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('platform:check-alerts')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('subscriptions:expire')->dailyAt('00:05')->withoutOverlapping();
         $schedule->command('promo-codes:expire')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->call(function (): void {
+            \App\Models\CompanyResetRequest::whereNotNull('completed_at')->whereNull('notification_sent_at')
+                ->oldest('created_at')->limit(50)->pluck('id')
+                ->each(fn ($id) => \App\Jobs\SendCompanyResetReceipt::dispatch($id));
+        })->name('companies.retry-reset-receipts')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('partners:mature-commissions --limit=200')->hourly()->withoutOverlapping();
         // Le scheduler ne contacte jamais KPrimePay : il ne fait que mettre les retraits
         // en attente dans la queue. Le worker `queue:work --queue=withdrawals` les traite.

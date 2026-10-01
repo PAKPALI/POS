@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'company.resolve' => \App\Http\Middleware\ResolveCompany::class,
         'company.selected' => \App\Http\Middleware\EnsureCompanySelected::class,
+        'company.mutation-lock' => \App\Http\Middleware\CompanyMutationLock::class,
         'permission' => \App\Http\Middleware\EnsurePermission::class,
         'platform.admin' => \App\Http\Middleware\EnsurePlatformAdmin::class,
         'platform.password' => \App\Http\Middleware\EnsurePlatformPasswordChanged::class,

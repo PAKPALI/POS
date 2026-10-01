@@ -20,7 +20,7 @@ class SmsQuotaController extends Controller
     public function index(PlatformPricingService $pricing)
     {
         $company = CompanySetting::findOrFail(app(CompanyContext::class)->getCompanyId());
-        $payments = QuotaPayment::latest()->paginate(10);
+        $payments = QuotaPayment::whereNull('reset_hidden_at')->latest()->paginate(10);
         $smsUnitPrice = $pricing->smsUnitPrice();
         $whatsappUnitPrice = $pricing->whatsappUnitPrice();
 

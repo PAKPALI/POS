@@ -272,6 +272,12 @@ Route::middleware('auth')->prefix('companies')->name('companies.')->group(functi
 });
 
 /*manage user after auth-login*/
+Route::middleware(['auth', 'company.resolve', 'company.selected'])->prefix('profile/company-reset')->name('company.reset.')->group(function () {
+    Route::get('', [\App\Http\Controllers\Company\CompanyResetController::class, 'index'])->name('index');
+    Route::post('challenge', [\App\Http\Controllers\Company\CompanyResetController::class, 'challenge'])->middleware('throttle:3,10')->name('challenge');
+    Route::post('execute', [\App\Http\Controllers\Company\CompanyResetController::class, 'execute'])->middleware('throttle:10,10')->name('execute');
+});
+
 Route::prefix('')->middleware(['auth', 'company.resolve', 'company.selected'])->controller(UserController::class)->group(function () {
     //dashboard
     Route::get('dashboard', 'dashboard')->middleware('permission:dashboard.view')->name('dashboard');
@@ -420,7 +426,7 @@ Route::prefix('ecommerce')->middleware(['auth', 'company.resolve', 'company.sele
 });
 
 /*public ecommerce routes*/
-Route::prefix('boutique/{company:slug}')->controller(App\Http\Controllers\Ecommerce\FrontController::class)->group(function () {
+Route::prefix('boutique/{company:slug}')->middleware('company.mutation-lock')->controller(App\Http\Controllers\Ecommerce\FrontController::class)->group(function () {
     Route::get('/', 'index')->name('storefront.home');
     Route::get('/products', 'allProducts')->name('storefront.products');
     Route::get('/search', 'searchSuggestions')->middleware('throttle:60,1')->name('storefront.search');

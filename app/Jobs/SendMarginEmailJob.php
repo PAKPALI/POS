@@ -45,6 +45,9 @@ class SendMarginEmailJob implements ShouldQueue
             $company = Company::active()->find($this->companyId);
             if (!$company) return;
             app(CompanyContext::class)->setPublicCompany($company);
+            // Une ancienne alerte en attente ne doit pas être envoyée après une réinitialisation.
+            if ($this->saleId && !\App\Models\Sale::whereKey($this->saleId)->exists()) return;
+            if ($this->productId && !\App\Models\Product::whereKey($this->productId)->exists()) return;
             if (!$company->inventory_email_enabled) {
                 Log::info('Notifications d’inventaire par e-mail désactivées', ['company_id' => $company->id]);
                 return;

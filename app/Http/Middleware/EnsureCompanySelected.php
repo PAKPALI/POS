@@ -24,6 +24,6 @@ class EnsureCompanySelected
                 ->with('error', 'Veuillez sélectionner une entreprise.');
         }
 
-        return $next($request);
+        return app(CompanyMutationLock::class)->handle($request, $next);
     }
 }

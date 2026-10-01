@@ -118,6 +118,16 @@
 .pos-saas-body .pos-product { display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; color: var(--ds-text-primary); background: var(--pos-panel-soft); border: 1px solid var(--ds-border-soft); border-radius: 16px; font: inherit; text-align: left; text-decoration: none; box-shadow: 0 12px 26px rgba(2, 6, 23, .12); cursor: pointer; transition: transform 180ms cubic-bezier(.2,.8,.2,1), border-color 180ms ease, box-shadow 180ms ease; }
 .pos-saas-body .pos-product:hover, .pos-saas-body .pos-product.product-hover { border-color: rgba(var(--ds-accent-rgb), .42); box-shadow: 0 18px 36px rgba(2, 6, 23, .2), 0 0 22px rgba(var(--ds-accent-rgb), .08); transform: translateY(-4px); }
 .pos-saas-body .pos-product .img { height: 156px !important; border-radius: 0 !important; }
+.pos-saas-body .pos-product-image { position: relative; overflow: hidden; isolation: isolate; background-color: var(--ds-bg-canvas); background-position: center; background-size: cover; }
+.pos-saas-body .pos-product-image-source { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.025); transition: opacity 280ms ease, transform 420ms cubic-bezier(.2,.72,.3,1); }
+.pos-saas-body .pos-product-image:not(.is-loading) .pos-product-image-source { opacity: 1; transform: scale(1); }
+.pos-saas-body .pos-product-image-skeleton { position: absolute; inset: 0; z-index: 1; overflow: hidden; background: linear-gradient(115deg, var(--ds-bg-canvas) 18%, var(--ds-bg-elevated) 38%, var(--ds-bg-canvas) 62%); background-size: 220% 100%; }
+.pos-saas-body .pos-product-image-skeleton::after { position: absolute; inset: auto 12px 13px; height: 7px; content: ''; background: rgba(var(--ds-accent-rgb), .12); border-radius: 999px; }
+.pos-saas-body .pos-product-image.is-loading .pos-product-image-skeleton { animation: pos-image-skeleton 1.25s ease-in-out infinite; }
+.pos-saas-body .pos-product-image:not(.is-loading) .pos-product-image-skeleton { opacity: 0; transition: opacity 180ms ease; }
+.pos-saas-body .pos-product-image.is-error .pos-product-image-skeleton { opacity: 1; background: linear-gradient(135deg, var(--ds-bg-canvas), var(--ds-bg-elevated)); animation: none; }
+@keyframes pos-image-skeleton { to { background-position: -120% 0; } }
+@media (prefers-reduced-motion: reduce) { .pos-saas-body .pos-product-image.is-loading .pos-product-image-skeleton { animation: none; } .pos-saas-body .pos-product-image-source { transition: none; } }
 .pos-saas-body .pos-product .info { display: grid; gap: 6px; padding: 13px 14px 15px; text-align: left; }
 .pos-saas-body .pos-product .info .title { overflow: hidden; color: var(--ds-text-primary); font-size: .84rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .pos-saas-body .pos-product .info .price { color: var(--ds-accent); font-size: .78rem; font-weight: 800; }

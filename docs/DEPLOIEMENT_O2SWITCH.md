@@ -358,6 +358,18 @@ Si une commande échoue, ne pas poursuivre aveuglément : conserver le mode main
 - [ ] En-têtes HSTS, CSP Report-Only, Referrer-Policy et Permissions-Policy présents
 - [ ] Sauvegarde restaurée sur un environnement de test
 
+## Réinitialisation sélective d’entreprise (1er octobre 2026)
+
+Après sauvegarde et mise à jour du code, exécuter `php artisan migrate --force`, puis les commandes habituelles de nettoyage/reconstruction des caches et `php artisan queue:restart`. La migration `2026_10_01_120000_create_company_reset_requests` ajoute le journal sécurisé des demandes, `quota_payments.reset_hidden_at` et `company_settings.data_reset_at` : elle ne supprime aucune donnée métier existante.
+
+La fonctionnalité se trouve dans **Profil > Réinitialiser l’entreprise**, uniquement pour le propriétaire réel et membre actif de l’entreprise. Les contrôles serveur restent obligatoires même si un lien est saisi directement. Le propriétaire confirme son mot de passe, accepte les conditions, puis saisit un code envoyé par email (10 minutes, 5 essais maximum). Le code est lié à sa session, à son entreprise et à la sélection ; un changement de données impose une nouvelle confirmation. La suppression est transactionnelle et une demande déjà exécutée ne peut pas effacer de nouvelles données lors d’une reprise réseau.
+
+Vérifier SMTP, le worker et le scheduler : le code est envoyé avant toute suppression et l’email récapitulatif passe par la queue. Le scheduler reprend toutes les cinq minutes les récapitulatifs non envoyés. Conserver les demandes de réinitialisation comme preuve indépendante ; elles ne font pas partie du journal d’activité effaçable.
+
+Les dépendances sont définies dans `CompanyResetService::definitions()` et appliquées côté serveur : catalogue → packs/ventes/inventaires/commandes ; ventes ↔ opérations de caisse ; clients → ventes/commandes ; rôles personnalisés → autres membres/invitations. Les inventaires sélectionnés remettent à zéro les quantités conservées. Les caisses sélectionnées sont remplacées par deux caisses vides. Les comptes utilisateurs globaux, abonnements, quotas restants et autres entreprises sont préservés. Les achats de quotas finalisés sont uniquement masqués de l’historique client : conserver leurs reçus et les traces d’idempotence de paiement/notification.
+
+Les écritures HTTP de l’entreprise (y compris les commandes publiques) utilisent un verrou de cache commun pour éviter une vente concurrente à la réinitialisation. Sur plusieurs serveurs, configurer un cache partagé supportant les verrous atomiques ; un cache fichier local ne coordonne qu’un serveur. Ce verrou ne remplace pas une pause opérationnelle de l’équipe et des traitements externes pendant une réinitialisation. Ne jamais tester la suppression sur les données d’un client sans son accord explicite : utiliser une entreprise de test dédiée. Aucun bouton de déploiement ne déclenche automatiquement une réinitialisation.
+
 ## Valeurs à demander au moment du déploiement
 
 Pour produire les commandes finales prêtes à copier, relever uniquement : le nom du domaine, le chemin `/home/...`, le résultat de `which php`, les noms MySQL (sans publier les mots de passe) et les paramètres SMTP fournis par O2switch.

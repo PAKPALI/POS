@@ -765,6 +765,12 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         var CART_KEY = 'ecommerce_cart_{{ $company->public_id }}';
+        var resetVersionKey = 'ecommerce_reset_version_{{ $company->public_id }}';
+        var companyResetVersion = @json((string) ($company->data_reset_at ?? ''));
+        if (companyResetVersion && localStorage.getItem(resetVersionKey) !== companyResetVersion) {
+            localStorage.removeItem(CART_KEY);
+            localStorage.setItem(resetVersionKey, companyResetVersion);
+        }
         var DEFAULT_PRODUCT_IMAGE = @json(asset('icons/product-placeholder.svg'));
         var STOREFRONT_SEARCH_URL = @json(route('storefront.search', $company));
         (function initStorefrontLiveSearch() {

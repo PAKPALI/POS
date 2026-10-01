@@ -5,6 +5,7 @@
 @section('page-title', 'Mon profil')
 
 @push('styles')
+    <link href="{{ asset('hub/assets/css/company-reset.css') }}?v=20261001-2" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 @endpush
 
@@ -38,6 +39,13 @@
         <div class="profile-company"><span><i class="bi bi-shield-check"></i>Rôle actuel</span><strong>{{ $currentMembership?->role?->name ?? 'Membre' }}</strong></div>
         <div class="profile-company"><span><i class="bi bi-phone"></i>Téléphone</span><strong>{{ $profilePhone ? (!empty($phoneRule['dial_code']) ? '+'.$phoneRule['dial_code'].' ' : $phoneCountry.' ').$profilePhone : 'Non renseigné' }}</strong></div>
         <a href="{{ route('companies.select') }}" class="profile-company-link"><i class="bi bi-arrow-left-right"></i>Changer d’entreprise</a>
+        @if($activeCompany && app(\App\Services\CompanyResetService::class)->isOwner($activeCompany, $user))
+            <div class="company-reset-profile-entry">
+                <strong>Réinitialisation de l’entreprise</strong>
+                <p>Supprimez les données d’essai de l’entreprise active après avoir vérifié les conséquences.</p>
+                <a href="{{ route('company.reset.index') }}" class="saas-btn saas-btn-danger"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser l’entreprise</a>
+            </div>
+        @endif
     </aside>
 
     <section class="profile-settings saas-panel">

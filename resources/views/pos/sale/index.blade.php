@@ -6,7 +6,7 @@
 @section('body-class', 'pos-saas-body')
 
 @push('styles')
-    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20260921-4" rel="stylesheet">
+    <link href="{{ asset('hub/assets/css/saas-pos.css') }}?v=20261001-1" rel="stylesheet">
     <style>
         /* POS full-screen dans le shell SaaS */
         .saas-shell { display: flex; flex-direction: column; }
@@ -711,6 +711,13 @@
         const catalogUrl = @json(route('products.search'));
         const clientSearchUrl = @json(route('clients.search'));
         const cartStorageKey = @json('pos_cart_v1_' . auth()->id() . '_' . $activeCompany->id);
+        const resetVersionKey = @json('pos_reset_version_' . auth()->id() . '_' . $activeCompany->id);
+        const companyResetVersion = @json((string) ($activeCompany->data_reset_at ?? ''));
+        if (companyResetVersion && localStorage.getItem(resetVersionKey) !== companyResetVersion) {
+            localStorage.removeItem(cartStorageKey);
+            localStorage.removeItem(@json('pending_orders_' . auth()->id() . '_' . $activeCompany->id));
+            localStorage.setItem(resetVersionKey, companyResetVersion);
+        }
         const catalogState = {
             page: 1,
             query: '',
@@ -740,7 +747,10 @@
                             <button type="button" class="pos-product"
                                 data-id="${Number(product.id)}" data-name="${name}" data-price="${price}"
                                 data-image="${image}" data-qte="${quantity}">
-                                <div class="img" style="background-image:url('${image}');background-size:cover;background-repeat:no-repeat;background-position:center;width:100%;height:150px"></div>
+                                <div class="img pos-product-image is-loading">
+                                    <span class="pos-product-image-skeleton" aria-hidden="true"></span>
+                                    <img class="pos-product-image-source" src="${image}" alt="" loading="lazy" decoding="async">
+                                </div>
                                 <div class="info">
                                     <div class="title">${name}</div>
                                     <div class="title price">${price} ${posCurrency}</div>
@@ -770,6 +780,31 @@
                 x: fallbackRect.left + (fallbackRect.width / 2),
                 y: fallbackRect.top + (fallbackRect.height / 2)
             };
+        }
+
+        function bindProductImageLoading(scope) {
+            $(scope).find('.pos-product-image-source').each(function() {
+                const source = this;
+                const media = source.closest('.pos-product-image');
+                if (!media || media.dataset.imageLoadingBound === 'true') return;
+                media.dataset.imageLoadingBound = 'true';
+
+                const finish = function(success) {
+                    media.classList.remove('is-loading');
+                    media.classList.toggle('is-error', !success);
+                    if (success) {
+                        const loadedImage = source.currentSrc || source.src;
+                        media.style.backgroundImage = `url("${loadedImage.replace(/"/g, '\\"')}")`;
+                    }
+                };
+
+                if (source.complete) {
+                    finish(source.naturalWidth > 0);
+                } else {
+                    source.addEventListener('load', function() { finish(true); }, { once: true });
+                    source.addEventListener('error', function() { finish(false); }, { once: true });
+                }
+            });
         }
 
         function animateProductToCart(productElement, pointerEvent) {
@@ -871,7 +906,9 @@
                 }
             }).done(function(response) {
                 const products = response.data || [];
-                products.forEach(product => $('#catalogProducts').append(productCard(product)));
+                const catalog = $('#catalogProducts');
+                products.forEach(product => catalog.append(productCard(product)));
+                bindProductImageLoading(catalog);
                 bindProductEvents();
 
                 catalogState.hasMore = Number(response.current_page) < Number(response.last_page);
